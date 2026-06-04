@@ -1,0 +1,28 @@
+# ── Web framework ─────────────────────────────────────────────────────────────
+fastapi==0.111.0
+uvicorn[standard]==0.30.1
+sqlalchemy==2.0.30
+pydantic==2.7.1
+pydantic-settings==2.3.0
+python-jose[cryptography]==3.3.0
+bcrypt==4.0.1
+python-multipart==0.0.9
+aiofiles==23.2.1
+httpx==0.27.0
+python-dotenv==1.0.1
+alembic==1.13.1
+
+# ── AI inference client ───────────────────────────────────────────────────────
+# FastAPI talks to vLLM via the OpenAI-compatible API.
+# vLLM itself is installed separately on the GPU server (see requirements.vllm.txt).
+openai>=1.40.0
+
+# ── Embeddings (BGE-M3, runs in-process) ─────────────────────────────────────
+sentence-transformers>=3.0.0
+
+# ── OCR (TrOCR, runs in-process, CPU) ────────────────────────────────────────
+transformers>=4.46.0
+torch>=2.2.0
+Pillow>=10.0.0
+sentencepiece>=0.2.0
+accelerate>=0.30.0

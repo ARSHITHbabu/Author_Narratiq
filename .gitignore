@@ -1,0 +1,25 @@
+# Next.js
+frontend/.next/
+frontend/node_modules/
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Database
+*.db
+*.sqlite
+
+# Uploads (user content)
+backend/uploads/
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Environment files (keep .env.example, ignore real .env)
+backend/.env
+
+# IDE
+.claude/
