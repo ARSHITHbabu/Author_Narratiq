@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Camera, Upload, Loader2, Check, Edit3, AlertCircle, X, ChevronDown, ChevronUp } from 'lucide-react'
+import { Camera, Upload, Loader2, Check, Edit3, AlertCircle, X, ChevronDown, ChevronUp, Lightbulb } from 'lucide-react'
 import { ocrApi } from '@/lib/api'
-import { OcrResult } from '@/lib/types'
+import { OcrResult, OcrSuggestion } from '@/lib/types'
 import { toast } from 'sonner'
 
 const DESTINATIONS = [
@@ -27,6 +27,24 @@ export default function OCRPanel({ storyId }: Props) {
   const [destination, setDestination]   = useState('story_notes')
   const [confirming, setConfirming]     = useState(false)
   const [showRaw, setShowRaw]           = useState(false)
+  // Tracks which suggestion originals the author has dismissed (applied or ignored)
+  const [dismissed, setDismissed]       = useState<Set<string>>(new Set())
+
+  // Active suggestions = all suggestions minus dismissed ones
+  const activeSuggestions: OcrSuggestion[] = (result?.suggestions ?? []).filter(
+    s => !dismissed.has(s.original)
+  )
+
+  const applySuggestion = (s: OcrSuggestion) => {
+    // Replace ALL occurrences of the OCR term with the suggested story term
+    setEditedText(prev => prev.replaceAll(s.original, s.suggested))
+    setDismissed(prev => new Set([...prev, s.original]))
+    toast.success(`"${s.original}" replaced with "${s.suggested}"`)
+  }
+
+  const ignoreSuggestion = (s: OcrSuggestion) => {
+    setDismissed(prev => new Set([...prev, s.original]))
+  }
 
   const handleFile = (f: File) => {
     if (!f.type.startsWith('image/')) return toast.error('Please select an image file')
@@ -35,11 +53,13 @@ export default function OCRPanel({ storyId }: Props) {
     setResult(null)
     setEditedText('')
     setShowRaw(false)
+    setDismissed(new Set())
   }
 
   const extract = async () => {
     if (!file) return
     setExtracting(true)
+    setDismissed(new Set())
     try {
       const res = await ocrApi.extract(storyId, file)
       const data: OcrResult = res.data
@@ -65,6 +85,7 @@ export default function OCRPanel({ storyId }: Props) {
       setResult(null)
       setEditedText('')
       setShowRaw(false)
+      setDismissed(new Set())
     } catch {
       toast.error('Failed to save note')
     } finally {
@@ -78,6 +99,7 @@ export default function OCRPanel({ storyId }: Props) {
     setResult(null)
     setEditedText('')
     setShowRaw(false)
+    setDismissed(new Set())
   }
 
   // True extraction failure: PaddleOCR found no text at all
@@ -139,7 +161,7 @@ export default function OCRPanel({ storyId }: Props) {
             {extracting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Extracting text… (PaddleOCR + TrOCR, ~15 seconds)
+                Extracting text… (EasyOCR + TrOCR, ~60–90 seconds on CPU)
               </>
             ) : (
               <>
@@ -264,6 +286,79 @@ export default function OCRPanel({ storyId }: Props) {
                         {result.raw_text}
                       </pre>
                     )}
+                  </div>
+                )}
+
+                {/* ── Story-context suggestions ─────────────────────────── */}
+                {activeSuggestions.length > 0 && (
+                  <div className="border border-amber-500/20 rounded-xl overflow-hidden">
+                    {/* Header */}
+                    <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/5 border-b border-amber-500/20">
+                      <Lightbulb className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
+                      <span className="text-xs font-medium text-amber-400">
+                        Possible Corrections Using Story Context
+                      </span>
+                      <span className="ml-auto text-xs text-[#5c6391]">
+                        {activeSuggestions.length} suggestion{activeSuggestions.length !== 1 ? 's' : ''}
+                      </span>
+                    </div>
+
+                    {/* Note — author retains full control */}
+                    <p className="px-3 pt-2 text-xs text-[#5c6391] leading-relaxed">
+                      These are possible matches from your manuscript. Review carefully — OCR may have
+                      captured a new name that genuinely differs from an existing character.
+                    </p>
+
+                    {/* Suggestion cards */}
+                    <div className="p-3 flex flex-col gap-2">
+                      {activeSuggestions.map((s) => (
+                        <div
+                          key={s.original}
+                          className="bg-[#0d0f1a] border border-[#2e3454] rounded-xl p-3"
+                        >
+                          {/* Term comparison row */}
+                          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                            <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">
+                              {s.original}
+                            </span>
+                            <span className="text-xs text-[#3d4466]">→</span>
+                            <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-green-500/10 text-green-400 border border-green-500/20">
+                              {s.suggested}
+                            </span>
+                            {/* Confidence badge */}
+                            <span
+                              className={`ml-auto text-xs font-medium ${
+                                s.confidence >= 0.80 ? 'text-green-400'
+                                : s.confidence >= 0.65 ? 'text-amber-400'
+                                : 'text-[#5c6391]'
+                              }`}
+                              title="String similarity to story term"
+                            >
+                              {Math.round(s.confidence * 100)}%
+                            </span>
+                          </div>
+
+                          {/* Reason */}
+                          <p className="text-xs text-[#5c6391] mb-2.5">{s.reason}</p>
+
+                          {/* Action buttons */}
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => applySuggestion(s)}
+                              className="flex-1 text-xs py-1.5 rounded-lg bg-green-500/10 border border-green-500/20 text-green-400 hover:bg-green-500/20 transition-colors font-medium"
+                            >
+                              Apply
+                            </button>
+                            <button
+                              onClick={() => ignoreSuggestion(s)}
+                              className="flex-1 text-xs py-1.5 rounded-lg border border-[#2e3454] text-[#5c6391] hover:text-[#9da3c8] hover:border-[#3d4466] transition-colors"
+                            >
+                              Ignore
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
 

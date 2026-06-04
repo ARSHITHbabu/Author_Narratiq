@@ -201,6 +201,13 @@ class TransformResponse(BaseModel):
 
 # ── OCR ───────────────────────────────────────────────────────────────────────
 
+class OcrSuggestion(BaseModel):
+    original:   str    # token as OCR extracted it
+    suggested:  str    # closest matching story term
+    reason:     str    # human-readable explanation shown in UI
+    confidence: float  # SequenceMatcher similarity ratio (0.0–1.0)
+
+
 class OcrExtractResponse(BaseModel):
     upload_id: str
     raw_text: str
@@ -208,7 +215,8 @@ class OcrExtractResponse(BaseModel):
     note_type: str
     confidence: float
     ocr_engine: str
-    lines_detected: int = 0   # number of text lines PaddleOCR found in the image
+    lines_detected: int = 0          # text lines found by EasyOCR
+    suggestions: List[OcrSuggestion] = []  # story-context correction hints
 
 
 class OcrConfirm(BaseModel):

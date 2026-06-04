@@ -5,9 +5,10 @@ from sqlalchemy.orm import Session
 
 from database import get_db
 from models import OcrUpload
-from schemas import OcrExtractResponse, OcrConfirm
+from schemas import OcrExtractResponse, OcrConfirm, OcrSuggestion
 from routers.auth import get_current_user, User
 from services.ocr_service import process_ocr_image
+from services.ai_service import generate_ocr_suggestions
 
 router = APIRouter(tags=["ocr"])
 
@@ -44,6 +45,11 @@ async def extract_ocr(
             detail="OCR processing failed unexpectedly. Please try again.",
         )
 
+    # Story-context suggestions — synchronous, difflib only, safe to call here.
+    # Returns [] when no chapter summaries exist yet (new project).
+    raw_suggestions = generate_ocr_suggestions(result["raw_text"], story_id, db)
+    suggestions = [OcrSuggestion(**s) for s in raw_suggestions]
+
     upload = OcrUpload(
         story_id=story_id,
         user_id=current_user.user_id,
@@ -67,6 +73,7 @@ async def extract_ocr(
         confidence=result["confidence"],
         ocr_engine=result["ocr_engine"],
         lines_detected=result.get("lines_detected", 0),
+        suggestions=suggestions,
     )
 
 

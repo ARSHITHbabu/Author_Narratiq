@@ -572,7 +572,12 @@ async def clean_ocr_text(raw_text: str) -> tuple[str, str]:
 
     clean_system = (
         "You are an OCR post-processor for handwritten writer's notes. "
-        "Fix spelling, improve formatting, and structure the text. Return ONLY the cleaned text."
+        "Your ONLY task is to fix spacing between words, fix punctuation, join broken lines that "
+        "belong together, and improve readability. "
+        "CRITICAL RULE: Do NOT change, correct, or rewrite any proper nouns — character names, "
+        "place names, organisation names, or unique story-specific terms must be preserved exactly "
+        "as they appear in the OCR text, even if they look misspelled. "
+        "Return ONLY the cleaned text, nothing else."
     )
     cleaned = await _complete(clean_system, f"Raw OCR:\n{raw_text}", temperature=0.0, max_tokens=400)
 
@@ -584,6 +589,148 @@ async def clean_ocr_text(raw_text: str) -> tuple[str, str]:
     valid = {"character", "plot", "setting", "dialogue", "theme", "research", "other"}
     note_type = raw_type.strip().lower().split()[0] if raw_type.strip() else "other"
     return cleaned, note_type if note_type in valid else "other"
+
+
+# ── OCR story-context suggestions ────────────────────────────────────────────
+
+def generate_ocr_suggestions(raw_text: str, story_id: str, db) -> list[dict]:
+    """
+    Compare OCR-extracted proper nouns against known story vocabulary and
+    return correction suggestions when a close-but-not-identical match exists.
+
+    Uses only difflib.SequenceMatcher (standard library, no LLM, no BGE-M3).
+    Never modifies the cleaned text automatically — all suggestions require
+    explicit author approval via the UI Apply button.
+
+    Story vocabulary is sourced from ChapterSummary.characters_present and
+    ChapterSummary.locations, so it reflects what the author has actually written.
+
+    Returns list of dicts:
+        original    — the token as OCR extracted it
+        suggested   — the closest story term
+        reason      — human-readable explanation
+        confidence  — SequenceMatcher ratio (0.0–1.0)
+    """
+    import re
+    from difflib import SequenceMatcher
+    from models import ChapterSummary
+
+    if not raw_text or not raw_text.strip():
+        return []
+
+    # ── Gather story vocabulary ───────────────────────────────────────────────
+    summaries = (
+        db.query(ChapterSummary)
+        .filter(ChapterSummary.story_id == story_id)
+        .all()
+    )
+    if not summaries:
+        return []
+
+    story_chars: set[str] = set()
+    story_locs:  set[str] = set()
+
+    for s in summaries:
+        for name in (s.characters_present or []):
+            t = name.strip()
+            if len(t) >= 3:
+                story_chars.add(t)
+        for loc in (s.locations or []):
+            t = loc.strip()
+            if len(t) >= 3:
+                story_locs.add(t)
+
+    if not story_chars and not story_locs:
+        return []
+
+    # ── Common sentence-starting words that are NOT proper nouns ─────────────
+    NOT_PROPER = {
+        "The", "A", "An", "I", "It", "This", "That", "These", "Those",
+        "He", "She", "We", "They", "You", "Me", "Him", "Her", "Us", "Them",
+        "His", "Its", "Our", "Your", "Their", "My",
+        "Was", "Were", "Is", "Are", "Has", "Have", "Had", "Does", "Do",
+        "And", "But", "Or", "So", "Yet", "For", "Nor",
+        "As", "At", "By", "In", "Of", "On", "To", "Up", "Via",
+        "Mr", "Mrs", "Ms", "Dr", "Prof", "Sir",
+        "While", "When", "Where", "Why", "How", "What", "Who",
+        "Still", "Just", "Also", "Then", "Now", "Here", "There",
+    }
+
+    def _sim(a: str, b: str) -> float:
+        return SequenceMatcher(None, a.lower(), b.lower()).ratio()
+
+    def _best_match(
+        ocr_term: str,
+        vocab_chars: set[str],
+        vocab_locs: set[str],
+        min_sim: float,
+    ) -> tuple[str, str, float] | None:
+        """
+        Return (suggested, label, confidence) for the highest-similarity match,
+        or None if nothing clears the threshold.
+        Excludes exact matches (ratio == 1.0) — those need no correction.
+        """
+        best_term  = None
+        best_label = ""
+        best_ratio = 0.0
+
+        for name in vocab_chars:
+            r = _sim(ocr_term, name)
+            if min_sim <= r < 1.0 and r > best_ratio:
+                best_ratio = r
+                best_term  = name
+                best_label = "character name"
+
+        for loc in vocab_locs:
+            r = _sim(ocr_term, loc)
+            if min_sim <= r < 1.0 and r > best_ratio:
+                best_ratio = r
+                best_term  = loc
+                best_label = "location"
+
+        if best_term:
+            return best_term, best_label, round(best_ratio, 2)
+        return None
+
+    # ── Extract candidate proper nouns from OCR text ──────────────────────────
+    # Single capitalised words (3+ chars, not in the common-word exclusion list)
+    single_caps = [
+        w for w in re.findall(r'\b[A-Z][a-zA-Z]{2,}\b', raw_text)
+        if w not in NOT_PROPER
+    ]
+    # Multi-word capitalised phrases (2–5 consecutive capitalised tokens)
+    multi_caps = [
+        m.strip()
+        for m in re.findall(
+            r'\b(?:[A-Z][a-zA-Z]+\s+){1,4}[A-Z][a-zA-Z]+\b',
+            raw_text,
+        )
+        if m.strip() not in NOT_PROPER
+    ]
+
+    seen:        set[str]  = set()
+    suggestions: list[dict] = []
+
+    for term in multi_caps + single_caps:   # phrases first for better precision
+        if term in seen:
+            continue
+        # Phrases get a slightly lower threshold — they share keywords but may
+        # differ in word choice (e.g. "Residents Association" variant).
+        threshold = 0.50 if " " in term else 0.60
+        match = _best_match(term, story_chars, story_locs, threshold)
+        if match:
+            suggested, label, confidence = match
+            seen.add(term)
+            suggestions.append({
+                "original":   term,
+                "suggested":  suggested,
+                "reason":     f"Similar {label} found in the manuscript.",
+                "confidence": confidence,
+            })
+
+    suggestions.sort(key=lambda x: x["confidence"], reverse=True)
+    # Cap at 8 to keep the UI readable
+    return suggestions[:8]
 
 
 # ── Embeddings (BGE-M3) ───────────────────────────────────────────────────────

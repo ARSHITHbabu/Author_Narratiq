@@ -83,6 +83,13 @@ export interface AISuggestion {
   reason: string
 }
 
+export interface OcrSuggestion {
+  original: string    // OCR-extracted term
+  suggested: string   // closest story match
+  reason: string      // displayed to author
+  confidence: number  // 0.0–1.0 similarity score
+}
+
 export interface OcrResult {
   upload_id: string
   raw_text: string
@@ -91,6 +98,7 @@ export interface OcrResult {
   confidence: number
   ocr_engine: string
   lines_detected: number
+  suggestions: OcrSuggestion[]
 }
 
 export type ToneType =
