@@ -186,13 +186,14 @@ async def detect_genre(description: str, audience_hint: Optional[str] = None) ->
         "themes (string array), writing_direction, confidence (float 0–1). No extra text, just JSON."
     )
     raw = await _complete(system, f"Description: {description}\nAudience: {audience}", max_tokens=350)
-    return _extract_json(raw, {
-        "genre": "Literary Fiction", "sub_genre": "Psychological Drama",
-        "tone": ["Introspective", "Nuanced"], "audience": audience,
-        "structure": "Character study", "conflict": "Internal vs. external",
-        "themes": ["Identity", "Human connection"],
-        "writing_direction": "Focus on voice and interiority.", "confidence": 0.75,
-    })
+    result = _extract_json(raw, None)
+    if result is None:
+        print(f"[detect_genre] Qwen returned invalid JSON. Raw response: {raw[:300]!r}")
+        raise ValueError(
+            "Genre detection failed: AI model returned invalid output. "
+            "Please try again."
+        )
+    return result
 
 
 # ── Text Refinement ───────────────────────────────────────────────────────────
@@ -356,12 +357,11 @@ async def generate_suggestions(text: str, story_context: str = "", genre: str = 
     result = _extract_json(raw, None)
     if isinstance(result, list):
         return result
-    return [
-        {"id": 1, "category": "Prose Quality",    "text": "Vary sentence length deliberately — short sentences build tension.", "reason": "Uniform sentence length reduces rhythmic impact."},
-        {"id": 2, "category": "Show Don't Tell",  "text": "Replace emotional labels with physical manifestations.",             "reason": "Current text tells rather than shows."},
-        {"id": 3, "category": "Dialogue",          "text": "Add a dialogue beat to reveal character through voice.",            "reason": "Extended prose block could use a break."},
-        {"id": 4, "category": "Pacing",            "text": "Expand sensory detail here — the moment feels rushed.",            "reason": "Key beat needs space to land."},
-    ]
+    print(f"[generate_suggestions] Qwen returned invalid JSON. Raw response: {raw[:300]!r}")
+    raise ValueError(
+        "Writing suggestions failed: AI model returned invalid output. "
+        "Please try again."
+    )
 
 
 # ── Plot Assistant — intent detection ─────────────────────────────────────────
@@ -546,12 +546,11 @@ async def generate_plot_suggestions(
     result = _extract_json(raw, None)
     if isinstance(result, list):
         return result
-    return [
-        {"id": 1, "text": "A secret the protagonist has been hiding surfaces, forcing a reckoning with a key relationship.", "rationale": "Fits established story elements."},
-        {"id": 2, "text": "An unexpected visitor arrives carrying information that reframes everything established so far.",   "rationale": "Fits established story elements."},
-        {"id": 3, "text": "The antagonist makes their most decisive move, leaving the protagonist with an impossible choice.", "rationale": "Fits established story elements."},
-        {"id": 4, "text": "A minor character introduced earlier becomes unexpectedly central to the resolution.",             "rationale": "Fits established story elements."},
-    ]
+    print(f"[generate_plot_suggestions] Qwen returned invalid JSON. Raw response: {raw[:300]!r}")
+    raise ValueError(
+        "Plot suggestion generation failed: AI model returned invalid output. "
+        "Please try again."
+    )
 
 
 # ── OCR text cleanup (called by ocr_service after TrOCR) ─────────────────────
@@ -606,16 +605,13 @@ async def generate_chapter_summary(chapter_text: str, chapter_number: int) -> di
     result = _extract_json(raw, None)
     if isinstance(result, dict):
         return result
-    words = chapter_text.split()
-    return {
-        "key_events": [f"Primary event of chapter {chapter_number}"],
-        "characters_present": ["Protagonist"],
-        "locations": ["Primary scene location"],
-        "timeline_markers": [f"Chapter {chapter_number}"],
-        "emotional_tone": "Neutral",
-        "chapter_purpose": f"Advances chapter {chapter_number} arc",
-        "raw_summary": f"[Chapter {chapter_number} — {len(words)} words]",
-    }
+    print(
+        f"[generate_chapter_summary] Ch{chapter_number}: Qwen returned invalid JSON. "
+        f"Raw response: {raw[:300]!r}"
+    )
+    raise ValueError(
+        f"Chapter {chapter_number} summary generation failed: AI model returned invalid output."
+    )
 
 
 # ── Chunk embedding store ─────────────────────────────────────────────────────
@@ -774,7 +770,13 @@ async def summarize_and_embed_chapter(
     )
 
     # 1 + 2: summary + summary embedding
-    summary_data = await generate_chapter_summary(plain_flat, chapter_number)
+    try:
+        summary_data = await generate_chapter_summary(plain_flat, chapter_number)
+    except ValueError as exc:
+        # Qwen returned invalid output — do NOT store or embed anything fake.
+        # The chapter remains un-indexed until the next sync-summaries run.
+        print(f"[summary] Ch{chapter_number} ({chapter_id[:8]}...): {exc} — skipping indexing.")
+        return
     raw_summary  = summary_data.get("raw_summary", "")
 
     print(f"[embedding] BGE-M3 embedding for ch{chapter_number} summary...")

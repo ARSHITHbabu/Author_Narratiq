@@ -17,15 +17,15 @@ const CREATIVE_TEMPLATES = [
 ]
 
 const MODE_LABEL: Record<string, string> = {
-  qa:          'Answer',
-  suggestions: 'Suggestions',
-  mixed:       'Answer + Suggestions',
+  qa:       'Answer',
+  creative: 'Creative Ideas',
+  mixed:    'Answer + Suggestions',
 }
 
 const MODE_COLOR: Record<string, string> = {
-  qa:          'text-sky-400',
-  suggestions: 'text-amber-400',
-  mixed:       'text-violet-400',
+  qa:       'text-sky-400',
+  creative: 'text-amber-400',
+  mixed:    'text-violet-400',
 }
 
 interface Props {

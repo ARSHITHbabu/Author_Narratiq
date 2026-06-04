@@ -1,5 +1,5 @@
 import json
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 
 from schemas import (
@@ -126,7 +126,10 @@ async def translate_stream(data: TranslationRequest, current_user: User = Depend
 
 @router.post("/suggestions", response_model=SuggestionsResponse)
 async def suggestions(data: SuggestionRequest, current_user: User = Depends(get_current_user)):
-    raw = await ai_service.generate_suggestions(data.text)
+    try:
+        raw = await ai_service.generate_suggestions(data.text)
+    except ValueError as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
     from schemas import Suggestion
     result = [Suggestion(**s) for s in raw]
     return SuggestionsResponse(suggestions=result, tokens_used=len(data.text.split()) * 2)

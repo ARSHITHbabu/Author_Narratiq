@@ -145,7 +145,7 @@ class PlotAssistantRequest(BaseModel):
 
 class PlotAssistantResponse(BaseModel):
     session_id: str
-    mode: str = "suggestions"   # "qa" | "suggestions" | "mixed"
+    mode: str = "creative"   # "qa" | "creative" | "mixed"
     answer: Optional[str] = None   # present for "qa" and "mixed" modes
     suggestions: List[PlotSuggestion] = []   # present for "suggestions" and "mixed"
     context_used: str

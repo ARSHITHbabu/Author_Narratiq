@@ -1,9 +1,9 @@
 import uuid
 from fastapi import APIRouter, Depends, HTTPException
 import json
-import json
 from sqlalchemy.orm import Session
 
+from config import settings
 from database import get_db
 from models import Story, StoryIntake, GenreProfile
 from schemas import IntakeRequest, IntakeResponse, IntakeConfirm, GenreProfile as GenreProfileSchema
@@ -27,7 +27,13 @@ async def analyze_story(
     if len(data.description.strip()) < 20:
         raise HTTPException(status_code=400, detail="Description must be at least 20 characters")
 
-    result = await detect_genre(data.description, data.audience_hint)
+    try:
+        result = await detect_genre(data.description, data.audience_hint)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=str(exc),
+        )
 
     # Upsert intake record
     intake = db.query(StoryIntake).filter(StoryIntake.story_id == story_id).first()
@@ -60,7 +66,7 @@ async def analyze_story(
         confidence=result["confidence"],
     )
 
-    return IntakeResponse(intake_id=intake.intake_id, genre_profile=profile, model="placeholder-v1")
+    return IntakeResponse(intake_id=intake.intake_id, genre_profile=profile, model=settings.vllm_model_name)
 
 
 @router.post("/{story_id}/confirm")

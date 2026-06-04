@@ -169,6 +169,9 @@ async def plot_assistant(
                 f"({type(exc).__name__})"
             ),
         )
+    except ValueError as exc:
+        print(f"[plot_assistant] Invalid model output: {exc}")
+        raise HTTPException(status_code=503, detail=str(exc))
 
     # ── Persist session ───────────────────────────────────────────────────────
     stored_chunks = [

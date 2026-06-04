@@ -12,6 +12,12 @@ def gen_uuid():
     return str(uuid.uuid4())
 
 
+def _current_model_version() -> str:
+    """Return the configured vLLM model name as the model_version default."""
+    from config import settings
+    return settings.vllm_model_name
+
+
 class User(Base):
     __tablename__ = "users"
     user_id = Column(String, primary_key=True, default=gen_uuid)
@@ -85,7 +91,7 @@ class StoryIntake(Base):
     theme_hints = Column(JSON, default=list)
     author_confirmed = Column(Boolean, default=False)
     author_overrides = Column(JSON, default=dict)
-    model_version = Column(String, default="placeholder-v1")
+    model_version = Column(String, default=_current_model_version)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     story = relationship("Story", back_populates="story_intake")
@@ -154,7 +160,7 @@ class ChapterSummary(Base):
     chapter_purpose = Column(Text)
     raw_summary = Column(Text)
     embedding = Column(JSON, default=None)   # BGE-M3 dense vector (1024-dim list[float])
-    model_version = Column(String, default="placeholder-v1")
+    model_version = Column(String, default=_current_model_version)
     generated_at = Column(DateTime, default=datetime.utcnow)
     is_stale = Column(Boolean, default=False)
 
