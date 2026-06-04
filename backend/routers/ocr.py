@@ -32,7 +32,17 @@ async def extract_ocr(
     with open(file_path, "wb") as f:
         f.write(content)
 
-    result = await process_ocr_image(file_path)
+    try:
+        result = await process_ocr_image(file_path)
+    except RuntimeError as exc:
+        # Model not installed or pipeline crashed — surface as 500 with clear message
+        raise HTTPException(status_code=500, detail=str(exc))
+    except Exception as exc:
+        print(f"[ocr endpoint] Unexpected pipeline error: {exc}")
+        raise HTTPException(
+            status_code=500,
+            detail="OCR processing failed unexpectedly. Please try again.",
+        )
 
     upload = OcrUpload(
         story_id=story_id,
@@ -56,6 +66,7 @@ async def extract_ocr(
         note_type=result["note_type"],
         confidence=result["confidence"],
         ocr_engine=result["ocr_engine"],
+        lines_detected=result.get("lines_detected", 0),
     )
 
 

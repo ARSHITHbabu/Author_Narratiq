@@ -20,9 +20,15 @@ openai>=1.40.0
 # ── Embeddings (BGE-M3, runs in-process) ─────────────────────────────────────
 sentence-transformers>=3.0.0
 
-# ── OCR (TrOCR, runs in-process, CPU) ────────────────────────────────────────
+# ── OCR (PaddleOCR detect + TrOCR recognize, both CPU) ───────────────────────
+# PaddleOCR: full-page text detection (DBNet) — handles multi-line, tilted images.
+# TrOCR: per-line handwriting recognition — optimized for handwritten text.
+# opencv-python-headless: image cropping and perspective correction.
 transformers>=4.46.0
 torch>=2.2.0
 Pillow>=10.0.0
 sentencepiece>=0.2.0
 accelerate>=0.30.0
+paddlepaddle>=2.5.0
+paddleocr>=2.7.0
+opencv-python-headless>=4.8.0

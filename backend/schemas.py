@@ -208,6 +208,7 @@ class OcrExtractResponse(BaseModel):
     note_type: str
     confidence: float
     ocr_engine: str
+    lines_detected: int = 0   # number of text lines PaddleOCR found in the image
 
 
 class OcrConfirm(BaseModel):

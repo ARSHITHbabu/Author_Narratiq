@@ -62,7 +62,7 @@ export interface PlotSuggestion {
 
 export interface PlotAssistantResponse {
   session_id: string
-  mode: 'qa' | 'suggestions' | 'mixed'
+  mode: 'qa' | 'creative' | 'mixed'
   answer?: string
   suggestions: PlotSuggestion[]
   context_used: string
@@ -90,6 +90,7 @@ export interface OcrResult {
   note_type: string
   confidence: number
   ocr_engine: string
+  lines_detected: number
 }
 
 export type ToneType =

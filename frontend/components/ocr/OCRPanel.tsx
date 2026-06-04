@@ -1,16 +1,16 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Camera, Upload, Loader2, Check, Edit3, AlertCircle, X } from 'lucide-react'
+import { Camera, Upload, Loader2, Check, Edit3, AlertCircle, X, ChevronDown, ChevronUp } from 'lucide-react'
 import { ocrApi } from '@/lib/api'
 import { OcrResult } from '@/lib/types'
 import { toast } from 'sonner'
 
 const DESTINATIONS = [
-  { id: 'story_notes', label: 'Story Notes' },
-  { id: 'chapter_draft', label: 'Current Chapter Draft' },
+  { id: 'story_notes',       label: 'Story Notes' },
+  { id: 'chapter_draft',     label: 'Current Chapter Draft' },
   { id: 'character_profile', label: 'Character Profile' },
-  { id: 'note_card', label: 'Note Card' },
+  { id: 'note_card',         label: 'Note Card' },
 ]
 
 interface Props {
@@ -19,21 +19,22 @@ interface Props {
 
 export default function OCRPanel({ storyId }: Props) {
   const fileRef = useRef<HTMLInputElement>(null)
-  const [preview, setPreview] = useState<string | null>(null)
-  const [file, setFile] = useState<File | null>(null)
-  const [extracting, setExtracting] = useState(false)
-  const [result, setResult] = useState<OcrResult | null>(null)
-  const [editedText, setEditedText] = useState('')
-  const [destination, setDestination] = useState('story_notes')
-  const [confirming, setConfirming] = useState(false)
+  const [preview, setPreview]           = useState<string | null>(null)
+  const [file, setFile]                 = useState<File | null>(null)
+  const [extracting, setExtracting]     = useState(false)
+  const [result, setResult]             = useState<OcrResult | null>(null)
+  const [editedText, setEditedText]     = useState('')
+  const [destination, setDestination]   = useState('story_notes')
+  const [confirming, setConfirming]     = useState(false)
+  const [showRaw, setShowRaw]           = useState(false)
 
   const handleFile = (f: File) => {
     if (!f.type.startsWith('image/')) return toast.error('Please select an image file')
     setFile(f)
-    const url = URL.createObjectURL(f)
-    setPreview(url)
+    setPreview(URL.createObjectURL(f))
     setResult(null)
     setEditedText('')
+    setShowRaw(false)
   }
 
   const extract = async () => {
@@ -41,10 +42,13 @@ export default function OCRPanel({ storyId }: Props) {
     setExtracting(true)
     try {
       const res = await ocrApi.extract(storyId, file)
-      setResult(res.data)
-      setEditedText(res.data.cleaned_text)
-    } catch {
-      toast.error('OCR extraction failed. Please try again.')
+      const data: OcrResult = res.data
+      setResult(data)
+      // Prefer Qwen-cleaned text; fall back to raw OCR if cleanup produced nothing
+      setEditedText(data.cleaned_text || data.raw_text)
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail
+      toast.error(detail || 'OCR extraction failed. Please try again.')
     } finally {
       setExtracting(false)
     }
@@ -55,11 +59,12 @@ export default function OCRPanel({ storyId }: Props) {
     setConfirming(true)
     try {
       await ocrApi.confirm(result.upload_id, editedText, destination)
-      toast.success(`Note saved to ${DESTINATIONS.find((d) => d.id === destination)?.label}`)
+      toast.success(`Note saved to ${DESTINATIONS.find(d => d.id === destination)?.label}`)
       setPreview(null)
       setFile(null)
       setResult(null)
       setEditedText('')
+      setShowRaw(false)
     } catch {
       toast.error('Failed to save note')
     } finally {
@@ -72,7 +77,11 @@ export default function OCRPanel({ storyId }: Props) {
     setFile(null)
     setResult(null)
     setEditedText('')
+    setShowRaw(false)
   }
+
+  // True extraction failure: PaddleOCR found no text at all
+  const extractionFailed = result !== null && !result.raw_text && !result.cleaned_text
 
   return (
     <div className="flex flex-col h-full">
@@ -86,6 +95,7 @@ export default function OCRPanel({ storyId }: Props) {
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+
         {/* Upload area */}
         {!preview ? (
           <div
@@ -97,7 +107,7 @@ export default function OCRPanel({ storyId }: Props) {
             <Camera className="w-10 h-10 text-[#3d4466] mx-auto mb-3" />
             <p className="text-sm text-[#9da3c8] mb-1">Upload handwritten note photo</p>
             <p className="text-xs text-[#3d4466]">JPEG, PNG, WebP — drag & drop or click</p>
-            <p className="text-xs text-[#3d4466] mt-2 italic">Tip: Clear, neat handwriting on plain white paper works best</p>
+            <p className="text-xs text-[#3d4466] mt-2 italic">Tip: Clear handwriting on plain white paper gives best results</p>
           </div>
         ) : (
           <div className="relative">
@@ -119,6 +129,7 @@ export default function OCRPanel({ storyId }: Props) {
           onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f) }}
         />
 
+        {/* Extract button */}
         {preview && !result && (
           <button
             onClick={extract}
@@ -128,7 +139,7 @@ export default function OCRPanel({ storyId }: Props) {
             {extracting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Extracting text... (~10 seconds)
+                Extracting text… (PaddleOCR + TrOCR, ~15 seconds)
               </>
             ) : (
               <>
@@ -139,78 +150,157 @@ export default function OCRPanel({ storyId }: Props) {
           </button>
         )}
 
-        {/* OCR Result */}
+        {/* ── OCR Result ─────────────────────────────────────────────────── */}
         {result && (
           <div className="animate-slide-up space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-amber-400 font-medium">Text Extracted</span>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-[#5c6391]">Engine: {result.ocr_engine}</span>
-                <span className={`text-xs ${result.confidence > 0.8 ? 'text-green-400' : result.confidence > 0.6 ? 'text-amber-400' : 'text-red-400'}`}>
-                  {Math.round(result.confidence * 100)}% confidence
-                </span>
-              </div>
-            </div>
 
-            {result.confidence < 0.7 && (
-              <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/20 rounded-xl p-3">
-                <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-amber-400">Low confidence — please review carefully before saving</p>
+            {/* Extraction failed — no text detected */}
+            {extractionFailed ? (
+              <div className="flex flex-col gap-3">
+                <div className="flex items-start gap-2 bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+                  <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-red-400 mb-1">No text detected</p>
+                    <p className="text-xs text-red-300/80 leading-relaxed">
+                      The OCR pipeline could not find any text in this image.
+                    </p>
+                  </div>
+                </div>
+                <div className="bg-[#0d0f1a] border border-[#1f2440] rounded-xl p-3">
+                  <p className="text-xs font-medium text-[#9da3c8] mb-2">Tips for better results:</p>
+                  <ul className="text-xs text-[#5c6391] space-y-1">
+                    <li>• Use plain white or light-coloured paper</li>
+                    <li>• Ensure good, even lighting — avoid shadows</li>
+                    <li>• Keep handwriting dark and clear</li>
+                    <li>• Hold the phone directly above the paper (avoid angles)</li>
+                    <li>• Avoid very small or faint handwriting</li>
+                  </ul>
+                </div>
+                <button
+                  onClick={reset}
+                  className="w-full border border-[#2e3454] text-[#9da3c8] hover:border-amber-500/40 hover:text-amber-400 font-medium py-2.5 rounded-xl text-sm transition-colors"
+                >
+                  Try a different image
+                </button>
               </div>
+            ) : (
+              <>
+                {/* Confidence + engine + lines info */}
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <span className="text-xs text-amber-400 font-medium">Text Extracted</span>
+                  <div className="flex items-center gap-3 text-xs text-[#5c6391]">
+                    <span title="OCR engine used">Engine: {result.ocr_engine}</span>
+                    {result.lines_detected > 0 && (
+                      <span title="Text lines detected by PaddleOCR">
+                        {result.lines_detected} line{result.lines_detected !== 1 ? 's' : ''}
+                      </span>
+                    )}
+                    <span
+                      className={
+                        result.confidence > 0.8
+                          ? 'text-green-400'
+                          : result.confidence > 0.5
+                          ? 'text-amber-400'
+                          : 'text-red-400'
+                      }
+                      title="Average PaddleOCR detection confidence"
+                    >
+                      {Math.round(result.confidence * 100)}% confidence
+                    </span>
+                  </div>
+                </div>
+
+                {/* Low confidence warning */}
+                {result.confidence < 0.5 && result.confidence > 0 && (
+                  <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/20 rounded-xl p-3">
+                    <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-amber-400">
+                      Low confidence — review the extracted text carefully before saving.
+                    </p>
+                  </div>
+                )}
+
+                {/* Note type badge */}
+                {result.note_type && result.note_type !== 'other' && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-[#5c6391]">Classified as:</span>
+                    <span className="px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 rounded-full text-xs text-amber-400 capitalize">
+                      {result.note_type}
+                    </span>
+                  </div>
+                )}
+
+                {/* Editable cleaned text */}
+                <div>
+                  <div className="flex items-center gap-1 text-xs text-[#5c6391] mb-1.5">
+                    <Edit3 className="w-3 h-3" />
+                    {result.cleaned_text
+                      ? 'AI-cleaned text — review and edit before saving:'
+                      : 'Raw OCR text — review and edit before saving:'}
+                  </div>
+                  <textarea
+                    value={editedText}
+                    onChange={(e) => setEditedText(e.target.value)}
+                    rows={8}
+                    className="w-full bg-[#0d0f1a] border border-[#2e3454] rounded-xl px-3 py-2.5 text-sm text-[#e8eaf6] focus:outline-none focus:border-amber-500/50 transition-colors resize-none font-mono"
+                  />
+                </div>
+
+                {/* Raw OCR output — collapsible, for review/debugging */}
+                {result.raw_text && result.cleaned_text && result.raw_text !== result.cleaned_text && (
+                  <div className="border border-[#1f2440] rounded-xl overflow-hidden">
+                    <button
+                      onClick={() => setShowRaw(!showRaw)}
+                      className="w-full flex items-center justify-between px-3 py-2 text-xs text-[#5c6391] hover:text-[#9da3c8] hover:bg-[#0d0f1a] transition-colors"
+                    >
+                      <span>Raw OCR output (before AI cleanup)</span>
+                      {showRaw
+                        ? <ChevronUp className="w-3.5 h-3.5" />
+                        : <ChevronDown className="w-3.5 h-3.5" />
+                      }
+                    </button>
+                    {showRaw && (
+                      <pre className="px-3 py-2.5 text-xs text-[#5c6391] bg-[#0d0f1a] font-mono whitespace-pre-wrap break-words border-t border-[#1f2440]">
+                        {result.raw_text}
+                      </pre>
+                    )}
+                  </div>
+                )}
+
+                {/* Destination picker */}
+                <div>
+                  <label className="text-xs text-[#5c6391] mb-1.5 block">Save to:</label>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {DESTINATIONS.map((d) => (
+                      <button
+                        key={d.id}
+                        onClick={() => setDestination(d.id)}
+                        className={`py-2 px-2 rounded-lg border text-xs text-left transition-all ${
+                          destination === d.id
+                            ? 'border-amber-500/50 bg-amber-500/10 text-amber-400'
+                            : 'border-[#1f2440] text-[#9da3c8] hover:border-[#2e3454]'
+                        }`}
+                      >
+                        {d.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Save button */}
+                <button
+                  onClick={confirm}
+                  disabled={confirming || !editedText.trim()}
+                  className="w-full bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-black font-semibold py-3 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
+                >
+                  {confirming ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                  Confirm & Save to Project
+                </button>
+              </>
             )}
-
-            {/* Note type badge */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-[#5c6391]">Classified as:</span>
-              <span className="px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 rounded-full text-xs text-amber-400 capitalize">
-                {result.note_type}
-              </span>
-            </div>
-
-            {/* Editable text */}
-            <div>
-              <div className="flex items-center gap-1 text-xs text-[#5c6391] mb-1.5">
-                <Edit3 className="w-3 h-3" />
-                Review and edit before saving:
-              </div>
-              <textarea
-                value={editedText}
-                onChange={(e) => setEditedText(e.target.value)}
-                rows={8}
-                className="w-full bg-[#0d0f1a] border border-[#2e3454] rounded-xl px-3 py-2.5 text-sm text-[#e8eaf6] focus:outline-none focus:border-amber-500/50 transition-colors resize-none font-mono"
-              />
-            </div>
-
-            {/* Destination */}
-            <div>
-              <label className="text-xs text-[#5c6391] mb-1.5 block">Save to:</label>
-              <div className="grid grid-cols-2 gap-1.5">
-                {DESTINATIONS.map((d) => (
-                  <button
-                    key={d.id}
-                    onClick={() => setDestination(d.id)}
-                    className={`py-2 px-2 rounded-lg border text-xs text-left transition-all ${
-                      destination === d.id
-                        ? 'border-amber-500/50 bg-amber-500/10 text-amber-400'
-                        : 'border-[#1f2440] text-[#9da3c8] hover:border-[#2e3454]'
-                    }`}
-                  >
-                    {d.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <button
-              onClick={confirm}
-              disabled={confirming || !editedText.trim()}
-              className="w-full bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-black font-semibold py-3 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
-            >
-              {confirming ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-              Confirm & Save to Project
-            </button>
           </div>
         )}
+
       </div>
     </div>
   )

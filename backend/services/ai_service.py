@@ -556,7 +556,20 @@ async def generate_plot_suggestions(
 # ── OCR text cleanup (called by ocr_service after TrOCR) ─────────────────────
 
 async def clean_ocr_text(raw_text: str) -> tuple[str, str]:
-    """Returns (cleaned_text, note_type)."""
+    """
+    Returns (cleaned_text, note_type).
+
+    Safety guard: if raw_text is empty or too short, return immediately
+    without calling Qwen. This prevents Qwen from generating a "no text
+    to clean" filler response that would be shown as the extracted text.
+    """
+    if not raw_text or len(raw_text.strip()) < 5:
+        print(
+            f"[clean_ocr_text] raw_text too short ({len(raw_text.strip())} chars) — "
+            "skipping Qwen call."
+        )
+        return ("", "other")
+
     clean_system = (
         "You are an OCR post-processor for handwritten writer's notes. "
         "Fix spelling, improve formatting, and structure the text. Return ONLY the cleaned text."
