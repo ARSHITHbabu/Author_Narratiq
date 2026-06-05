@@ -14,6 +14,7 @@ from services.ai_service import (
     generate_plot_suggestions,
     retrieve_relevant_chunks,       # chapter-level  — for plot suggestions
     retrieve_chunks_from_store,     # paragraph-level — for QA
+    retrieve_character_context,     # character profiles — for both modes
 )
 
 router = APIRouter(tags=["plot-assistant"])
@@ -27,7 +28,7 @@ async def plot_assistant(
 ):
     story = db.query(Story).filter(
         Story.story_id == data.story_id,
-        Story.user_id == current_user.user_id,
+        Story.user_id  == current_user.user_id,
     ).first()
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
@@ -70,8 +71,9 @@ async def plot_assistant(
     ]
     print(f"[plot_assistant] ChapterSummary rows in DB: {len(summaries)}")
 
-    # ── Step 1: intent detection + BGE-M3 retrieval in parallel ──────────────
-    # Both are independent — run concurrently to reduce latency.
+    cur_chapter = data.current_chapter_text or ""
+
+    # ── Step 1: intent detection + chapter retrieval in parallel ──────────────
     try:
         intent, retrieved_chunks = await asyncio.gather(
             detect_query_intent(data.question),
@@ -93,45 +95,81 @@ async def plot_assistant(
         f"chapter_summaries_retrieved={len(retrieved_chunks)}"
     )
 
-    cur_chapter = data.current_chapter_text or ""
+    # ── Step 2: fine-grained chunk retrieval + character context ─────────────
+    # For QA: paragraph chunks are the primary retrieval signal.
+    #   - Character context is only injected when the question explicitly names
+    #     a character (name-mention boost triggers inclusion).  When character
+    #     context is injected, chunks are capped at top_k=5 (not 8) to stay
+    #     within the Qwen context window (input budget ~3196 tokens).
+    # For creative/mixed: character context is always retrieved.  Chapter
+    #   summaries are the primary retrieval, so chunks are not fetched.
 
-    # ── Step 2: fine-grained chunk retrieval for QA/mixed ────────────────────
-    # For QA we search paragraph-level chunks (not chapter summaries).
-    # This scales to any story size: 60 chapters × 10 chunks = 600 vectors,
-    # all searched in < 100 ms. Only the top-k most relevant passages are
-    # passed to Qwen — the context window stays well within 8192 tokens.
-    text_chunks: list[dict] = []
+    text_chunks:       list[dict] = []
+    character_context: list[str]  = []
+
     if intent in ("qa", "mixed"):
+        # Detect name mentions before running BGE-M3 so we know the chunk cap
+        question_lower = data.question.lower()
+        from models import Character as _Char
+        story_chars = (
+            db.query(_Char)
+            .filter(_Char.story_id == data.story_id)
+            .all()
+        )
+        has_name_mention = any(
+            c.name.lower() in question_lower or
+            any(a.strip().lower() in question_lower for a in (c.aliases or []))
+            for c in story_chars
+        )
+
+        # Reduce chunk count to top_k=5 when character context will be injected
+        qa_top_k = 5 if has_name_mention else 8
         text_chunks = await retrieve_chunks_from_store(
-            data.question, data.story_id, db, top_k=8
+            data.question, data.story_id, db, top_k=qa_top_k
         )
         print(
             f"[plot_assistant] chunk-level retrieval: "
             f"{len(text_chunks)} passage(s) across "
-            f"{len({c['chapter'] for c in text_chunks})} chapter(s)"
+            f"{len({c['chapter'] for c in text_chunks})} chapter(s) "
+            f"(top_k={qa_top_k}, name_mention={has_name_mention})"
         )
 
-    answer: str | None = None
+        # Character context for QA — only when a character is explicitly named
+        if has_name_mention:
+            character_context = await retrieve_character_context(
+                data.story_id, data.question, db, top_k=3, token_budget=600,
+            )
+
+    if intent in ("creative", "mixed"):
+        # Character context for creative — always retrieve, full budget
+        if not character_context:  # avoid double retrieval in mixed mode
+            character_context = await retrieve_character_context(
+                data.story_id, data.question, db, top_k=3, token_budget=800,
+            )
+
+    answer:      str | None        = None
     suggestions: list[PlotSuggestion] = []
 
     # ── Step 3: branch by intent ──────────────────────────────────────────────
     try:
         if intent == "qa":
             answer = await answer_story_question(
-                question=data.question,
-                text_chunks=text_chunks,
-                genre_profile=genre_dict,
-                current_chapter=cur_chapter,
+                question          = data.question,
+                text_chunks       = text_chunks,
+                genre_profile     = genre_dict,
+                current_chapter   = cur_chapter,
+                character_context = character_context or None,
             )
             print(f"[plot_assistant] QA answer → {len(answer)} chars")
 
         elif intent == "creative":
             raw = await generate_plot_suggestions(
-                question=data.question,
-                current_chapter=cur_chapter,
-                summaries=summary_list,
-                genre_profile=genre_dict,
-                retrieved_chunks=retrieved_chunks,
+                question           = data.question,
+                current_chapter    = cur_chapter,
+                summaries          = summary_list,
+                genre_profile      = genre_dict,
+                retrieved_chunks   = retrieved_chunks,
+                character_profiles = character_context or None,
             )
             suggestions = [
                 PlotSuggestion(id=s["id"], text=s["text"], rationale=s["rationale"])
@@ -140,17 +178,19 @@ async def plot_assistant(
 
         else:  # mixed — answer + suggestions in parallel
             answer_coro = answer_story_question(
-                question=data.question,
-                text_chunks=text_chunks,
-                genre_profile=genre_dict,
-                current_chapter=cur_chapter,
+                question          = data.question,
+                text_chunks       = text_chunks,
+                genre_profile     = genre_dict,
+                current_chapter   = cur_chapter,
+                character_context = character_context or None,
             )
             suggestions_coro = generate_plot_suggestions(
-                question=data.question,
-                current_chapter=cur_chapter,
-                summaries=summary_list,
-                genre_profile=genre_dict,
-                retrieved_chunks=retrieved_chunks,
+                question           = data.question,
+                current_chapter    = cur_chapter,
+                summaries          = summary_list,
+                genre_profile      = genre_dict,
+                retrieved_chunks   = retrieved_chunks,
+                character_profiles = character_context or None,
             )
             answer, raw = await asyncio.gather(answer_coro, suggestions_coro)
             suggestions = [
@@ -176,10 +216,10 @@ async def plot_assistant(
     # ── Persist session ───────────────────────────────────────────────────────
     stored_chunks = [
         {
-            "chapter":    c["chapter"],
+            "chapter":     c["chapter"],
             "chunk_index": c.get("chunk_index", 0),
-            "score":      c["score"],
-            "words":      c.get("word_count", 0),
+            "score":       c["score"],
+            "words":       c.get("word_count", 0),
         }
         for c in text_chunks
     ]
@@ -200,6 +240,8 @@ async def plot_assistant(
         chapters_used = sorted({c["chapter"] for c in retrieved_chunks})
         ch_list = ", ".join(f"Ch{n}" for n in chapters_used)
         context_desc = f"story context ({ch_list} retrieved via BGE-M3)"
+        if character_context:
+            context_desc += f" + {len(character_context)} character profile(s)"
         if genre_profile:
             context_desc = f"{genre_profile.genre} + {context_desc}"
     elif summaries:
@@ -225,8 +267,15 @@ async def plot_assistant(
 
 
 @router.patch("/{session_id}/use")
-def mark_suggestion_used(session_id: str, suggestion_index: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    session = db.query(PlotAssistantSession).filter(PlotAssistantSession.session_id == session_id).first()
+def mark_suggestion_used(
+    session_id:       str,
+    suggestion_index: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    session = db.query(PlotAssistantSession).filter(
+        PlotAssistantSession.session_id == session_id
+    ).first()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
     session.suggestion_used = suggestion_index

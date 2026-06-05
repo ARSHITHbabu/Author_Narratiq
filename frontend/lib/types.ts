@@ -159,3 +159,56 @@ export type EmotionType =
   | 'joy' | 'sadness' | 'fear' | 'anger' | 'surprise' | 'anticipation'
 
 export type AgeGroup = 'children' | 'ya' | 'adult'
+
+// ── Characters ────────────────────────────────────────────────────────────────
+
+export type CharacterRole   = 'protagonist' | 'antagonist' | 'supporting' | 'minor'
+export type CharacterStatus = 'active' | 'deceased' | 'unknown'
+export type RelationshipType = 'ally' | 'rival' | 'family' | 'romantic' | 'mentor' | 'enemy' | 'neutral'
+export type RelationshipStrength = 'weak' | 'moderate' | 'strong' | 'critical'
+
+export interface CharacterProfile {
+  profile_id:    string
+  age:           string
+  appearance:    string
+  personality:   string
+  motivations:   string
+  goals:         string
+  backstory:     string
+  arc_notes:     string
+  traits:        string[]
+  raw_notes:     string
+  ocr_upload_id: string | null
+  created_at:    string
+  updated_at:    string
+}
+
+export interface Character {
+  character_id: string
+  story_id:     string
+  name:         string
+  aliases:      string[]
+  role:         CharacterRole
+  status:       CharacterStatus
+  created_at:   string
+  updated_at:   string
+  profile:      CharacterProfile | null
+}
+
+export interface CharacterRelationship {
+  relationship_id:   string
+  story_id:          string
+  from_character_id: string
+  to_character_id:   string
+  relationship_type: RelationshipType
+  strength:          RelationshipStrength
+  description:       string
+  is_mutual:         boolean
+  created_at:        string
+  updated_at:        string
+}
+
+export interface CharacterGraph {
+  nodes: Character[]
+  edges: CharacterRelationship[]
+}

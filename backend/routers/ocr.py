@@ -25,6 +25,18 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 _VALID_DESTINATIONS = {"story_notes", "chapter_draft", "character_profile", "note_card"}
 
 
+# ── Authorization helper ───────────────────────────────────────────────────────
+
+def _get_owned_story(story_id: str, user_id: str, db: Session) -> Story:
+    """Return the story if it exists and belongs to user_id, else raise 404."""
+    story = db.query(Story).filter(
+        Story.story_id == story_id, Story.user_id == user_id
+    ).first()
+    if not story:
+        raise HTTPException(status_code=404, detail="Story not found")
+    return story
+
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _auto_title(text: str, max_len: int = 72) -> str:
@@ -114,6 +126,10 @@ async def extract_ocr(
     if file.content_type not in allowed:
         raise HTTPException(status_code=400, detail="Only JPEG, PNG, WebP images are accepted")
 
+    # BUG-1: verify the authenticated user owns this story before creating any
+    # upload record or touching the filesystem.
+    _get_owned_story(story_id, current_user.user_id, db)
+
     file_id = str(uuid.uuid4())
     file_path = os.path.join(UPLOAD_DIR, f"{file_id}_{file.filename}")
     content = await file.read()
@@ -181,6 +197,12 @@ async def confirm_ocr(
         raise HTTPException(status_code=404, detail="Upload not found")
     if upload.user_id != current_user.user_id:
         raise HTTPException(status_code=403, detail="Not authorised to confirm this upload")
+
+    # BUG-2: idempotency guard — each upload may only be confirmed once.
+    # A second call with the same upload_id would otherwise produce duplicate
+    # StoryNotes, NoteCards, chapter injections, or profile appends.
+    if upload.confirmed:
+        raise HTTPException(status_code=409, detail="Upload has already been confirmed")
 
     # ── Persist the author-edited text and mark as confirmed ──────────────────
     upload.author_edited_text = data.final_text
@@ -363,6 +385,8 @@ def list_uploads(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    # BUG-3: verify ownership before exposing upload records.
+    _get_owned_story(story_id, current_user.user_id, db)
     uploads = (
         db.query(OcrUpload)
         .filter(OcrUpload.story_id == story_id, OcrUpload.confirmed == True)
@@ -388,11 +412,7 @@ def list_story_notes(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    story = db.query(Story).filter(
-        Story.story_id == story_id, Story.user_id == current_user.user_id
-    ).first()
-    if not story:
-        raise HTTPException(status_code=404, detail="Story not found")
+    _get_owned_story(story_id, current_user.user_id, db)
     return (
         db.query(StoryNote)
         .filter(StoryNote.story_id == story_id)
@@ -407,11 +427,7 @@ def list_note_cards(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    story = db.query(Story).filter(
-        Story.story_id == story_id, Story.user_id == current_user.user_id
-    ).first()
-    if not story:
-        raise HTTPException(status_code=404, detail="Story not found")
+    _get_owned_story(story_id, current_user.user_id, db)
     return (
         db.query(NoteCard)
         .filter(NoteCard.story_id == story_id)

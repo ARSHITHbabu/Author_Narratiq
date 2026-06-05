@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from sqlalchemy import (
     Column, String, Text, Integer, Boolean, Float,
-    ForeignKey, DateTime, JSON
+    ForeignKey, DateTime, JSON, UniqueConstraint
 )
 from sqlalchemy.orm import relationship
 from database import Base
@@ -48,6 +48,7 @@ class Story(Base):
     chapter_summaries = relationship("ChapterSummary", back_populates="story", cascade="all, delete-orphan")
     characters = relationship("Character", back_populates="story", cascade="all, delete-orphan")
     character_profiles = relationship("CharacterProfile", back_populates="story", cascade="all, delete-orphan")
+    character_relationships = relationship("CharacterRelationship", back_populates="story", cascade="all, delete-orphan")
     story_notes = relationship("StoryNote", back_populates="story", cascade="all, delete-orphan")
     note_cards = relationship("NoteCard", back_populates="story", cascade="all, delete-orphan")
 
@@ -250,8 +251,10 @@ class CharacterProfile(Base):
     appearance   = Column(Text,     default="")
     personality  = Column(Text,     default="")
     motivations  = Column(Text,     default="")
+    goals        = Column(Text,     default="")   # what the character is working toward
     backstory    = Column(Text,     default="")
     arc_notes    = Column(Text,     default="")
+    traits       = Column(JSON,     default=list)  # personality adjectives e.g. ["stubborn","loyal"]
 
     # Free-form notes — primary landing zone for OCR-injected text.
     # Multiple OCR confirmations append here with a separator.
@@ -270,6 +273,49 @@ class CharacterProfile(Base):
 
     character = relationship("Character", back_populates="profile")
     story     = relationship("Story",     back_populates="character_profiles")
+
+
+class CharacterRelationship(Base):
+    """
+    Directed relationship edge between two characters within the same story.
+
+    Directed model: from_character_id → to_character_id with a typed label.
+    A single pair may have multiple edges (one per relationship_type), e.g.
+    Elara is both "family" and "ally" with Kira.
+
+    is_mutual is a rendering hint for the graph UI — it does NOT imply a
+    reciprocal DB record.  Bidirectional rendering is triggered by the
+    presence of both A→B and B→A records with compatible types, or by
+    is_mutual=True on a single directed edge.
+
+    strength classifies intensity for visual edge weight and RAG prioritisation:
+      weak | moderate | strong | critical
+    """
+    __tablename__ = "character_relationships"
+
+    relationship_id   = Column(String,  primary_key=True, default=gen_uuid)
+    story_id          = Column(String,  ForeignKey("stories.story_id"),       nullable=False)
+    from_character_id = Column(String,  ForeignKey("characters.character_id"), nullable=False)
+    to_character_id   = Column(String,  ForeignKey("characters.character_id"), nullable=False)
+    relationship_type = Column(String,  nullable=False)
+    # ally | rival | family | romantic | mentor | enemy | neutral
+    strength          = Column(String,  default="moderate")
+    # weak | moderate | strong | critical
+    description       = Column(Text,    default="")
+    is_mutual         = Column(Boolean, default=False)
+    created_at        = Column(DateTime, default=datetime.utcnow)
+    updated_at        = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    __table_args__ = (
+        UniqueConstraint(
+            "story_id", "from_character_id", "to_character_id", "relationship_type",
+            name="uq_relationship_typed",
+        ),
+    )
+
+    story          = relationship("Story",     back_populates="character_relationships")
+    from_character = relationship("Character", foreign_keys=[from_character_id])
+    to_character   = relationship("Character", foreign_keys=[to_character_id])
 
 
 # ── Story Notes ────────────────────────────────────────────────────────────────

@@ -401,6 +401,153 @@ async def detect_query_intent(question: str) -> str:
     return intent
 
 
+# ── Character RAG ─────────────────────────────────────────────────────────────
+
+def _format_character_for_prompt(character, profile) -> str:
+    """
+    Format a character + profile as a compact, structured Qwen context block.
+
+    raw_notes is intentionally omitted — it is an OCR staging area and may
+    contain artefacts, fragments, and uncleaned text that would confuse the
+    model.  It is included only as a fallback when ALL structured fields are
+    empty (the profile hasn't been curated yet).
+    """
+    traits_str = ", ".join(profile.traits or [])
+    lines = [f"## Character: {character.name}"]
+    meta = f"Role: {character.role} | Status: {character.status}"
+    if traits_str:
+        meta += f" | Traits: {traits_str}"
+    lines.append(meta)
+
+    structured_fields = [
+        ("Age",          profile.age),
+        ("Appearance",   profile.appearance),
+        ("Personality",  profile.personality),
+        ("Goals",        profile.goals),
+        ("Motivations",  profile.motivations),
+        ("Backstory",    profile.backstory[:400] if len(profile.backstory or "") > 400
+                         else (profile.backstory or "")),
+        ("Arc Notes",    profile.arc_notes),
+    ]
+    has_structured = False
+    for label, value in structured_fields:
+        if value and value.strip():
+            lines.append(f"{label}: {value.strip()}")
+            has_structured = True
+
+    # Fallback: include raw_notes only when all structured fields are empty
+    if not has_structured and profile.raw_notes and profile.raw_notes.strip():
+        lines.append(f"Notes: {profile.raw_notes.strip()[:300]}")
+
+    return "\n".join(lines)
+
+
+async def retrieve_character_context(
+    story_id: str,
+    question: str,
+    db,
+    top_k: int = 3,
+    token_budget: int = 800,
+) -> list[str]:
+    """
+    Hybrid character retrieval for Plot Assistant context injection.
+
+    Two retrieval signals are combined:
+      1. Name-mention boost — any character whose name or alias appears literally
+         in the question text is guaranteed to be included regardless of cosine rank.
+      2. Cosine similarity — remaining slots filled by BGE-M3 semantic similarity
+         between the question embedding and each CharacterProfile embedding.
+
+    Results are formatted as structured text blocks and capped at token_budget
+    (approximated as word_count × 4/3) to stay within Qwen's context window.
+
+    Returns [] when no character profiles with embeddings exist.
+    """
+    import numpy as np
+    from models import Character, CharacterProfile
+
+    characters = (
+        db.query(Character)
+        .filter(Character.story_id == story_id)
+        .all()
+    )
+    if not characters:
+        return []
+
+    # ── Name-mention detection ────────────────────────────────────────────────
+    question_lower = question.lower()
+    name_mentioned_ids: list[str] = []
+    for char in characters:
+        if char.name.lower() in question_lower:
+            name_mentioned_ids.append(char.character_id)
+            continue
+        for alias in (char.aliases or []):
+            if alias.strip().lower() in question_lower:
+                name_mentioned_ids.append(char.character_id)
+                break
+
+    # ── Cosine retrieval ──────────────────────────────────────────────────────
+    profiles_with_emb = (
+        db.query(CharacterProfile)
+        .filter(
+            CharacterProfile.story_id  == story_id,
+            CharacterProfile.embedding != None,  # noqa: E711
+        )
+        .all()
+    )
+    profile_map = {p.character_id: p for p in profiles_with_emb}
+    char_map    = {c.character_id: c for c in characters}
+
+    cosine_ranked: list[str] = []
+    if profiles_with_emb:
+        import numpy as np
+        q_emb  = await embed_text(question)
+        q_vec  = np.array(q_emb, dtype=np.float32)
+        scored = []
+        for p in profiles_with_emb:
+            s_vec = np.array(p.embedding, dtype=np.float32)
+            denom = float(np.linalg.norm(q_vec) * np.linalg.norm(s_vec))
+            score = float(np.dot(q_vec, s_vec)) / (denom + 1e-9) if denom > 0 else 0.0
+            scored.append((score, p.character_id))
+        scored.sort(key=lambda x: x[0], reverse=True)
+        cosine_ranked = [cid for _, cid in scored]
+
+    # ── Merge: name-mentioned first, then top cosine, deduplicated ────────────
+    selected: list[str] = list(name_mentioned_ids)
+    for cid in cosine_ranked:
+        if cid not in selected:
+            selected.append(cid)
+        if len(selected) >= top_k:
+            break
+
+    # ── Format with token budget enforcement (~1.33 tokens per word) ──────────
+    result: list[str] = []
+    tokens_used = 0
+    for cid in selected:
+        char    = char_map.get(cid)
+        profile = profile_map.get(cid)
+        if not char:
+            continue
+        if not profile:
+            # Character exists but has no profile yet — emit minimal block
+            block = f"## Character: {char.name}\nRole: {char.role} | Status: {char.status}"
+        else:
+            block = _format_character_for_prompt(char, profile)
+        block_tokens = len(block.split()) * 4 // 3
+        if tokens_used + block_tokens > token_budget:
+            break
+        result.append(block)
+        tokens_used += block_tokens
+
+    if result:
+        print(
+            f"[char_rag] story={story_id[:8]}... — "
+            f"{len(result)} character(s) injected "
+            f"({tokens_used}≈tok, name_boost={len(name_mentioned_ids)})"
+        )
+    return result
+
+
 # ── Plot Assistant — direct Q&A answer ────────────────────────────────────────
 
 async def answer_story_question(
@@ -408,22 +555,20 @@ async def answer_story_question(
     text_chunks: list,
     genre_profile: dict = None,
     current_chapter: str = "",
+    character_context: list[str] = None,
 ) -> str:
     """
     Answer a factual question about the story using top-k semantically retrieved
     paragraph-level chunks from chapter_chunks.
 
-    text_chunks comes from retrieve_chunks_from_store().
-    Each chunk is a ~350-word passage with a relevance score — exactly the text
-    the author wrote, retrieved by BGE-M3 semantic search.
-
-    No story details are hardcoded here.  Works for any author, any genre,
-    any language, any number of chapters.
+    character_context is a list of pre-formatted character profile strings from
+    retrieve_character_context().  It is injected only when present, keeping the
+    chunk budget for non-character questions fully intact.
     """
     system = (
         "You are a story knowledge assistant. Answer the writer's question using "
-        "ONLY the retrieved story passages provided below — do not invent any "
-        "characters, events, or details absent from the passages.\n\n"
+        "ONLY the retrieved story passages and character profiles provided below — "
+        "do not invent any characters, events, or details absent from the context.\n\n"
         "• Short factual questions (Who is X? Where is Y?): 1–3 sentences.\n"
         "• List/summary questions (What happened? What problems? What events?): "
         "read every passage and list ALL distinct items you find — do not stop early."
@@ -436,6 +581,11 @@ async def answer_story_question(
         sg = genre_profile.get("sub_genre", "")
         if g:
             parts.append(f"Story genre: {g}{(' / ' + sg) if sg else ''}")
+
+    if character_context:
+        parts.append(
+            "Relevant character profiles:\n\n" + "\n\n".join(character_context)
+        )
 
     if text_chunks:
         total_words = sum(c["word_count"] for c in text_chunks)
@@ -456,6 +606,7 @@ async def answer_story_question(
         total_chars  = len(system) + len(user_prompt)
         print(
             f"[qa_answer] {len(text_chunks)} chunk(s), {total_words} words, "
+            f"char_ctx={len(character_context or [])}, "
             f"prompt≈{total_chars//4} tokens, max_tokens=900"
         )
     else:
@@ -530,7 +681,9 @@ async def generate_plot_suggestions(
         )
 
     if character_profiles:
-        parts.append("Characters:\n" + "\n".join(str(c) for c in (character_profiles or [])[:3]))
+        # character_profiles is a list[str] of pre-formatted context blocks
+        # produced by retrieve_character_context() — never raw ORM objects.
+        parts.append("Relevant characters:\n\n" + "\n\n".join(character_profiles))
 
     if current_chapter:
         parts.append(f"Current chapter excerpt (last 600 chars):\n{current_chapter[-600:]}")

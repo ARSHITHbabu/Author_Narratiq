@@ -125,7 +125,12 @@ export const ocrApi = {
 
 // ── Characters ────────────────────────────────────────────────────────────────
 export const charactersApi = {
-  list:   (storyId: string) => api.get(`/api/stories/${storyId}/characters`),
+  list:   (storyId: string) =>
+    api.get(`/api/stories/${storyId}/characters`),
+  search: (storyId: string, params: { q?: string; role?: string; status?: string }) =>
+    api.get(`/api/stories/${storyId}/characters/search`, { params }),
+  graph:  (storyId: string) =>
+    api.get(`/api/stories/${storyId}/characters/graph`),
   get:    (storyId: string, characterId: string) =>
     api.get(`/api/stories/${storyId}/characters/${characterId}`),
   create: (storyId: string, data: { name: string; aliases?: string[]; role?: string; status?: string }) =>
@@ -136,6 +141,36 @@ export const charactersApi = {
     api.delete(`/api/stories/${storyId}/characters/${characterId}`),
   updateProfile: (storyId: string, characterId: string, data: object) =>
     api.patch(`/api/stories/${storyId}/characters/${characterId}/profile`, data),
+}
+
+// ── Character Relationships ───────────────────────────────────────────────────
+export const relationshipsApi = {
+  list: (storyId: string, characterId: string) =>
+    api.get(`/api/stories/${storyId}/characters/${characterId}/relationships`),
+  create: (
+    storyId: string,
+    characterId: string,
+    data: {
+      to_character_id: string
+      relationship_type: string
+      strength?: string
+      description?: string
+      is_mutual?: boolean
+    },
+  ) => api.post(`/api/stories/${storyId}/characters/${characterId}/relationships`, data),
+  update: (
+    storyId: string,
+    characterId: string,
+    relationshipId: string,
+    data: { relationship_type?: string; strength?: string; description?: string; is_mutual?: boolean },
+  ) => api.patch(
+    `/api/stories/${storyId}/characters/${characterId}/relationships/${relationshipId}`,
+    data,
+  ),
+  delete: (storyId: string, characterId: string, relationshipId: string) =>
+    api.delete(
+      `/api/stories/${storyId}/characters/${characterId}/relationships/${relationshipId}`,
+    ),
 }
 
 // ── Manuscript ────────────────────────────────────────────────────────────────

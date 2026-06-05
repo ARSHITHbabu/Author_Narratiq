@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   Feather, ArrowLeft, BarChart3, Download, Brain, Camera,
-  Wand2, Lightbulb, Loader2, Sparkles, Search
+  Wand2, Lightbulb, Loader2, Sparkles, Search, Users,
 } from 'lucide-react'
 import { chaptersApi, projectsApi, exportApi, aiApi } from '@/lib/api'
 import { Story, Chapter, AISuggestion } from '@/lib/types'
@@ -16,9 +16,10 @@ import AIToolsSidebar from '@/components/ai-tools/AIToolsSidebar'
 import PlotAssistantPanel from '@/components/plot-assistant/PlotAssistantPanel'
 import OCRPanel from '@/components/ocr/OCRPanel'
 import SearchPanel from '@/components/search/SearchPanel'
+import CharacterList from '@/components/characters/CharacterList'
 import { toast } from 'sonner'
 
-type RightPanel = 'ai' | 'plot' | 'ocr' | 'suggestions'
+type RightPanel = 'ai' | 'plot' | 'ocr' | 'suggestions' | 'characters'
 
 export default function EditorPage({ params }: { params: { id: string } }) {
   const { id: storyId } = params
@@ -321,6 +322,7 @@ export default function EditorPage({ params }: { params: { id: string } }) {
                   { id: 'plot' as RightPanel, icon: Brain, label: 'Plot' },
                   { id: 'ocr' as RightPanel, icon: Camera, label: 'OCR' },
                   { id: 'suggestions' as RightPanel, icon: Lightbulb, label: 'Tips' },
+                  { id: 'characters' as RightPanel, icon: Users, label: 'Cast' },
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -362,6 +364,9 @@ export default function EditorPage({ params }: { params: { id: string } }) {
                 )}
                 {rightPanel === 'suggestions' && (
                   <SuggestionsPanel suggestions={suggestions} loading={loadingSuggestions} />
+                )}
+                {rightPanel === 'characters' && (
+                  <CharacterList storyId={storyId} />
                 )}
               </div>
             </>

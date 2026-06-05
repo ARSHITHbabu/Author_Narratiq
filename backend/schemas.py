@@ -278,27 +278,31 @@ class CharacterUpdate(BaseModel):
 
 
 class CharacterProfileUpdate(BaseModel):
-    age:         Optional[str] = None
-    appearance:  Optional[str] = None
-    personality: Optional[str] = None
-    motivations: Optional[str] = None
-    backstory:   Optional[str] = None
-    arc_notes:   Optional[str] = None
-    raw_notes:   Optional[str] = None
+    age:         Optional[str]       = None
+    appearance:  Optional[str]       = None
+    personality: Optional[str]       = None
+    motivations: Optional[str]       = None
+    goals:       Optional[str]       = None   # None = no change; "" = clear
+    backstory:   Optional[str]       = None
+    arc_notes:   Optional[str]       = None
+    raw_notes:   Optional[str]       = None
+    traits:      Optional[List[str]] = None   # None = no change; [] = clear all
 
 
 class CharacterProfileOut(BaseModel):
-    profile_id:   str
-    age:          str
-    appearance:   str
-    personality:  str
-    motivations:  str
-    backstory:    str
-    arc_notes:    str
-    raw_notes:    str
+    profile_id:    str
+    age:           str
+    appearance:    str
+    personality:   str
+    motivations:   str
+    goals:         str
+    backstory:     str
+    arc_notes:     str
+    traits:        List[str]
+    raw_notes:     str
     ocr_upload_id: Optional[str] = None
-    created_at:   datetime
-    updated_at:   datetime
+    created_at:    datetime
+    updated_at:    datetime
     model_config = {"from_attributes": True}
 
 
@@ -313,6 +317,42 @@ class CharacterOut(BaseModel):
     updated_at:   datetime
     profile:      Optional[CharacterProfileOut] = None
     model_config = {"from_attributes": True}
+
+
+# ── Character Relationships ───────────────────────────────────────────────────
+
+class RelationshipCreate(BaseModel):
+    to_character_id:   str
+    relationship_type: str   # ally|rival|family|romantic|mentor|enemy|neutral
+    strength:          Optional[str]  = "moderate"  # weak|moderate|strong|critical
+    description:       Optional[str]  = ""
+    is_mutual:         Optional[bool] = False
+
+
+class RelationshipUpdate(BaseModel):
+    relationship_type: Optional[str]  = None
+    strength:          Optional[str]  = None
+    description:       Optional[str]  = None
+    is_mutual:         Optional[bool] = None
+
+
+class RelationshipOut(BaseModel):
+    relationship_id:   str
+    story_id:          str
+    from_character_id: str
+    to_character_id:   str
+    relationship_type: str
+    strength:          str
+    description:       str
+    is_mutual:         bool
+    created_at:        datetime
+    updated_at:        datetime
+    model_config = {"from_attributes": True}
+
+
+class CharacterGraphResponse(BaseModel):
+    nodes: List[CharacterOut]
+    edges: List[RelationshipOut]
 
 
 # ── Manuscript ────────────────────────────────────────────────────────────────

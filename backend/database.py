@@ -21,16 +21,27 @@ def run_db_migrations(eng) -> None:
     """
     Apply lightweight column-addition migrations without Alembic.
     Safe to call on every startup — skips columns that already exist.
+    New tables are created by Base.metadata.create_all before this runs.
     """
-    try:
-        inspector = sa_inspect(eng)
-        existing_cols = {c["name"] for c in inspector.get_columns("chapter_summaries")}
-        if "embedding" not in existing_cols:
-            with eng.connect() as conn:
-                conn.execute(text("ALTER TABLE chapter_summaries ADD COLUMN embedding TEXT"))
-                conn.commit()
-            print("[DB migration] Added 'embedding' column to chapter_summaries.")
-        else:
-            print("[DB migration] 'embedding' column already present — no migration needed.")
-    except Exception as exc:
-        print(f"[DB migration] Warning: {exc}")
+    inspector = sa_inspect(eng)
+    existing_tables = set(inspector.get_table_names())
+
+    def _add_col(table: str, col: str, col_def: str) -> None:
+        if table not in existing_tables:
+            return  # table will be created by create_all; no ALTER needed
+        try:
+            cols = {c["name"] for c in inspector.get_columns(table)}
+            if col not in cols:
+                with eng.connect() as conn:
+                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col} {col_def}"))
+                    conn.commit()
+                print(f"[DB migration] Added '{col}' to {table}.")
+        except Exception as exc:
+            print(f"[DB migration] Warning ({table}.{col}): {exc}")
+
+    # chapter_summaries
+    _add_col("chapter_summaries", "embedding", "TEXT")
+
+    # character_profiles — new structured fields
+    _add_col("character_profiles", "goals",   "TEXT    DEFAULT ''")
+    _add_col("character_profiles", "traits",  "TEXT    DEFAULT '[]'")
