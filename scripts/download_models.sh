@@ -68,7 +68,7 @@ download_model() {
 
 # ── 3. Download models ────────────────────────────────────────────────────────
 echo ""
-echo "Downloading 4 models. Qwen2.5-7B-Instruct is ~14 GB — be patient."
+echo "Downloading 3 models. Qwen2.5-7B-Instruct is ~14 GB — be patient."
 echo "Tip: export HF_HUB_ENABLE_HF_TRANSFER=1 for 3× faster downloads."
 
 download_model \
@@ -85,12 +85,6 @@ download_model \
     "stepfun-ai/GOT-OCR2_0" \
     "${MODEL_BASE_DIR}/GOT-OCR2_0" \
     "GOT-OCR2.0 (handwritten OCR, ~1.4 GB)"
-
-# TrOCR is kept for backward compatibility but no longer used by the pipeline.
-# download_model \
-#     "microsoft/trocr-large-handwritten" \
-#     "${MODEL_BASE_DIR}/trocr-large-handwritten" \
-#     "TrOCR-large-handwritten (legacy, ~1.3 GB)"
 
 # ── 4. Summary ────────────────────────────────────────────────────────────────
 echo ""

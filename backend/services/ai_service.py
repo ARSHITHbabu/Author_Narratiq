@@ -553,7 +553,7 @@ async def generate_plot_suggestions(
     )
 
 
-# ── OCR text cleanup (called by ocr_service after TrOCR) ─────────────────────
+# ── OCR text cleanup (called by ocr_service after GOT-OCR2.0) ────────────────
 
 async def clean_ocr_text(raw_text: str) -> tuple[str, str]:
     """

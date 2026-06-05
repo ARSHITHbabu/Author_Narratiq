@@ -20,17 +20,13 @@ openai>=1.40.0
 # ── Embeddings (BGE-M3, runs in-process) ─────────────────────────────────────
 sentence-transformers>=3.0.0
 
-# ── OCR (EasyOCR detect + TrOCR recognize) ───────────────────────────────────
-# EasyOCR: full-page text region detection (CRAFT, PyTorch-based).
-#   Handles multi-line, tilted, full-page photos.  GPU-accelerated when CUDA
-#   is available; falls back to CPU automatically.
-# TrOCR: per-line handwriting recognition — optimized for handwritten text.
-#   Loaded on GPU if ≥2 GB VRAM is free; falls back to CPU otherwise.
-# opencv-python-headless: required by EasyOCR internally (headless = no GUI deps).
+# ── OCR (GOT-OCR2.0 — end-to-end handwriting recognition) ───────────────────
+# GOT-OCR2.0 (stepfun-ai/GOT-OCR2_0): single-pass full-page OCR.
+#   ViT-large encoder + Qwen-1.5-0.5B decoder. ~1.2 GB VRAM (float16).
+#   Uses GPU when ≥2.5 GB VRAM is free; automatically falls back to CPU.
+#   No additional packages beyond transformers, torch, Pillow below.
 transformers>=4.46.0
 torch>=2.2.0
 Pillow>=10.0.0
 sentencepiece>=0.2.0
 accelerate>=0.30.0
-easyocr
-opencv-python-headless>=4.8.0

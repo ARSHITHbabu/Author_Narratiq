@@ -100,7 +100,7 @@ Each function is marked with `# MODEL_PLACEHOLDER` and includes the exact connec
 | Translation | `translate_text()` | Helsinki-NLP opus-mt + Qwen2.5-7B |
 | AI Suggestions | `generate_suggestions()` | BGE-M3 + Qwen2.5-7B |
 | Plot Assistant | `generate_plot_suggestions()` | BGE-M3 + Qwen2.5-7B + Qdrant |
-| OCR Processing | `process_ocr_image()` | PaddleOCR + TrOCR + Qwen2.5-7B |
+| OCR Processing | `process_ocr_image()` | GOT-OCR2.0 + Qwen2.5-7B |
 | Embeddings | `embed_text()` | BAAI/bge-m3 |
 | Chapter Summary | `generate_chapter_summary()` | Qwen2.5-7B-Instruct |
 
@@ -157,7 +157,7 @@ Full interactive docs at `/docs` (Swagger UI).
 
 **Frontend:** Next.js 14, TypeScript, TailwindCSS, TipTap editor, Lucide icons, Radix UI  
 **Backend:** FastAPI, SQLAlchemy, SQLite (dev), Pydantic v2, python-jose (JWT)  
-**AI (placeholders):** Qwen2.5-7B-Instruct, BAAI/bge-m3, PaddleOCR, TrOCR, Helsinki-NLP opus-mt  
+**AI:** Qwen2.5-7B-Instruct, BAAI/bge-m3, GOT-OCR2.0 (stepfun-ai/GOT-OCR2_0)  
 **Production DB:** PostgreSQL (swap DATABASE_URL in .env)  
 **Vector DB:** Qdrant (connect in ai_service.py)  
 **Inference:** vLLM (serve Qwen2.5-7B-AWQ on A10G)  
@@ -180,11 +180,8 @@ Full interactive docs at `/docs` (Swagger UI).
 - [x] Full manuscript upload + background ingestion pipeline
 - [x] Export to DOCX/PDF
 
-## Phase 2 (Not Yet Built)
-- [ ] Real Qdrant vector store for RAG retrieval
-- [ ] BGE-M3 embedding pipeline
+## Phase 2 (Not Yet Built — post-MVP)
 - [ ] Plot hole detection
 - [ ] Character consistency analysis
 - [ ] Emotion flow graph visualization
-- [ ] TrOCR genuine handwriting OCR
 - [ ] EPUB/Kindle export

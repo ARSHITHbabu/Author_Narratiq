@@ -39,14 +39,13 @@ class Settings(BaseSettings):
     # Used by scripts/download_models.sh and as a display reference.
     llm_model_id: str = "Qwen/Qwen2.5-7B-Instruct"
     bge_model_id: str = "BAAI/bge-m3"
-    trocr_model_id: str = "microsoft/trocr-large-handwritten"
+    got_ocr_model_id: str = "stepfun-ai/GOT-OCR2_0"
 
     # ── Optional direct local path overrides ──────────────────────────────────
     # If unset, paths are derived: {model_base_dir}/{model-folder-name}
     # Set LLM_MODEL_PATH=/workspace/models/Qwen2.5-7B-Instruct to override.
     llm_model_path: str = ""
     bge_model_path: str = ""
-    trocr_model_path: str = ""
 
     # ── vLLM server ───────────────────────────────────────────────────────────
     # VLLM_BASE_URL overrides host+port construction.
@@ -89,19 +88,10 @@ class Settings(BaseSettings):
         """Local path to BGE-M3 weights."""
         return self.bge_model_path or str(Path(self.model_base_dir) / "bge-m3")
 
-    @property
-    def resolved_trocr_path(self) -> str:
-        """Local path to TrOCR-large-handwritten weights."""
-        return self.trocr_model_path or str(Path(self.model_base_dir) / "trocr-large-handwritten")
-
-    # Backward-compat aliases — existing service code references these names
+    # Backward-compat alias — service code references this name
     @property
     def bge_path(self) -> str:
         return self.resolved_bge_path
-
-    @property
-    def trocr_path(self) -> str:
-        return self.resolved_trocr_path
 
     @property
     def got_path(self) -> str:
@@ -128,7 +118,7 @@ class Settings(BaseSettings):
         """
         Returns a list of missing model paths.
         Empty list means all required models are present.
-        TrOCR is excluded — it lazy-loads only when OCR is called.
+        GOT-OCR2.0 is excluded — it lazy-loads on first OCR request (no startup penalty).
         """
         missing = []
         checks = [

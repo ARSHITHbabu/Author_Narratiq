@@ -9,7 +9,7 @@ RunPod RTX 4090 (24 GB VRAM)
 ├── /workspace/models/               ← downloaded model weights
 │   ├── Qwen2.5-7B-Instruct/         ← ~14 GB
 │   ├── bge-m3/                      ← ~570 MB
-│   └── trocr-large-handwritten/     ← ~1.3 GB
+│   └── GOT-OCR2_0/                  ← ~1.4 GB
 │
 ├── vLLM server (port 8001)
 │   └── Loads Qwen2.5-7B-Instruct once, serves OpenAI-compatible API
@@ -17,7 +17,7 @@ RunPod RTX 4090 (24 GB VRAM)
 └── FastAPI backend (port 8000)
     ├── Calls vLLM via OpenAI-compatible client
     ├── Pre-loads BGE-M3 at startup (CPU)
-    ├── Lazy-loads TrOCR on first OCR request (CPU)
+    ├── Lazy-loads GOT-OCR2.0 on first OCR request (GPU if ≥2.5 GB free, else CPU)
     └── Exposes streaming AI endpoints
 ```
 
@@ -152,7 +152,7 @@ The script is safe to re-run — it skips files that already exist.
 /workspace/models/
 ├── Qwen2.5-7B-Instruct/   ← ~14 GB
 ├── bge-m3/                ← ~570 MB
-└── trocr-large-handwritten/ ← ~1.3 GB
+└── GOT-OCR2_0/            ← ~1.4 GB
 ```
 
 ### 7. Start the Application
@@ -214,7 +214,7 @@ Expected response:
   "backend": "ready",
   "vllm": "ready",
   "bge_m3": "ready",
-  "trocr": "lazy"
+  "got_ocr": "lazy"
 }
 ```
 
@@ -413,21 +413,23 @@ print(f'BGE-M3 OK — embedding dim: {len(emb)}')
 
 Expected: `BGE-M3 OK — embedding dim: 1024`
 
-### 3. TrOCR (OCR)
+### 3. GOT-OCR2.0 (OCR)
 
 ```bash
 python3 -c "
-from transformers import TrOCRProcessor, VisionEncoderDecoderModel
-from PIL import Image
-import requests, io
-proc  = TrOCRProcessor.from_pretrained('/workspace/models/trocr-large-handwritten')
-model = VisionEncoderDecoderModel.from_pretrained('/workspace/models/trocr-large-handwritten')
-model.eval()
-print('TrOCR OK — model loaded successfully')
+from transformers import AutoTokenizer, AutoModel
+import os
+model_path = '/workspace/models/GOT-OCR2_0'
+assert os.path.isdir(model_path), f'GOT-OCR2.0 not found at {model_path}'
+tok = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
+print('GOT-OCR2.0 OK — tokenizer loaded successfully')
 "
 ```
 
-Expected: `TrOCR OK — model loaded successfully`
+Expected: `GOT-OCR2.0 OK — tokenizer loaded successfully`
+
+> **Note:** Full model load (~1.2 GB into memory) happens on the first OCR request, not at startup.
+> GOT-OCR2.0 uses GPU if ≥2.5 GB VRAM is free; otherwise falls back to CPU (~25–60 s/page).
 
 ---
 

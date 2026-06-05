@@ -10,7 +10,7 @@ set -uo pipefail
 MODEL_BASE_DIR="${MODEL_BASE_DIR:-/workspace/models}"
 LLM_MODEL_PATH="${LLM_MODEL_PATH:-${MODEL_BASE_DIR}/Qwen2.5-7B-Instruct}"
 BGE_MODEL_PATH="${BGE_MODEL_PATH:-${MODEL_BASE_DIR}/bge-m3}"
-TROCR_MODEL_PATH="${TROCR_MODEL_PATH:-${MODEL_BASE_DIR}/trocr-large-handwritten}"
+GOT_OCR_MODEL_PATH="${GOT_OCR_MODEL_PATH:-${MODEL_BASE_DIR}/GOT-OCR2_0}"
 VLLM_PORT="${VLLM_PORT:-8001}"
 BACKEND_PORT="${BACKEND_PORT:-8000}"
 
@@ -84,7 +84,7 @@ check_model_dir() {
 
 check_model_dir "LLM (Qwen2.5-7B-Instruct)" "${LLM_MODEL_PATH}"
 check_model_dir "BGE-M3 (embeddings)"         "${BGE_MODEL_PATH}"
-check_model_dir "TrOCR (OCR, optional)"       "${TROCR_MODEL_PATH}"
+check_model_dir "GOT-OCR2.0 (OCR, required)"  "${GOT_OCR_MODEL_PATH}"
 
 # ── Key model files ───────────────────────────────────────────────────────────
 hdr "Key Model Files"

@@ -102,7 +102,7 @@ export default function OCRPanel({ storyId }: Props) {
     setDismissed(new Set())
   }
 
-  // True extraction failure: PaddleOCR found no text at all
+  // True extraction failure: GOT-OCR2.0 returned no text
   const extractionFailed = result !== null && !result.raw_text && !result.cleaned_text
 
   return (
@@ -161,7 +161,7 @@ export default function OCRPanel({ storyId }: Props) {
             {extracting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Extracting text… (EasyOCR + TrOCR, ~60–90 seconds on CPU)
+                Extracting text… (GOT-OCR2.0, ~25–60 seconds on CPU)
               </>
             ) : (
               <>
