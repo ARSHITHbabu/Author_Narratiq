@@ -591,146 +591,568 @@ async def clean_ocr_text(raw_text: str) -> tuple[str, str]:
     return cleaned, note_type if note_type in valid else "other"
 
 
-# ── OCR story-context suggestions ────────────────────────────────────────────
+# ── OCR story-context suggestions — entity-safe architecture ─────────────────
+#
+# Three-layer safety model:
+#
+#   Layer 1 — Entity Registry
+#     Built from ChapterSummary.characters_present + locations across all
+#     indexed chapters.  Schema: {canonical_form: entity_type}.
+#
+#   Layer 2 — Protected Span Detection
+#     Sliding n-gram window (1–6 words) over the OCR text.
+#     A span is PROTECTED when it matches any registry entity at:
+#       ① Exact match (case-insensitive)
+#       ② Normalized match (strip punctuation, lowercase)
+#       ③ High-similarity ≥ 0.90 (recognizable form of the entity)
+#     Protected = "already a valid story entity form — do not suggest replacing it."
+#
+#   Layer 3 — Post-Filter Gate (runs after Qwen output)
+#     Rule 1: suggestion.original is in the protected set → DISCARD
+#     Rule 2: suggestion.original has ≥ 0.90 similarity to any registry entity
+#             → DISCARD (it is already a valid entity form, just short)
+#     Rule 3: suggestion.suggested is not in the registry
+#             → DISCARD (Qwen hallucinated a non-entity)
+#
+# This guarantees the system never suggests replacing one valid entity with
+# another valid entity, for any story, any author, any manuscript.
+# ─────────────────────────────────────────────────────────────────────────────
 
-def generate_ocr_suggestions(raw_text: str, story_id: str, db) -> list[dict]:
+
+def _build_entity_registry(
+    story_id: str, db
+) -> tuple[dict[str, str], dict[str, int], int]:
     """
-    Compare OCR-extracted proper nouns against known story vocabulary and
-    return correction suggestions when a close-but-not-identical match exists.
+    Build the entity registry from all chapter summaries for a story.
 
-    Uses only difflib.SequenceMatcher (standard library, no LLM, no BGE-M3).
-    Never modifies the cleaned text automatically — all suggestions require
-    explicit author approval via the UI Apply button.
-
-    Story vocabulary is sourced from ChapterSummary.characters_present and
-    ChapterSummary.locations, so it reflects what the author has actually written.
-
-    Returns list of dicts:
-        original    — the token as OCR extracted it
-        suggested   — the closest story term
-        reason      — human-readable explanation
-        confidence  — SequenceMatcher ratio (0.0–1.0)
+    Returns:
+        registry          — {canonical_form: entity_type}
+        term_chapter_count — {term: number_of_chapters_where_it_appears}
+        n_summaries        — total number of chapter summaries found
     """
-    import re
-    from difflib import SequenceMatcher
     from models import ChapterSummary
 
-    if not raw_text or not raw_text.strip():
-        return []
-
-    # ── Gather story vocabulary ───────────────────────────────────────────────
     summaries = (
         db.query(ChapterSummary)
         .filter(ChapterSummary.story_id == story_id)
         .all()
     )
-    if not summaries:
-        return []
 
-    story_chars: set[str] = set()
-    story_locs:  set[str] = set()
+    registry: dict[str, str] = {}
+    term_chapter_count: dict[str, int] = {}
 
     for s in summaries:
+        seen_in_chapter: set[str] = set()
         for name in (s.characters_present or []):
             t = name.strip()
-            if len(t) >= 3:
-                story_chars.add(t)
+            if len(t) >= 2:
+                registry[t] = "character"
+                if t not in seen_in_chapter:
+                    term_chapter_count[t] = term_chapter_count.get(t, 0) + 1
+                    seen_in_chapter.add(t)
         for loc in (s.locations or []):
             t = loc.strip()
-            if len(t) >= 3:
-                story_locs.add(t)
+            if len(t) >= 2:
+                registry[t] = "location"
+                if t not in seen_in_chapter:
+                    term_chapter_count[t] = term_chapter_count.get(t, 0) + 1
+                    seen_in_chapter.add(t)
+
+    return registry, term_chapter_count, max(1, len(summaries))
+
+
+def _normalize_span(s: str) -> str:
+    """Lowercase and strip punctuation for normalized entity comparison."""
+    import re
+    return re.sub(r"[^\w\s]", "", s.lower()).strip()
+
+
+def _find_protected_spans(
+    raw_text: str,
+    registry: dict[str, str],
+    threshold: float = 0.90,
+) -> set[str]:
+    """
+    Scan the OCR text for spans that already match a known registry entity.
+    Returns a set of lowercase span strings that are PROTECTED.
+
+    A span is protected when it matches any entity at one of three levels:
+      ① Exact match (case-insensitive)
+      ② Normalized match (punctuation stripped, lowercased)
+      ③ High-similarity SequenceMatcher ratio ≥ threshold
+
+    Uses a sliding n-gram window (1–6 words) over the OCR text so that
+    multi-word entities like "B-204 Uncle" or "Green Street" are detected
+    as protected spans, not just as individual protected words.
+    """
+    from difflib import SequenceMatcher
+
+    if not registry or not raw_text.strip():
+        return set()
+
+    normalized_registry = {_normalize_span(e): e for e in registry}
+    words = raw_text.split()
+    protected: set[str] = set()
+
+    for n in range(1, 7):  # 1-gram through 6-gram
+        for i in range(len(words) - n + 1):
+            span       = " ".join(words[i: i + n])
+            span_lower = span.lower()
+            span_norm  = _normalize_span(span)
+
+            for entity, canon in normalized_registry.items():
+                # ① Exact (case-insensitive)
+                if span_lower == entity:
+                    protected.add(span_lower)
+                    break
+                # ② Normalized
+                if span_norm == entity:
+                    protected.add(span_lower)
+                    break
+                # ③ High-similarity
+                ratio = SequenceMatcher(None, span_lower, entity).ratio()
+                if ratio >= threshold:
+                    protected.add(span_lower)
+                    break
+
+    return protected
+
+
+def _apply_entity_safety_filter(
+    suggestions: list[dict],
+    registry: dict[str, str],
+    protected: set[str],
+) -> list[dict]:
+    """
+    Apply three entity-safety rules to a list of candidate suggestions.
+    Any suggestion that fails a rule is silently discarded.
+
+    Rule 1: original span is in the protected set.
+            → The OCR text is already a valid entity form — discard.
+
+    Rule 2: original span has ≥ 0.90 similarity to any registry entity.
+            → Even if not in the exact protected set, it is recognizably
+              a valid entity form — discard.
+
+    Rule 3: suggested replacement is not a registry entity.
+            → Qwen generated a non-entity replacement — discard.
+    """
+    from difflib import SequenceMatcher
+
+    registry_lower = {e.lower(): e for e in registry}
+    safe: list[dict] = []
+
+    for s in suggestions:
+        orig_lower = s["original"].lower()
+        sugg_lower = s["suggested"].lower()
+
+        # Rule 1 — original is a known-protected span
+        if orig_lower in protected:
+            print(
+                f"[entity_safety] Discarded '{s['original']}' → '{s['suggested']}': "
+                "original is a protected entity span (Rule 1)"
+            )
+            continue
+
+        # Rule 2 — original is a high-similarity form of any registry entity
+        max_sim = max(
+            (SequenceMatcher(None, orig_lower, e).ratio() for e in registry_lower),
+            default=0.0,
+        )
+        if max_sim >= 0.90:
+            print(
+                f"[entity_safety] Discarded '{s['original']}' → '{s['suggested']}': "
+                f"original matches registry entity at {max_sim:.2f} (Rule 2)"
+            )
+            continue
+
+        # Rule 3 — suggested replacement must be a known registry entity
+        sugg_in_registry = any(
+            SequenceMatcher(None, sugg_lower, e).ratio() >= 0.90
+            for e in registry_lower
+        )
+        if not sugg_in_registry:
+            print(
+                f"[entity_safety] Discarded '{s['original']}' → '{s['suggested']}': "
+                "suggested term is not a registry entity (Rule 3)"
+            )
+            continue
+
+        safe.append(s)
+
+    return safe
+
+
+def _suggest_difflib(
+    raw_text: str,
+    registry: dict[str, str],
+    protected: set[str],
+    term_chapter_count: dict[str, int],
+    n_summaries: int,
+) -> list[dict]:
+    """
+    Entity-safe difflib fallback for OCR suggestions.
+
+    Uses SequenceMatcher to identify OCR tokens that are likely corrupted
+    forms of known story entities.  Derives story vocabulary from the
+    pre-built entity registry (no additional DB query).
+
+    Entity safety:
+      Any OCR token that appears in the protected set (already matches a
+      known entity at ≥ 0.90 similarity) is skipped — it does not need
+      correction and must not be replaced with a different entity.
+
+    Ranking:
+      1. String similarity    — SequenceMatcher char ratio (primary)
+      2. Manuscript frequency — term_chapter_count / n_summaries × 0.2 boost
+      3. Context frequency    — +0.1 boost if token appears ≥ 2 times in image
+      4. Phrase-level depth   — phrase suggestions emitted before single-word
+
+    Output: phrase suggestions first, single-word second, cap 8.
+    No LLM. No story-specific terms hardcoded.
+    """
+    import re
+    from difflib import SequenceMatcher
+
+    if not raw_text or not raw_text.strip() or not registry:
+        return []
+
+    # Derive character and location sets from the pre-built registry
+    story_chars: set[str] = {e for e, t in registry.items() if t == "character" and len(e) >= 3}
+    story_locs:  set[str] = {e for e, t in registry.items() if t == "location"  and len(e) >= 3}
 
     if not story_chars and not story_locs:
         return []
 
-    # ── Common sentence-starting words that are NOT proper nouns ─────────────
-    NOT_PROPER = {
-        "The", "A", "An", "I", "It", "This", "That", "These", "Those",
-        "He", "She", "We", "They", "You", "Me", "Him", "Her", "Us", "Them",
-        "His", "Its", "Our", "Your", "Their", "My",
+    COMMON_GENERIC: set[str] = {
+        "chapter", "scene", "paragraph", "page", "draft", "version",
+        "association", "society", "community", "committee", "council",
+        "board", "club", "group", "party", "team", "league", "union",
+        "federation", "institute", "organisation", "organization",
+        "secretary", "treasurer", "president", "chairman", "chairwoman",
+        "manager", "director", "officer", "member", "leader", "head",
+        "chief", "general", "captain", "commissioner", "administrator",
+        "phone", "mobile", "message", "email", "letter", "note", "notice",
+        "report", "memo", "document", "file", "record", "form", "circular",
+        "street", "road", "lane", "avenue", "drive", "court", "place",
+        "park", "area", "zone", "district", "region", "block", "sector",
+        "colony", "locality", "neighborhood", "neighbourhood",
+        "hall", "building", "house", "home", "office", "room", "floor",
+        "apartment", "flat", "complex", "center", "centre", "campus",
+        "estate", "compound",
+        "event", "meeting", "gathering", "function", "ceremony",
+        "occasion", "session", "conference", "seminar", "festival",
+        "idea", "plan", "issue", "problem", "matter", "situation",
+        "case", "reason", "result", "cause", "solution", "answer",
+        "complaint", "request", "proposal", "agenda",
+        "person", "people", "man", "woman", "boy", "girl", "child",
+        "neighbor", "neighbour", "resident", "residents", "citizen",
+        "family", "friend", "colleague", "companion", "visitor", "guest",
+        "doctor", "teacher", "engineer", "lawyer", "police", "agent",
+        "staff", "worker", "employee", "volunteer", "contractor",
+        "water", "food", "money", "work", "business", "company",
+        "book", "story", "news", "paper", "list", "item", "topic",
+        "project", "program", "programme", "scheme", "initiative",
+        "morning", "evening", "afternoon", "night", "time", "year",
+        "month", "week", "day", "hour", "minute",
+    }
+
+    NOT_PROPER: set[str] = {
+        "The", "A", "An",
+        "I", "It", "He", "She", "We", "They", "You",
+        "Me", "Him", "Her", "Us", "Them", "His", "Its", "Our", "Your", "Their", "My",
         "Was", "Were", "Is", "Are", "Has", "Have", "Had", "Does", "Do",
+        "Will", "Would", "Could", "Should",
         "And", "But", "Or", "So", "Yet", "For", "Nor",
         "As", "At", "By", "In", "Of", "On", "To", "Up", "Via",
+        "When", "Where", "Why", "How", "What", "Who", "Which",
+        "This", "That", "These", "Those",
+        "While", "Then", "Now", "Here", "There", "Still", "Just", "Also", "Not",
         "Mr", "Mrs", "Ms", "Dr", "Prof", "Sir",
-        "While", "When", "Where", "Why", "How", "What", "Who",
-        "Still", "Just", "Also", "Then", "Now", "Here", "There",
+    }
+
+    PHRASE_STOP: set[str] = {
+        "the", "a", "an", "of", "in", "at", "for", "and", "or", "to",
+        "by", "is", "was", "as", "why", "what", "who", "how", "when",
+        "where", "it", "its", "this", "that", "but", "so", "yet", "not",
+        "he", "she", "we", "they", "i", "me", "him", "her", "us", "them",
+        "his", "our", "your", "their", "my",
+        "while", "then", "now", "here", "there", "still", "just", "also",
+        "more", "some", "one", "two", "three",
     }
 
     def _sim(a: str, b: str) -> float:
         return SequenceMatcher(None, a.lower(), b.lower()).ratio()
 
-    def _best_match(
-        ocr_term: str,
-        vocab_chars: set[str],
-        vocab_locs: set[str],
-        min_sim: float,
-    ) -> tuple[str, str, float] | None:
-        """
-        Return (suggested, label, confidence) for the highest-similarity match,
-        or None if nothing clears the threshold.
-        Excludes exact matches (ratio == 1.0) — those need no correction.
-        """
-        best_term  = None
-        best_label = ""
-        best_ratio = 0.0
+    def _ms_freq(term: str) -> float:
+        return term_chapter_count.get(term, 0) / n_summaries
 
-        for name in vocab_chars:
-            r = _sim(ocr_term, name)
-            if min_sim <= r < 1.0 and r > best_ratio:
-                best_ratio = r
-                best_term  = name
-                best_label = "character name"
+    def _literal_word_in_term(ocr_word: str, story_term: str) -> bool:
+        ow = ocr_word.lower()
+        return ow in {w.lower().strip(".,()") for w in story_term.split()}
 
-        for loc in vocab_locs:
-            r = _sim(ocr_term, loc)
-            if min_sim <= r < 1.0 and r > best_ratio:
-                best_ratio = r
-                best_term  = loc
-                best_label = "location"
+    def _best_word_coverage(ocr_phrase: str, story_phrase: str) -> float:
+        ow = [w.lower() for w in ocr_phrase.split() if w.lower() not in PHRASE_STOP and len(w) >= 3]
+        sw = [w.lower() for w in story_phrase.split() if len(w) >= 2]
+        if not ow or not sw:
+            return 0.0
+        return sum(max(_sim(o, s) for s in sw) for o in ow) / len(ow)
 
-        if best_term:
-            return best_term, best_label, round(best_ratio, 2)
-        return None
+    def _meaningful_match_count(ocr_phrase: str, story_phrase: str) -> int:
+        ow = [w.lower() for w in ocr_phrase.split() if w.lower() not in PHRASE_STOP and len(w) >= 3]
+        sw = [w.lower() for w in story_phrase.split() if len(w) >= 2]
+        if not ow or not sw:
+            return 0
+        return sum(1 for o in ow if max(_sim(o, s) for s in sw) >= 0.50)
 
-    # ── Extract candidate proper nouns from OCR text ──────────────────────────
-    # Single capitalised words (3+ chars, not in the common-word exclusion list)
-    single_caps = [
-        w for w in re.findall(r'\b[A-Z][a-zA-Z]{2,}\b', raw_text)
-        if w not in NOT_PROPER
+    def _has_content(phrase: str) -> bool:
+        return sum(1 for w in phrase.lower().split() if w not in PHRASE_STOP and len(w) >= 3) >= 2
+
+    def _subsentence_ngrams(line: str, n: int) -> list[str]:
+        parts = re.split(r"[.!?;#]+", line)
+        result: list[str] = []
+        for part in parts:
+            words = re.sub(r"[^\w\s]", " ", part).split()
+            result.extend(" ".join(words[i: i + n]) for i in range(max(0, len(words) - n + 1)))
+        return result
+
+    seen: set[str] = set()
+    all_vocab = [("character name", story_chars), ("location", story_locs)]
+    raw_lower_words = raw_text.lower().split()
+
+    # ── Strategy 1: phrase-level n-gram (preferred) ───────────────────────────
+    phrase_story_terms = [
+        (label, term)
+        for label, vocab in all_vocab
+        for term in vocab
+        if len(term.split()) >= 3
     ]
-    # Multi-word capitalised phrases (2–5 consecutive capitalised tokens)
-    multi_caps = [
-        m.strip()
-        for m in re.findall(
-            r'\b(?:[A-Z][a-zA-Z]+\s+){1,4}[A-Z][a-zA-Z]+\b',
-            raw_text,
-        )
-        if m.strip() not in NOT_PROPER
-    ]
+    phrase_suggestions: list[dict] = []
 
-    seen:        set[str]  = set()
-    suggestions: list[dict] = []
+    if phrase_story_terms:
+        best_per_term: dict[str, tuple[str, float, str]] = {}
+        lines = [ln.strip() for ln in raw_text.splitlines() if ln.strip()]
+        for line in lines:
+            for n in range(2, 6):
+                for ngram in _subsentence_ngrams(line, n):
+                    if not _has_content(ngram):
+                        continue
+                    nl = ngram.lower()
+                    if nl in seen or nl in protected:  # entity-safety gate
+                        continue
+                    for label, term in phrase_story_terms:
+                        char_sim   = _sim(ngram, term)
+                        word_cov   = _best_word_coverage(ngram, term)
+                        base_score = max(char_sim, word_cov)
+                        if base_score < 0.65 or base_score >= 1.0:
+                            continue
+                        if _meaningful_match_count(ngram, term) < 2:
+                            continue
+                        score = min(1.0, base_score * (1 + 0.2 * _ms_freq(term)))
+                        prev  = best_per_term.get(term)
+                        if prev is None or score > prev[1]:
+                            best_per_term[term] = (ngram, score, label)
 
-    for term in multi_caps + single_caps:   # phrases first for better precision
-        if term in seen:
-            continue
-        # Phrases get a slightly lower threshold — they share keywords but may
-        # differ in word choice (e.g. "Residents Association" variant).
-        threshold = 0.50 if " " in term else 0.60
-        match = _best_match(term, story_chars, story_locs, threshold)
-        if match:
-            suggested, label, confidence = match
-            seen.add(term)
-            suggestions.append({
-                "original":   term,
-                "suggested":  suggested,
-                "reason":     f"Similar {label} found in the manuscript.",
-                "confidence": confidence,
+        for term, (ngram, score, label) in sorted(
+            best_per_term.items(), key=lambda kv: -kv[1][1]
+        ):
+            nl = ngram.lower()
+            if nl in seen or nl in protected:  # entity-safety gate
+                continue
+            seen.add(nl)
+            phrase_suggestions.append({
+                "original":   ngram,
+                "suggested":  term,
+                "reason":     f"Phrase-level match — possible {label} from your manuscript.",
+                "confidence": round(score, 2),
             })
 
-    suggestions.sort(key=lambda x: x["confidence"], reverse=True)
-    # Cap at 8 to keep the UI readable
-    return suggestions[:8]
+    # ── Strategy 2: single capitalised word ───────────────────────────────────
+    word_suggestions: list[dict] = []
+    single_caps = [
+        w for w in re.findall(r"\b[A-Z][a-zA-Z]{2,}\b", raw_text)
+        if w not in NOT_PROPER and w.lower() not in COMMON_GENERIC
+    ]
+
+    for word in single_caps:
+        wl = word.lower()
+        if wl in seen or wl in protected:  # entity-safety gate
+            continue
+
+        ctx_count = raw_lower_words.count(wl)
+        ctx_bonus = 0.1 if ctx_count >= 2 else 0.0
+
+        best_term  = None
+        best_score = 0.0
+        best_label = ""
+        for label, vocab in all_vocab:
+            for term in vocab:
+                if len(term.split()) > 1 and _literal_word_in_term(word, term):
+                    continue
+                base_sim = _sim(word, term)
+                if 0.60 <= base_sim < 1.0:
+                    score = min(1.0, base_sim * (1 + 0.2 * _ms_freq(term)) + ctx_bonus)
+                    if score > best_score:
+                        best_score = score
+                        best_term  = term
+                        best_label = label
+        if best_term:
+            seen.add(wl)
+            word_suggestions.append({
+                "original":   word,
+                "suggested":  best_term,
+                "reason":     f"Possible {best_label} — similar term in your manuscript.",
+                "confidence": round(best_score, 2),
+            })
+
+    phrase_suggestions.sort(key=lambda x: -x["confidence"])
+    word_suggestions.sort(key=lambda x: -x["confidence"])
+    # Apply entity-safety post-filter as an extra safety net, then return.
+    raw_out = (phrase_suggestions + word_suggestions)[:8]
+    return _apply_entity_safety_filter(raw_out, registry, protected)
+
+
+async def generate_ocr_suggestions(raw_text: str, story_id: str, db) -> list[dict]:
+    """
+    Entity-safe OCR correction suggestions.
+
+    Step 1 — Entity Registry (from ChapterSummary):
+      Build {canonical_entity: type} from all indexed chapters.
+
+    Step 2 — Protected Span Detection:
+      Slide a 1–6 word window over the OCR text.  Any span that matches a
+      registry entity at exact / normalized / high-similarity (≥ 0.90) level
+      is added to the protected set.  Protected spans will never receive a
+      replacement suggestion — they are already valid story entities.
+
+    Step 3A — BGE-M3 + Qwen (when chapters are indexed):
+      Retrieve the top-4 most relevant chapter chunks via BGE-M3.
+      Build a Qwen prompt that includes the entity registry AND the protected
+      spans explicitly.  Qwen is instructed not to suggest corrections for
+      any protected span and not to replace one entity with another.
+      Qwen output is then validated through _apply_entity_safety_filter.
+
+    Step 3B — Difflib fallback (when no chapters are indexed):
+      _suggest_difflib() with the same registry and protected set.
+      Protected spans are skipped in both phrase and single-word strategies.
+
+    All three entity-safety rules are enforced at every step:
+      Rule 1: suggestion.original is in protected → DISCARD
+      Rule 2: suggestion.original has ≥ 0.90 similarity to any entity → DISCARD
+      Rule 3: suggestion.suggested is not in the entity registry → DISCARD
+
+    All suggestions remain optional — Apply/Ignore workflow, never auto-applied.
+    No story-specific terms hardcoded anywhere.
+    """
+    if not raw_text or not raw_text.strip():
+        return []
+
+    # Step 1: Entity registry
+    registry, term_chapter_count, n_summaries = _build_entity_registry(story_id, db)
+    if not registry:
+        print("[ocr_suggestions] No entities in registry yet — no suggestions generated")
+        return []
+
+    # Step 2: Protected spans
+    protected = _find_protected_spans(raw_text, registry)
+    if protected:
+        sample = list(protected)[:6]
+        print(f"[ocr_suggestions] {len(protected)} protected span(s): {sample}")
+
+    # Step 3A: BGE-M3 retrieval + Qwen
+    try:
+        chunks = await retrieve_chunks_from_store(raw_text, story_id, db, top_k=4)
+    except Exception as exc:
+        print(f"[ocr_suggestions] BGE-M3 retrieval failed ({exc}) — using difflib fallback")
+        chunks = []
+
+    if not chunks:
+        print("[ocr_suggestions] No indexed chunks — using difflib fallback")
+        return _suggest_difflib(raw_text, registry, protected, term_chapter_count, n_summaries)
+
+    # Build entity registry section for Qwen
+    chars = sorted(e for e, t in registry.items() if t == "character")
+    locs  = sorted(e for e, t in registry.items() if t == "location")
+    reg_block = ""
+    if chars:
+        reg_block += f"Characters: {', '.join(chars[:25])}\n"
+    if locs:
+        reg_block += f"Locations:  {', '.join(locs[:25])}\n"
+
+    # Build protected spans section for Qwen
+    if protected:
+        prot_block = "\n".join(f"  • {span}" for span in sorted(protected)[:20])
+    else:
+        prot_block = "  (none)"
+
+    context_blocks = "\n\n".join(
+        f"[Chapter {c['chapter']} | relevance {c['score']:.2f}]\n{c['text'][:400]}"
+        for c in chunks
+    )
+
+    system = (
+        "You are an OCR correction assistant for a handwritten manuscript.\n\n"
+        "ENTITY SAFETY RULES — these override everything else:\n"
+        "1. PROTECTED SPANS listed below already match known manuscript entities.\n"
+        "   You MUST NOT suggest any correction for a protected span.\n"
+        "2. Never replace one valid entity with a different valid entity.\n"
+        "   Example of a forbidden suggestion: 'B-204 Uncle' → 'Mr. Dinesh'\n"
+        "   (both are valid entities; swapping them corrupts the manuscript).\n"
+        "3. A correction is only valid when the OCR token is NOT a protected span\n"
+        "   and shows clear character-level corruption of a registry entity\n"
+        "   (e.g. letter substitution, insertion, deletion, OCR noise).\n"
+        "4. The suggested replacement MUST appear in the ENTITY REGISTRY below.\n"
+        "5. Never suggest corrections for common English words.\n"
+        "6. Return ONLY valid JSON — a list of objects with keys:\n"
+        '   "original" (OCR word/phrase), "suggested" (exact registry entity),\n'
+        '   "reason" (one sentence), "confidence" (float 0.0–1.0).\n'
+        "7. Return [] if no safe corrections exist.\n"
+        "8. Maximum 6 suggestions. These are shown to the author — never auto-applied."
+    )
+
+    user_prompt = (
+        f"ENTITY REGISTRY:\n{reg_block}\n"
+        f"PROTECTED SPANS (do NOT suggest corrections for these):\n{prot_block}\n\n"
+        f"OCR EXTRACTED TEXT:\n{raw_text}\n\n"
+        f"MANUSCRIPT CONTEXT (BGE-M3 semantic search):\n{context_blocks}"
+    )
+
+    try:
+        raw_response = await _complete(system, user_prompt, temperature=0.0, max_tokens=600)
+        suggestions  = _extract_json(raw_response, [])
+    except Exception as exc:
+        print(f"[ocr_suggestions] Qwen call failed ({exc}) — using difflib fallback")
+        return _suggest_difflib(raw_text, registry, protected, term_chapter_count, n_summaries)
+
+    if not isinstance(suggestions, list):
+        print("[ocr_suggestions] Qwen returned non-list — using difflib fallback")
+        return _suggest_difflib(raw_text, registry, protected, term_chapter_count, n_summaries)
+
+    # Validate structure
+    validated: list[dict] = []
+    for s in suggestions[:6]:
+        if not isinstance(s, dict):
+            continue
+        if not all(k in s for k in ("original", "suggested", "reason", "confidence")):
+            continue
+        try:
+            conf = float(s["confidence"])
+        except (ValueError, TypeError):
+            conf = 0.5
+        validated.append({
+            "original":   str(s["original"]),
+            "suggested":  str(s["suggested"]),
+            "reason":     str(s["reason"]),
+            "confidence": round(min(1.0, max(0.0, conf)), 2),
+        })
+
+    # Apply entity-safety post-filter (three rules)
+    safe = _apply_entity_safety_filter(validated, registry, protected)
+    print(
+        f"[ocr_suggestions] {len(safe)} safe suggestion(s) "
+        f"(Qwen: {len(validated)}, after safety filter: {len(safe)})"
+    )
+    return safe
 
 
 # ── Embeddings (BGE-M3) ───────────────────────────────────────────────────────

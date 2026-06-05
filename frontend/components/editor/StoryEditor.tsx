@@ -17,12 +17,20 @@ import {
 import { chaptersApi } from '@/lib/api'
 import { Chapter } from '@/lib/types'
 import { toast } from 'sonner'
+import { SearchHighlightExtension, searchHighlightKey, findMatchPositions } from './SearchHighlightExtension'
+
+export interface EditorSearchFunctions {
+  applySearch: (query: string, caseSensitive: boolean, wholeWord: boolean, targetIndex: number) => number
+  clearSearch: () => void
+}
 
 interface Props {
   storyId: string
   chapter: Chapter
   onWordCountChange: (count: number) => void
-  onEditorReady?: (editor: any) => void
+  onEditorReady?: (editor: any, searchFns: EditorSearchFunctions) => void
+  onContentLoaded?: () => void
+  reloadTrigger?: number
 }
 
 const ToolbarBtn = ({ onClick, active, title, children }: any) => (
@@ -39,7 +47,7 @@ const ToolbarBtn = ({ onClick, active, title, children }: any) => (
   </button>
 )
 
-export default function StoryEditor({ storyId, chapter, onWordCountChange, onEditorReady }: Props) {
+export default function StoryEditor({ storyId, chapter, onWordCountChange, onEditorReady, onContentLoaded, reloadTrigger }: Props) {
   const [saving, setSaving] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -57,13 +65,32 @@ export default function StoryEditor({ storyId, chapter, onWordCountChange, onEdi
       Typography,
       Underline,
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
+      SearchHighlightExtension,
     ],
     content: chapter.content || '',
     editorProps: {
       attributes: { class: 'min-h-[calc(100vh-260px)] focus:outline-none' },
     },
     onCreate({ editor }) {
-      onEditorReady?.(editor)
+      const searchFns: EditorSearchFunctions = {
+        applySearch(query, caseSensitive, wholeWord, targetIndex) {
+          const matches = findMatchPositions(editor.state.doc, query, caseSensitive, wholeWord)
+          editor.view.dispatch(
+            editor.view.state.tr.setMeta(searchHighlightKey, { matches, activeIndex: targetIndex }),
+          )
+          if (matches[targetIndex]) {
+            editor.commands.setTextSelection(matches[targetIndex])
+            editor.commands.scrollIntoView()
+          }
+          return matches.length
+        },
+        clearSearch() {
+          editor.view.dispatch(
+            editor.view.state.tr.setMeta(searchHighlightKey, { matches: [], activeIndex: -1 }),
+          )
+        },
+      }
+      onEditorReady?.(editor, searchFns)
     },
     onUpdate({ editor }) {
       const text = editor.getText()
@@ -82,6 +109,12 @@ export default function StoryEditor({ storyId, chapter, onWordCountChange, onEdi
   useEffect(() => {
     if (!editor) return
     const load = async () => {
+      // Purge stale search decorations immediately — before the document is
+      // replaced.  Without this, positions from the outgoing chapter survive
+      // into the incoming chapter's document and land on arbitrary text.
+      editor.view.dispatch(
+        editor.view.state.tr.setMeta(searchHighlightKey, { matches: [], activeIndex: -1 }),
+      )
       try {
         const res = await chaptersApi.get(storyId, chapter.chapter_id)
         editor.commands.setContent(res.data.content || '', false)
@@ -91,10 +124,11 @@ export default function StoryEditor({ storyId, chapter, onWordCountChange, onEdi
       } catch {
         editor.commands.setContent(chapter.content || '', false)
       }
+      onContentLoaded?.()
     }
     load()
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current) }
-  }, [chapter.chapter_id])
+  }, [chapter.chapter_id, reloadTrigger])
 
   const saveContent = useCallback(async (html: string) => {
     setSaving(true)

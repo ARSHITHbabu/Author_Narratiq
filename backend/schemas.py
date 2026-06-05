@@ -213,10 +213,10 @@ class OcrExtractResponse(BaseModel):
     raw_text: str
     cleaned_text: str
     note_type: str
-    confidence: float
+    confidence: float   # word-validity quality score from GOT-OCR2.0 (0.0–1.0)
     ocr_engine: str
-    lines_detected: int = 0          # text lines found by EasyOCR
-    suggestions: List[OcrSuggestion] = []  # story-context correction hints
+    lines_detected: int = 0          # always 0 for GOT-OCR2.0 (end-to-end model)
+    suggestions: List[OcrSuggestion] = []  # optional story-context correction hints
 
 
 class OcrConfirm(BaseModel):
@@ -261,6 +261,78 @@ class Suggestion(BaseModel):
 class SuggestionsResponse(BaseModel):
     suggestions: List[Suggestion]
     tokens_used: int
+
+
+# ── Search & Replace ──────────────────────────────────────────────────────────
+
+class SearchMatchContext(BaseModel):
+    context_before: str
+    match_text: str
+    context_after: str
+
+
+class ChapterSearchResult(BaseModel):
+    chapter_id: str
+    chapter_number: int
+    chapter_title: str
+    match_count: int
+    matches: List[SearchMatchContext]
+
+
+class ExactSearchRequest(BaseModel):
+    query: str
+    case_sensitive: bool = False
+    whole_word: bool = False
+    chapter_ids: Optional[List[str]] = None
+
+
+class ExactSearchResponse(BaseModel):
+    query: str
+    total_matches: int
+    chapters_hit: int
+    results: List[ChapterSearchResult]
+
+
+class SemanticSearchRequest(BaseModel):
+    query: str
+    top_k: int = 8
+
+
+class SemanticResult(BaseModel):
+    chapter_id: str
+    chapter_number: int
+    chapter_title: str
+    chunk_text: str
+    score: float
+
+
+class SemanticSearchResponse(BaseModel):
+    query: str
+    results: List[SemanticResult]
+
+
+class ReplacePreviewItem(BaseModel):
+    chapter_id: str
+    chapter_number: int
+    chapter_title: str
+    match_count: int
+
+
+class ReplaceRequest(BaseModel):
+    query: str
+    replacement: str
+    case_sensitive: bool = False
+    whole_word: bool = False
+    chapter_ids: Optional[List[str]] = None   # None = all chapters
+    occurrence_index: Optional[int] = None    # None = all, N = Nth only (Replace One)
+    dry_run: bool = False
+
+
+class ReplaceResponse(BaseModel):
+    dry_run: bool
+    replaced_count: int
+    chapters_affected: int
+    preview: List[ReplacePreviewItem]
 
 
 # ── Export ────────────────────────────────────────────────────────────────────

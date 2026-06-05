@@ -9,6 +9,7 @@ from database import engine, Base, run_db_migrations
 import models  # noqa: F401
 
 from routers import auth, projects, chapters, intake, plot_assistant, ai_transform, ocr, manuscript, export
+from routers import search as search_router
 
 Base.metadata.create_all(bind=engine)
 run_db_migrations(engine)   # add new columns to existing tables
@@ -97,6 +98,7 @@ app.include_router(ai_transform.router,   prefix="/api/ai")
 app.include_router(ocr.router,            prefix="/api/ocr")
 app.include_router(manuscript.router,     prefix="/api/manuscript")
 app.include_router(export.router,         prefix="/api/export")
+app.include_router(search_router.router,  prefix="/api/search")
 
 
 @app.get("/api/health")
@@ -129,7 +131,7 @@ async def health():
         "backend":  "ready",
         "vllm":     vllm_status,
         "bge_m3":   bge_status,
-        "trocr":    "lazy",
+        "got_ocr":  "lazy",
         "gpu":      gpu_info,
         "config": {
             "vllm_url":        settings.vllm_base_url,

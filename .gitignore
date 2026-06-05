@@ -20,6 +20,28 @@ backend/uploads/
 
 # Environment files (keep .env.example, ignore real .env)
 backend/.env
+frontend/.env
+frontend/.env.local
+frontend/.env*.local
+.env
+.env.local
 
 # IDE
 .claude/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Build artifacts
+frontend/.next/
+frontend/out/
+frontend/tsconfig.tsbuildinfo
+
+# Word documents / binary assets
+*.docx
+*.zip

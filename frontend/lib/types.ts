@@ -101,6 +101,56 @@ export interface OcrResult {
   suggestions: OcrSuggestion[]
 }
 
+// ── Search & Replace ──────────────────────────────────────────────────────────
+
+export interface SearchMatchContext {
+  context_before: string
+  match_text: string
+  context_after: string
+}
+
+export interface ChapterSearchResult {
+  chapter_id: string
+  chapter_number: number
+  chapter_title: string
+  match_count: number
+  matches: SearchMatchContext[]
+}
+
+export interface ExactSearchResponse {
+  query: string
+  total_matches: number
+  chapters_hit: number
+  results: ChapterSearchResult[]
+}
+
+export interface SemanticResult {
+  chapter_id: string
+  chapter_number: number
+  chapter_title: string
+  chunk_text: string
+  score: number
+}
+
+export interface SemanticSearchResponse {
+  query: string
+  results: SemanticResult[]
+}
+
+export interface ReplacePreviewItem {
+  chapter_id: string
+  chapter_number: number
+  chapter_title: string
+  match_count: number
+}
+
+export interface ReplaceResponse {
+  dry_run: boolean
+  replaced_count: number
+  chapters_affected: number
+  preview: ReplacePreviewItem[]
+}
+
 export type ToneType =
   | 'dark' | 'suspenseful' | 'romantic' | 'humorous'
   | 'epic' | 'melancholic' | 'hopeful' | 'tense' | 'lyrical'

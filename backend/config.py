@@ -104,6 +104,11 @@ class Settings(BaseSettings):
         return self.resolved_trocr_path
 
     @property
+    def got_path(self) -> str:
+        """Local path to GOT-OCR2.0 weights."""
+        return str(Path(self.model_base_dir) / "GOT-OCR2_0")
+
+    @property
     def qwen_path(self) -> str:
         return self.resolved_llm_path
 

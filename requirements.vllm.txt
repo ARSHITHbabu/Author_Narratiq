@@ -1,0 +1,25 @@
+# Install this ONLY on the Linux/CUDA GPU server (RunPod pod).
+# vLLM does not run on Windows.
+#
+# Usage on RunPod:
+#   pip install -r requirements.vllm.txt
+#   pip install -r backend/requirements.txt
+
+# vLLM — inference engine with OpenAI-compatible server
+# Bundles torch, transformers, and CUDA kernels automatically.
+vllm>=0.6.3
+
+# Flash Attention 2 — halves memory bandwidth usage for long sequences.
+# Requires CUDA 11.8+ and compute capability 8.0+ (A100, H100, RTX 3090/4090).
+# Comment this line out if your GPU doesn't support it (e.g. T4, V100).
+flash-attn>=2.6.0
+
+# Hugging Face utilities — used by scripts/download_models.sh
+huggingface-hub>=0.24.0
+
+# hf-transfer — faster model downloads via Rust bindings (optional but recommended)
+# Enable with: export HF_HUB_ENABLE_HF_TRANSFER=1
+hf-transfer>=0.1.8
+
+# accelerate — required for some model loading paths (device_map, mixed precision)
+accelerate>=0.30.0

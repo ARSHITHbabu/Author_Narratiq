@@ -5,15 +5,17 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   Feather, ArrowLeft, BarChart3, Download, Brain, Camera,
-  Wand2, Lightbulb, Loader2, Sparkles
+  Wand2, Lightbulb, Loader2, Sparkles, Search
 } from 'lucide-react'
 import { chaptersApi, projectsApi, exportApi, aiApi } from '@/lib/api'
 import { Story, Chapter, AISuggestion } from '@/lib/types'
 import ChapterSidebar from '@/components/editor/ChapterSidebar'
 import StoryEditor from '@/components/editor/StoryEditor'
+import { EditorSearchFunctions } from '@/components/editor/StoryEditor'
 import AIToolsSidebar from '@/components/ai-tools/AIToolsSidebar'
 import PlotAssistantPanel from '@/components/plot-assistant/PlotAssistantPanel'
 import OCRPanel from '@/components/ocr/OCRPanel'
+import SearchPanel from '@/components/search/SearchPanel'
 import { toast } from 'sonner'
 
 type RightPanel = 'ai' | 'plot' | 'ocr' | 'suggestions'
@@ -33,6 +35,8 @@ export default function EditorPage({ params }: { params: { id: string } }) {
   const [exporting, setExporting] = useState(false)
   const [leftCollapsed, setLeftCollapsed] = useState(false)
   const [rightCollapsed, setRightCollapsed] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [editorReloadKey, setEditorReloadKey] = useState(0)
 
   // We use a ref to hold editor methods from StoryEditor
   const editorMethodsRef = useRef<{
@@ -41,9 +45,74 @@ export default function EditorPage({ params }: { params: { id: string } }) {
     insertText: (text: string) => void
   } | null>(null)
 
+  // Search: ref to editor search functions + pending cross-chapter navigation
+  const editorSearchRef = useRef<EditorSearchFunctions | null>(null)
+  const pendingSearchRef = useRef<{
+    query: string
+    caseSensitive: boolean
+    wholeWord: boolean
+    targetIndex: number
+  } | null>(null)
+  // Tracks the live search state from SearchPanel so we can re-apply
+  // highlights whenever the user switches chapters manually
+  const activeSearchRef = useRef<{
+    query: string
+    caseSensitive: boolean
+    wholeWord: boolean
+  } | null>(null)
+
   useEffect(() => {
     loadProject()
   }, [storyId])
+
+  // Ctrl+F / Cmd+F keyboard shortcut
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault()
+        setSearchOpen(true)
+      }
+      if (e.key === 'Escape' && searchOpen) {
+        setSearchOpen(false)
+        editorSearchRef.current?.clearSearch()
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [searchOpen])
+
+  // Called when user clicks a search result (possibly in a different chapter)
+  const handleJumpToMatch = useCallback(
+    (chapterId: string, localIndex: number, query: string, caseSensitive: boolean, wholeWord: boolean) => {
+      pendingSearchRef.current = { query, caseSensitive, wholeWord, targetIndex: localIndex }
+      if (activeChapter?.chapter_id === chapterId) {
+        editorSearchRef.current?.applySearch(query, caseSensitive, wholeWord, localIndex)
+        pendingSearchRef.current = null
+      } else {
+        const target = chapters.find(c => c.chapter_id === chapterId)
+        if (target) setActiveChapter(target)
+      }
+    },
+    [activeChapter, chapters],
+  )
+
+  // Called after chapter content is loaded in the editor.
+  // Uses refs only → stable callback, always reads latest values.
+  const handleContentLoaded = useCallback(() => {
+    if (!editorSearchRef.current) return
+
+    if (pendingSearchRef.current) {
+      // User clicked a search result that jumped to a different chapter
+      const { query, caseSensitive, wholeWord, targetIndex } = pendingSearchRef.current
+      editorSearchRef.current.applySearch(query, caseSensitive, wholeWord, targetIndex)
+      pendingSearchRef.current = null
+    } else if (activeSearchRef.current?.query.trim()) {
+      // Search panel is open with an active query — re-apply to the new chapter
+      // so the author sees which matches exist here (all inactive/yellow; no scroll)
+      const { query, caseSensitive, wholeWord } = activeSearchRef.current
+      editorSearchRef.current.applySearch(query, caseSensitive, wholeWord, -1)
+    }
+  }, [])
 
   const loadProject = async () => {
     try {
@@ -134,6 +203,20 @@ export default function EditorPage({ params }: { params: { id: string } }) {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Search */}
+          <button
+            onClick={() => setSearchOpen(v => !v)}
+            title="Search manuscript (Ctrl+F)"
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all border ${
+              searchOpen
+                ? 'text-amber-400 bg-amber-500/10 border-amber-500/20'
+                : 'text-[#9da3c8] hover:text-amber-400 hover:bg-[#1f2440] border-transparent hover:border-[#2e3454]'
+            }`}
+          >
+            <Search className="w-3.5 h-3.5" />
+            Search
+          </button>
+
           {/* Suggestions */}
           <button
             onClick={loadSuggestions}
@@ -212,6 +295,9 @@ export default function EditorPage({ params }: { params: { id: string } }) {
             chapter={activeChapter}
             onWordCountChange={setWordCount}
             onMethodsReady={setEditorMethods}
+            onSearchReady={(fns) => { editorSearchRef.current = fns }}
+            onContentLoaded={handleContentLoaded}
+            reloadTrigger={editorReloadKey}
           />
         </div>
 
@@ -277,6 +363,26 @@ export default function EditorPage({ params }: { params: { id: string } }) {
         </div>
       </div>
 
+      {/* Floating Search Panel */}
+      {searchOpen && (
+        <SearchPanel
+          storyId={storyId}
+          activeChapterId={activeChapter.chapter_id}
+          onClose={() => {
+            setSearchOpen(false)
+            editorSearchRef.current?.clearSearch()
+            activeSearchRef.current = null
+          }}
+          onJumpToMatch={handleJumpToMatch}
+          onReplaceComplete={(affectedIds) => {
+            if (affectedIds.includes(activeChapter.chapter_id)) {
+              setEditorReloadKey(k => k + 1)
+            }
+          }}
+          onSearchStateChange={(state) => { activeSearchRef.current = state }}
+        />
+      )}
+
       {/* Status bar */}
       <div className="flex items-center gap-4 px-4 h-8 border-t border-[#1f2440] text-xs text-[#5c6391] flex-shrink-0 bg-[#0f1220]">
         <span>Chapter {activeChapter.chapter_number}: <span className="text-[#9da3c8]">{activeChapter.title}</span></span>
@@ -296,6 +402,9 @@ function EditorWithMethods({
   chapter,
   onWordCountChange,
   onMethodsReady,
+  onSearchReady,
+  onContentLoaded,
+  reloadTrigger,
 }: {
   storyId: string
   chapter: Chapter
@@ -305,6 +414,9 @@ function EditorWithMethods({
     getFullText: () => string
     insertText: (text: string) => void
   }) => void
+  onSearchReady?: (fns: EditorSearchFunctions) => void
+  onContentLoaded?: () => void
+  reloadTrigger?: number
 }) {
   const editorRef = useRef<any>(null)
 
@@ -335,7 +447,12 @@ function EditorWithMethods({
       storyId={storyId}
       chapter={chapter}
       onWordCountChange={onWordCountChange}
-      onEditorReady={(ed) => { editorRef.current = ed }}
+      onContentLoaded={onContentLoaded}
+      reloadTrigger={reloadTrigger}
+      onEditorReady={(ed, searchFns) => {
+        editorRef.current = ed
+        onSearchReady?.(searchFns)
+      }}
     />
   )
 }

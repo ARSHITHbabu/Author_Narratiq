@@ -1,0 +1,14 @@
+# Minimal dependencies for running scripts/download_models.sh
+# Install on the RunPod pod BEFORE downloading models.
+#
+# Usage:
+#   pip install -r requirements.setup.txt
+#   bash scripts/download_models.sh
+
+# Hugging Face CLI and hub utilities
+huggingface-hub>=0.24.0
+
+# Optional: Rust-based fast downloader (recommended for large models)
+# Enables parallel chunk downloads — Qwen 14 GB downloads ~3× faster.
+# Activate with: export HF_HUB_ENABLE_HF_TRANSFER=1
+hf-transfer>=0.1.8

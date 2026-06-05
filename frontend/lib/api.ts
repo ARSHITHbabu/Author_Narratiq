@@ -121,6 +121,48 @@ export const manuscriptApi = {
   jobStatus: (jobId: string) => api.get(`/api/manuscript/job/${jobId}`),
 }
 
+// ── Search & Replace ──────────────────────────────────────────────────────────
+export const searchApi = {
+  exact: (
+    storyId: string,
+    query: string,
+    caseSensitive: boolean,
+    wholeWord: boolean,
+    chapterIds?: string[] | null,
+  ) =>
+    api.post(`/api/search/exact/${storyId}`, {
+      query,
+      case_sensitive: caseSensitive,
+      whole_word: wholeWord,
+      chapter_ids: chapterIds ?? null,
+    }),
+
+  semantic: (storyId: string, query: string, topK = 8) =>
+    api.post(`/api/search/semantic/${storyId}`, { query, top_k: topK }),
+
+  replace: (
+    storyId: string,
+    params: {
+      query: string
+      replacement: string
+      caseSensitive: boolean
+      wholeWord: boolean
+      chapterIds?: string[] | null
+      occurrenceIndex?: number | null
+      dryRun: boolean
+    },
+  ) =>
+    api.post(`/api/search/replace/${storyId}`, {
+      query: params.query,
+      replacement: params.replacement,
+      case_sensitive: params.caseSensitive,
+      whole_word: params.wholeWord,
+      chapter_ids: params.chapterIds ?? null,
+      occurrence_index: params.occurrenceIndex ?? null,
+      dry_run: params.dryRun,
+    }),
+}
+
 // ── Export ────────────────────────────────────────────────────────────────────
 export const exportApi = {
   export: async (storyId: string, format: 'docx' | 'pdf') => {

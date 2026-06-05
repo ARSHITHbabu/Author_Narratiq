@@ -45,9 +45,9 @@ async def extract_ocr(
             detail="OCR processing failed unexpectedly. Please try again.",
         )
 
-    # Story-context suggestions — synchronous, difflib only, safe to call here.
-    # Returns [] when no chapter summaries exist yet (new project).
-    raw_suggestions = generate_ocr_suggestions(result["raw_text"], story_id, db)
+    # Story-context suggestions — async (BGE-M3 retrieval + Qwen, or difflib fallback).
+    # Returns [] when no chapter summaries / chunks are indexed yet.
+    raw_suggestions = await generate_ocr_suggestions(result["raw_text"], story_id, db)
     suggestions = [OcrSuggestion(**s) for s in raw_suggestions]
 
     upload = OcrUpload(

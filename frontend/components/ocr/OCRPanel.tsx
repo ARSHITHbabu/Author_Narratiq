@@ -212,11 +212,6 @@ export default function OCRPanel({ storyId }: Props) {
                   <span className="text-xs text-amber-400 font-medium">Text Extracted</span>
                   <div className="flex items-center gap-3 text-xs text-[#5c6391]">
                     <span title="OCR engine used">Engine: {result.ocr_engine}</span>
-                    {result.lines_detected > 0 && (
-                      <span title="Text lines detected by PaddleOCR">
-                        {result.lines_detected} line{result.lines_detected !== 1 ? 's' : ''}
-                      </span>
-                    )}
                     <span
                       className={
                         result.confidence > 0.8
@@ -225,9 +220,9 @@ export default function OCRPanel({ storyId }: Props) {
                           ? 'text-amber-400'
                           : 'text-red-400'
                       }
-                      title="Average PaddleOCR detection confidence"
+                      title="Extraction quality score — ratio of word-like tokens in the output"
                     >
-                      {Math.round(result.confidence * 100)}% confidence
+                      {Math.round(result.confidence * 100)}% quality
                     </span>
                   </div>
                 </div>
