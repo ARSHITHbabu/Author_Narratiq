@@ -353,7 +353,13 @@ export default function EditorPage({ params }: { params: { id: string } }) {
                     getEditorText={() => editorMethodsRef.current?.getFullText() || ''}
                   />
                 )}
-                {rightPanel === 'ocr' && <OCRPanel storyId={storyId} />}
+                {rightPanel === 'ocr' && (
+                  <OCRPanel
+                    storyId={storyId}
+                    chapterId={activeChapter.chapter_id}
+                    onInjectComplete={() => setEditorReloadKey(k => k + 1)}
+                  />
+                )}
                 {rightPanel === 'suggestions' && (
                   <SuggestionsPanel suggestions={suggestions} loading={loadingSuggestions} />
                 )}

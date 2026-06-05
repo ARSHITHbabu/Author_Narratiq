@@ -46,6 +46,10 @@ class Story(Base):
     plot_sessions = relationship("PlotAssistantSession", back_populates="story", cascade="all, delete-orphan")
     ocr_uploads = relationship("OcrUpload", back_populates="story", cascade="all, delete-orphan")
     chapter_summaries = relationship("ChapterSummary", back_populates="story", cascade="all, delete-orphan")
+    characters = relationship("Character", back_populates="story", cascade="all, delete-orphan")
+    character_profiles = relationship("CharacterProfile", back_populates="story", cascade="all, delete-orphan")
+    story_notes = relationship("StoryNote", back_populates="story", cascade="all, delete-orphan")
+    note_cards = relationship("NoteCard", back_populates="story", cascade="all, delete-orphan")
 
 
 class Chapter(Base):
@@ -189,3 +193,135 @@ class ChapterChunk(Base):
     word_count     = Column(Integer, default=0)
     embedding      = Column(JSON,    default=None)     # BGE-M3 dense vector (1024-dim)
     created_at     = Column(DateTime, default=datetime.utcnow)
+
+
+# ── Character Management ───────────────────────────────────────────────────────
+
+class Character(Base):
+    """
+    Core character entity — the canonical record for a named person in a story.
+
+    Serves three roles:
+      1. Source of truth for character names / aliases (used by OCR entity-safety system)
+      2. Parent of CharacterProfile (structured character data + BGE-M3 embedding)
+      3. Future: anchor for character relationship graph and arc tracking
+
+    Deliberately lightweight — detailed data lives in CharacterProfile.
+    """
+    __tablename__ = "characters"
+    character_id = Column(String,   primary_key=True, default=gen_uuid)
+    story_id     = Column(String,   ForeignKey("stories.story_id"), nullable=False)
+    user_id      = Column(String,   ForeignKey("users.user_id"),    nullable=False)
+    name         = Column(String,   nullable=False, index=True)
+    aliases      = Column(JSON,     default=list)     # alternate names OCR may detect
+    role         = Column(String,   default="supporting")  # protagonist|antagonist|supporting|minor
+    status       = Column(String,   default="active")      # active|deceased|unknown
+    created_at   = Column(DateTime, default=datetime.utcnow)
+    updated_at   = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    story   = relationship("Story",            back_populates="characters")
+    profile = relationship("CharacterProfile", back_populates="character",
+                           uselist=False, cascade="all, delete-orphan")
+
+
+class CharacterProfile(Base):
+    """
+    Structured character profile — 1:1 with Character.
+
+    Structured fields are populated via the Character Management UI (Task 3).
+    raw_notes is the immediate target for OCR injection — the writer's handwritten
+    notes land here verbatim and can later be organised into structured fields.
+
+    embedding (BGE-M3 1024-dim) enables Character RAG: the Plot Assistant can
+    retrieve relevant character profiles by semantic similarity at query time.
+    Computed in the background after each profile update.
+
+    story_id is denormalized here to allow O(1) story-scoped queries without
+    a JOIN through the characters table.
+    """
+    __tablename__ = "character_profiles"
+    profile_id   = Column(String,   primary_key=True, default=gen_uuid)
+    character_id = Column(String,   ForeignKey("characters.character_id"),
+                          nullable=False, unique=True)
+    story_id     = Column(String,   ForeignKey("stories.story_id"), nullable=False)
+
+    # Structured fields — populated by user via Character Management UI
+    age          = Column(String,   default="")
+    appearance   = Column(Text,     default="")
+    personality  = Column(Text,     default="")
+    motivations  = Column(Text,     default="")
+    backstory    = Column(Text,     default="")
+    arc_notes    = Column(Text,     default="")
+
+    # Free-form notes — primary landing zone for OCR-injected text.
+    # Multiple OCR confirmations append here with a separator.
+    raw_notes    = Column(Text,     default="")
+
+    # BGE-M3 embedding of combined profile text (for Character RAG — Task 3).
+    # NULL until first embedding background task completes.
+    embedding    = Column(JSON,     default=None)
+
+    # Traceability: stores upload_id of the OCR image that last wrote raw_notes.
+    # Plain string — no FK cascade (upload lifecycle is governed by Story, not Profile).
+    ocr_upload_id = Column(String,  nullable=True)
+
+    created_at   = Column(DateTime, default=datetime.utcnow)
+    updated_at   = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    character = relationship("Character", back_populates="profile")
+    story     = relationship("Story",     back_populates="character_profiles")
+
+
+# ── Story Notes ────────────────────────────────────────────────────────────────
+
+class StoryNote(Base):
+    """
+    Long-form story-level note — world-building, research, plot planning.
+
+    Distinct from NoteCard: story notes are prose research and planning documents.
+    Note cards are structured short-form index cards typed by purpose (scene, location,
+    theme, etc.).  They have different retrieval roles in future RAG pipelines and
+    will develop different schema fields as the product evolves.
+
+    ocr_upload_id is a traceability string, not an enforced FK, so upload deletion
+    does not cascade to notes.
+    """
+    __tablename__ = "story_notes"
+    note_id       = Column(String,   primary_key=True, default=gen_uuid)
+    story_id      = Column(String,   ForeignKey("stories.story_id"), nullable=False)
+    user_id       = Column(String,   ForeignKey("users.user_id"),    nullable=False)
+    title         = Column(String,   default="")
+    content       = Column(Text,     nullable=False)
+    ocr_upload_id = Column(String,   nullable=True)
+    created_at    = Column(DateTime, default=datetime.utcnow)
+    updated_at    = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    story = relationship("Story", back_populates="story_notes")
+
+
+# ── Note Cards ─────────────────────────────────────────────────────────────────
+
+class NoteCard(Base):
+    """
+    Structured index card — short-form, typed reference item.
+
+    card_type classifies the card's purpose so future retrieval systems can
+    filter by type: scene cards feed scene-structure context, location cards
+    feed setting context, character cards feed character context.
+
+    Deliberately separate from StoryNote: these have a typed classification
+    system, are shorter and more structured, and will develop different
+    embedding strategies (type-specific retrievers vs general story-note retrieval).
+    """
+    __tablename__ = "note_cards"
+    card_id       = Column(String,   primary_key=True, default=gen_uuid)
+    story_id      = Column(String,   ForeignKey("stories.story_id"), nullable=False)
+    user_id       = Column(String,   ForeignKey("users.user_id"),    nullable=False)
+    title         = Column(String,   default="")
+    content       = Column(Text,     nullable=False)
+    card_type     = Column(String,   default="general")
+    ocr_upload_id = Column(String,   nullable=True)
+    created_at    = Column(DateTime, default=datetime.utcnow)
+    updated_at    = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    story = relationship("Story", back_populates="note_cards")

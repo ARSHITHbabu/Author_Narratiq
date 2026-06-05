@@ -1,7 +1,10 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Camera, Upload, Loader2, Check, Edit3, AlertCircle, X, ChevronDown, ChevronUp, Lightbulb } from 'lucide-react'
+import {
+  Camera, Upload, Loader2, Check, Edit3, AlertCircle,
+  X, ChevronDown, ChevronUp, Lightbulb, User,
+} from 'lucide-react'
 import { ocrApi } from '@/lib/api'
 import { OcrResult, OcrSuggestion } from '@/lib/types'
 import { toast } from 'sonner'
@@ -14,10 +17,12 @@ const DESTINATIONS = [
 ]
 
 interface Props {
-  storyId: string
+  storyId:          string
+  chapterId:        string
+  onInjectComplete?: () => void   // called after successful chapter_draft injection
 }
 
-export default function OCRPanel({ storyId }: Props) {
+export default function OCRPanel({ storyId, chapterId, onInjectComplete }: Props) {
   const fileRef = useRef<HTMLInputElement>(null)
   const [preview, setPreview]           = useState<string | null>(null)
   const [file, setFile]                 = useState<File | null>(null)
@@ -25,18 +30,16 @@ export default function OCRPanel({ storyId }: Props) {
   const [result, setResult]             = useState<OcrResult | null>(null)
   const [editedText, setEditedText]     = useState('')
   const [destination, setDestination]   = useState('story_notes')
+  const [characterName, setCharacterName] = useState('')
   const [confirming, setConfirming]     = useState(false)
   const [showRaw, setShowRaw]           = useState(false)
-  // Tracks which suggestion originals the author has dismissed (applied or ignored)
   const [dismissed, setDismissed]       = useState<Set<string>>(new Set())
 
-  // Active suggestions = all suggestions minus dismissed ones
   const activeSuggestions: OcrSuggestion[] = (result?.suggestions ?? []).filter(
     s => !dismissed.has(s.original)
   )
 
   const applySuggestion = (s: OcrSuggestion) => {
-    // Replace ALL occurrences of the OCR term with the suggested story term
     setEditedText(prev => prev.replaceAll(s.original, s.suggested))
     setDismissed(prev => new Set([...prev, s.original]))
     toast.success(`"${s.original}" replaced with "${s.suggested}"`)
@@ -64,7 +67,6 @@ export default function OCRPanel({ storyId }: Props) {
       const res = await ocrApi.extract(storyId, file)
       const data: OcrResult = res.data
       setResult(data)
-      // Prefer Qwen-cleaned text; fall back to raw OCR if cleanup produced nothing
       setEditedText(data.cleaned_text || data.raw_text)
     } catch (err: any) {
       const detail = err?.response?.data?.detail
@@ -74,20 +76,42 @@ export default function OCRPanel({ storyId }: Props) {
     }
   }
 
+  const isConfirmDisabled =
+    confirming ||
+    !editedText.trim() ||
+    (destination === 'character_profile' && !characterName.trim())
+
   const confirm = async () => {
-    if (!result || !editedText.trim()) return
+    if (!result || isConfirmDisabled) return
     setConfirming(true)
     try {
-      await ocrApi.confirm(result.upload_id, editedText, destination)
-      toast.success(`Note saved to ${DESTINATIONS.find(d => d.id === destination)?.label}`)
+      await ocrApi.confirm(
+        result.upload_id,
+        editedText,
+        destination,
+        destination === 'chapter_draft'     ? chapterId     : undefined,
+        destination === 'character_profile' ? characterName : undefined,
+      )
+      const destLabel = DESTINATIONS.find(d => d.id === destination)?.label ?? destination
+      if (destination === 'character_profile') {
+        toast.success(`Profile notes saved for "${characterName}"`)
+      } else {
+        toast.success(`Saved to ${destLabel}`)
+      }
+      if (destination === 'chapter_draft') {
+        onInjectComplete?.()
+      }
+      // Reset panel
       setPreview(null)
       setFile(null)
       setResult(null)
       setEditedText('')
+      setCharacterName('')
       setShowRaw(false)
       setDismissed(new Set())
-    } catch {
-      toast.error('Failed to save note')
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail
+      toast.error(detail || 'Failed to save note')
     } finally {
       setConfirming(false)
     }
@@ -98,11 +122,11 @@ export default function OCRPanel({ storyId }: Props) {
     setFile(null)
     setResult(null)
     setEditedText('')
+    setCharacterName('')
     setShowRaw(false)
     setDismissed(new Set())
   }
 
-  // True extraction failure: GOT-OCR2.0 returned no text
   const extractionFailed = result !== null && !result.raw_text && !result.cleaned_text
 
   return (
@@ -207,7 +231,7 @@ export default function OCRPanel({ storyId }: Props) {
               </div>
             ) : (
               <>
-                {/* Confidence + engine + lines info */}
+                {/* Confidence + engine info */}
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <span className="text-xs text-amber-400 font-medium">Text Extracted</span>
                   <div className="flex items-center gap-3 text-xs text-[#5c6391]">
@@ -263,7 +287,7 @@ export default function OCRPanel({ storyId }: Props) {
                   />
                 </div>
 
-                {/* Raw OCR output — collapsible, for review/debugging */}
+                {/* Raw OCR output — collapsible */}
                 {result.raw_text && result.cleaned_text && result.raw_text !== result.cleaned_text && (
                   <div className="border border-[#1f2440] rounded-xl overflow-hidden">
                     <button
@@ -287,7 +311,6 @@ export default function OCRPanel({ storyId }: Props) {
                 {/* ── Story-context suggestions ─────────────────────────── */}
                 {activeSuggestions.length > 0 && (
                   <div className="border border-amber-500/20 rounded-xl overflow-hidden">
-                    {/* Header */}
                     <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/5 border-b border-amber-500/20">
                       <Lightbulb className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
                       <span className="text-xs font-medium text-amber-400">
@@ -297,21 +320,16 @@ export default function OCRPanel({ storyId }: Props) {
                         {activeSuggestions.length} suggestion{activeSuggestions.length !== 1 ? 's' : ''}
                       </span>
                     </div>
-
-                    {/* Note — author retains full control */}
                     <p className="px-3 pt-2 text-xs text-[#5c6391] leading-relaxed">
                       These are possible matches from your manuscript. Review carefully — OCR may have
                       captured a new name that genuinely differs from an existing character.
                     </p>
-
-                    {/* Suggestion cards */}
                     <div className="p-3 flex flex-col gap-2">
                       {activeSuggestions.map((s) => (
                         <div
                           key={s.original}
                           className="bg-[#0d0f1a] border border-[#2e3454] rounded-xl p-3"
                         >
-                          {/* Term comparison row */}
                           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                             <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">
                               {s.original}
@@ -320,7 +338,6 @@ export default function OCRPanel({ storyId }: Props) {
                             <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-green-500/10 text-green-400 border border-green-500/20">
                               {s.suggested}
                             </span>
-                            {/* Confidence badge */}
                             <span
                               className={`ml-auto text-xs font-medium ${
                                 s.confidence >= 0.80 ? 'text-green-400'
@@ -332,11 +349,7 @@ export default function OCRPanel({ storyId }: Props) {
                               {Math.round(s.confidence * 100)}%
                             </span>
                           </div>
-
-                          {/* Reason */}
                           <p className="text-xs text-[#5c6391] mb-2.5">{s.reason}</p>
-
-                          {/* Action buttons */}
                           <div className="flex gap-2">
                             <button
                               onClick={() => applySuggestion(s)}
@@ -357,7 +370,7 @@ export default function OCRPanel({ storyId }: Props) {
                   </div>
                 )}
 
-                {/* Destination picker */}
+                {/* ── Destination picker ───────────────────────────────── */}
                 <div>
                   <label className="text-xs text-[#5c6391] mb-1.5 block">Save to:</label>
                   <div className="grid grid-cols-2 gap-1.5">
@@ -377,10 +390,31 @@ export default function OCRPanel({ storyId }: Props) {
                   </div>
                 </div>
 
+                {/* ── Character name input (shown only for character_profile) ── */}
+                {destination === 'character_profile' && (
+                  <div>
+                    <label className="text-xs text-[#5c6391] mb-1.5 flex items-center gap-1.5">
+                      <User className="w-3 h-3" />
+                      Character name
+                      <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={characterName}
+                      onChange={(e) => setCharacterName(e.target.value)}
+                      placeholder="Enter character name…"
+                      className="w-full bg-[#0d0f1a] border border-[#2e3454] rounded-xl px-3 py-2 text-sm text-[#e8eaf6] placeholder-[#3d4466] focus:outline-none focus:border-amber-500/50 transition-colors"
+                    />
+                    <p className="text-xs text-[#3d4466] mt-1">
+                      Notes will be appended to this character's profile. A new character is created if the name doesn't exist yet.
+                    </p>
+                  </div>
+                )}
+
                 {/* Save button */}
                 <button
                   onClick={confirm}
-                  disabled={confirming || !editedText.trim()}
+                  disabled={isConfirmDisabled}
                   className="w-full bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-black font-semibold py-3 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
                 >
                   {confirming ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}

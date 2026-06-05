@@ -104,9 +104,38 @@ export const ocrApi = {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
   },
-  confirm: (uploadId: string, finalText: string, destination: string) =>
-    api.post('/api/ocr/confirm', { upload_id: uploadId, final_text: finalText, destination }),
-  list: (storyId: string) => api.get(`/api/ocr/${storyId}/uploads`),
+  confirm: (
+    uploadId: string,
+    finalText: string,
+    destination: string,
+    chapterId?: string,
+    characterName?: string,
+  ) =>
+    api.post('/api/ocr/confirm', {
+      upload_id:      uploadId,
+      final_text:     finalText,
+      destination,
+      chapter_id:     chapterId     ?? null,
+      character_name: characterName ?? null,
+    }),
+  list:      (storyId: string) => api.get(`/api/ocr/${storyId}/uploads`),
+  notes:     (storyId: string) => api.get(`/api/ocr/${storyId}/notes`),
+  noteCards: (storyId: string) => api.get(`/api/ocr/${storyId}/note-cards`),
+}
+
+// ── Characters ────────────────────────────────────────────────────────────────
+export const charactersApi = {
+  list:   (storyId: string) => api.get(`/api/stories/${storyId}/characters`),
+  get:    (storyId: string, characterId: string) =>
+    api.get(`/api/stories/${storyId}/characters/${characterId}`),
+  create: (storyId: string, data: { name: string; aliases?: string[]; role?: string; status?: string }) =>
+    api.post(`/api/stories/${storyId}/characters`, data),
+  update: (storyId: string, characterId: string, data: object) =>
+    api.patch(`/api/stories/${storyId}/characters/${characterId}`, data),
+  delete: (storyId: string, characterId: string) =>
+    api.delete(`/api/stories/${storyId}/characters/${characterId}`),
+  updateProfile: (storyId: string, characterId: string, data: object) =>
+    api.patch(`/api/stories/${storyId}/characters/${characterId}/profile`, data),
 }
 
 // ── Manuscript ────────────────────────────────────────────────────────────────

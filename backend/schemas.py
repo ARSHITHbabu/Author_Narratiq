@@ -220,9 +220,99 @@ class OcrExtractResponse(BaseModel):
 
 
 class OcrConfirm(BaseModel):
-    upload_id: str
-    final_text: str
-    destination: str  # story_notes | chapter_draft | character_profile | note_card
+    upload_id:      str
+    final_text:     str
+    destination:    str            # story_notes | chapter_draft | character_profile | note_card
+    chapter_id:     Optional[str] = None   # required when destination == "chapter_draft"
+    character_name: Optional[str] = None   # required when destination == "character_profile"
+
+
+class OcrConfirmResponse(BaseModel):
+    confirmed:   bool
+    destination: str
+    injected:    bool
+    target_id:   Optional[str] = None   # ID of the created / updated entity
+
+
+# ── Story Notes ───────────────────────────────────────────────────────────────
+
+class StoryNoteOut(BaseModel):
+    note_id:       str
+    story_id:      str
+    title:         str
+    content:       str
+    ocr_upload_id: Optional[str] = None
+    created_at:    datetime
+    updated_at:    datetime
+    model_config = {"from_attributes": True}
+
+
+# ── Note Cards ────────────────────────────────────────────────────────────────
+
+class NoteCardOut(BaseModel):
+    card_id:       str
+    story_id:      str
+    title:         str
+    content:       str
+    card_type:     str
+    ocr_upload_id: Optional[str] = None
+    created_at:    datetime
+    updated_at:    datetime
+    model_config = {"from_attributes": True}
+
+
+# ── Characters ────────────────────────────────────────────────────────────────
+
+class CharacterCreate(BaseModel):
+    name:    str
+    aliases: Optional[List[str]] = []
+    role:    Optional[str] = "supporting"   # protagonist | antagonist | supporting | minor
+    status:  Optional[str] = "active"       # active | deceased | unknown
+
+
+class CharacterUpdate(BaseModel):
+    name:    Optional[str] = None
+    aliases: Optional[List[str]] = None
+    role:    Optional[str] = None
+    status:  Optional[str] = None
+
+
+class CharacterProfileUpdate(BaseModel):
+    age:         Optional[str] = None
+    appearance:  Optional[str] = None
+    personality: Optional[str] = None
+    motivations: Optional[str] = None
+    backstory:   Optional[str] = None
+    arc_notes:   Optional[str] = None
+    raw_notes:   Optional[str] = None
+
+
+class CharacterProfileOut(BaseModel):
+    profile_id:   str
+    age:          str
+    appearance:   str
+    personality:  str
+    motivations:  str
+    backstory:    str
+    arc_notes:    str
+    raw_notes:    str
+    ocr_upload_id: Optional[str] = None
+    created_at:   datetime
+    updated_at:   datetime
+    model_config = {"from_attributes": True}
+
+
+class CharacterOut(BaseModel):
+    character_id: str
+    story_id:     str
+    name:         str
+    aliases:      List[str]
+    role:         str
+    status:       str
+    created_at:   datetime
+    updated_at:   datetime
+    profile:      Optional[CharacterProfileOut] = None
+    model_config = {"from_attributes": True}
 
 
 # ── Manuscript ────────────────────────────────────────────────────────────────

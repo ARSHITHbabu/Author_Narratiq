@@ -8,7 +8,7 @@ from config import settings
 from database import engine, Base, run_db_migrations
 import models  # noqa: F401
 
-from routers import auth, projects, chapters, intake, plot_assistant, ai_transform, ocr, manuscript, export
+from routers import auth, projects, chapters, intake, plot_assistant, ai_transform, ocr, manuscript, export, characters
 from routers import search as search_router
 
 Base.metadata.create_all(bind=engine)
@@ -92,6 +92,7 @@ os.makedirs("uploads/ocr", exist_ok=True)
 app.include_router(auth.router,           prefix="/api/auth")
 app.include_router(projects.router,       prefix="/api/projects")
 app.include_router(chapters.router,       prefix="/api/stories")
+app.include_router(characters.router,     prefix="/api/stories")
 app.include_router(intake.router,         prefix="/api/intake")
 app.include_router(plot_assistant.router, prefix="/api/plot-assistant")
 app.include_router(ai_transform.router,   prefix="/api/ai")
