@@ -1,6 +1,8 @@
 from contextlib import asynccontextmanager
+import asyncio
 import os
 import httpx
+from datetime import datetime, timedelta
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -13,6 +15,83 @@ from routers import search as search_router
 
 Base.metadata.create_all(bind=engine)
 run_db_migrations(engine)   # add new columns to existing tables
+
+# ── OCR image cleanup ─────────────────────────────────────────────────────────
+# Confirmed uploads: text is safely in the DB; original image no longer needed.
+# Unconfirmed uploads: author abandoned the session; remove after 3 days.
+_OCR_CONFIRMED_TTL_HOURS   = 24
+_OCR_UNCONFIRMED_TTL_HOURS = 72
+_OCR_CLEANUP_INTERVAL_SECS = 3600   # sweep every hour
+
+
+async def _cleanup_ocr_images() -> int:
+    """
+    Delete OCR image files whose retention window has expired and null their
+    image_path in the DB.  The OcrUpload record itself is kept — it provides
+    the idempotency guard (confirmed=True) and OCR text traceability.
+
+    Returns the count of files removed this run.
+    """
+    from database import SessionLocal
+    from models import OcrUpload
+    from sqlalchemy import and_, or_
+
+    now = datetime.utcnow()
+    confirmed_cutoff   = now - timedelta(hours=_OCR_CONFIRMED_TTL_HOURS)
+    unconfirmed_cutoff = now - timedelta(hours=_OCR_UNCONFIRMED_TTL_HOURS)
+
+    db = SessionLocal()
+    removed = 0
+    try:
+        stale = (
+            db.query(OcrUpload)
+            .filter(
+                OcrUpload.image_path.isnot(None),
+                or_(
+                    and_(OcrUpload.confirmed == True,  OcrUpload.created_at < confirmed_cutoff),   # noqa: E712
+                    and_(OcrUpload.confirmed == False, OcrUpload.created_at < unconfirmed_cutoff),  # noqa: E712
+                ),
+            )
+            .all()
+        )
+
+        for upload in stale:
+            path = upload.image_path
+            try:
+                if path and os.path.exists(path):
+                    os.remove(path)
+                    removed += 1
+            except OSError as exc:
+                print(f"[ocr_cleanup] could not delete {path!r}: {exc}")
+            finally:
+                upload.image_path = None
+
+        if stale:
+            db.commit()
+            print(
+                f"[ocr_cleanup] swept {len(stale)} record(s): "
+                f"{removed} file(s) deleted "
+                f"(confirmed>{_OCR_CONFIRMED_TTL_HOURS}h or "
+                f"unconfirmed>{_OCR_UNCONFIRMED_TTL_HOURS}h)"
+            )
+    except Exception as exc:
+        print(f"[ocr_cleanup] error during cleanup: {exc}")
+        db.rollback()
+    finally:
+        db.close()
+
+    return removed
+
+
+async def _run_periodic_cleanup() -> None:
+    """Startup sweep then hourly OCR image cleanup loop."""
+    await _cleanup_ocr_images()     # clear backlog immediately at startup
+    while True:
+        await asyncio.sleep(_OCR_CLEANUP_INTERVAL_SECS)
+        try:
+            await _cleanup_ocr_images()
+        except Exception as exc:
+            print(f"[ocr_cleanup] periodic sweep failed: {exc}")
 
 
 @asynccontextmanager
@@ -58,6 +137,12 @@ async def lifespan(app: FastAPI):
             print("vLLM warmup complete — first user request will be fast.")
         except Exception as e:
             print(f"WARNING: vLLM warmup failed ({e}).")
+
+    asyncio.create_task(_run_periodic_cleanup())
+    print(f"OCR cleanup scheduler started "
+          f"(confirmed>{_OCR_CONFIRMED_TTL_HOURS}h, "
+          f"unconfirmed>{_OCR_UNCONFIRMED_TTL_HOURS}h, "
+          f"interval={_OCR_CLEANUP_INTERVAL_SECS//3600}h).")
 
     print("NarratIQ ready.")
     yield

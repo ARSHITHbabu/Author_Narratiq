@@ -4,14 +4,15 @@ import os
 import uuid
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Response
 from sqlalchemy.orm import Session
 
 from database import get_db
 from models import Chapter, Character, CharacterProfile, NoteCard, OcrUpload, Story, StoryNote, StoryVersion
 from schemas import (
     OcrConfirm, OcrConfirmResponse, OcrExtractResponse, OcrSuggestion,
-    StoryNoteOut, NoteCardOut,
+    StoryNoteOut, StoryNoteCreate, StoryNoteUpdate,
+    NoteCardOut, NoteCardCreate, NoteCardUpdate,
 )
 from routers.auth import get_current_user, User
 from services.ocr_service import process_ocr_image
@@ -434,3 +435,126 @@ def list_note_cards(
         .order_by(NoteCard.created_at.desc())
         .all()
     )
+
+
+# ── StoryNote CRUD ────────────────────────────────────────────────────────────
+
+@router.post("/{story_id}/notes", response_model=StoryNoteOut, status_code=201)
+def create_story_note(
+    story_id: str,
+    data: StoryNoteCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    _get_owned_story(story_id, current_user.user_id, db)
+    note = StoryNote(
+        story_id=story_id,
+        user_id=current_user.user_id,
+        title=data.title or "",
+        content=data.content,
+    )
+    db.add(note)
+    db.commit()
+    db.refresh(note)
+    return note
+
+
+@router.patch("/notes/{note_id}", response_model=StoryNoteOut)
+def update_story_note(
+    note_id: str,
+    data: StoryNoteUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    note = db.query(StoryNote).filter(StoryNote.note_id == note_id).first()
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+    if note.user_id != current_user.user_id:
+        raise HTTPException(status_code=403, detail="Not authorised to edit this note")
+    if data.title is not None:
+        note.title = data.title
+    if data.content is not None:
+        note.content = data.content
+    note.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(note)
+    return note
+
+
+@router.delete("/notes/{note_id}", status_code=204)
+def delete_story_note(
+    note_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    note = db.query(StoryNote).filter(StoryNote.note_id == note_id).first()
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+    if note.user_id != current_user.user_id:
+        raise HTTPException(status_code=403, detail="Not authorised to delete this note")
+    db.delete(note)
+    db.commit()
+    return Response(status_code=204)
+
+
+# ── NoteCard CRUD ─────────────────────────────────────────────────────────────
+
+@router.post("/{story_id}/note-cards", response_model=NoteCardOut, status_code=201)
+def create_note_card(
+    story_id: str,
+    data: NoteCardCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    _get_owned_story(story_id, current_user.user_id, db)
+    card = NoteCard(
+        story_id=story_id,
+        user_id=current_user.user_id,
+        title=data.title or "",
+        content=data.content,
+        card_type=data.card_type or "general",
+    )
+    db.add(card)
+    db.commit()
+    db.refresh(card)
+    return card
+
+
+@router.patch("/note-cards/{card_id}", response_model=NoteCardOut)
+def update_note_card(
+    card_id: str,
+    data: NoteCardUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    card = db.query(NoteCard).filter(NoteCard.card_id == card_id).first()
+    if not card:
+        raise HTTPException(status_code=404, detail="Note card not found")
+    if card.user_id != current_user.user_id:
+        raise HTTPException(status_code=403, detail="Not authorised to edit this note card")
+    if data.title is not None:
+        card.title = data.title
+    if data.content is not None:
+        card.content = data.content
+    if data.card_type is not None:
+        card.card_type = data.card_type
+    card.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(card)
+    return card
+
+
+@router.delete("/note-cards/{card_id}", status_code=204)
+def delete_note_card(
+    card_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    card = db.query(NoteCard).filter(NoteCard.card_id == card_id).first()
+    if not card:
+        raise HTTPException(status_code=404, detail="Note card not found")
+    if card.user_id != current_user.user_id:
+        raise HTTPException(status_code=403, detail="Not authorised to delete this note card")
+    db.delete(card)
+    db.commit()
+    return Response(status_code=204)

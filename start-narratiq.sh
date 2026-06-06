@@ -20,8 +20,9 @@ FRONTEND_PORT=3000
 LOG_DIR="/tmp/narratiq-logs"
 mkdir -p "$LOG_DIR"
 
-# Pinned versions that are confirmed to work with CUDA 12.7
-VLLM_VERSION="0.8.5"
+# vLLM 0.9.2+ required for NVIDIA Blackwell (sm_120) GPUs via PyTorch 2.7+
+# (0.8.5 was for CUDA 12.7 / pre-Blackwell hardware)
+VLLM_VERSION="0.9.2"
 NODE_MAJOR="20"
 
 # ── Detect RunPod public URLs ──────────────────────────────────
@@ -58,17 +59,18 @@ else
   echo "  Node.js: $(node --version) — OK"
 fi
 
-# ── 1b. Remove packages left by wrong vllm versions ──────────
-# (vllm >0.8.5 installs flashinfer/tvm-ffi built for newer CUDA;
-#  they break on CUDA 12.7 driver with an undefined-symbol error)
-for pkg in flashinfer-cubin flashinfer-python apache-tvm-ffi torch-c-dlpack-ext; do
-  if pip show "$pkg" > /dev/null 2>&1; then
-    echo "  Removing incompatible package: $pkg"
-    pip uninstall -y "$pkg" >> "$LOG_DIR/pip-cleanup.log" 2>&1
-  fi
-done
+# ── 1b. Remove packages only incompatible with old CUDA 12.7 vLLM installs ──
+# (flashinfer/tvm-ffi are fine on CUDA 12.8+/13.x — only remove if stale 0.8.x artifacts remain)
+if pip show vllm 2>/dev/null | grep -q "Version: 0\.8\."; then
+  for pkg in flashinfer-cubin flashinfer-python apache-tvm-ffi torch-c-dlpack-ext; do
+    if pip show "$pkg" > /dev/null 2>&1; then
+      echo "  Removing old vLLM 0.8.x incompatible package: $pkg"
+      pip uninstall -y "$pkg" >> "$LOG_DIR/pip-cleanup.log" 2>&1
+    fi
+  done
+fi
 
-# ── 1c. vLLM (must be exactly 0.8.5 for CUDA 12.7) ──────────
+# ── 1c. vLLM ─────────────────────────────────────────────────
 VLLM_INSTALLED=$(pip show vllm 2>/dev/null | grep "^Version:" | awk '{print $2}')
 if [ "$VLLM_INSTALLED" != "$VLLM_VERSION" ]; then
   echo "  Installing vllm==${VLLM_VERSION} — takes 2-4 min on first run..."
@@ -78,25 +80,43 @@ else
   echo "  vllm ${VLLM_VERSION} — OK"
 fi
 
-# ── 1d. Remove any leftover incompatible packages again ───────
-# (vllm install may have pulled them back in)
-for pkg in flashinfer-cubin flashinfer-python apache-tvm-ffi torch-c-dlpack-ext; do
-  if pip show "$pkg" > /dev/null 2>&1; then
-    echo "  Removing post-install incompatible package: $pkg"
-    pip uninstall -y "$pkg" >> "$LOG_DIR/pip-cleanup.log" 2>&1
-  fi
-done
-
-# ── 1e. transformers must be 4.x (vllm 0.8.5 breaks with 5.x)
-TRANSFORMERS_MAJOR=$(pip show transformers 2>/dev/null | grep "^Version:" | awk '{print $2}' | cut -d. -f1)
-if [ "${TRANSFORMERS_MAJOR:-0}" -ge 5 ]; then
-  echo "  Downgrading transformers 5.x → 4.x (required by vllm 0.8.5)..."
-  pip install "transformers>=4.51.1,<5.0" >> "$LOG_DIR/pip-transformers.log" 2>&1
-  echo "  transformers downgraded"
+# ── 1d. PyTorch cu128 — required for Blackwell (sm_120) GPUs ─
+# vLLM's pip install pulls torch+cu126 which has no sm_120 kernels.
+# Force the cu128 build so CUDA ops work on RTX 4500 Blackwell and newer.
+TORCH_VER=$(python3 -c "import torch; print(torch.__version__)" 2>/dev/null)
+if echo "$TORCH_VER" | grep -qv "cu128"; then
+  echo "  Installing PyTorch cu128 (Blackwell sm_120 support)..."
+  pip install --force-reinstall torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 \
+    --index-url https://download.pytorch.org/whl/cu128 \
+    >> "$LOG_DIR/pip-torch-cu128.log" 2>&1
+  echo "  PyTorch cu128 — installed"
 else
-  TRANSFORMERS_VER=$(pip show transformers 2>/dev/null | grep "^Version:" | awk '{print $2}')
-  echo "  transformers ${TRANSFORMERS_VER:-not installed} — OK"
+  echo "  PyTorch ${TORCH_VER} (cu128) — OK"
 fi
+
+# ── 1e. Patch vLLM ovis.py — AutoConfig.register exist_ok=True ─
+# vLLM 0.9.2 registers 'aimv2' without exist_ok=True; transformers 4.51+
+# already has it, causing ValueError on import. Only patches lines missing exist_ok.
+OVIS_PY=$(python3 -c "import vllm; import os; print(os.path.dirname(vllm.__file__))" 2>/dev/null)/transformers_utils/configs/ovis.py
+if [ -f "$OVIS_PY" ] && grep -q "AutoConfig.register" "$OVIS_PY"; then
+  # Only modify lines that have AutoConfig.register but NOT exist_ok
+  sed -i '/AutoConfig\.register/{ /exist_ok/!s/)$/, exist_ok=True)/; }' "$OVIS_PY" 2>/dev/null || true
+fi
+
+# ── 1f. NumPy — pin ≤2.2 (numba requires <=2.2; torch cu128 pulls 2.4) ─
+NUMPY_VER=$(python3 -c "import numpy; print(numpy.__version__)" 2>/dev/null)
+NUMPY_MINOR=$(echo "$NUMPY_VER" | cut -d. -f2)
+if [ "${NUMPY_MINOR:-0}" -gt 2 ] 2>/dev/null; then
+  echo "  Downgrading NumPy ${NUMPY_VER} → 2.2 (numba compatibility)..."
+  pip install "numpy>=2.0,<=2.2" >> "$LOG_DIR/pip-numpy.log" 2>&1
+  echo "  NumPy — downgraded"
+else
+  echo "  NumPy ${NUMPY_VER} — OK"
+fi
+
+# ── 1g. transformers — vLLM 0.9+ works with both 4.x and 5.x ─
+TRANSFORMERS_VER=$(pip show transformers 2>/dev/null | grep "^Version:" | awk '{print $2}')
+echo "  transformers ${TRANSFORMERS_VER:-not installed} — OK"
 
 # ── 1f. Backend Python dependencies ──────────────────────────
 echo "  Installing backend Python packages..."
@@ -176,6 +196,10 @@ echo "[3/6] Starting vLLM (Qwen2.5-7B-Instruct)..."
 pkill -f "vllm.entrypoints.openai.api_server" 2>/dev/null || true
 sleep 2
 
+# Clear torch compile cache — a prior failed run on a different GPU/CUDA version
+# leaves corrupted artifacts that cause "BackendCompilerFailed" on next start.
+rm -rf ~/.cache/vllm/torch_compile_cache 2>/dev/null || true
+
 GPU_COUNT=$(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null | wc -l | tr -d ' ')
 GPU_VRAM_MIB=$(nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits 2>/dev/null | head -1 | tr -d ' ')
 GPU_VRAM_GB=$((GPU_VRAM_MIB / 1024))
@@ -187,6 +211,11 @@ elif [ "$GPU_COUNT" -ge 2 ]; then TP=2; MML=16384; UTIL=0.90
 else                                TP=1; MML=8192;  UTIL=0.88
 fi
 
+
+# Blackwell (sm_120) requires NCCL_P2P_DISABLE=1 + NCCL_SHM_DISABLE=1:
+# the Blackwell P2P/SHM paths in NCCL 2.21/2.26 deadlock during ncclCommInitRank.
+# Fall back to socket transport, which works correctly on all architectures.
+NCCL_P2P_DISABLE=1 NCCL_SHM_DISABLE=1 \
 python3 -m vllm.entrypoints.openai.api_server \
   --model                  "$MODEL_DIR/Qwen2.5-7B-Instruct" \
   --served-model-name      "Qwen/Qwen2.5-7B-Instruct" \
@@ -224,6 +253,18 @@ for i in $(seq 1 72); do
   printf "  waiting... (%ds)\r" $((i*5))
   sleep 5
 done
+
+# ══════════════════════════════════════════════════════════════
+# STEP 4b — Ensure SECRET_KEY is set in backend/.env
+# ══════════════════════════════════════════════════════════════
+ENV_FILE="$BACKEND_DIR/.env"
+if ! grep -q "^SECRET_KEY=" "$ENV_FILE" 2>/dev/null; then
+  SK=$(python3 -c "import secrets; print(secrets.token_hex(32))")
+  echo "SECRET_KEY=${SK}" >> "$ENV_FILE"
+  echo "  [setup] Generated new SECRET_KEY and saved to backend/.env"
+else
+  echo "  SECRET_KEY: OK"
+fi
 
 # ══════════════════════════════════════════════════════════════
 # STEP 5 — Start FastAPI backend

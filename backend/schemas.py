@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, computed_field, field_validator
 from typing import Optional, List, Any
 from datetime import datetime
 
@@ -236,6 +236,16 @@ class OcrConfirmResponse(BaseModel):
 
 # ── Story Notes ───────────────────────────────────────────────────────────────
 
+class StoryNoteCreate(BaseModel):
+    title:   Optional[str] = ""
+    content: str
+
+
+class StoryNoteUpdate(BaseModel):
+    title:   Optional[str] = None
+    content: Optional[str] = None
+
+
 class StoryNoteOut(BaseModel):
     note_id:       str
     story_id:      str
@@ -248,6 +258,39 @@ class StoryNoteOut(BaseModel):
 
 
 # ── Note Cards ────────────────────────────────────────────────────────────────
+
+_VALID_CARD_TYPES = {"scene", "location", "theme", "character", "general"}
+
+
+class NoteCardCreate(BaseModel):
+    title:     Optional[str] = ""
+    content:   str
+    card_type: Optional[str] = "general"
+
+    @field_validator("card_type")
+    @classmethod
+    def _validate_card_type(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and v not in _VALID_CARD_TYPES:
+            raise ValueError(
+                f"card_type must be one of: {', '.join(sorted(_VALID_CARD_TYPES))}"
+            )
+        return v
+
+
+class NoteCardUpdate(BaseModel):
+    title:     Optional[str] = None
+    content:   Optional[str] = None
+    card_type: Optional[str] = None
+
+    @field_validator("card_type")
+    @classmethod
+    def _validate_card_type(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and v not in _VALID_CARD_TYPES:
+            raise ValueError(
+                f"card_type must be one of: {', '.join(sorted(_VALID_CARD_TYPES))}"
+            )
+        return v
+
 
 class NoteCardOut(BaseModel):
     card_id:       str
@@ -317,6 +360,18 @@ class CharacterOut(BaseModel):
     updated_at:   datetime
     profile:      Optional[CharacterProfileOut] = None
     model_config = {"from_attributes": True}
+
+    @computed_field
+    @property
+    def completeness_score(self) -> int:
+        if not self.profile:
+            return 0
+        fields = [
+            self.profile.age, self.profile.appearance, self.profile.personality,
+            self.profile.goals, self.profile.motivations, self.profile.backstory,
+            self.profile.arc_notes,
+        ]
+        return round(sum(1 for f in fields if f and str(f).strip()) / 7 * 100)
 
 
 # ── Character Relationships ───────────────────────────────────────────────────
@@ -463,6 +518,92 @@ class ReplaceResponse(BaseModel):
     replaced_count: int
     chapters_affected: int
     preview: List[ReplacePreviewItem]
+
+
+# ── Cast Generation ───────────────────────────────────────────────────────────
+
+class CastSuggestion(BaseModel):
+    name:                  str
+    role:                  str
+    status:                str
+    description:           str
+    aliases:               List[str]
+    first_appearance:      str
+    evidence_snippet:      str
+    confidence:            str          # "high" | "uncertain"
+    already_exists:        bool = False
+    existing_character_id: Optional[str] = None
+
+
+class CastGenerationResult(BaseModel):
+    story_id:         str
+    suggestions:      List[CastSuggestion]
+    chapters_scanned: int
+    new_count:        int
+    existing_count:   int
+
+
+class CastConfirmItem(BaseModel):
+    name:             str
+    role:             str
+    status:           str
+    description:      str
+    aliases:          List[str]
+    evidence_snippet: str
+
+
+class CastConfirmRequest(BaseModel):
+    suggestions: List[CastConfirmItem]
+
+
+class CastConfirmResult(BaseModel):
+    created:          List[CharacterOut]
+    skipped_existing: int
+
+
+# ── Character Mentions ────────────────────────────────────────────────────────
+
+class CharacterMentionOut(BaseModel):
+    mention_id:       str
+    character_id:     str
+    chapter_id:       str
+    chapter_number:   int
+    passage_text:     str
+    mention_type:     str
+    co_character_ids: List[str]
+    created_at:       datetime
+    model_config = {"from_attributes": True}
+
+
+# ── Character Hints ───────────────────────────────────────────────────────────
+
+class CharacterHintOut(BaseModel):
+    hint_id:         str
+    story_id:        str
+    chapter_id:      str
+    chapter_number:  int
+    suggested_name:  str
+    context_snippet: str
+    is_dismissed:    bool
+    created_at:      datetime
+    model_config = {"from_attributes": True}
+
+
+# ── Character Enrichment ──────────────────────────────────────────────────────
+
+class EnrichSuggestion(BaseModel):
+    field:      str   # profile field name: appearance|personality|goals|motivations|backstory|arc_notes|traits
+    value:      str   # suggested value
+    evidence:   str   # story excerpt that supports this suggestion
+    chapter:    int   # chapter number where evidence was found
+    confidence: float # 0.0-1.0
+
+
+class EnrichResult(BaseModel):
+    character_id:      str
+    suggestions:       List[EnrichSuggestion]
+    mentions_analyzed: int
+    chapters_covered:  List[int]
 
 
 # ── Export ────────────────────────────────────────────────────────────────────

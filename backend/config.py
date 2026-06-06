@@ -23,13 +23,14 @@ Local Windows dev:
 """
 
 from pathlib import Path
+from pydantic import model_validator
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
     # ── Database ──────────────────────────────────────────────────────────────
     database_url: str = "sqlite:///./narratiq.db"
-    secret_key: str = "narratiq-secret-change-in-production-use-a-long-random-string"
+    secret_key: str  # Required — must be set in .env. Generate: python3 -c "import secrets; print(secrets.token_hex(32))"
 
     # ── Model base directory ──────────────────────────────────────────────────
     # All model subdirs live here.  Set via MODEL_BASE_DIR env var.
@@ -129,6 +130,15 @@ class Settings(BaseSettings):
             if not Path(path).exists():
                 missing.append(f"  {label}: '{path}'")
         return missing
+
+    @model_validator(mode="after")
+    def _validate_secret_key(self) -> "Settings":
+        if not self.secret_key or len(self.secret_key) < 32:
+            raise ValueError(
+                "SECRET_KEY must be at least 32 characters. "
+                "Generate one with: python3 -c \"import secrets; print(secrets.token_hex(32))\""
+            )
+        return self
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 

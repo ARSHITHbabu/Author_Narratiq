@@ -4,13 +4,13 @@ from sqlalchemy.orm import Session
 from jose import jwt
 import bcrypt
 
+from config import settings
 from database import get_db
 from models import User
 from schemas import UserCreate, UserLogin, Token, UserOut
 
 router = APIRouter(tags=["auth"])
 
-SECRET_KEY = "narratiq-secret-key-change-in-production"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 
@@ -25,12 +25,12 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 def create_token(user_id: str) -> str:
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    return jwt.encode({"sub": user_id, "exp": expire}, SECRET_KEY, algorithm=ALGORITHM)
+    return jwt.encode({"sub": user_id, "exp": expire}, settings.secret_key, algorithm=ALGORITHM)
 
 
 def decode_token(token: str) -> str:
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, settings.secret_key, algorithms=[ALGORITHM])
         return payload.get("sub")
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")

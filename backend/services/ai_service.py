@@ -14,6 +14,7 @@ import asyncio
 import json
 import re
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 from typing import AsyncGenerator, Optional
 
 from openai import AsyncOpenAI
@@ -339,6 +340,63 @@ async def stream_translate(text: str, target_language: str, source_language: str
         yield token
 
 
+# ── Cast Extraction ────────────────────────────────────────────────────────────
+
+async def extract_cast(chapter_texts: list) -> list:
+    """
+    Extract named characters and significant recurring persons from story text.
+    chapter_texts: list of plain-text strings, one per chapter (already chunked/cleaned).
+    Returns a list of dicts with keys: name, role, status, description, aliases,
+    first_appearance, evidence_snippet, confidence.
+    """
+    MAX_WORDS = 8000
+    parts = []
+    total_words = 0
+
+    for i, text in enumerate(chapter_texts, 1):
+        if total_words >= MAX_WORDS:
+            break
+        words = text.split()
+        remaining = MAX_WORDS - total_words
+        if len(words) > remaining:
+            text = " ".join(words[:remaining]) + " [truncated]"
+            words = words[:remaining]
+        parts.append(f"=== Chapter {i} ===\n{text}")
+        total_words += len(words)
+
+    if not parts:
+        return []
+
+    combined = "\n\n".join(parts)
+
+    system = (
+        'You are a literary analyst. Extract all characters from the story text below.\n'
+        'Return ONLY a valid JSON array. Each element must be an object with these exact keys:\n'
+        '  "name": canonical full name (string)\n'
+        '  "role": one of "protagonist", "antagonist", "supporting", "minor"\n'
+        '  "status": one of "active", "deceased", "unknown"\n'
+        '  "description": 1-2 sentence summary of who this character is (string)\n'
+        '  "aliases": other names this character is called by (array of strings, may be empty)\n'
+        '  "first_appearance": which chapter this character first appears in (e.g. "Chapter 1")\n'
+        '  "evidence_snippet": short quote or paraphrase from the text confirming this character (max 80 words)\n'
+        '  "confidence": "high" if the character is clearly named and present; "uncertain" if inferred or ambiguous\n\n'
+        'Rules:\n'
+        '- Include named individuals AND named groups/collectives that act as characters\n'
+        '- Include unnamed but significant recurring characters by their role (e.g. "Ravi\'s Mother")\n'
+        '- Do NOT invent characters absent from the text\n'
+        '- Return [] if no characters are found\n'
+        '- No text outside the JSON array'
+    )
+
+    raw = await _complete(system, f"Story text:\n\n{combined}", temperature=0.1, max_tokens=2000)
+    result = _extract_json(raw, [])
+    if not isinstance(result, list):
+        print(f"[extract_cast] LLM returned non-list. Raw: {raw[:200]!r}")
+        return []
+    print(f"[extract_cast] extracted {len(result)} character(s) from {len(parts)} chapter(s)")
+    return result
+
+
 # ── AI Suggestions ─────────────────────────────────────────────────────────────
 
 async def generate_suggestions(text: str, story_context: str = "", genre: str = "") -> list:
@@ -403,41 +461,49 @@ async def detect_query_intent(question: str) -> str:
 
 # ── Character RAG ─────────────────────────────────────────────────────────────
 
-def _format_character_for_prompt(character, profile) -> str:
+def _format_character_for_prompt(character, profile, story_passages=None) -> str:
     """
     Format a character + profile as a compact, structured Qwen context block.
 
-    raw_notes is intentionally omitted — it is an OCR staging area and may
-    contain artefacts, fragments, and uncleaned text that would confuse the
-    model.  It is included only as a fallback when ALL structured fields are
-    empty (the profile hasn't been curated yet).
+    story_passages: optional list of (chapter_number, excerpt_text) tuples
+    providing story-grounded evidence for this character.
+
+    raw_notes is included only as a fallback when ALL structured fields are empty
+    and no story passages are available.
     """
-    traits_str = ", ".join(profile.traits or [])
+    traits_str = ", ".join(profile.traits or []) if profile else ""
     lines = [f"## Character: {character.name}"]
     meta = f"Role: {character.role} | Status: {character.status}"
     if traits_str:
         meta += f" | Traits: {traits_str}"
     lines.append(meta)
 
-    structured_fields = [
-        ("Age",          profile.age),
-        ("Appearance",   profile.appearance),
-        ("Personality",  profile.personality),
-        ("Goals",        profile.goals),
-        ("Motivations",  profile.motivations),
-        ("Backstory",    profile.backstory[:400] if len(profile.backstory or "") > 400
-                         else (profile.backstory or "")),
-        ("Arc Notes",    profile.arc_notes),
-    ]
-    has_structured = False
-    for label, value in structured_fields:
-        if value and value.strip():
-            lines.append(f"{label}: {value.strip()}")
-            has_structured = True
+    if profile:
+        structured_fields = [
+            ("Age",         profile.age),
+            ("Appearance",  profile.appearance),
+            ("Personality", profile.personality),
+            ("Goals",       profile.goals),
+            ("Motivations", profile.motivations),
+            ("Backstory",   profile.backstory[:400] if len(profile.backstory or "") > 400
+                            else (profile.backstory or "")),
+            ("Arc Notes",   profile.arc_notes),
+        ]
+        has_structured = False
+        for label, value in structured_fields:
+            if value and value.strip():
+                lines.append(f"{label}: {value.strip()}")
+                has_structured = True
 
-    # Fallback: include raw_notes only when all structured fields are empty
-    if not has_structured and profile.raw_notes and profile.raw_notes.strip():
-        lines.append(f"Notes: {profile.raw_notes.strip()[:300]}")
+        # Include raw_notes only as fallback when all structured fields are empty
+        # AND no story passages are available
+        if not has_structured and not story_passages and profile.raw_notes and profile.raw_notes.strip():
+            lines.append(f"Notes: {profile.raw_notes.strip()[:300]}")
+
+    # Story evidence — most valuable for grounding LLM answers in actual text
+    if story_passages:
+        for ch_num, excerpt in story_passages[:2]:
+            lines.append(f"Story evidence (Ch{ch_num}): {excerpt[:200].strip()}")
 
     return "\n".join(lines)
 
@@ -446,22 +512,21 @@ async def retrieve_character_context(
     story_id: str,
     question: str,
     db,
-    top_k: int = 3,
-    token_budget: int = 800,
+    top_k: int = 5,
+    token_budget: int = 1200,
 ) -> list[str]:
     """
     Hybrid character retrieval for Plot Assistant context injection.
 
-    Two retrieval signals are combined:
-      1. Name-mention boost — any character whose name or alias appears literally
-         in the question text is guaranteed to be included regardless of cosine rank.
-      2. Cosine similarity — remaining slots filled by BGE-M3 semantic similarity
-         between the question embedding and each CharacterProfile embedding.
+    Retrieval signals (combined, highest score wins):
+      1. Name-mention boost — exact name/alias match in question text
+      2. Profile embedding cosine — BGE-M3 similarity on author-written profile text
+      3. Mention embedding cosine — BGE-M3 similarity on story-grounded character passages
 
-    Results are formatted as structured text blocks and capped at token_budget
-    (approximated as word_count × 4/3) to stay within Qwen's context window.
+    Each retrieved character is formatted with their profile AND up to 2 recent
+    story evidence passages, giving the LLM both author intent and story grounding.
 
-    Returns [] when no character profiles with embeddings exist.
+    Returns [] when no characters exist for the story.
     """
     import numpy as np
     from models import Character, CharacterProfile
@@ -474,65 +539,87 @@ async def retrieve_character_context(
     if not characters:
         return []
 
-    # ── Name-mention detection ────────────────────────────────────────────────
-    question_lower = question.lower()
+    # ── Signal 1: Name-mention detection ─────────────────────────────────────
     name_mentioned_ids: list[str] = []
     for char in characters:
-        if char.name.lower() in question_lower:
+        pattern = _make_name_pattern(char.name, char.aliases or [])
+        if pattern and pattern.search(question):
             name_mentioned_ids.append(char.character_id)
-            continue
-        for alias in (char.aliases or []):
-            if alias.strip().lower() in question_lower:
-                name_mentioned_ids.append(char.character_id)
-                break
 
-    # ── Cosine retrieval ──────────────────────────────────────────────────────
-    profiles_with_emb = (
-        db.query(CharacterProfile)
-        .filter(
-            CharacterProfile.story_id  == story_id,
-            CharacterProfile.embedding != None,  # noqa: E711
-        )
+    # ── Signal 2 + 3: Dual embedding cosine similarity ────────────────────────
+    profiles_map = {
+        p.character_id: p
+        for p in db.query(CharacterProfile)
+        .filter(CharacterProfile.story_id == story_id)
         .all()
-    )
-    profile_map = {p.character_id: p for p in profiles_with_emb}
-    char_map    = {c.character_id: c for c in characters}
+    }
+    char_map = {c.character_id: c for c in characters}
 
-    cosine_ranked: list[str] = []
-    if profiles_with_emb:
-        import numpy as np
-        q_emb  = await embed_text(question)
-        q_vec  = np.array(q_emb, dtype=np.float32)
-        scored = []
-        for p in profiles_with_emb:
-            s_vec = np.array(p.embedding, dtype=np.float32)
-            denom = float(np.linalg.norm(q_vec) * np.linalg.norm(s_vec))
-            score = float(np.dot(q_vec, s_vec)) / (denom + 1e-9) if denom > 0 else 0.0
-            scored.append((score, p.character_id))
-        scored.sort(key=lambda x: x[0], reverse=True)
-        cosine_ranked = [cid for _, cid in scored]
+    cosine_scored: list[tuple[float, str]] = []
+    if any(
+        (p.embedding or p.mention_embedding)
+        for p in profiles_map.values()
+    ):
+        q_emb = await embed_text(question)
+        q_vec = np.array(q_emb, dtype=np.float32)
+        q_norm = float(np.linalg.norm(q_vec)) + 1e-9
 
-    # ── Merge: name-mentioned first, then top cosine, deduplicated ────────────
+        for char in characters:
+            p = profiles_map.get(char.character_id)
+            if not p:
+                cosine_scored.append((0.0, char.character_id))
+                continue
+
+            best_score = 0.0
+
+            # Profile embedding (author-written)
+            if p.embedding:
+                s_vec = np.array(p.embedding, dtype=np.float32)
+                s_norm = float(np.linalg.norm(s_vec)) + 1e-9
+                score = float(np.dot(q_vec, s_vec)) / (q_norm * s_norm)
+                best_score = max(best_score, score * 0.4)  # 40% weight for profile
+
+            # Mention embedding (story-grounded)
+            if p.mention_embedding:
+                m_vec = np.array(p.mention_embedding, dtype=np.float32)
+                m_norm = float(np.linalg.norm(m_vec)) + 1e-9
+                m_score = float(np.dot(q_vec, m_vec)) / (q_norm * m_norm)
+                best_score = max(best_score, m_score * 0.6)  # 60% weight for story evidence
+
+            cosine_scored.append((best_score, char.character_id))
+
+        cosine_scored.sort(key=lambda x: x[0], reverse=True)
+
+    # ── Merge: name-mentioned first, then top cosine ──────────────────────────
     selected: list[str] = list(name_mentioned_ids)
-    for cid in cosine_ranked:
-        if cid not in selected:
-            selected.append(cid)
+    for _, char_id in cosine_scored:
+        if char_id not in selected:
+            selected.append(char_id)
         if len(selected) >= top_k:
             break
 
-    # ── Format with token budget enforcement (~1.33 tokens per word) ──────────
+    # ── Format with story evidence and token budget ───────────────────────────
     result: list[str] = []
     tokens_used = 0
-    for cid in selected:
-        char    = char_map.get(cid)
-        profile = profile_map.get(cid)
+
+    for char_id in selected:
+        char    = char_map.get(char_id)
+        profile = profiles_map.get(char_id)
         if not char:
             continue
+
+        # Get story evidence passages for this character
+        story_passages = _get_recent_mentions(char_id, story_id, db, top_k=2)
+
         if not profile:
-            # Character exists but has no profile yet — emit minimal block
             block = f"## Character: {char.name}\nRole: {char.role} | Status: {char.status}"
+            if story_passages:
+                block += "\n" + "\n".join(
+                    f"Story evidence (Ch{n}): {exc[:200]}" for n, exc in story_passages
+                )
         else:
-            block = _format_character_for_prompt(char, profile)
+            block = _format_character_for_prompt(char, profile, story_passages=story_passages)
+
         block_tokens = len(block.split()) * 4 // 3
         if tokens_used + block_tokens > token_budget:
             break
@@ -541,9 +628,10 @@ async def retrieve_character_context(
 
     if result:
         print(
-            f"[char_rag] story={story_id[:8]}... — "
-            f"{len(result)} character(s) injected "
-            f"({tokens_used}≈tok, name_boost={len(name_mentioned_ids)})"
+            f"[char_rag_v2] story={story_id[:8]}... — "
+            f"{len(result)}/{len(characters)} character(s) injected "
+            f"({tokens_used}≈tok, name_boost={len(name_mentioned_ids)}, "
+            f"has_mention_emb={sum(1 for p in profiles_map.values() if p.mention_embedding)})"
         )
     return result
 
@@ -1319,6 +1407,379 @@ async def embed_text(text: str) -> list[float]:
     return await loop.run_in_executor(_bge_executor, _sync)
 
 
+# ── Character Mention Indexing ─────────────────────────────────────────────────
+
+import re as _re
+
+def _make_name_pattern(name: str, aliases: list) -> _re.Pattern:
+    """
+    Build a case-insensitive regex pattern to detect character name/aliases in text.
+    Handles possessives ("Ravi's"), word boundaries, and multi-word names.
+    """
+    candidates = [name.strip()] + [a.strip() for a in (aliases or []) if a.strip()]
+    # Sort longest first so multi-word names match before single-word components
+    candidates = sorted(set(candidates), key=len, reverse=True)
+    patterns = []
+    for n in candidates:
+        escaped = _re.escape(n)
+        # \b boundary + optional possessive suffix
+        patterns.append(r'\b' + escaped + r"(?:'s|s')?\b")
+    return _re.compile('|'.join(patterns), _re.IGNORECASE | _re.UNICODE) if patterns else None
+
+
+async def index_character_mentions(
+    chapter_id: str,
+    story_id: str,
+    chapter_number: int,
+    db,
+) -> dict:
+    """
+    Scan all chunks of a chapter for character name/alias occurrences.
+    Records a CharacterMention row for each (character, chunk) pair where the
+    character is mentioned.  Also sets chunk.character_ids and updates
+    chapter_summaries.character_ids.
+
+    Clears old mentions for this chapter before re-indexing (idempotent).
+    Returns {character_id: mention_count} for logging.
+    """
+    from models import Character, ChapterChunk, ChapterSummary, CharacterMention
+
+    # Clear old mentions for this chapter (idempotent re-indexing)
+    db.query(CharacterMention).filter(CharacterMention.chapter_id == chapter_id).delete()
+    db.commit()
+
+    # Load characters and build name → (character_id, pattern) index
+    characters = db.query(Character).filter(Character.story_id == story_id).all()
+    if not characters:
+        return {}
+
+    char_patterns = []
+    for char in characters:
+        pattern = _make_name_pattern(char.name, char.aliases or [])
+        if pattern:
+            char_patterns.append((char.character_id, pattern))
+
+    # Load all chunks for this chapter
+    chunks = (
+        db.query(ChapterChunk)
+        .filter(ChapterChunk.chapter_id == chapter_id)
+        .order_by(ChapterChunk.chunk_index)
+        .all()
+    )
+
+    if not chunks:
+        return {}
+
+    # For each chunk, find which characters are mentioned
+    mention_counts: dict[str, int] = {}
+    chapter_character_ids: set[str] = set()
+
+    for chunk in chunks:
+        chars_in_chunk: set[str] = set()
+        for char_id, pattern in char_patterns:
+            if pattern.search(chunk.text):
+                chars_in_chunk.add(char_id)
+                mention_counts[char_id] = mention_counts.get(char_id, 0) + 1
+
+        if not chars_in_chunk:
+            chunk.character_ids = []
+            continue
+
+        # Update chunk metadata
+        chunk.character_ids = list(chars_in_chunk)
+        chapter_character_ids.update(chars_in_chunk)
+
+        # Record a mention row for each character found in this chunk
+        for char_id in chars_in_chunk:
+            co_ids = [c for c in chars_in_chunk if c != char_id]
+            db.add(CharacterMention(
+                character_id     = char_id,
+                story_id         = story_id,
+                chapter_id       = chapter_id,
+                chunk_id         = chunk.chunk_id,
+                chapter_number   = chapter_number,
+                passage_text     = chunk.text,
+                mention_type     = "reference",
+                co_character_ids = co_ids,
+            ))
+
+    # Update chapter summary character_ids
+    summary = db.query(ChapterSummary).filter(
+        ChapterSummary.chapter_id == chapter_id
+    ).first()
+    if summary:
+        summary.character_ids = list(chapter_character_ids)
+
+    db.commit()
+
+    if mention_counts:
+        print(
+            f"[mention_index] ch{chapter_number} ({chapter_id[:8]}...): "
+            f"{sum(mention_counts.values())} mention(s) for "
+            f"{len(mention_counts)} character(s): "
+            f"{ {k[:6]: v for k, v in mention_counts.items()} }"
+        )
+    return mention_counts
+
+
+async def update_mention_embedding(character_id: str, story_id: str, db) -> bool:
+    """
+    Compute a story-grounded BGE-M3 embedding from the character's mentions.
+    Selects up to 10 diverse mentions (spread across chapters) and embeds
+    the concatenated passage texts.
+
+    Returns True if embedding was updated, False if no mentions exist.
+    """
+    from models import CharacterMention, CharacterProfile
+
+    # Fetch mentions ordered by chapter so we can sample diverse chapters
+    all_mentions = (
+        db.query(CharacterMention)
+        .filter(
+            CharacterMention.character_id == character_id,
+            CharacterMention.story_id     == story_id,
+        )
+        .order_by(CharacterMention.chapter_number, CharacterMention.mention_id)
+        .all()
+    )
+
+    if not all_mentions:
+        return False
+
+    # Select up to 10 diverse mentions: at most 2 per chapter
+    selected = []
+    chapter_counts: dict[int, int] = {}
+    for m in all_mentions:
+        ch = m.chapter_number
+        if chapter_counts.get(ch, 0) < 2:
+            selected.append(m)
+            chapter_counts[ch] = chapter_counts.get(ch, 0) + 1
+        if len(selected) >= 10:
+            break
+
+    # Build combined text — truncate each passage to ~120 words to stay in BGE-M3 range
+    parts = []
+    for m in selected:
+        words = m.passage_text.split()
+        excerpt = " ".join(words[:120]) if len(words) > 120 else m.passage_text
+        parts.append(f"[Ch{m.chapter_number}] {excerpt}")
+
+    combined = "\n".join(parts)
+    if not combined.strip():
+        return False
+
+    emb = await embed_text(combined)
+
+    profile = db.query(CharacterProfile).filter(
+        CharacterProfile.character_id == character_id
+    ).first()
+    if profile:
+        profile.mention_embedding = emb
+        profile.updated_at = datetime.utcnow()
+        db.commit()
+        print(
+            f"[mention_embed] char {character_id[:8]}...: "
+            f"mention_embedding updated from {len(selected)} mention(s)"
+        )
+        return True
+
+    return False
+
+
+def _get_recent_mentions(
+    character_id: str,
+    story_id: str,
+    db,
+    top_k: int = 2,
+) -> list[tuple[int, str]]:
+    """
+    Return (chapter_number, passage_excerpt) tuples for the most recent
+    chapters where this character appears.  Used for story evidence in prompts.
+    Excerpts are capped at 150 words.
+    """
+    from models import CharacterMention
+
+    # Get distinct recent chapters for this character
+    mentions = (
+        db.query(CharacterMention)
+        .filter(
+            CharacterMention.character_id == character_id,
+            CharacterMention.story_id     == story_id,
+        )
+        .order_by(CharacterMention.chapter_number.desc())
+        .limit(top_k * 3)  # fetch extra; deduplicate by chapter below
+        .all()
+    )
+
+    seen_chapters: set[int] = set()
+    result: list[tuple[int, str]] = []
+    for m in mentions:
+        if m.chapter_number in seen_chapters:
+            continue
+        seen_chapters.add(m.chapter_number)
+        words = m.passage_text.split()
+        excerpt = " ".join(words[:150]) if len(words) > 150 else m.passage_text
+        result.append((m.chapter_number, excerpt.strip()))
+        if len(result) >= top_k:
+            break
+
+    return result
+
+
+# ── Character Enrichment ───────────────────────────────────────────────────────
+
+async def enrich_character_from_story(
+    character_id: str,
+    story_id: str,
+    db,
+) -> list[dict]:
+    """
+    Extract structured profile suggestions for a character from their story mentions.
+    Returns a list of {field, value, evidence, chapter, confidence} dicts.
+    The caller (router) returns these to the author for review — nothing is auto-applied.
+    """
+    from models import CharacterMention, Character
+
+    char = db.query(Character).filter(Character.character_id == character_id).first()
+    if not char:
+        return []
+
+    # Fetch up to 30 diverse mentions (max 3 per chapter)
+    all_mentions = (
+        db.query(CharacterMention)
+        .filter(
+            CharacterMention.character_id == character_id,
+            CharacterMention.story_id     == story_id,
+        )
+        .order_by(CharacterMention.chapter_number, CharacterMention.mention_id)
+        .all()
+    )
+
+    if not all_mentions:
+        return []
+
+    selected = []
+    ch_counts: dict[int, int] = {}
+    for m in all_mentions:
+        if ch_counts.get(m.chapter_number, 0) < 3:
+            selected.append(m)
+            ch_counts[m.chapter_number] = ch_counts.get(m.chapter_number, 0) + 1
+        if len(selected) >= 30:
+            break
+
+    # Build passage block for LLM
+    passage_blocks = []
+    for m in selected:
+        words = m.passage_text.split()
+        excerpt = " ".join(words[:120]) if len(words) > 120 else m.passage_text
+        passage_blocks.append(f"[Chapter {m.chapter_number}]\n{excerpt}")
+
+    combined_passages = "\n\n".join(passage_blocks)
+
+    system = (
+        f'You are a literary analyst extracting structured character information.\n'
+        f'Analyze the provided story passages about "{char.name}" and extract facts.\n'
+        f'Return ONLY a valid JSON array. Each element must be an object with keys:\n'
+        f'  "field": one of appearance|personality|goals|motivations|backstory|arc_notes|traits\n'
+        f'  "value": the extracted fact or description (string; for traits: comma-separated list)\n'
+        f'  "evidence": exact quote or close paraphrase from the passage supporting this (string, max 80 words)\n'
+        f'  "chapter": chapter number where this evidence appears (integer)\n'
+        f'  "confidence": float 0.0-1.0 (1.0 = explicit statement, 0.5 = inferred)\n\n'
+        f'Rules:\n'
+        f'- Only extract what is explicitly stated or strongly implied in the passages\n'
+        f'- Do not invent facts not present in the text\n'
+        f'- Prefer concrete facts over vague generalities\n'
+        f'- For "traits": extract personality adjectives as a comma-separated string\n'
+        f'- Return [] if no clear facts can be extracted\n'
+        f'- Return ONLY the JSON array, no other text'
+    )
+
+    raw = await _complete(
+        system,
+        f"Character name: {char.name}\n\nStory passages:\n\n{combined_passages}",
+        temperature=0.1,
+        max_tokens=1500,
+    )
+
+    result = _extract_json(raw, [])
+    if not isinstance(result, list):
+        print(f"[enrich] LLM returned non-list for {char.name}. Raw: {raw[:200]!r}")
+        return []
+
+    chapters_covered = list({m.chapter_number for m in selected})
+    print(
+        f"[enrich] {char.name}: {len(result)} suggestion(s) from "
+        f"{len(selected)} mention(s) across chapters {sorted(chapters_covered)}"
+    )
+    return result
+
+
+async def _detect_new_character_hints(
+    story_id: str,
+    chapter_id: str,
+    chapter_number: int,
+    characters_present: list,
+    db,
+) -> int:
+    """
+    Compare names in chapter summary's characters_present list against
+    the known character table.  Names that don't match any existing character
+    or alias are added as CharacterHint rows for the author to review.
+
+    Returns number of new hints created.
+    """
+    from models import Character, CharacterHint
+
+    if not characters_present:
+        return 0
+
+    # Build normalized existing name index (name + aliases)
+    existing = db.query(Character).filter(Character.story_id == story_id).all()
+    known_names: set[str] = set()
+    for c in existing:
+        known_names.add(c.name.strip().lower())
+        for alias in (c.aliases or []):
+            if alias.strip():
+                known_names.add(alias.strip().lower())
+
+    # Also load existing hints to avoid duplicates
+    existing_hints = db.query(CharacterHint).filter(
+        CharacterHint.story_id == story_id,
+        CharacterHint.is_dismissed == False,  # noqa: E712
+    ).all()
+    hinted_names: set[str] = {h.suggested_name.strip().lower() for h in existing_hints}
+
+    new_count = 0
+    for name in characters_present:
+        name = str(name).strip()
+        if not name or len(name) < 2:
+            continue
+        norm = name.lower()
+        # Skip if already in characters table or already hinted
+        if norm in known_names or norm in hinted_names:
+            continue
+        # Simple fuzzy check: skip if very close to a known name (edit distance proxy)
+        from difflib import SequenceMatcher
+        if any(SequenceMatcher(None, norm, k).ratio() >= 0.85 for k in known_names):
+            continue
+
+        db.add(CharacterHint(
+            story_id=story_id,
+            chapter_id=chapter_id,
+            chapter_number=chapter_number,
+            suggested_name=name,
+            context_snippet="",
+        ))
+        hinted_names.add(norm)
+        new_count += 1
+
+    if new_count > 0:
+        db.commit()
+        print(f"[char_hints] ch{chapter_number}: {new_count} new character hint(s) added")
+
+    return new_count
+
+
 # ── Chapter Summary ────────────────────────────────────────────────────────────
 
 async def generate_chapter_summary(chapter_text: str, chapter_number: int) -> dict:
@@ -1551,9 +2012,26 @@ async def summarize_and_embed_chapter(
     n_chunks = await embed_and_store_chunks(
         chapter_id, story_id, chapter_number, plain_para, db
     )
+
+    # 5: Index character mentions for this chapter
+    mention_counts = await index_character_mentions(
+        chapter_id, story_id, chapter_number, db
+    )
+
+    # 6: Update mention embeddings for affected characters
+    if mention_counts:
+        for char_id in mention_counts:
+            await update_mention_embedding(char_id, story_id, db)
+
+    # 7: Detect new character names not yet in the character table
+    await _detect_new_character_hints(
+        story_id, chapter_id, chapter_number,
+        summary_data.get("characters_present", []), db
+    )
+
     print(
         f"[summary] Ch{chapter_number} fully indexed: "
-        f"summary + {n_chunks} chunk(s) stored."
+        f"summary + {n_chunks} chunk(s) + {sum(mention_counts.values())} mention(s)."
     )
 
 

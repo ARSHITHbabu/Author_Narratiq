@@ -45,3 +45,12 @@ def run_db_migrations(eng) -> None:
     # character_profiles — new structured fields
     _add_col("character_profiles", "goals",   "TEXT    DEFAULT ''")
     _add_col("character_profiles", "traits",  "TEXT    DEFAULT '[]'")
+
+    # character_profiles — mention embedding for story-grounded retrieval
+    _add_col("character_profiles", "mention_embedding", "TEXT DEFAULT NULL")
+
+    # chapter_chunks — character index
+    _add_col("chapter_chunks", "character_ids", "TEXT DEFAULT '[]'")
+
+    # chapter_summaries — character UUID index (replaces name strings)
+    _add_col("chapter_summaries", "character_ids", "TEXT DEFAULT '[]'")

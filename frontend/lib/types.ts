@@ -160,6 +160,31 @@ export type EmotionType =
 
 export type AgeGroup = 'children' | 'ya' | 'adult'
 
+// ── Story Notes & Note Cards ──────────────────────────────────────────────────
+
+export interface StoryNote {
+  note_id:       string
+  story_id:      string
+  title:         string
+  content:       string
+  ocr_upload_id: string | null
+  created_at:    string
+  updated_at:    string
+}
+
+export type NoteCardType = 'scene' | 'location' | 'theme' | 'character' | 'general'
+
+export interface NoteCard {
+  card_id:       string
+  story_id:      string
+  title:         string
+  content:       string
+  card_type:     NoteCardType
+  ocr_upload_id: string | null
+  created_at:    string
+  updated_at:    string
+}
+
 // ── Characters ────────────────────────────────────────────────────────────────
 
 export type CharacterRole   = 'protagonist' | 'antagonist' | 'supporting' | 'minor'
@@ -184,15 +209,16 @@ export interface CharacterProfile {
 }
 
 export interface Character {
-  character_id: string
-  story_id:     string
-  name:         string
-  aliases:      string[]
-  role:         CharacterRole
-  status:       CharacterStatus
-  created_at:   string
-  updated_at:   string
-  profile:      CharacterProfile | null
+  character_id:      string
+  story_id:          string
+  name:              string
+  aliases:           string[]
+  role:              CharacterRole
+  status:            CharacterStatus
+  created_at:        string
+  updated_at:        string
+  profile:           CharacterProfile | null
+  completeness_score: number
 }
 
 export interface CharacterRelationship {
@@ -211,4 +237,77 @@ export interface CharacterRelationship {
 export interface CharacterGraph {
   nodes: Character[]
   edges: CharacterRelationship[]
+}
+
+// ── Cast Generation ───────────────────────────────────────────────────────────
+
+export interface CastSuggestion {
+  name:                  string
+  role:                  CharacterRole
+  status:                CharacterStatus
+  description:           string
+  aliases:               string[]
+  first_appearance:      string
+  evidence_snippet:      string
+  confidence:            'high' | 'uncertain'
+  already_exists:        boolean
+  existing_character_id: string | null
+}
+
+export interface CastGenerationResult {
+  story_id:         string
+  suggestions:      CastSuggestion[]
+  chapters_scanned: number
+  new_count:        number
+  existing_count:   number
+}
+
+export interface CastConfirmResult {
+  created:          Character[]
+  skipped_existing: number
+}
+
+// ── Character Mentions ────────────────────────────────────────────────────────
+
+export interface CharacterMention {
+  mention_id:       string
+  character_id:     string
+  chapter_id:       string
+  chapter_number:   number
+  passage_text:     string
+  mention_type:     string
+  co_character_ids: string[]
+  created_at:       string
+}
+
+// ── Character Hints ───────────────────────────────────────────────────────────
+
+export interface CharacterHint {
+  hint_id:         string
+  story_id:        string
+  chapter_id:      string
+  chapter_number:  number
+  suggested_name:  string
+  context_snippet: string
+  is_dismissed:    boolean
+  created_at:      string
+}
+
+// ── Character Enrichment ──────────────────────────────────────────────────────
+
+export type EnrichField = 'appearance' | 'personality' | 'goals' | 'motivations' | 'backstory' | 'arc_notes' | 'traits'
+
+export interface EnrichSuggestion {
+  field:      EnrichField
+  value:      string
+  evidence:   string
+  chapter:    number
+  confidence: number
+}
+
+export interface EnrichResult {
+  character_id:      string
+  suggestions:       EnrichSuggestion[]
+  mentions_analyzed: number
+  chapters_covered:  number[]
 }

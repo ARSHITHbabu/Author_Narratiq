@@ -121,6 +121,18 @@ export const ocrApi = {
   list:      (storyId: string) => api.get(`/api/ocr/${storyId}/uploads`),
   notes:     (storyId: string) => api.get(`/api/ocr/${storyId}/notes`),
   noteCards: (storyId: string) => api.get(`/api/ocr/${storyId}/note-cards`),
+  createNote: (storyId: string, title: string, content: string) =>
+    api.post(`/api/ocr/${storyId}/notes`, { title, content }),
+  updateNote: (noteId: string, data: { title?: string; content?: string }) =>
+    api.patch(`/api/ocr/notes/${noteId}`, data),
+  deleteNote: (noteId: string) =>
+    api.delete(`/api/ocr/notes/${noteId}`),
+  createNoteCard: (storyId: string, title: string, content: string, cardType: string) =>
+    api.post(`/api/ocr/${storyId}/note-cards`, { title, content, card_type: cardType }),
+  updateNoteCard: (cardId: string, data: { title?: string; content?: string; card_type?: string }) =>
+    api.patch(`/api/ocr/note-cards/${cardId}`, data),
+  deleteNoteCard: (cardId: string) =>
+    api.delete(`/api/ocr/note-cards/${cardId}`),
 }
 
 // ── Characters ────────────────────────────────────────────────────────────────
@@ -141,6 +153,27 @@ export const charactersApi = {
     api.delete(`/api/stories/${storyId}/characters/${characterId}`),
   updateProfile: (storyId: string, characterId: string, data: object) =>
     api.patch(`/api/stories/${storyId}/characters/${characterId}/profile`, data),
+  generateCast: (storyId: string) =>
+    api.post(`/api/stories/${storyId}/characters/generate-cast`),
+  confirmCast: (
+    storyId: string,
+    suggestions: {
+      name: string; role: string; status: string;
+      description: string; aliases: string[]; evidence_snippet: string;
+    }[],
+  ) => api.post(`/api/stories/${storyId}/characters/confirm-cast`, { suggestions }),
+  getMentions: (storyId: string, characterId: string) =>
+    api.get(`/api/stories/${storyId}/characters/${characterId}/mentions`),
+  syncMentions: (storyId: string) =>
+    api.post(`/api/stories/${storyId}/characters/sync-mentions`),
+  enrich: (storyId: string, characterId: string) =>
+    api.post(`/api/stories/${storyId}/characters/${characterId}/enrich`),
+  getHints: (storyId: string) =>
+    api.get(`/api/stories/${storyId}/characters/hints`),
+  dismissHint: (storyId: string, hintId: string) =>
+    api.post(`/api/stories/${storyId}/characters/hints/${hintId}/dismiss`),
+  promoteHint: (storyId: string, hintId: string) =>
+    api.post(`/api/stories/${storyId}/characters/hints/${hintId}/promote`),
 }
 
 // ── Character Relationships ───────────────────────────────────────────────────

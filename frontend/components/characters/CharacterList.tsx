@@ -1,13 +1,14 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Search, Plus, GitBranch, Loader2, Users } from 'lucide-react'
+import { Search, Plus, GitBranch, Loader2, Users, Sparkles, AlertCircle, X } from 'lucide-react'
 import { charactersApi } from '@/lib/api'
-import { Character, CharacterRole, CharacterStatus } from '@/lib/types'
+import { Character, CharacterHint, CharacterRole, CharacterStatus } from '@/lib/types'
 import CharacterCard from './CharacterCard'
 import CharacterCreateModal from './CharacterCreateModal'
 import CharacterProfilePanel from './CharacterProfilePanel'
 import CharacterRelationshipGraph from './CharacterRelationshipGraph'
+import CastGenerationModal from './CastGenerationModal'
 import { toast } from 'sonner'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -32,15 +33,23 @@ export default function CharacterList({ storyId }: Props) {
   const [status, setStatus] = useState<CharacterStatus | ''>('')
 
   // Modals
-  const [showCreate, setShowCreate] = useState(false)
+  const [showCreate,       setShowCreate]       = useState(false)
+  const [showGenerateCast, setShowGenerateCast] = useState(false)
+
+  // Character hints
+  const [hints, setHints] = useState<CharacterHint[]>([])
 
   // ── Load characters ────────────────────────────────────────────────────────
 
   const loadCharacters = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await charactersApi.list(storyId)
-      setCharacters(res.data as Character[])
+      const [charsRes, hintsRes] = await Promise.all([
+        charactersApi.list(storyId),
+        charactersApi.getHints(storyId),
+      ])
+      setCharacters(charsRes.data as Character[])
+      setHints(hintsRes.data as CharacterHint[])
     } catch {
       toast.error('Failed to load characters')
     } finally {
@@ -89,6 +98,38 @@ export default function CharacterList({ storyId }: Props) {
     setView('list')
   }
 
+  const handleCastGenerated = (newChars: Character[], mentionsIndexing: boolean) => {
+    // Immediately show new characters (optimistic)
+    setCharacters(prev => [...newChars, ...prev])
+    setShowGenerateCast(false)
+    // Reload the full list + hints after a short delay so any background
+    // processing (mention indexing, hints) has had time to land
+    if (mentionsIndexing) {
+      setTimeout(() => loadCharacters(), 3000)
+    }
+  }
+
+  const handleDismissHint = async (hintId: string) => {
+    try {
+      await charactersApi.dismissHint(storyId, hintId)
+      setHints(prev => prev.filter(h => h.hint_id !== hintId))
+    } catch {
+      toast.error('Failed to dismiss hint')
+    }
+  }
+
+  const handlePromoteHint = async (hintId: string) => {
+    try {
+      const res = await charactersApi.promoteHint(storyId, hintId)
+      const newChar = res.data as Character
+      setCharacters(prev => [newChar, ...prev])
+      setHints(prev => prev.filter(h => h.hint_id !== hintId))
+      toast.success(`Added "${newChar.name}" to cast`)
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || 'Failed to add character')
+    }
+  }
+
   const openProfile = (char: Character) => {
     setSelected(char)
     setView('profile')
@@ -135,6 +176,13 @@ export default function CharacterList({ storyId }: Props) {
           <GitBranch className="w-3.5 h-3.5" />
         </button>
         <button
+          onClick={() => setShowGenerateCast(true)}
+          title="Generate cast from story"
+          className="text-[#3d4466] hover:text-amber-400 transition-colors"
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+        </button>
+        <button
           onClick={() => setShowCreate(true)}
           className="flex items-center gap-1 text-[10px] font-medium text-[#5c6391] hover:text-amber-400 border border-[#2e3454] hover:border-amber-500/30 rounded-lg px-2 py-1 transition-all"
         >
@@ -142,6 +190,43 @@ export default function CharacterList({ storyId }: Props) {
           New
         </button>
       </div>
+
+      {/* Character hints banner */}
+      {hints.length > 0 && (
+        <div className="px-3 py-2 border-b border-amber-500/20 bg-amber-500/5 flex-shrink-0">
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <AlertCircle className="w-3 h-3 text-amber-400 flex-shrink-0" />
+            <span className="text-[10px] font-semibold text-amber-400">
+              {hints.length} unrecognised name{hints.length !== 1 ? 's' : ''} in chapters
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {hints.map(hint => (
+              <div
+                key={hint.hint_id}
+                className="flex items-center gap-1 text-[10px] px-2 py-0.5 bg-[#1f2440] border border-amber-500/20 rounded-full"
+              >
+                <span className="text-[#9da3c8]">{hint.suggested_name}</span>
+                <span className="text-[#3d4466]">Ch{hint.chapter_number}</span>
+                <button
+                  onClick={() => handlePromoteHint(hint.hint_id)}
+                  title="Add to cast"
+                  className="text-amber-400/60 hover:text-amber-400 transition-colors ml-0.5"
+                >
+                  <Plus className="w-2.5 h-2.5" />
+                </button>
+                <button
+                  onClick={() => handleDismissHint(hint.hint_id)}
+                  title="Dismiss"
+                  className="text-[#3d4466] hover:text-red-400 transition-colors"
+                >
+                  <X className="w-2.5 h-2.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Search */}
       <div className="px-3 py-2 border-b border-[#1f2440] flex-shrink-0">
@@ -203,12 +288,21 @@ export default function CharacterList({ storyId }: Props) {
                 : 'No characters yet. Create your first character to get started.'}
             </p>
             {!query && !role && !status && (
-              <button
-                onClick={() => setShowCreate(true)}
-                className="text-xs px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-semibold transition-colors"
-              >
-                Create Character
-              </button>
+              <div className="flex flex-col items-center gap-2 w-full">
+                <button
+                  onClick={() => setShowGenerateCast(true)}
+                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-semibold transition-colors"
+                >
+                  <Sparkles className="w-3 h-3" />
+                  Generate Cast from Story
+                </button>
+                <button
+                  onClick={() => setShowCreate(true)}
+                  className="text-[10px] text-[#3d4466] hover:text-[#5c6391] transition-colors"
+                >
+                  or add manually
+                </button>
+              </div>
             )}
           </div>
         ) : (
@@ -239,6 +333,15 @@ export default function CharacterList({ storyId }: Props) {
           storyId={storyId}
           onCreated={handleCreated}
           onClose={() => setShowCreate(false)}
+        />
+      )}
+
+      {/* Generate cast modal */}
+      {showGenerateCast && (
+        <CastGenerationModal
+          storyId={storyId}
+          onClose={() => setShowGenerateCast(false)}
+          onConfirmed={(chars, indexing) => handleCastGenerated(chars, indexing)}
         />
       )}
     </div>

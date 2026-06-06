@@ -66,6 +66,20 @@ export default function CharacterCard({ character, onClick }: Props) {
           {blurb && (
             <p className="text-[11px] text-[#3d4466] line-clamp-1">{blurb}</p>
           )}
+
+          {/* Profile completeness bar */}
+          {character.completeness_score > 0 && (
+            <div className="mt-1.5 h-0.5 w-full bg-[#1a1d2e] rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${
+                  character.completeness_score >= 70 ? 'bg-green-500/50' :
+                  character.completeness_score >= 30 ? 'bg-amber-500/50' :
+                  'bg-[#3d4466]'
+                }`}
+                style={{ width: `${character.completeness_score}%` }}
+              />
+            </div>
+          )}
         </div>
       </div>
     </button>

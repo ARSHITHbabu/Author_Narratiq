@@ -51,6 +51,8 @@ class Story(Base):
     character_relationships = relationship("CharacterRelationship", back_populates="story", cascade="all, delete-orphan")
     story_notes = relationship("StoryNote", back_populates="story", cascade="all, delete-orphan")
     note_cards = relationship("NoteCard", back_populates="story", cascade="all, delete-orphan")
+    character_mentions = relationship("CharacterMention", back_populates="story", cascade="all, delete-orphan")
+    character_hints = relationship("CharacterHint", back_populates="story", cascade="all, delete-orphan")
 
 
 class Chapter(Base):
@@ -168,6 +170,7 @@ class ChapterSummary(Base):
     model_version = Column(String, default=_current_model_version)
     generated_at = Column(DateTime, default=datetime.utcnow)
     is_stale = Column(Boolean, default=False)
+    character_ids = Column(JSON, default=list)   # list of character UUIDs in this chapter
 
     chapter = relationship("Chapter", back_populates="summary")
     story = relationship("Story", back_populates="chapter_summaries")
@@ -193,6 +196,7 @@ class ChapterChunk(Base):
     text           = Column(Text,    nullable=False)   # plain text, ~350 words
     word_count     = Column(Integer, default=0)
     embedding      = Column(JSON,    default=None)     # BGE-M3 dense vector (1024-dim)
+    character_ids  = Column(JSON,    default=list)    # list of character UUIDs in this chunk
     created_at     = Column(DateTime, default=datetime.utcnow)
 
 
@@ -220,9 +224,10 @@ class Character(Base):
     created_at   = Column(DateTime, default=datetime.utcnow)
     updated_at   = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    story   = relationship("Story",            back_populates="characters")
-    profile = relationship("CharacterProfile", back_populates="character",
-                           uselist=False, cascade="all, delete-orphan")
+    story    = relationship("Story",            back_populates="characters")
+    profile  = relationship("CharacterProfile", back_populates="character",
+                            uselist=False, cascade="all, delete-orphan")
+    mentions = relationship("CharacterMention", back_populates="character", cascade="all, delete-orphan")
 
 
 class CharacterProfile(Base):
@@ -262,7 +267,11 @@ class CharacterProfile(Base):
 
     # BGE-M3 embedding of combined profile text (for Character RAG — Task 3).
     # NULL until first embedding background task completes.
-    embedding    = Column(JSON,     default=None)
+    embedding         = Column(JSON, default=None)
+
+    # BGE-M3 embedding of character's story mention passages (story-grounded retrieval).
+    # NULL until first mention indexing + embedding task completes.
+    mention_embedding = Column(JSON, default=None)
 
     # Traceability: stores upload_id of the OCR image that last wrote raw_notes.
     # Plain string — no FK cascade (upload lifecycle is governed by Story, not Profile).
@@ -316,6 +325,55 @@ class CharacterRelationship(Base):
     story          = relationship("Story",     back_populates="character_relationships")
     from_character = relationship("Character", foreign_keys=[from_character_id])
     to_character   = relationship("Character", foreign_keys=[to_character_id])
+
+
+# ── Character Mentions ─────────────────────────────────────────────────────────
+
+class CharacterMention(Base):
+    """
+    Records every chunk in which a character is mentioned by name or alias.
+
+    Populated by index_character_mentions() after each chapter is indexed.
+    Idempotent: old rows for a chapter are deleted before re-indexing.
+    Used for:
+      - mention_embedding computation (story-grounded BGE-M3 vectors)
+      - character enrichment (evidence extraction for profile suggestions)
+      - co-occurrence graph (co_character_ids)
+    """
+    __tablename__ = "character_mentions"
+    mention_id       = Column(String,   primary_key=True, default=gen_uuid)
+    character_id     = Column(String,   ForeignKey("characters.character_id"), nullable=False)
+    story_id         = Column(String,   ForeignKey("stories.story_id"),        nullable=False)
+    chapter_id       = Column(String,   ForeignKey("chapters.chapter_id"),     nullable=False)
+    chunk_id         = Column(String,   nullable=True)   # optional ref to chapter_chunks
+    chapter_number   = Column(Integer,  nullable=False)
+    passage_text     = Column(Text,     nullable=False)  # the chunk text where character is mentioned
+    mention_type     = Column(String,   default="reference")  # dialogue|action|description|reference
+    co_character_ids = Column(JSON,     default=list)    # other character UUIDs present in same chunk
+    created_at       = Column(DateTime, default=datetime.utcnow)
+
+    character = relationship("Character", back_populates="mentions")
+    story     = relationship("Story",     back_populates="character_mentions")
+
+
+# ── Character Hints ────────────────────────────────────────────────────────────
+
+class CharacterHint(Base):
+    """
+    Suggested new character detected from chapter summaries but not yet in the
+    characters table.  Author can promote to Character or dismiss.
+    """
+    __tablename__ = "character_hints"
+    hint_id         = Column(String,   primary_key=True, default=gen_uuid)
+    story_id        = Column(String,   ForeignKey("stories.story_id"),    nullable=False)
+    chapter_id      = Column(String,   ForeignKey("chapters.chapter_id"), nullable=False)
+    chapter_number  = Column(Integer,  nullable=False)
+    suggested_name  = Column(String,   nullable=False)
+    context_snippet = Column(Text,     default="")
+    is_dismissed    = Column(Boolean,  default=False)
+    created_at      = Column(DateTime, default=datetime.utcnow)
+
+    story = relationship("Story", back_populates="character_hints")
 
 
 # ── Story Notes ────────────────────────────────────────────────────────────────

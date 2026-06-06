@@ -3,10 +3,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   ArrowLeft, Loader2, Trash2, Plus, X, ChevronDown, ChevronUp,
-  Crown, Sword, Users, Eye, Check,
+  Crown, Sword, Users, Eye, Check, BookOpen, Wand2,
 } from 'lucide-react'
 import { charactersApi, relationshipsApi } from '@/lib/api'
-import { Character, CharacterRelationship, CharacterRole, CharacterStatus, RelationshipType, RelationshipStrength } from '@/lib/types'
+import {
+  Character, CharacterMention, CharacterRelationship,
+  CharacterRole, CharacterStatus, EnrichResult, EnrichSuggestion,
+  RelationshipType, RelationshipStrength,
+} from '@/lib/types'
 import { toast } from 'sonner'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -104,6 +108,15 @@ export default function CharacterProfilePanel({
   const [relMutual,   setRelMutual]   = useState(false)
   const [savingRel,   setSavingRel]   = useState(false)
 
+  // ── Story Mentions ─────────────────────────────────────────────────────────
+  const [showMentions,   setShowMentions]   = useState(false)
+  const [mentions,       setMentions]       = useState<CharacterMention[] | null>(null)
+  const [loadingMentions, setLoadingMentions] = useState(false)
+
+  // ── Enrichment ─────────────────────────────────────────────────────────────
+  const [enrichResult,  setEnrichResult]  = useState<EnrichResult | null>(null)
+  const [enrichLoading, setEnrichLoading] = useState(false)
+
   // ── Delete ─────────────────────────────────────────────────────────────────
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting,      setDeleting]      = useState(false)
@@ -195,6 +208,88 @@ export default function CharacterProfilePanel({
   const removeTrait = (t: string) => {
     setTraits(prev => prev.filter(x => x !== t))
     scheduleProfileSave()
+  }
+
+  // ── Story Mentions loader ──────────────────────────────────────────────────
+
+  const mentionRetryRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const loadMentions = useCallback(async () => {
+    setLoadingMentions(true)
+    try {
+      const res = await charactersApi.getMentions(storyId, character.character_id)
+      const data = res.data as CharacterMention[]
+      setMentions(data)
+      // If empty, schedule one auto-retry after 5 s (indexing may still be running)
+      if (data.length === 0) {
+        if (mentionRetryRef.current) clearTimeout(mentionRetryRef.current)
+        mentionRetryRef.current = setTimeout(async () => {
+          try {
+            const r2 = await charactersApi.getMentions(storyId, character.character_id)
+            setMentions(r2.data as CharacterMention[])
+          } catch { /* silently ignore retry */ }
+        }, 5000)
+      }
+    } catch {
+      toast.error('Failed to load story mentions')
+      setMentions([])
+    } finally {
+      setLoadingMentions(false)
+    }
+  }, [storyId, character.character_id])
+
+  // Clear retry timer on unmount
+  useEffect(() => () => {
+    if (mentionRetryRef.current) clearTimeout(mentionRetryRef.current)
+  }, [])
+
+  const handleToggleMentions = () => {
+    if (!showMentions && mentions === null) loadMentions()
+    setShowMentions(v => !v)
+  }
+
+  // ── Enrich from story ──────────────────────────────────────────────────────
+
+  const handleEnrich = async () => {
+    setEnrichLoading(true)
+    setEnrichResult(null)
+    try {
+      const res = await charactersApi.enrich(storyId, character.character_id)
+      const data = res.data as EnrichResult
+      if (data.suggestions.length === 0) {
+        toast.info('No new suggestions found in story mentions')
+      } else {
+        setEnrichResult(data)
+      }
+    } catch (err: any) {
+      const msg = err?.response?.data?.detail || 'Failed to extract suggestions'
+      toast.error(msg)
+    } finally {
+      setEnrichLoading(false)
+    }
+  }
+
+  const applyEnrichSuggestion = (s: EnrichSuggestion) => {
+    if (s.field === 'traits') {
+      const newTraits = s.value.split(',').map(t => t.trim().toLowerCase()).filter(Boolean)
+      setTraits(prev => [...new Set([...prev, ...newTraits])])
+    } else {
+      const setters: Partial<Record<string, (v: string) => void>> = {
+        appearance:  setAppearance,
+        personality: setPersonality,
+        goals:       setGoals,
+        motivations: setMotivations,
+        backstory:   setBackstory,
+        arc_notes:   setArcNotes,
+      }
+      setters[s.field]?.(s.value)
+    }
+    scheduleProfileSave()
+    setEnrichResult(prev => prev
+      ? { ...prev, suggestions: prev.suggestions.filter(x => x !== s) }
+      : null
+    )
+    toast.success(`Applied ${s.field.replace('_', ' ')}`)
   }
 
   // ── Aliases ────────────────────────────────────────────────────────────────
@@ -443,7 +538,65 @@ export default function CharacterProfilePanel({
 
         {/* ── Profile fields ─────────────────────────────────────────────── */}
         <section className="flex flex-col gap-3">
-          <p className="text-[10px] font-semibold text-[#3d4466] uppercase tracking-wider">Profile</p>
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] font-semibold text-[#3d4466] uppercase tracking-wider">Profile</p>
+            <button
+              onClick={handleEnrich}
+              disabled={enrichLoading}
+              className="flex items-center gap-1 text-[9px] text-[#5c6391] hover:text-amber-400 transition-colors disabled:opacity-50"
+              title="Extract profile suggestions from story mentions"
+            >
+              {enrichLoading
+                ? <Loader2 className="w-3 h-3 animate-spin" />
+                : <Wand2 className="w-3 h-3" />
+              }
+              Enrich from Story
+            </button>
+          </div>
+
+          {/* Enrichment suggestions */}
+          {enrichResult && enrichResult.suggestions.length > 0 && (
+            <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-3 flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] font-semibold text-amber-400">
+                  {enrichResult.suggestions.length} suggestion{enrichResult.suggestions.length !== 1 ? 's' : ''}{' '}
+                  from {enrichResult.mentions_analyzed} mention{enrichResult.mentions_analyzed !== 1 ? 's' : ''}
+                </p>
+                <button
+                  onClick={() => setEnrichResult(null)}
+                  className="text-[#3d4466] hover:text-[#9da3c8] transition-colors"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+              {enrichResult.suggestions.map((s, i) => (
+                <div key={i} className="border border-[#2e3454] rounded-lg p-2.5 flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-medium text-[#9da3c8] capitalize">
+                      {s.field.replace('_', ' ')}
+                    </span>
+                    <span className="text-[9px] text-[#3d4466]">
+                      {Math.round(s.confidence * 100)}% · Ch{s.chapter}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#e8eaf6] leading-relaxed">
+                    {s.value.length > 150 ? s.value.slice(0, 150) + '…' : s.value}
+                  </p>
+                  {s.evidence && (
+                    <p className="text-[9px] text-[#3d4466] italic border-l-2 border-[#2e3454] pl-2">
+                      &ldquo;{s.evidence.length > 120 ? s.evidence.slice(0, 120) + '…' : s.evidence}&rdquo;
+                    </p>
+                  )}
+                  <button
+                    onClick={() => applyEnrichSuggestion(s)}
+                    className="self-end text-[10px] px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 transition-colors"
+                  >
+                    Apply
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
           <div>
             <label className="text-xs text-[#5c6391] mb-1 block">Age</label>
             <input
@@ -483,6 +636,67 @@ export default function CharacterProfilePanel({
             )}
           </section>
         )}
+
+        {/* ── Story Mentions ─────────────────────────────────────────────── */}
+        <section>
+          <div className="flex items-center justify-between mb-1">
+            <button
+              onClick={handleToggleMentions}
+              className="flex items-center gap-1.5 text-[10px] font-semibold text-[#3d4466] uppercase tracking-wider"
+            >
+              <BookOpen className="w-3 h-3" />
+              Story Mentions
+              {mentions !== null && (
+                <span className="text-[#5c6391] normal-case font-normal">
+                  ({mentions.length})
+                </span>
+              )}
+              {showMentions ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            </button>
+            {showMentions && (
+              <button
+                onClick={loadMentions}
+                disabled={loadingMentions}
+                title="Refresh mentions"
+                className="text-[#3d4466] hover:text-amber-400 transition-colors disabled:opacity-40"
+              >
+                <Loader2 className={`w-3 h-3 ${loadingMentions ? 'animate-spin text-amber-400' : ''}`} />
+              </button>
+            )}
+          </div>
+          {showMentions && (
+            <div className="flex flex-col gap-2">
+              {loadingMentions && mentions === null ? (
+                <div className="flex justify-center py-3">
+                  <Loader2 className="w-4 h-4 text-[#3d4466] animate-spin" />
+                </div>
+              ) : mentions && mentions.length === 0 ? (
+                <div className="flex flex-col gap-1.5 py-1">
+                  <p className="text-[11px] text-[#3d4466] leading-relaxed">
+                    No story mentions found yet.
+                  </p>
+                  <p className="text-[10px] text-[#2e3454] leading-relaxed">
+                    If you just added this character, mention indexing is running in the
+                    background — click ↻ above in a few seconds to refresh.
+                    If chapters were added before this character, use{' '}
+                    <span className="text-[#5c6391]">Sync Mentions</span> from the cast menu.
+                  </p>
+                </div>
+              ) : mentions ? (
+                mentions.map(m => (
+                  <div key={m.mention_id} className="border-l-2 border-[#2e3454] pl-2.5">
+                    <p className="text-[9px] text-amber-400/60 mb-0.5">Chapter {m.chapter_number}</p>
+                    <p className="text-[10px] text-[#5c6391] leading-relaxed">
+                      {m.passage_text.length > 220
+                        ? m.passage_text.slice(0, 220) + '…'
+                        : m.passage_text}
+                    </p>
+                  </div>
+                ))
+              ) : null}
+            </div>
+          )}
+        </section>
 
         {/* ── Relationships ──────────────────────────────────────────────── */}
         <section>
@@ -618,14 +832,13 @@ export default function CharacterProfilePanel({
                         <p className="text-[10px] text-[#3d4466] line-clamp-2">{rel.description}</p>
                       )}
                     </div>
-                    {isFrom && (
-                      <button
-                        onClick={() => deleteRelationship(rel)}
-                        className="text-[#3d4466] hover:text-red-400 transition-colors flex-shrink-0"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    )}
+                    <button
+                      onClick={() => deleteRelationship(rel)}
+                      className="text-[#3d4466] hover:text-red-400 transition-colors flex-shrink-0"
+                      title="Delete relationship"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
                   </div>
                 )
               })}
