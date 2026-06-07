@@ -54,3 +54,7 @@ def run_db_migrations(eng) -> None:
 
     # chapter_summaries — character UUID index (replaces name strings)
     _add_col("chapter_summaries", "character_ids", "TEXT DEFAULT '[]'")
+
+    # story_notes + note_cards — BGE-M3 embeddings for Note RAG
+    _add_col("story_notes", "embedding", "TEXT DEFAULT NULL")
+    _add_col("note_cards",  "embedding", "TEXT DEFAULT NULL")

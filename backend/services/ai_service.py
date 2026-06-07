@@ -636,6 +636,86 @@ async def retrieve_character_context(
     return result
 
 
+# ── Note RAG ──────────────────────────────────────────────────────────────────
+
+async def retrieve_note_context(
+    story_id: str,
+    question: str,
+    db,
+    top_k: int = 3,
+    token_budget: int = 500,
+) -> list[str]:
+    """
+    Semantic retrieval of StoryNotes and NoteCards for Plot Assistant injection.
+
+    Uses BGE-M3 cosine similarity against embedded title+content.  Records with
+    no embedding (created before Task 8 or embed still pending) are silently
+    skipped — the function degrades to [] rather than crashing.
+
+    Returns a list of formatted context strings, each representing one note/card,
+    capped by token_budget.
+    """
+    import numpy as np
+    from models import StoryNote, NoteCard
+
+    notes = (
+        db.query(StoryNote)
+        .filter(StoryNote.story_id == story_id, StoryNote.embedding != None)
+        .all()
+    )
+    cards = (
+        db.query(NoteCard)
+        .filter(NoteCard.story_id == story_id, NoteCard.embedding != None)
+        .all()
+    )
+
+    if not notes and not cards:
+        return []
+
+    q_emb = await embed_text(question)
+    q_vec  = np.array(q_emb, dtype=np.float32)
+    q_norm = float(np.linalg.norm(q_vec)) + 1e-9
+
+    scored: list[tuple[float, str, str, str]] = []  # (score, kind, id, formatted_text)
+
+    for n in notes:
+        s_vec  = np.array(n.embedding, dtype=np.float32)
+        s_norm = float(np.linalg.norm(s_vec)) + 1e-9
+        score  = float(np.dot(q_vec, s_vec)) / (q_norm * s_norm)
+        title  = n.title.strip() if n.title and n.title.strip() else "Story Note"
+        body   = n.content[:400].strip() if n.content else ""
+        block  = f"## Story Note: {title}\n{body}"
+        scored.append((score, "note", n.note_id, block))
+
+    for c in cards:
+        s_vec  = np.array(c.embedding, dtype=np.float32)
+        s_norm = float(np.linalg.norm(s_vec)) + 1e-9
+        score  = float(np.dot(q_vec, s_vec)) / (q_norm * s_norm)
+        title  = c.title.strip() if c.title and c.title.strip() else f"{c.card_type.title()} Card"
+        body   = c.content[:300].strip() if c.content else ""
+        block  = f"## {c.card_type.title()} Card: {title}\n{body}"
+        scored.append((score, "card", c.card_id, block))
+
+    scored.sort(key=lambda x: x[0], reverse=True)
+
+    result: list[str] = []
+    tokens_used = 0
+    for score, kind, record_id, block in scored[:top_k]:
+        block_tokens = len(block.split()) * 4 // 3
+        if tokens_used + block_tokens > token_budget:
+            break
+        result.append(block)
+        tokens_used += block_tokens
+
+    if result:
+        print(
+            f"[note_rag] story={story_id[:8]}... — "
+            f"{len(result)}/{len(scored)} note(s) injected "
+            f"({tokens_used}≈tok, notes={len(notes)}, cards={len(cards)})"
+        )
+    return result
+
+
 # ── Plot Assistant — direct Q&A answer ────────────────────────────────────────
 
 async def answer_story_question(
@@ -644,6 +724,7 @@ async def answer_story_question(
     genre_profile: dict = None,
     current_chapter: str = "",
     character_context: list[str] = None,
+    note_context: list[str] = None,
 ) -> str:
     """
     Answer a factual question about the story using top-k semantically retrieved
@@ -652,6 +733,9 @@ async def answer_story_question(
     character_context is a list of pre-formatted character profile strings from
     retrieve_character_context().  It is injected only when present, keeping the
     chunk budget for non-character questions fully intact.
+
+    note_context is a list of pre-formatted story note / note card strings from
+    retrieve_note_context().  Injected after character context when present.
     """
     system = (
         "You are a story knowledge assistant. Answer the writer's question using "
@@ -673,6 +757,12 @@ async def answer_story_question(
     if character_context:
         parts.append(
             "Relevant character profiles:\n\n" + "\n\n".join(character_context)
+        )
+
+    if note_context:
+        parts.append(
+            "Author's notes (story notes and research cards):\n\n"
+            + "\n\n".join(note_context)
         )
 
     if text_chunks:
@@ -722,6 +812,7 @@ async def generate_plot_suggestions(
     character_profiles: list = None,
     genre_profile: dict = None,
     retrieved_chunks: list = None,
+    note_context: list[str] = None,
 ) -> list:
     """
     Generate 4 plot suggestions grounded in story context.
@@ -772,6 +863,12 @@ async def generate_plot_suggestions(
         # character_profiles is a list[str] of pre-formatted context blocks
         # produced by retrieve_character_context() — never raw ORM objects.
         parts.append("Relevant characters:\n\n" + "\n\n".join(character_profiles))
+
+    if note_context:
+        parts.append(
+            "Author's notes (story notes and research cards):\n\n"
+            + "\n\n".join(note_context)
+        )
 
     if current_chapter:
         parts.append(f"Current chapter excerpt (last 600 chars):\n{current_chapter[-600:]}")

@@ -76,6 +76,52 @@ async def _regenerate_chapter_index(
         db.close()
 
 
+async def _embed_story_note(note_id: str) -> None:
+    """Compute and store a BGE-M3 embedding for a StoryNote (title + content)."""
+    from database import SessionLocal
+    from services.ai_service import embed_text
+    db = SessionLocal()
+    try:
+        note = db.query(StoryNote).filter(StoryNote.note_id == note_id).first()
+        if not note:
+            return
+        text = f"{note.title} {note.content}".strip() if note.title else note.content
+        if not text.strip():
+            return
+        emb = await embed_text(text)
+        note.embedding = emb
+        note.updated_at = datetime.utcnow()
+        db.commit()
+        print(f"[note_embed] story_note {note_id[:8]}... done ({len(emb)}-dim)")
+    except Exception as exc:
+        print(f"[note_embed] failed for story_note {note_id[:8]}...: {exc}")
+    finally:
+        db.close()
+
+
+async def _embed_note_card(card_id: str) -> None:
+    """Compute and store a BGE-M3 embedding for a NoteCard (title + content)."""
+    from database import SessionLocal
+    from services.ai_service import embed_text
+    db = SessionLocal()
+    try:
+        card = db.query(NoteCard).filter(NoteCard.card_id == card_id).first()
+        if not card:
+            return
+        text = f"{card.title} {card.content}".strip() if card.title else card.content
+        if not text.strip():
+            return
+        emb = await embed_text(text)
+        card.embedding = emb
+        card.updated_at = datetime.utcnow()
+        db.commit()
+        print(f"[note_embed] note_card {card_id[:8]}... done ({len(emb)}-dim)")
+    except Exception as exc:
+        print(f"[note_embed] failed for note_card {card_id[:8]}...: {exc}")
+    finally:
+        db.close()
+
+
 async def _embed_character_profile(profile_id: str) -> None:
     """
     Compute and store a BGE-M3 embedding for a character profile.
@@ -297,6 +343,7 @@ async def confirm_ocr(
         db.commit()
         db.refresh(note)
         target_id = note.note_id
+        asyncio.create_task(_embed_story_note(note.note_id))
         print(f"[ocr_inject] story_notes → note {note.note_id[:8]}...")
 
     # ── note_card ─────────────────────────────────────────────────────────────
@@ -312,6 +359,7 @@ async def confirm_ocr(
         db.commit()
         db.refresh(card)
         target_id = card.card_id
+        asyncio.create_task(_embed_note_card(card.card_id))
         print(f"[ocr_inject] note_card → card {card.card_id[:8]}...")
 
     # ── character_profile ─────────────────────────────────────────────────────
@@ -440,7 +488,7 @@ def list_note_cards(
 # ── StoryNote CRUD ────────────────────────────────────────────────────────────
 
 @router.post("/{story_id}/notes", response_model=StoryNoteOut, status_code=201)
-def create_story_note(
+async def create_story_note(
     story_id: str,
     data: StoryNoteCreate,
     current_user: User = Depends(get_current_user),
@@ -456,11 +504,12 @@ def create_story_note(
     db.add(note)
     db.commit()
     db.refresh(note)
+    asyncio.create_task(_embed_story_note(note.note_id))
     return note
 
 
 @router.patch("/notes/{note_id}", response_model=StoryNoteOut)
-def update_story_note(
+async def update_story_note(
     note_id: str,
     data: StoryNoteUpdate,
     current_user: User = Depends(get_current_user),
@@ -473,11 +522,14 @@ def update_story_note(
         raise HTTPException(status_code=403, detail="Not authorised to edit this note")
     if data.title is not None:
         note.title = data.title
-    if data.content is not None:
+    content_changed = data.content is not None
+    if content_changed:
         note.content = data.content
     note.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(note)
+    if content_changed:
+        asyncio.create_task(_embed_story_note(note.note_id))
     return note
 
 
@@ -500,7 +552,7 @@ def delete_story_note(
 # ── NoteCard CRUD ─────────────────────────────────────────────────────────────
 
 @router.post("/{story_id}/note-cards", response_model=NoteCardOut, status_code=201)
-def create_note_card(
+async def create_note_card(
     story_id: str,
     data: NoteCardCreate,
     current_user: User = Depends(get_current_user),
@@ -517,11 +569,12 @@ def create_note_card(
     db.add(card)
     db.commit()
     db.refresh(card)
+    asyncio.create_task(_embed_note_card(card.card_id))
     return card
 
 
 @router.patch("/note-cards/{card_id}", response_model=NoteCardOut)
-def update_note_card(
+async def update_note_card(
     card_id: str,
     data: NoteCardUpdate,
     current_user: User = Depends(get_current_user),
@@ -534,13 +587,16 @@ def update_note_card(
         raise HTTPException(status_code=403, detail="Not authorised to edit this note card")
     if data.title is not None:
         card.title = data.title
-    if data.content is not None:
+    content_changed = data.content is not None
+    if content_changed:
         card.content = data.content
     if data.card_type is not None:
         card.card_type = data.card_type
     card.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(card)
+    if content_changed:
+        asyncio.create_task(_embed_note_card(card.card_id))
     return card
 
 

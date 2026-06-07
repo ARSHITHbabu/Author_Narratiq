@@ -397,6 +397,7 @@ class StoryNote(Base):
     title         = Column(String,   default="")
     content       = Column(Text,     nullable=False)
     ocr_upload_id = Column(String,   nullable=True)
+    embedding     = Column(JSON,     default=None)   # BGE-M3 1024-dim — NULL until first embed
     created_at    = Column(DateTime, default=datetime.utcnow)
     updated_at    = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -425,6 +426,7 @@ class NoteCard(Base):
     content       = Column(Text,     nullable=False)
     card_type     = Column(String,   default="general")
     ocr_upload_id = Column(String,   nullable=True)
+    embedding     = Column(JSON,     default=None)   # BGE-M3 1024-dim — NULL until first embed
     created_at    = Column(DateTime, default=datetime.utcnow)
     updated_at    = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

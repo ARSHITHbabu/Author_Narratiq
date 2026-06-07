@@ -15,6 +15,7 @@ from services.ai_service import (
     retrieve_relevant_chunks,       # chapter-level  — for plot suggestions
     retrieve_chunks_from_store,     # paragraph-level — for QA
     retrieve_character_context,     # character profiles — for both modes
+    retrieve_note_context,          # story notes + note cards — for both modes
 )
 
 router = APIRouter(tags=["plot-assistant"])
@@ -157,6 +158,14 @@ async def plot_assistant(
                 data.story_id, data.question, db, top_k=3, token_budget=800,
             )
 
+    # ── Note context — retrieved for all intents ──────────────────────────────
+    # Token budget is tightened when character context is already injected to
+    # avoid overflowing the Qwen context window.
+    note_token_budget = 350 if character_context else 500
+    note_context: list[str] = await retrieve_note_context(
+        data.story_id, data.question, db, top_k=3, token_budget=note_token_budget,
+    )
+
     answer:      str | None        = None
     suggestions: list[PlotSuggestion] = []
 
@@ -169,6 +178,7 @@ async def plot_assistant(
                 genre_profile     = genre_dict,
                 current_chapter   = cur_chapter,
                 character_context = character_context or None,
+                note_context      = note_context or None,
             )
             print(f"[plot_assistant] QA answer → {len(answer)} chars")
 
@@ -180,6 +190,7 @@ async def plot_assistant(
                 genre_profile      = genre_dict,
                 retrieved_chunks   = retrieved_chunks,
                 character_profiles = character_context or None,
+                note_context       = note_context or None,
             )
             suggestions = [
                 PlotSuggestion(id=s["id"], text=s["text"], rationale=s["rationale"])
@@ -193,6 +204,7 @@ async def plot_assistant(
                 genre_profile     = genre_dict,
                 current_chapter   = cur_chapter,
                 character_context = character_context or None,
+                note_context      = note_context or None,
             )
             suggestions_coro = generate_plot_suggestions(
                 question           = data.question,
@@ -201,6 +213,7 @@ async def plot_assistant(
                 genre_profile      = genre_dict,
                 retrieved_chunks   = retrieved_chunks,
                 character_profiles = character_context or None,
+                note_context       = note_context or None,
             )
             answer, raw = await asyncio.gather(answer_coro, suggestions_coro)
             suggestions = [
@@ -252,14 +265,20 @@ async def plot_assistant(
         context_desc = f"story context ({ch_list} retrieved via BGE-M3)"
         if character_context:
             context_desc += f" + {len(character_context)} character profile(s)"
+        if note_context:
+            context_desc += f" + {len(note_context)} note(s)"
         if genre_profile:
             context_desc = f"{genre_profile.genre} + {context_desc}"
     elif summaries:
         context_desc = f"{len(summaries)} chapter summary/summaries (no embeddings yet)"
+        if note_context:
+            context_desc += f" + {len(note_context)} note(s)"
         if genre_profile:
             context_desc = f"{genre_profile.genre} genre + {context_desc}"
     else:
         context_desc = "no prior context — write and save chapters first"
+        if note_context:
+            context_desc = f"{len(note_context)} note(s) + {context_desc}"
         if genre_profile:
             context_desc = f"{genre_profile.genre} genre profile + {context_desc}"
 
