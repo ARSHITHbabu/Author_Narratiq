@@ -59,7 +59,17 @@ else
   echo "  Node.js: $(node --version) — OK"
 fi
 
-# ── 1b. Remove packages only incompatible with old CUDA 12.7 vLLM installs ──
+# ── 1b. PostgreSQL 16 + pgvector ─────────────────────────────────────────────
+if ! command -v psql &>/dev/null; then
+  echo "  PostgreSQL not found — installing PostgreSQL 16 + pgvector..."
+  apt-get install -y postgresql-16 postgresql-client-16 postgresql-16-pgvector \
+    >> "$LOG_DIR/pg-install.log" 2>&1
+  echo "  PostgreSQL 16 + pgvector — installed"
+else
+  echo "  PostgreSQL: $(psql --version 2>/dev/null | head -1 | awk '{print $3}') — OK"
+fi
+
+# ── 1b-ii. Remove packages only incompatible with old CUDA 12.7 vLLM installs ──
 # (flashinfer/tvm-ffi are fine on CUDA 12.8+/13.x — only remove if stale 0.8.x artifacts remain)
 if pip show vllm 2>/dev/null | grep -q "Version: 0\.8\."; then
   for pkg in flashinfer-cubin flashinfer-python apache-tvm-ffi torch-c-dlpack-ext; do
@@ -122,6 +132,8 @@ echo "  transformers ${TRANSFORMERS_VER:-not installed} — OK"
 echo "  Installing backend Python packages..."
 pip install \
   "sqlalchemy==2.0.30" \
+  "psycopg2-binary>=2.9.9" \
+  "pgvector>=0.3.0" \
   "python-jose[cryptography]==3.3.0" \
   "bcrypt==4.0.1" \
   "aiofiles==23.2.1" \
@@ -266,6 +278,48 @@ if ! grep -q "^SECRET_KEY=" "$ENV_FILE" 2>/dev/null; then
 else
   echo "  SECRET_KEY: OK"
 fi
+
+# ══════════════════════════════════════════════════════════════
+# STEP 4c — PostgreSQL: start, create DB, enable pgvector,
+#            write DATABASE_URL, create tables, run migrations
+# ══════════════════════════════════════════════════════════════
+echo ""
+echo "[4c/6] Setting up PostgreSQL database..."
+
+# Start PostgreSQL (idempotent — no-op if already running)
+pg_ctlcluster 16 main start 2>/dev/null \
+  || service postgresql start 2>/dev/null \
+  || true
+sleep 2
+
+# Create role + database + extension (all idempotent)
+sudo -u postgres psql -c "CREATE USER narratiq WITH PASSWORD 'narratiq';" 2>/dev/null || true
+sudo -u postgres psql -c "CREATE DATABASE narratiq OWNER narratiq;" 2>/dev/null || true
+sudo -u postgres psql -d narratiq -c "CREATE EXTENSION IF NOT EXISTS vector;" 2>/dev/null || true
+echo "  Database 'narratiq' ready, pgvector extension enabled"
+
+# Write DATABASE_URL to backend/.env (idempotent)
+if ! grep -q "^DATABASE_URL=" "$ENV_FILE" 2>/dev/null; then
+  echo "DATABASE_URL=postgresql+psycopg2://narratiq:narratiq@localhost:5432/narratiq" >> "$ENV_FILE"
+  echo "  DATABASE_URL written to backend/.env"
+else
+  echo "  DATABASE_URL: OK"
+fi
+
+# Pre-create tables from ORM models (idempotent; needed before alembic runs)
+cd "$BACKEND_DIR"
+python3 - <<'PYEOF'
+import models  # noqa: F401 — registers all ORM models
+from database import engine, Base, run_db_migrations
+Base.metadata.create_all(bind=engine)
+run_db_migrations(engine)
+print("[setup] Tables created/verified")
+PYEOF
+
+# Apply Alembic migrations (HNSW indexes + future schema changes, idempotent)
+cd "$BACKEND_DIR"
+python3 -m alembic upgrade head
+echo "  Alembic migrations applied"
 
 # ══════════════════════════════════════════════════════════════
 # STEP 5 — Start FastAPI backend

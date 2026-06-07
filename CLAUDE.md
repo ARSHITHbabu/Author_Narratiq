@@ -47,9 +47,9 @@ curl -X POST http://localhost:8000/api/stories/{id}/chapters/sync-summaries \
 
 **AI text generation:** All LLM calls go through `_complete()` / `_stream_generate()` in `backend/services/ai_service.py` via the OpenAI-compatible vLLM endpoint. Model: `Qwen2.5-7B-Instruct`.
 
-**Embeddings:** BGE-M3 (1024-dim) runs in-process via `sentence-transformers`. Embeddings stored as JSON arrays in SQLite columns on `character_profiles` and `chapter_chunks` tables. Retrieval uses numpy cosine similarity.
+**Embeddings:** BGE-M3 (1024-dim) runs in-process via `sentence-transformers`. Embeddings stored as `vector(1024)` columns (pgvector) on `chapter_chunks`, `chapter_summaries`, `character_profiles` (×2), `story_notes`, and `note_cards`. Retrieval uses pgvector HNSW indexes with the `<=>` cosine distance operator via raw SQL — numpy cosine is no longer used.
 
-**Database:** SQLite + SQLAlchemy ORM. Single-writer. Key tables: `stories`, `chapters`, `chapter_chunks` (350-word overlap chunks for RAG), `chapter_summaries`, `characters`, `character_profiles`, `character_relationships`.
+**Database:** PostgreSQL 16 + pgvector + SQLAlchemy ORM. Connection pool: `pool_size=10, max_overflow=20`. Key tables: `stories`, `chapters`, `chapter_chunks` (350-word overlap chunks for RAG), `chapter_summaries`, `characters`, `character_profiles`, `character_relationships`. Alembic manages schema migrations (`backend/migrations/`). `start-narratiq.sh` runs `Base.metadata.create_all()` then `alembic upgrade head` before FastAPI starts.
 
 **Background tasks:** `asyncio.create_task()` — no Redis or external queue. Used for re-embedding after profile updates.
 

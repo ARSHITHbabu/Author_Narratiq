@@ -528,7 +528,6 @@ async def retrieve_character_context(
 
     Returns [] when no characters exist for the story.
     """
-    import numpy as np
     from models import Character, CharacterProfile
 
     characters = (
@@ -557,36 +556,40 @@ async def retrieve_character_context(
 
     cosine_scored: list[tuple[float, str]] = []
     if any(
-        (p.embedding or p.mention_embedding)
+        (p.embedding is not None or p.mention_embedding is not None)
         for p in profiles_map.values()
     ):
+        from sqlalchemy import text
         q_emb = await embed_text(question)
-        q_vec = np.array(q_emb, dtype=np.float32)
-        q_norm = float(np.linalg.norm(q_vec)) + 1e-9
+        q_vec_str = "[" + ",".join(str(v) for v in q_emb) + "]"
+
+        score_rows = db.execute(
+            text("""
+                SELECT character_id,
+                       CASE WHEN embedding IS NOT NULL
+                            THEN 1 - (embedding <=> :q::vector)
+                            ELSE 0.0 END AS profile_score,
+                       CASE WHEN mention_embedding IS NOT NULL
+                            THEN 1 - (mention_embedding <=> :q::vector)
+                            ELSE 0.0 END AS mention_score
+                FROM character_profiles
+                WHERE story_id = :story_id
+            """),
+            {"q": q_vec_str, "story_id": story_id},
+        ).fetchall()
+
+        scored_ids: set[str] = set()
+        for row in score_rows:
+            best_score = max(
+                float(row.profile_score) * 0.4,   # 40% weight for profile
+                float(row.mention_score)  * 0.6,   # 60% weight for story evidence
+            )
+            cosine_scored.append((best_score, row.character_id))
+            scored_ids.add(row.character_id)
 
         for char in characters:
-            p = profiles_map.get(char.character_id)
-            if not p:
+            if char.character_id not in scored_ids:
                 cosine_scored.append((0.0, char.character_id))
-                continue
-
-            best_score = 0.0
-
-            # Profile embedding (author-written)
-            if p.embedding:
-                s_vec = np.array(p.embedding, dtype=np.float32)
-                s_norm = float(np.linalg.norm(s_vec)) + 1e-9
-                score = float(np.dot(q_vec, s_vec)) / (q_norm * s_norm)
-                best_score = max(best_score, score * 0.4)  # 40% weight for profile
-
-            # Mention embedding (story-grounded)
-            if p.mention_embedding:
-                m_vec = np.array(p.mention_embedding, dtype=np.float32)
-                m_norm = float(np.linalg.norm(m_vec)) + 1e-9
-                m_score = float(np.dot(q_vec, m_vec)) / (q_norm * m_norm)
-                best_score = max(best_score, m_score * 0.6)  # 60% weight for story evidence
-
-            cosine_scored.append((best_score, char.character_id))
 
         cosine_scored.sort(key=lambda x: x[0], reverse=True)
 
@@ -655,52 +658,45 @@ async def retrieve_note_context(
     Returns a list of formatted context strings, each representing one note/card,
     capped by token_budget.
     """
-    import numpy as np
-    from models import StoryNote, NoteCard
-
-    notes = (
-        db.query(StoryNote)
-        .filter(StoryNote.story_id == story_id, StoryNote.embedding != None)
-        .all()
-    )
-    cards = (
-        db.query(NoteCard)
-        .filter(NoteCard.story_id == story_id, NoteCard.embedding != None)
-        .all()
-    )
-
-    if not notes and not cards:
-        return []
+    from sqlalchemy import text
 
     q_emb = await embed_text(question)
-    q_vec  = np.array(q_emb, dtype=np.float32)
-    q_norm = float(np.linalg.norm(q_vec)) + 1e-9
+    q_vec_str = "[" + ",".join(str(v) for v in q_emb) + "]"
 
-    scored: list[tuple[float, str, str, str]] = []  # (score, kind, id, formatted_text)
+    rows = db.execute(
+        text("""
+            SELECT 'note' AS kind, note_id AS record_id, title, content,
+                   NULL AS card_type,
+                   1 - (embedding <=> :q::vector) AS score
+            FROM story_notes
+            WHERE story_id = :story_id AND embedding IS NOT NULL
+            UNION ALL
+            SELECT 'card', card_id, title, content, card_type,
+                   1 - (embedding <=> :q::vector) AS score
+            FROM note_cards
+            WHERE story_id = :story_id AND embedding IS NOT NULL
+            ORDER BY score DESC
+            LIMIT :limit
+        """),
+        {"q": q_vec_str, "story_id": story_id, "limit": top_k},
+    ).fetchall()
 
-    for n in notes:
-        s_vec  = np.array(n.embedding, dtype=np.float32)
-        s_norm = float(np.linalg.norm(s_vec)) + 1e-9
-        score  = float(np.dot(q_vec, s_vec)) / (q_norm * s_norm)
-        title  = n.title.strip() if n.title and n.title.strip() else "Story Note"
-        body   = n.content[:400].strip() if n.content else ""
-        block  = f"## Story Note: {title}\n{body}"
-        scored.append((score, "note", n.note_id, block))
-
-    for c in cards:
-        s_vec  = np.array(c.embedding, dtype=np.float32)
-        s_norm = float(np.linalg.norm(s_vec)) + 1e-9
-        score  = float(np.dot(q_vec, s_vec)) / (q_norm * s_norm)
-        title  = c.title.strip() if c.title and c.title.strip() else f"{c.card_type.title()} Card"
-        body   = c.content[:300].strip() if c.content else ""
-        block  = f"## {c.card_type.title()} Card: {title}\n{body}"
-        scored.append((score, "card", c.card_id, block))
-
-    scored.sort(key=lambda x: x[0], reverse=True)
+    if not rows:
+        return []
 
     result: list[str] = []
     tokens_used = 0
-    for score, kind, record_id, block in scored[:top_k]:
+    for row in rows:
+        if row.kind == "note":
+            title = row.title.strip() if row.title and row.title.strip() else "Story Note"
+            body  = row.content[:400].strip() if row.content else ""
+            block = f"## Story Note: {title}\n{body}"
+        else:
+            card_type = row.card_type or "general"
+            title = row.title.strip() if row.title and row.title.strip() else f"{card_type.title()} Card"
+            body  = row.content[:300].strip() if row.content else ""
+            block = f"## {card_type.title()} Card: {title}\n{body}"
+
         block_tokens = len(block.split()) * 4 // 3
         if tokens_used + block_tokens > token_budget:
             break
@@ -710,8 +706,7 @@ async def retrieve_note_context(
     if result:
         print(
             f"[note_rag] story={story_id[:8]}... — "
-            f"{len(result)}/{len(scored)} note(s) injected "
-            f"({tokens_used}≈tok, notes={len(notes)}, cards={len(cards)})"
+            f"{len(result)}/{len(rows)} note(s) injected ({tokens_used}≈tok)"
         )
     return result
 
@@ -2446,62 +2441,57 @@ async def retrieve_chunks_from_store(
     Works identically whether the story has 3 chapters or 300 — only the
     top-k chunks (by cosine similarity) are returned and passed to Qwen.
     """
-    import numpy as np
-    from models import ChapterChunk
+    from sqlalchemy import text
 
-    chunks_q = db.query(ChapterChunk).filter(
-        ChapterChunk.story_id  == story_id,
-        ChapterChunk.embedding != None,  # noqa: E711
-    )
+    print(f"[chunk_retrieval] story={story_id[:8]}... — embedding query: {question[:80]!r}")
+    q_emb = await embed_text(question)
+    q_vec_str = "[" + ",".join(str(v) for v in q_emb) + "]"
+
+    chapter_filter = "AND chapter_number <= :max_ch" if max_chapter_number is not None else ""
+    params: dict = {"q": q_vec_str, "story_id": story_id, "limit": top_k}
     if max_chapter_number is not None:
-        chunks_q = chunks_q.filter(ChapterChunk.chapter_number <= max_chapter_number)
-    all_chunks = chunks_q.all()
+        params["max_ch"] = max_chapter_number
 
-    print(
-        f"[chunk_retrieval] story={story_id[:8]}... — "
-        f"{len(all_chunks)} indexed chunk(s) across all chapters"
-    )
+    rows = db.execute(
+        text(f"""
+            SELECT chunk_id, chapter_number, chunk_index, text, word_count,
+                   1 - (embedding <=> :q::vector) AS score
+            FROM chapter_chunks
+            WHERE story_id = :story_id
+              AND embedding IS NOT NULL
+              {chapter_filter}
+            ORDER BY embedding <=> :q::vector
+            LIMIT :limit
+        """),
+        params,
+    ).fetchall()
 
-    if not all_chunks:
+    if not rows:
+        print(f"[chunk_retrieval] story={story_id[:8]}... — no indexed chunks found")
         return []
 
-    print(f"[chunk_retrieval] embedding query: {question[:80]!r}")
-    q_emb = await embed_text(question)
-    q_vec  = np.array(q_emb, dtype=np.float32)
-
-    scored = []
-    for c in all_chunks:
-        s_vec = np.array(c.embedding, dtype=np.float32)
-        denom = float(np.linalg.norm(q_vec) * np.linalg.norm(s_vec))
-        score = float(np.dot(q_vec, s_vec)) / (denom + 1e-9) if denom > 0 else 0.0
-        scored.append((score, c))
-
-    scored.sort(key=lambda x: x[0], reverse=True)
-    top = scored[:top_k]
-
-    chapters_hit = sorted({c.chapter_number for _, c in top})
+    chapters_hit = sorted({row.chapter_number for row in rows})
     print(
-        f"[chunk_retrieval] top-{len(top)}: "
-        f"scores={[round(s, 3) for s, _ in top]}, "
+        f"[chunk_retrieval] top-{len(rows)}: "
+        f"scores={[round(float(row.score), 3) for row in rows]}, "
         f"chapters={chapters_hit}"
     )
-    if top:
-        best = top[0][1]
-        print(
-            f"[chunk_retrieval] best: "
-            f"ch{best.chapter_number}[chunk {best.chunk_index}]: "
-            f"{best.text[:120]!r}"
-        )
+    best = rows[0]
+    print(
+        f"[chunk_retrieval] best: "
+        f"ch{best.chapter_number}[chunk {best.chunk_index}]: "
+        f"{best.text[:120]!r}"
+    )
 
     return [
         {
-            "chapter":     c.chapter_number,
-            "chunk_index": c.chunk_index,
-            "text":        c.text,
-            "word_count":  c.word_count,
-            "score":       round(score, 3),
+            "chapter":     row.chapter_number,
+            "chunk_index": row.chunk_index,
+            "text":        row.text,
+            "word_count":  row.word_count,
+            "score":       round(float(row.score), 3),
         }
-        for score, c in top
+        for row in rows
     ]
 
 
@@ -2628,60 +2618,59 @@ async def retrieve_relevant_chunks(
 
     Returns [] if no summaries with embeddings exist for the story (no context).
     """
-    import numpy as np
-    from models import ChapterSummary
+    from sqlalchemy import text
 
-    summaries_q = db.query(ChapterSummary).filter(
-        ChapterSummary.story_id == story_id,
-        ChapterSummary.embedding != None,  # noqa: E711 — SQLAlchemy IS NOT NULL
-    )
+    print(f"[retrieval] story={story_id[:8]}... — embedding query: {question[:80]!r}")
+    q_emb = await embed_text(question)
+    q_vec_str = "[" + ",".join(str(v) for v in q_emb) + "]"
+
+    chapter_filter = "AND chapter_number <= :max_ch" if max_chapter_number is not None else ""
+    params: dict = {"q": q_vec_str, "story_id": story_id, "limit": top_k}
     if max_chapter_number is not None:
-        summaries_q = summaries_q.filter(ChapterSummary.chapter_number <= max_chapter_number)
-    summaries = summaries_q.all()
+        params["max_ch"] = max_chapter_number
+
+    rows = db.execute(
+        text(f"""
+            SELECT chapter_number, raw_summary, key_events, characters_present,
+                   locations, 1 - (embedding <=> :q::vector) AS score
+            FROM chapter_summaries
+            WHERE story_id = :story_id
+              AND embedding IS NOT NULL
+              {chapter_filter}
+            ORDER BY embedding <=> :q::vector
+            LIMIT :limit
+        """),
+        params,
+    ).fetchall()
 
     print(
         f"[retrieval] story={story_id[:8]}... — "
-        f"{len(summaries)} chapter(s) with embeddings found in DB"
+        f"{len(rows)} chapter(s) with embeddings found"
     )
 
-    if not summaries:
+    if not rows:
         return []
 
-    print(f"[retrieval] Embedding query: {question[:80]!r}")
-    q_emb = await embed_text(question)
-    q_vec  = np.array(q_emb, dtype=np.float32)
-
-    scored = []
-    for s in summaries:
-        s_vec = np.array(s.embedding, dtype=np.float32)
-        denom = float(np.linalg.norm(q_vec) * np.linalg.norm(s_vec))
-        score = float(np.dot(q_vec, s_vec)) / (denom + 1e-9) if denom > 0 else 0.0
-        scored.append((score, s))
-
-    scored.sort(key=lambda x: x[0], reverse=True)
-    top = scored[:top_k]
-
     print(
-        f"[retrieval] Top-{len(top)} results: "
-        f"scores={[round(sc, 3) for sc, _ in top]}"
+        f"[retrieval] Top-{len(rows)} results: "
+        f"scores={[round(float(row.score), 3) for row in rows]}"
     )
-    if top:
-        best = top[0][1]
-        print(
-            f"[retrieval] Best match — Chapter {best.chapter_number}: "
-            f"{best.raw_summary[:150]!r}"
-        )
+    best = rows[0]
+    print(
+        f"[retrieval] Best match — Chapter {best.chapter_number}: "
+        f"{best.raw_summary[:150]!r}"
+    )
 
     return [
         {
-            "chapter":     s.chapter_number,
-            "raw_summary": s.raw_summary,
-            "key_events":  s.key_events  or [],
-            "characters":  s.characters_present or [],
-            "locations":   s.locations   or [],
-            "score":       round(score, 3),
+            "chapter":     row.chapter_number,
+            "raw_summary": row.raw_summary,
+            "key_events":  row.key_events  or [],
+            "characters":  row.characters_present or [],
+            "locations":   row.locations   or [],
+            "score":       round(float(row.score), 3),
         }
-        for score, s in top
+        for row in rows
     ]
 
 

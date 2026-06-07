@@ -168,7 +168,7 @@ class ChapterSummary(Base):
     emotional_tone = Column(String)
     chapter_purpose = Column(Text)
     raw_summary = Column(Text)
-    embedding = Column(JSON, default=None)   # BGE-M3 dense vector (1024-dim list[float])
+    embedding = Column(Vector(1024), nullable=True)   # BGE-M3 dense vector (1024-dim)
     model_version = Column(String, default=_current_model_version)
     generated_at = Column(DateTime, default=datetime.utcnow)
     is_stale = Column(Boolean, default=False)
@@ -187,7 +187,7 @@ class ChapterChunk(Base):
     chunks are retrieved and passed to Qwen — this keeps context well within the
     LLM window regardless of how many chapters or words the story contains.
 
-    A 200k-word novel → ~580 chunks → all searched in <100 ms by numpy cosine.
+    A 200k-word novel → ~580 chunks → searched via pgvector HNSW index in <10 ms.
     """
     __tablename__ = "chapter_chunks"
     chunk_id       = Column(String,  primary_key=True, default=gen_uuid)
@@ -197,7 +197,7 @@ class ChapterChunk(Base):
     chunk_index    = Column(Integer, nullable=False)   # 0-based within chapter
     text           = Column(Text,    nullable=False)   # plain text, ~350 words
     word_count     = Column(Integer, default=0)
-    embedding      = Column(JSON,    default=None)     # BGE-M3 dense vector (1024-dim)
+    embedding      = Column(Vector(1024), nullable=True)  # BGE-M3 dense vector (1024-dim)
     character_ids  = Column(JSON,    default=list)    # list of character UUIDs in this chunk
     created_at     = Column(DateTime, default=datetime.utcnow)
 
@@ -270,11 +270,11 @@ class CharacterProfile(Base):
 
     # BGE-M3 embedding of combined profile text (for Character RAG — Task 3).
     # NULL until first embedding background task completes.
-    embedding         = Column(JSON, default=None)
+    embedding         = Column(Vector(1024), nullable=True)
 
     # BGE-M3 embedding of character's story mention passages (story-grounded retrieval).
     # NULL until first mention indexing + embedding task completes.
-    mention_embedding = Column(JSON, default=None)
+    mention_embedding = Column(Vector(1024), nullable=True)
 
     # Traceability: stores upload_id of the OCR image that last wrote raw_notes.
     # Plain string — no FK cascade (upload lifecycle is governed by Story, not Profile).
@@ -447,7 +447,7 @@ class StoryNote(Base):
     title         = Column(String,   default="")
     content       = Column(Text,     nullable=False)
     ocr_upload_id = Column(String,   nullable=True)
-    embedding     = Column(JSON,     default=None)   # BGE-M3 1024-dim — NULL until first embed
+    embedding     = Column(Vector(1024), nullable=True)  # BGE-M3 1024-dim — NULL until first embed
     created_at    = Column(DateTime, default=datetime.utcnow)
     updated_at    = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -476,7 +476,7 @@ class NoteCard(Base):
     content       = Column(Text,     nullable=False)
     card_type     = Column(String,   default="general")
     ocr_upload_id = Column(String,   nullable=True)
-    embedding     = Column(JSON,     default=None)   # BGE-M3 1024-dim — NULL until first embed
+    embedding     = Column(Vector(1024), nullable=True)  # BGE-M3 1024-dim — NULL until first embed
     created_at    = Column(DateTime, default=datetime.utcnow)
     updated_at    = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
