@@ -42,6 +42,9 @@ frontend/.next/
 frontend/out/
 frontend/tsconfig.tsbuildinfo
 
-# Word documents / binary assets
+# Word documents / binary assets — ignore by default, except project documentation
 *.docx
 *.zip
+!NarratIQ_AI_Production_Implementation_Report.docx
+!NarratIQ_AI_Documentation_v3_Phase1_Status_Update.docx
+!NarratIQ_AI_Phase2_Intelligence_Expansion_Roadmap.docx
