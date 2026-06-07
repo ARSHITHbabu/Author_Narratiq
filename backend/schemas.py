@@ -153,6 +153,27 @@ class PlotAssistantResponse(BaseModel):
     tokens_used: int
 
 
+# ── Plot Hole Detection ────────────────────────────────────────────────────────
+
+class PlotHoleIssue(BaseModel):
+    issue_id:    int
+    type:        str          # character_inconsistency | location_inconsistency |
+                              # timeline_inconsistency | unresolved_thread |
+                              # continuity_break | character_disappearance
+    severity:    str          # "high" | "medium" | "low"
+    chapters:    List[int]    # chapter numbers where the evidence appears
+    description: str
+    suggestion:  str          # author-actionable resolution hint
+
+
+class PlotHoleResponse(BaseModel):
+    story_id:          str
+    chapters_analyzed: int
+    issues_found:      int
+    issues:            List[PlotHoleIssue]
+    analysis_note:     str    # e.g. "No issues detected." or cap/stale warning
+
+
 # ── AI Transform ──────────────────────────────────────────────────────────────
 
 class TransformRequest(BaseModel):

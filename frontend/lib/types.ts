@@ -69,6 +69,23 @@ export interface PlotAssistantResponse {
   tokens_used: number
 }
 
+export interface PlotHoleIssue {
+  issue_id:    number
+  type:        string
+  severity:    'high' | 'medium' | 'low'
+  chapters:    number[]
+  description: string
+  suggestion:  string
+}
+
+export interface PlotHoleResponse {
+  story_id:          string
+  chapters_analyzed: number
+  issues_found:      number
+  issues:            PlotHoleIssue[]
+  analysis_note:     string
+}
+
 export interface TransformResponse {
   original: string
   transformed: string

@@ -15,7 +15,7 @@ import json
 import re
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
-from typing import AsyncGenerator, Optional
+from typing import Any, AsyncGenerator, Callable, Optional
 
 from openai import AsyncOpenAI
 from sentence_transformers import SentenceTransformer
@@ -889,6 +889,141 @@ async def generate_plot_suggestions(
         "Plot suggestion generation failed: AI model returned invalid output. "
         "Please try again."
     )
+
+
+# ── Plot Hole Detection — strategy dispatcher ─────────────────────────────────
+#
+# Each strategy receives the same list[dict] of structured chapter data and
+# returns {"issues": [...], "note": str, "chapters_analyzed": int}.
+#
+# The dispatcher selects the strategy by name.  Adding a new strategy requires
+# only: (a) write the strategy function, (b) register it in _PLOT_HOLE_STRATEGIES.
+# The endpoint, response schema, and frontend are never touched.
+#
+# Current:
+#   single_pass — one Qwen call, up to _PLOT_HOLE_MAX_CHAPTERS chapters
+#
+# Reserved (not yet implemented):
+#   batched             — overlapping windows merged; removes the chapter cap
+#   hierarchical        — summary-of-summaries pass then targeted deep pass
+#   deep_audit          — paragraph-chunk retrieval to verify each suspected issue
+#   multi_book_analysis — cross-story / book-series analysis
+
+_PLOT_HOLE_MAX_CHAPTERS = 60   # single_pass per-call limit; batched/hierarchical lift this
+
+
+async def _strategy_single_pass(chapters: list[dict]) -> dict:
+    """
+    Single Qwen call over up to _PLOT_HOLE_MAX_CHAPTERS structured chapter entries.
+
+    chapters: [{chapter, events, characters, locations, timeline, purpose}]
+    Returns:  {"issues": [...], "note": str, "chapters_analyzed": int}
+    """
+    capped   = chapters[:_PLOT_HOLE_MAX_CHAPTERS]
+    cap_note = (
+        f"60-chapter cap applied — chapters {_PLOT_HOLE_MAX_CHAPTERS + 1}+ not scanned "
+        "in this pass. A batched analysis strategy will remove this limitation."
+        if len(chapters) > _PLOT_HOLE_MAX_CHAPTERS else ""
+    )
+
+    system = (
+        "You are a manuscript consistency analyst. Analyze the chapter-by-chapter story data "
+        "below and identify potential plot holes and narrative inconsistencies.\n\n"
+        "Analyze for:\n"
+        "1. CHARACTER_INCONSISTENCY — a character described as dead/absent appears active later\n"
+        "2. LOCATION_INCONSISTENCY  — characters in impossible or contradictory locations\n"
+        "3. TIMELINE_INCONSISTENCY  — events that contradict the established chronology\n"
+        "4. UNRESOLVED_THREAD       — a significant conflict or setup never addressed again\n"
+        "5. CONTINUITY_BREAK        — a fact, object, or state changes without explanation\n"
+        "6. CHARACTER_DISAPPEARANCE — a named character introduced then never mentioned again\n\n"
+        "CRITICAL RULES:\n"
+        "- Only report issues with CONCRETE cross-chapter evidence from the data provided.\n"
+        "- Do NOT invent issues. If no evidence exists, return an empty issues array.\n"
+        "- Every issue must cite the specific chapter numbers where the contradiction occurs.\n\n"
+        'Return ONLY valid JSON:\n'
+        '{"issues": [{"issue_id": int, "type": str, "severity": "high|medium|low", '
+        '"chapters": [int], "description": str, "suggestion": str}], '
+        '"note": "one-sentence summary or No issues detected."}'
+    )
+
+    lines = []
+    for c in capped:
+        events   = "; ".join(c["events"])     if c.get("events")     else "—"
+        chars    = ", ".join(c["characters"]) if c.get("characters") else "—"
+        locs     = ", ".join(c["locations"])  if c.get("locations")  else "—"
+        timeline = "; ".join(c["timeline"])   if c.get("timeline")   else "—"
+        purpose  = (c.get("purpose") or "").strip() or "—"
+        lines.append(
+            f"Ch{c['chapter']} | Events: {events} | "
+            f"Characters: {chars} | Locations: {locs} | "
+            f"Timeline: {timeline} | Purpose: {purpose}"
+        )
+
+    raw = await _complete(
+        system,
+        "Story chapters:\n\n" + "\n".join(lines),
+        temperature=0.0,
+        max_tokens=1400,
+    )
+    result = _extract_json(raw, None)
+
+    if not isinstance(result, dict) or "issues" not in result:
+        print(f"[plot_holes] single_pass: Qwen returned invalid JSON. Raw: {raw[:300]!r}")
+        raise ValueError(
+            "Plot hole analysis failed: AI model returned invalid output. Please try again."
+        )
+
+    return {
+        "issues":            result.get("issues", []),
+        "note":              cap_note or result.get("note", ""),
+        "chapters_analyzed": len(capped),
+    }
+
+
+# Strategy registry — register new strategies here; nothing else changes.
+_PLOT_HOLE_STRATEGIES: dict[str, Callable] = {
+    "single_pass": _strategy_single_pass,
+    # "batched":             _strategy_batched,        # future
+    # "hierarchical":        _strategy_hierarchical,   # future
+    # "deep_audit":          _strategy_deep_audit,     # future
+    # "multi_book_analysis": _strategy_multi_book,     # future
+}
+
+
+async def detect_plot_holes(
+    story_id:  str,
+    summaries: list[dict],
+    strategy:  str = "single_pass",
+) -> dict:
+    """
+    Dispatch to the named analysis strategy and return normalised results.
+
+    summaries — structured chapter data from the router:
+                [{chapter, events, characters, locations, timeline, purpose}]
+    strategy  — analysis strategy name (default "single_pass")
+                Future strategies added to _PLOT_HOLE_STRATEGIES are immediately
+                selectable by passing strategy="batched" etc. from the router.
+
+    Returns dict with: issues (list), note (str), chapters_analyzed (int)
+    """
+    fn = _PLOT_HOLE_STRATEGIES.get(strategy)
+    if fn is None:
+        raise ValueError(
+            f"Unknown analysis strategy: {strategy!r}. "
+            f"Available: {list(_PLOT_HOLE_STRATEGIES)}"
+        )
+
+    print(
+        f"[plot_holes] story={story_id[:8]}... "
+        f"strategy={strategy!r} total_chapters={len(summaries)}"
+    )
+    result = await fn(summaries)
+    print(
+        f"[plot_holes] done — "
+        f"{result['chapters_analyzed']} analyzed, "
+        f"{len(result['issues'])} issue(s) found"
+    )
+    return result
 
 
 # ── OCR text cleanup (called by ocr_service after GOT-OCR2.0) ────────────────

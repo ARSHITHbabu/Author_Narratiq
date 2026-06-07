@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   Feather, ArrowLeft, BarChart3, Download, Brain, Camera,
-  Wand2, Lightbulb, Loader2, Sparkles, Search, Users, StickyNote,
+  Wand2, Lightbulb, Loader2, Sparkles, Search, Users, StickyNote, AlertTriangle,
 } from 'lucide-react'
 import { chaptersApi, projectsApi, exportApi, aiApi } from '@/lib/api'
 import { Story, Chapter, AISuggestion } from '@/lib/types'
@@ -18,9 +18,10 @@ import OCRPanel from '@/components/ocr/OCRPanel'
 import SearchPanel from '@/components/search/SearchPanel'
 import CharacterList from '@/components/characters/CharacterList'
 import NotesPanel from '@/components/notes/NotesPanel'
+import PlotHolesPanel from '@/components/plot-holes/PlotHolesPanel'
 import { toast } from 'sonner'
 
-type RightPanel = 'ai' | 'plot' | 'ocr' | 'notes' | 'suggestions' | 'characters'
+type RightPanel = 'ai' | 'plot' | 'ocr' | 'notes' | 'suggestions' | 'characters' | 'audit'
 
 export default function EditorPage({ params }: { params: { id: string } }) {
   const { id: storyId } = params
@@ -326,6 +327,7 @@ export default function EditorPage({ params }: { params: { id: string } }) {
                   { id: 'notes' as RightPanel, icon: StickyNote, label: 'Notes' },
                   { id: 'suggestions' as RightPanel, icon: Lightbulb, label: 'Tips' },
                   { id: 'characters' as RightPanel, icon: Users, label: 'Cast' },
+                  { id: 'audit' as RightPanel, icon: AlertTriangle, label: 'Audit' },
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -375,6 +377,9 @@ export default function EditorPage({ params }: { params: { id: string } }) {
                 )}
                 {rightPanel === 'characters' && (
                   <CharacterList storyId={storyId} />
+                )}
+                {rightPanel === 'audit' && (
+                  <PlotHolesPanel storyId={storyId} />
                 )}
               </div>
             </>

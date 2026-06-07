@@ -272,6 +272,12 @@ export const searchApi = {
     }),
 }
 
+// ── Story Analysis ────────────────────────────────────────────────────────────
+export const analysisApi = {
+  detectPlotHoles: (storyId: string) =>
+    api.post(`/api/stories/${storyId}/plot-holes`),
+}
+
 // ── Export ────────────────────────────────────────────────────────────────────
 export const exportApi = {
   export: async (storyId: string, format: 'docx' | 'pdf') => {
