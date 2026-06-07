@@ -55,6 +55,7 @@ class Story(Base):
     character_mentions       = relationship("CharacterMention",     back_populates="story", cascade="all, delete-orphan")
     character_hints          = relationship("CharacterHint",         back_populates="story", cascade="all, delete-orphan")
     character_arc_snapshots  = relationship("CharacterArcSnapshot",  back_populates="story", cascade="all, delete-orphan")
+    manuscript_jobs          = relationship("ManuscriptJob",          back_populates="story", cascade="all, delete-orphan")
 
 
 class Chapter(Base):
@@ -481,3 +482,32 @@ class NoteCard(Base):
     updated_at    = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     story = relationship("Story", back_populates="note_cards")
+
+
+# ── Manuscript Upload Jobs ─────────────────────────────────────────────────────
+
+class ManuscriptJob(Base):
+    """
+    Persistent job record for manuscript upload ingestion pipeline.
+
+    Replaces the in-memory _jobs dict in manuscript.py so job state survives
+    backend restarts, pod restarts, and multiple workers.
+
+    status lifecycle: pending → processing → complete | error
+    percent: 0-100 progress indicator updated by _ingest_pipeline at each chapter.
+    chapter_count: total chapters detected at parse time (set once, never updated).
+    user_id is stored for ownership enforcement on the job_status endpoint.
+    """
+    __tablename__ = "manuscript_jobs"
+    job_id        = Column(String,   primary_key=True, default=gen_uuid)
+    story_id      = Column(String,   ForeignKey("stories.story_id"), nullable=False)
+    user_id       = Column(String,   ForeignKey("users.user_id"),    nullable=False)
+    status        = Column(String,   default="pending")    # pending|processing|complete|error
+    stage         = Column(String,   default="")
+    percent       = Column(Integer,  default=0)
+    message       = Column(Text,     default="")
+    chapter_count = Column(Integer,  default=0)
+    created_at    = Column(DateTime, default=datetime.utcnow)
+    updated_at    = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    story = relationship("Story", back_populates="manuscript_jobs")
