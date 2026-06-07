@@ -51,8 +51,9 @@ class Story(Base):
     character_relationships = relationship("CharacterRelationship", back_populates="story", cascade="all, delete-orphan")
     story_notes = relationship("StoryNote", back_populates="story", cascade="all, delete-orphan")
     note_cards = relationship("NoteCard", back_populates="story", cascade="all, delete-orphan")
-    character_mentions = relationship("CharacterMention", back_populates="story", cascade="all, delete-orphan")
-    character_hints = relationship("CharacterHint", back_populates="story", cascade="all, delete-orphan")
+    character_mentions       = relationship("CharacterMention",     back_populates="story", cascade="all, delete-orphan")
+    character_hints          = relationship("CharacterHint",         back_populates="story", cascade="all, delete-orphan")
+    character_arc_snapshots  = relationship("CharacterArcSnapshot",  back_populates="story", cascade="all, delete-orphan")
 
 
 class Chapter(Base):
@@ -224,10 +225,11 @@ class Character(Base):
     created_at   = Column(DateTime, default=datetime.utcnow)
     updated_at   = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    story    = relationship("Story",            back_populates="characters")
-    profile  = relationship("CharacterProfile", back_populates="character",
-                            uselist=False, cascade="all, delete-orphan")
-    mentions = relationship("CharacterMention", back_populates="character", cascade="all, delete-orphan")
+    story         = relationship("Story",              back_populates="characters")
+    profile       = relationship("CharacterProfile",   back_populates="character",
+                                 uselist=False, cascade="all, delete-orphan")
+    mentions      = relationship("CharacterMention",   back_populates="character", cascade="all, delete-orphan")
+    arc_snapshots = relationship("CharacterArcSnapshot", back_populates="character", cascade="all, delete-orphan")
 
 
 class CharacterProfile(Base):
@@ -374,6 +376,53 @@ class CharacterHint(Base):
     created_at      = Column(DateTime, default=datetime.utcnow)
 
     story = relationship("Story", back_populates="character_hints")
+
+
+# ── Character Arc Snapshots ────────────────────────────────────────────────────
+
+class CharacterArcSnapshot(Base):
+    """
+    Per-chapter character state snapshot — Qwen-derived from CharacterMention
+    passages and ChapterSummary context for that chapter.
+
+    One row per (character, chapter) pair, enforced by the unique constraint.
+    This constraint is the DB primitive that enables future partial rebuilds:
+    DELETE WHERE character_id=X AND chapter_id=Y, then INSERT fresh, without
+    touching snapshots for other chapters.
+
+    is_stale: set True by future code (e.g. when index_character_mentions()
+    re-runs for a chapter) to flag this snapshot for regeneration.  Full
+    rebuilds always write is_stale=False on every freshly created row.
+
+    mention_count: number of CharacterMention rows consumed at generation time.
+    Future staleness detection: if current count(character_id, chapter_id) !=
+    mention_count, the snapshot is outdated without needing to re-analyse it.
+    """
+    __tablename__ = "character_arc_snapshots"
+    arc_snapshot_id  = Column(String,   primary_key=True, default=gen_uuid)
+    character_id     = Column(String,   ForeignKey("characters.character_id"), nullable=False)
+    story_id         = Column(String,   ForeignKey("stories.story_id"),        nullable=False)
+    chapter_id       = Column(String,   ForeignKey("chapters.chapter_id"),     nullable=False)
+    chapter_number   = Column(Integer,  nullable=False)
+    role_in_chapter  = Column(String,   default="observer")
+    # major_player | observer | turning_point | brief_mention
+    emotional_state  = Column(Text,     default="")
+    key_action       = Column(Text,     default="")
+    development_note = Column(Text,     default="")
+    status_change    = Column(String,   nullable=True)
+    mention_count    = Column(Integer,  default=0)   # CharacterMention rows used at generation
+    is_stale         = Column(Boolean,  default=False)
+    generated_at     = Column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        UniqueConstraint(
+            "character_id", "chapter_id",
+            name="uq_arc_snapshot_char_chapter",
+        ),
+    )
+
+    character = relationship("Character", back_populates="arc_snapshots")
+    story     = relationship("Story",     back_populates="character_arc_snapshots")
 
 
 # ── Story Notes ────────────────────────────────────────────────────────────────

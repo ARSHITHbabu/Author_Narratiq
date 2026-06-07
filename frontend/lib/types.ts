@@ -371,3 +371,30 @@ export interface EnrichResult {
   mentions_analyzed: number
   chapters_covered:  number[]
 }
+
+// ── Character Arc Timeline ─────────────────────────────────────────────────────
+
+export type ArcRole = 'major_player' | 'observer' | 'turning_point' | 'brief_mention'
+
+export interface CharacterArcSnapshot {
+  arc_snapshot_id:  string
+  chapter_id:       string
+  chapter_number:   number
+  role_in_chapter:  ArcRole
+  emotional_state:  string
+  key_action:       string
+  development_note: string
+  status_change:    string | null
+  mention_count:    number
+  is_stale:         boolean
+  generated_at:     string
+}
+
+export interface CharacterArcTimelineResponse {
+  character_id:           string
+  character_name:         string
+  total_chapters:         number
+  chapters_with_presence: number
+  snapshots:              CharacterArcSnapshot[]
+  analysis_note:          string
+}

@@ -10,6 +10,7 @@ from database import get_db
 from models import Character, CharacterProfile, CharacterRelationship, Story
 from schemas import (
     CastConfirmRequest, CastConfirmResult, CastGenerationResult, CastSuggestion,
+    CharacterArcSnapshotOut, CharacterArcTimelineResponse,
     CharacterCreate, CharacterGraphResponse, CharacterMentionOut, CharacterHintOut,
     CharacterOut, CharacterProfileUpdate, CharacterUpdate,
     EnrichResult, EnrichSuggestion,
@@ -673,6 +674,106 @@ async def enrich_character(
         suggestions=suggestions,
         mentions_analyzed=len(mentions),
         chapters_covered=chapters_covered,
+    )
+
+
+@router.post("/{story_id}/characters/{character_id}/arc-timeline",
+             response_model=CharacterArcTimelineResponse)
+async def get_arc_timeline(
+    story_id:     str,
+    character_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Generate or regenerate the per-chapter arc timeline for a character.
+
+    Analyzes CharacterMention evidence and ChapterSummary context via Qwen,
+    producing one snapshot per chapter where the character appears.
+
+    Full rebuild: replaces all existing arc snapshots for this character.
+    The snapshot table's UniqueConstraint("character_id", "chapter_id") means
+    future code can do targeted DELETE + INSERT for individual chapters without
+    any schema change — partial rebuilds are already supported at the DB level.
+    """
+    _check_story_access(story_id, current_user.user_id, db)
+
+    character = db.query(Character).filter(
+        Character.character_id == character_id,
+        Character.story_id     == story_id,
+    ).first()
+    if not character:
+        raise HTTPException(status_code=404, detail="Character not found")
+
+    from models import CharacterMention, ChapterSummary, CharacterArcSnapshot
+
+    has_mentions = db.query(CharacterMention).filter(
+        CharacterMention.character_id == character_id,
+        CharacterMention.story_id     == story_id,
+    ).first()
+    if not has_mentions:
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                "No story mentions found for this character. "
+                "Run POST /characters/sync-mentions first, then try again."
+            ),
+        )
+
+    from services.ai_service import build_character_arc_timeline
+    snapshots_data = await build_character_arc_timeline(character_id, story_id, db)
+
+    # Full rebuild: delete all existing snapshots for this character
+    db.query(CharacterArcSnapshot).filter(
+        CharacterArcSnapshot.character_id == character_id,
+        CharacterArcSnapshot.story_id     == story_id,
+    ).delete()
+
+    # Insert new snapshots with per-row error isolation
+    saved: list[CharacterArcSnapshot] = []
+    for snap in snapshots_data:
+        try:
+            row = CharacterArcSnapshot(
+                character_id     = character_id,
+                story_id         = story_id,
+                chapter_id       = snap["chapter_id"],
+                chapter_number   = snap["chapter_number"],
+                role_in_chapter  = snap["role_in_chapter"],
+                emotional_state  = snap["emotional_state"],
+                key_action       = snap["key_action"],
+                development_note = snap["development_note"],
+                status_change    = snap.get("status_change"),
+                mention_count    = snap["mention_count"],
+                is_stale         = False,
+            )
+            db.add(row)
+            db.flush()
+            saved.append(row)
+        except Exception as exc:
+            print(f"[arc_timeline] Failed to save snapshot ch{snap.get('chapter_number')}: {exc}")
+            db.rollback()
+
+    db.commit()
+
+    total_chapters = db.query(ChapterSummary).filter(
+        ChapterSummary.story_id == story_id
+    ).count()
+
+    analysis_note = f"{len(saved)} chapter snapshot(s) generated for {character.name}."
+    if total_chapters > len(saved):
+        missing = total_chapters - len(saved)
+        analysis_note += (
+            f" {missing} chapter(s) not included"
+            " (character not mentioned or beyond the 30-chapter analysis cap)."
+        )
+
+    return CharacterArcTimelineResponse(
+        character_id           = character_id,
+        character_name         = character.name,
+        total_chapters         = total_chapters,
+        chapters_with_presence = len(saved),
+        snapshots              = saved,
+        analysis_note          = analysis_note,
     )
 
 

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   ArrowLeft, Loader2, Trash2, Plus, X, ChevronDown, ChevronUp,
-  Crown, Sword, Users, Eye, Check, BookOpen, Wand2,
+  Crown, Sword, Users, Eye, Check, BookOpen, Wand2, GitBranch,
 } from 'lucide-react'
 import { charactersApi, relationshipsApi } from '@/lib/api'
 import {
@@ -12,6 +12,7 @@ import {
   RelationshipType, RelationshipStrength,
 } from '@/lib/types'
 import { toast } from 'sonner'
+import CharacterArcTimelinePanel from './CharacterArcTimelinePanel'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -116,6 +117,9 @@ export default function CharacterProfilePanel({
   // ── Enrichment ─────────────────────────────────────────────────────────────
   const [enrichResult,  setEnrichResult]  = useState<EnrichResult | null>(null)
   const [enrichLoading, setEnrichLoading] = useState(false)
+
+  // ── Arc Timeline ───────────────────────────────────────────────────────────
+  const [showArcTimeline, setShowArcTimeline] = useState(false)
 
   // ── Delete ─────────────────────────────────────────────────────────────────
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -695,6 +699,25 @@ export default function CharacterProfilePanel({
                 ))
               ) : null}
             </div>
+          )}
+        </section>
+
+        {/* ── Arc Timeline ───────────────────────────────────────────────── */}
+        <section>
+          <button
+            onClick={() => setShowArcTimeline(v => !v)}
+            className="w-full flex items-center gap-1.5 text-[10px] font-semibold text-[#3d4466] uppercase tracking-wider mb-2"
+          >
+            <GitBranch className="w-3 h-3" />
+            Arc Timeline
+            {showArcTimeline ? <ChevronUp className="w-3 h-3 ml-auto" /> : <ChevronDown className="w-3 h-3 ml-auto" />}
+          </button>
+          {showArcTimeline && (
+            <CharacterArcTimelinePanel
+              storyId={storyId}
+              characterId={character.character_id}
+              characterName={character.name}
+            />
           )}
         </section>
 

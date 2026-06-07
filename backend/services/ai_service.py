@@ -2116,6 +2116,174 @@ async def enrich_character_from_story(
     return result
 
 
+# ── Character Arc Timeline ─────────────────────────────────────────────────────
+
+_ARC_TIMELINE_RICH_CUTOFF  = 20
+_ARC_TIMELINE_MAX_CHAPTERS = 30
+
+
+async def build_character_arc_timeline(
+    character_id: str,
+    story_id:     str,
+    db,
+) -> list[dict]:
+    """
+    Produce per-chapter arc snapshots for one character from their story evidence.
+
+    For each chapter where the character appears (via ChapterSummary.character_ids),
+    collects up to 3 CharacterMention passages (80-word excerpts) plus the chapter
+    raw_summary (≤20 chapters) or structured fields only (>20 chapters) to stay
+    within the context window, then asks Qwen to describe the character's state,
+    role, and arc development in that chapter.
+
+    Returns list[dict] ordered by chapter_number:
+        {chapter_number, chapter_id, role_in_chapter, emotional_state,
+         key_action, development_note, status_change, mention_count}
+
+    mention_count = number of CharacterMention rows used for that chapter.
+    Stored in the snapshot so future code can compare the current mention count
+    against this value to detect staleness without re-running the analysis.
+    The unique constraint on (character_id, chapter_id) in the snapshot table
+    allows future code to regenerate individual chapters without a full rebuild.
+    """
+    from models import Character, CharacterMention, ChapterSummary
+
+    char = db.query(Character).filter(Character.character_id == character_id).first()
+    if not char:
+        return []
+
+    # Chapters where this character appears, ordered chronologically
+    summaries = (
+        db.query(ChapterSummary)
+        .filter(ChapterSummary.story_id == story_id)
+        .order_by(ChapterSummary.chapter_number)
+        .all()
+    )
+    relevant = [s for s in summaries if character_id in (s.character_ids or [])]
+    if not relevant:
+        return []
+
+    capped = relevant[:_ARC_TIMELINE_MAX_CHAPTERS]
+    rich   = len(capped) <= _ARC_TIMELINE_RICH_CUTOFF
+
+    chapter_ids = {s.chapter_id for s in capped}
+
+    # Load all mentions for this character in the selected chapters
+    all_mentions = (
+        db.query(CharacterMention)
+        .filter(
+            CharacterMention.character_id == character_id,
+            CharacterMention.story_id     == story_id,
+            CharacterMention.chapter_id.in_(chapter_ids),
+        )
+        .order_by(CharacterMention.chapter_number, CharacterMention.mention_id)
+        .all()
+    )
+
+    mentions_by_chapter: dict[str, list] = {}
+    for m in all_mentions:
+        mentions_by_chapter.setdefault(m.chapter_id, []).append(m)
+
+    # Build per-chapter blocks for Qwen
+    chapter_blocks: list[str] = []
+    chapter_mention_counts: dict[str, int] = {}
+
+    for s in capped:
+        ch_mentions = mentions_by_chapter.get(s.chapter_id, [])
+        selected    = ch_mentions[:3]
+        chapter_mention_counts[s.chapter_id] = len(selected)
+
+        passages = []
+        for m in selected:
+            words   = m.passage_text.split()
+            excerpt = " ".join(words[:80]) if len(words) > 80 else m.passage_text
+            passages.append(f"  - {excerpt}")
+
+        block = f"[Chapter {s.chapter_number}]"
+        if rich and s.raw_summary:
+            block += f"\nSummary: {s.raw_summary[:300]}"
+        if passages:
+            block += "\nPassages:\n" + "\n".join(passages)
+        else:
+            block += "\n(No direct mention passages found for this chapter)"
+        chapter_blocks.append(block)
+
+    system = (
+        f'You are a literary analyst tracking "{char.name}\'s" journey across chapters.\n\n'
+        f'Analyze the provided chapter evidence and return ONLY a valid JSON array.\n'
+        f'Each element represents ONE chapter. Required keys:\n'
+        f'  "chapter_number": integer\n'
+        f'  "role_in_chapter": exactly one of:\n'
+        f'    "major_player"   — drives a key event or makes a significant decision\n'
+        f'    "turning_point"  — this chapter fundamentally shifts their arc\n'
+        f'    "observer"       — present and active but not the focus\n'
+        f'    "brief_mention"  — minor presence, little story impact\n'
+        f'  "emotional_state": 1-2 sentences on their emotional state in this chapter\n'
+        f'  "key_action": one sentence — the most significant thing they do or endure\n'
+        f'  "development_note": 1-2 sentences on how this chapter advances, complicates, or stalls their arc\n'
+        f'  "status_change": brief string if something definitively changed '
+        f'(e.g. "revealed as traitor", "mortally wounded"), or null if nothing changed\n\n'
+        f'Rules:\n'
+        f'- Use ONLY the passages and summaries provided. Do not invent events.\n'
+        f'- Every chapter_number MUST be an actual chapter number from the data below.\n'
+        f'- One element per chapter, ordered by chapter_number ascending.\n'
+        f'- Return ONLY the JSON array, no other text.'
+    )
+
+    cap_note = ""
+    if len(relevant) > _ARC_TIMELINE_MAX_CHAPTERS:
+        cap_note = (
+            f" Chapter cap applied — chapters {_ARC_TIMELINE_MAX_CHAPTERS + 1}+ "
+            "not included in this pass."
+        )
+
+    raw    = await _complete(
+        system,
+        f"Character: {char.name}\n\nChapter evidence:\n\n" + "\n\n".join(chapter_blocks),
+        temperature=0.1,
+        max_tokens=2000,
+    )
+    result = _extract_json(raw, [])
+
+    if not isinstance(result, list):
+        print(f"[arc_timeline] Qwen returned non-list for {char.name}. Raw: {raw[:200]!r}")
+        return []
+
+    chnum_to_id    = {s.chapter_number: s.chapter_id for s in capped}
+    chnum_to_count = {s.chapter_number: chapter_mention_counts.get(s.chapter_id, 0) for s in capped}
+    valid_roles    = {"major_player", "observer", "turning_point", "brief_mention"}
+
+    snapshots: list[dict] = []
+    for item in result:
+        try:
+            chnum = int(item.get("chapter_number", 0))
+            ch_id = chnum_to_id.get(chnum)
+            if not ch_id:
+                continue
+            role = str(item.get("role_in_chapter", "observer"))
+            if role not in valid_roles:
+                role = "observer"
+            snapshots.append({
+                "chapter_number":   chnum,
+                "chapter_id":       ch_id,
+                "role_in_chapter":  role,
+                "emotional_state":  str(item.get("emotional_state",  "") or "").strip(),
+                "key_action":       str(item.get("key_action",        "") or "").strip(),
+                "development_note": str(item.get("development_note",  "") or "").strip(),
+                "status_change":    item.get("status_change") or None,
+                "mention_count":    chnum_to_count.get(chnum, 0),
+            })
+        except Exception as exc:
+            print(f"[arc_timeline] Skipping malformed snapshot item: {exc}")
+
+    mode_note = "rich" if rich else "compact"
+    print(
+        f"[arc_timeline] {char.name}: {len(snapshots)} snapshot(s) across "
+        f"{len(capped)} chapter(s) — mode={mode_note}{cap_note}"
+    )
+    return snapshots
+
+
 async def _detect_new_character_hints(
     story_id: str,
     chapter_id: str,

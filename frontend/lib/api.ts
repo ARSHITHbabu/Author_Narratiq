@@ -180,6 +180,8 @@ export const charactersApi = {
     api.post(`/api/stories/${storyId}/characters/sync-mentions`),
   enrich: (storyId: string, characterId: string) =>
     api.post(`/api/stories/${storyId}/characters/${characterId}/enrich`),
+  getArcTimeline: (storyId: string, characterId: string) =>
+    api.post(`/api/stories/${storyId}/characters/${characterId}/arc-timeline`),
   getHints: (storyId: string) =>
     api.get(`/api/stories/${storyId}/characters/hints`),
   dismissHint: (storyId: string, hintId: string) =>

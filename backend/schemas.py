@@ -671,6 +671,32 @@ class EnrichResult(BaseModel):
     chapters_covered:  List[int]
 
 
+# ── Character Arc Timeline ────────────────────────────────────────────────────
+
+class CharacterArcSnapshotOut(BaseModel):
+    arc_snapshot_id:  str
+    chapter_id:       str
+    chapter_number:   int
+    role_in_chapter:  str   # major_player | observer | turning_point | brief_mention
+    emotional_state:  str
+    key_action:       str
+    development_note: str
+    status_change:    Optional[str]
+    mention_count:    int
+    is_stale:         bool
+    generated_at:     datetime
+    model_config = {"from_attributes": True}
+
+
+class CharacterArcTimelineResponse(BaseModel):
+    character_id:           str
+    character_name:         str
+    total_chapters:         int
+    chapters_with_presence: int
+    snapshots:              List[CharacterArcSnapshotOut]
+    analysis_note:          str
+
+
 # ── Export ────────────────────────────────────────────────────────────────────
 
 class ExportRequest(BaseModel):
