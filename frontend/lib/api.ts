@@ -71,8 +71,20 @@ export const intakeApi = {
 
 // ── Plot Assistant ─────────────────────────────────────────────────────────────
 export const plotApi = {
-  suggest: (storyId: string, question: string, currentChapterText?: string, template?: string) =>
-    api.post('/api/plot-assistant/', { story_id: storyId, question, current_chapter_text: currentChapterText, template }),
+  suggest: (
+    storyId: string,
+    question: string,
+    currentChapterText?: string,
+    template?: string,
+    chapterNumber?: number,
+  ) =>
+    api.post('/api/plot-assistant/', {
+      story_id:               storyId,
+      question,
+      current_chapter_text:   currentChapterText,
+      template,
+      current_chapter_number: chapterNumber ?? null,
+    }),
   markUsed: (sessionId: string, index: number) =>
     api.patch(`/api/plot-assistant/${sessionId}/use?suggestion_index=${index}`),
 }

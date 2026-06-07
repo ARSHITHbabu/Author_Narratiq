@@ -58,9 +58,15 @@ async def plot_assistant(
         print("[plot_assistant] No genre profile.")
 
     # ── Fallback summary list (used if no embeddings available) ───────────────
+    _fallback_q = db.query(ChapterSummary).filter(
+        ChapterSummary.story_id == data.story_id
+    )
+    if data.current_chapter_number is not None:
+        _fallback_q = _fallback_q.filter(
+            ChapterSummary.chapter_number <= data.current_chapter_number
+        )
     summaries = (
-        db.query(ChapterSummary)
-        .filter(ChapterSummary.story_id == data.story_id)
+        _fallback_q
         .order_by(ChapterSummary.chapter_number.desc())
         .limit(5)
         .all()
@@ -77,7 +83,10 @@ async def plot_assistant(
     try:
         intent, retrieved_chunks = await asyncio.gather(
             detect_query_intent(data.question),
-            retrieve_relevant_chunks(data.question, data.story_id, db, top_k=4),
+            retrieve_relevant_chunks(
+                data.question, data.story_id, db, top_k=4,
+                max_chapter_number=data.current_chapter_number,
+            ),
         )
     except (APIConnectionError, APIStatusError) as exc:
         print(f"[plot_assistant] vLLM unavailable during intent/retrieval: {exc}")
@@ -125,7 +134,8 @@ async def plot_assistant(
         # Reduce chunk count to top_k=5 when character context will be injected
         qa_top_k = 5 if has_name_mention else 8
         text_chunks = await retrieve_chunks_from_store(
-            data.question, data.story_id, db, top_k=qa_top_k
+            data.question, data.story_id, db, top_k=qa_top_k,
+            max_chapter_number=data.current_chapter_number,
         )
         print(
             f"[plot_assistant] chunk-level retrieval: "

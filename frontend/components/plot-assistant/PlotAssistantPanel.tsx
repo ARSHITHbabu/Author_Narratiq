@@ -31,9 +31,10 @@ const MODE_COLOR: Record<string, string> = {
 interface Props {
   storyId: string
   getEditorText: () => string
+  chapterNumber?: number
 }
 
-export default function PlotAssistantPanel({ storyId, getEditorText }: Props) {
+export default function PlotAssistantPanel({ storyId, getEditorText, chapterNumber }: Props) {
   const [question, setQuestion]   = useState('')
   const [loading, setLoading]     = useState(false)
   const [result, setResult]       = useState<PlotAssistantResponse | null>(null)
@@ -46,7 +47,7 @@ export default function PlotAssistantPanel({ storyId, getEditorText }: Props) {
     setLoading(true)
     setResult(null)
     try {
-      const res = await plotApi.suggest(storyId, finalQ, getEditorText().slice(0, 1500))
+      const res = await plotApi.suggest(storyId, finalQ, getEditorText().slice(0, 1500), undefined, chapterNumber)
       setResult(res.data as PlotAssistantResponse)
       if (q) setQuestion('')
     } catch (err: any) {

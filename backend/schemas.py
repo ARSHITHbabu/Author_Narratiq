@@ -140,6 +140,7 @@ class PlotAssistantRequest(BaseModel):
     story_id: str
     question: str
     current_chapter_text: Optional[str] = ""
+    current_chapter_number: Optional[int] = None
     template: Optional[str] = None
 
 

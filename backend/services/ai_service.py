@@ -1861,10 +1861,16 @@ async def retrieve_chunks_from_store(
     story_id: str,
     db,
     top_k: int = 8,
+    max_chapter_number: int | None = None,
 ) -> list[dict]:
     """
     Embed the question with BGE-M3 and return the top-k most semantically
-    relevant paragraph-level chunks across ALL chapters of the story.
+    relevant paragraph-level chunks across the story.
+
+    max_chapter_number: when provided, only chunks from chapters with
+    chapter_number <= max_chapter_number are considered.  None = no filter
+    (full-corpus scan — used by OCR suggestion grounding and backward-compat
+    callers that don't know the current chapter).
 
     This is the primary retrieval path for QA mode.
     Works identically whether the story has 3 chapters or 300 — only the
@@ -1873,14 +1879,13 @@ async def retrieve_chunks_from_store(
     import numpy as np
     from models import ChapterChunk
 
-    all_chunks = (
-        db.query(ChapterChunk)
-        .filter(
-            ChapterChunk.story_id  == story_id,
-            ChapterChunk.embedding != None,  # noqa: E711
-        )
-        .all()
+    chunks_q = db.query(ChapterChunk).filter(
+        ChapterChunk.story_id  == story_id,
+        ChapterChunk.embedding != None,  # noqa: E711
     )
+    if max_chapter_number is not None:
+        chunks_q = chunks_q.filter(ChapterChunk.chapter_number <= max_chapter_number)
+    all_chunks = chunks_q.all()
 
     print(
         f"[chunk_retrieval] story={story_id[:8]}... — "
@@ -2042,24 +2047,27 @@ async def retrieve_relevant_chunks(
     story_id: str,
     db,
     top_k: int = 4,
+    max_chapter_number: int | None = None,
 ) -> list[dict]:
     """
     Embed the question with BGE-M3 and return the top-k most semantically
     relevant chapter summaries for the given story, ordered by cosine similarity.
+
+    max_chapter_number: when provided, only summaries for chapters with
+    chapter_number <= max_chapter_number are candidates.  None = no filter.
 
     Returns [] if no summaries with embeddings exist for the story (no context).
     """
     import numpy as np
     from models import ChapterSummary
 
-    summaries = (
-        db.query(ChapterSummary)
-        .filter(
-            ChapterSummary.story_id == story_id,
-            ChapterSummary.embedding != None,  # noqa: E711 — SQLAlchemy IS NOT NULL
-        )
-        .all()
+    summaries_q = db.query(ChapterSummary).filter(
+        ChapterSummary.story_id == story_id,
+        ChapterSummary.embedding != None,  # noqa: E711 — SQLAlchemy IS NOT NULL
     )
+    if max_chapter_number is not None:
+        summaries_q = summaries_q.filter(ChapterSummary.chapter_number <= max_chapter_number)
+    summaries = summaries_q.all()
 
     print(
         f"[retrieval] story={story_id[:8]}... — "

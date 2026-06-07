@@ -17,12 +17,13 @@ const DESTINATIONS = [
 ]
 
 interface Props {
-  storyId:          string
-  chapterId:        string
-  onInjectComplete?: () => void   // called after successful chapter_draft injection
+  storyId:                string
+  chapterId:              string
+  onInjectComplete?:      () => void   // called after successful chapter_draft injection
+  onNotesInjectComplete?: () => void   // called after successful story_notes or note_card injection
 }
 
-export default function OCRPanel({ storyId, chapterId, onInjectComplete }: Props) {
+export default function OCRPanel({ storyId, chapterId, onInjectComplete, onNotesInjectComplete }: Props) {
   const fileRef = useRef<HTMLInputElement>(null)
   const [preview, setPreview]           = useState<string | null>(null)
   const [file, setFile]                 = useState<File | null>(null)
@@ -100,6 +101,8 @@ export default function OCRPanel({ storyId, chapterId, onInjectComplete }: Props
       }
       if (destination === 'chapter_draft') {
         onInjectComplete?.()
+      } else if (destination === 'story_notes' || destination === 'note_card') {
+        onNotesInjectComplete?.()
       }
       // Reset panel
       setPreview(null)
