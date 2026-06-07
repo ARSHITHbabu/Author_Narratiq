@@ -32,6 +32,7 @@ export default function OCRPanel({ storyId, chapterId, onInjectComplete, onNotes
   const [editedText, setEditedText]     = useState('')
   const [destination, setDestination]   = useState('story_notes')
   const [characterName, setCharacterName] = useState('')
+  const [previewError, setPreviewError]   = useState(false)
   const [confirming, setConfirming]     = useState(false)
   const [showRaw, setShowRaw]           = useState(false)
   const [dismissed, setDismissed]       = useState<Set<string>>(new Set())
@@ -51,9 +52,12 @@ export default function OCRPanel({ storyId, chapterId, onInjectComplete, onNotes
   }
 
   const handleFile = (f: File) => {
-    if (!f.type.startsWith('image/')) return toast.error('Please select an image file')
+    const ext = f.name.split('.').pop()?.toLowerCase() ?? ''
+    const isImage = f.type.startsWith('image/') || ['heic', 'heif'].includes(ext)
+    if (!isImage) return toast.error('Please select an image file')
     setFile(f)
     setPreview(URL.createObjectURL(f))
+    setPreviewError(false)
     setResult(null)
     setEditedText('')
     setShowRaw(false)
@@ -155,12 +159,23 @@ export default function OCRPanel({ storyId, chapterId, onInjectComplete, onNotes
           >
             <Camera className="w-10 h-10 text-[#3d4466] mx-auto mb-3" />
             <p className="text-sm text-[#9da3c8] mb-1">Upload handwritten note photo</p>
-            <p className="text-xs text-[#3d4466]">JPEG, PNG, WebP — drag & drop or click</p>
+            <p className="text-xs text-[#3d4466]">JPEG, PNG, WebP, HEIC — drag & drop or click</p>
             <p className="text-xs text-[#3d4466] mt-2 italic">Tip: Clear handwriting on plain white paper gives best results</p>
           </div>
         ) : (
           <div className="relative">
-            <img src={preview} alt="Preview" className="w-full rounded-xl border border-[#2e3454] max-h-48 object-cover" />
+            {previewError ? (
+              <div className="w-full rounded-xl border border-[#2e3454] max-h-48 h-24 flex items-center justify-center bg-[#0d0f1a]">
+                <p className="text-xs text-[#5c6391]">{file?.name ?? 'Image selected'}</p>
+              </div>
+            ) : (
+              <img
+                src={preview}
+                alt="Preview"
+                className="w-full rounded-xl border border-[#2e3454] max-h-48 object-cover"
+                onError={() => setPreviewError(true)}
+              />
+            )}
             <button
               onClick={reset}
               className="absolute top-2 right-2 p-1 bg-[#0d0f1a]/80 rounded-full text-[#9da3c8] hover:text-red-400"
@@ -173,7 +188,7 @@ export default function OCRPanel({ storyId, chapterId, onInjectComplete, onNotes
         <input
           ref={fileRef}
           type="file"
-          accept="image/jpeg,image/png,image/webp"
+          accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
           className="hidden"
           onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f) }}
         />

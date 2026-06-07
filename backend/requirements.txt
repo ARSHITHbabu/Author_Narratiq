@@ -27,6 +27,7 @@ sentence-transformers>=3.0.0
 #   No additional packages beyond transformers, torch, Pillow below.
 transformers>=4.46.0
 torch>=2.2.0
-Pillow>=10.0.0
+Pillow>=11.1.0
+pillow-heif>=1.0.0
 sentencepiece>=0.2.0
 accelerate>=0.30.0

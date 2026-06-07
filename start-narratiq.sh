@@ -131,7 +131,8 @@ pip install \
   "accelerate>=0.30.0" \
   "python-multipart>=0.0.9" \
   "python-dotenv>=1.0.0" \
-  "Pillow>=10.0.0" \
+  "Pillow>=11.1.0" \
+  "pillow-heif>=1.0.0" \
   "sentencepiece>=0.2.0" \
   "tiktoken" \
   "einops" \

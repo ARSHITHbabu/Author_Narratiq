@@ -44,6 +44,15 @@ import asyncio
 import os
 from concurrent.futures import ThreadPoolExecutor
 
+# Register HEIC/HEIF decoder with Pillow so PIL.Image.open() handles .heic/.heif
+# files transparently — required for iPhone camera photos (default HEIC format).
+try:
+    from pillow_heif import register_heif_opener as _register_heif_opener
+    _register_heif_opener()
+    print("[ocr_service] pillow-heif registered — HEIC/HEIF support enabled.")
+except ImportError:
+    print("[ocr_service] pillow-heif not installed — HEIC/HEIF not supported.")
+
 # Single-worker executor: GOT is sequential; no concurrent CUDA context conflicts.
 _ocr_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="ocr")
 

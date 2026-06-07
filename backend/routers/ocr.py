@@ -169,9 +169,14 @@ async def extract_ocr(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    allowed = {"image/jpeg", "image/png", "image/webp"}
-    if file.content_type not in allowed:
-        raise HTTPException(status_code=400, detail="Only JPEG, PNG, WebP images are accepted")
+    _allowed_types = {"image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"}
+    _allowed_exts  = {".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"}
+    _ext = os.path.splitext(file.filename or "")[1].lower()
+    if file.content_type not in _allowed_types and _ext not in _allowed_exts:
+        raise HTTPException(
+            status_code=400,
+            detail="Only JPEG, PNG, WebP, and HEIC images are accepted",
+        )
 
     # BUG-1: verify the authenticated user owns this story before creating any
     # upload record or touching the filesystem.
