@@ -62,6 +62,19 @@ fi
 # ── 1b. PostgreSQL 16 + pgvector ─────────────────────────────────────────────
 if ! command -v psql &>/dev/null; then
   echo "  PostgreSQL not found — installing PostgreSQL 16 + pgvector..."
+  # Add PGDG repo if postgresql-16 is not in the default apt sources
+  # (Ubuntu 22.04 ships postgresql-14 by default; 16 requires PGDG)
+  if ! apt-cache show postgresql-16 &>/dev/null 2>&1; then
+    echo "  Adding PGDG apt repository for PostgreSQL 16..."
+    apt-get install -y curl gnupg lsb-release >> "$LOG_DIR/pg-install.log" 2>&1
+    curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+      | gpg --dearmor -o /usr/share/keyrings/postgresql-archive-keyring.gpg \
+      >> "$LOG_DIR/pg-install.log" 2>&1
+    echo "deb [signed-by=/usr/share/keyrings/postgresql-archive-keyring.gpg] \
+https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+      > /etc/apt/sources.list.d/pgdg.list
+    apt-get update -qq >> "$LOG_DIR/pg-install.log" 2>&1
+  fi
   apt-get install -y postgresql-16 postgresql-client-16 postgresql-16-pgvector \
     >> "$LOG_DIR/pg-install.log" 2>&1
   echo "  PostgreSQL 16 + pgvector — installed"
