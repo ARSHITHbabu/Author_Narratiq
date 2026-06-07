@@ -1026,6 +1026,176 @@ async def detect_plot_holes(
     return result
 
 
+# ── Full Manuscript Analysis ──────────────────────────────────────────────────
+#
+# Same strategy-dispatcher pattern as plot hole detection.
+# To add a new strategy: (a) write the function, (b) register it in
+# _MANUSCRIPT_STRATEGIES.  The endpoint, response schema, and frontend never change.
+#
+# Current:
+#   summary_pass — one Qwen call; rich format (raw_summary) for ≤20 ch,
+#                  structured-only for >20 ch; caps at _MANUSCRIPT_MAX_CHAPTERS
+#
+# Reserved:
+#   deep_pass   — per-dimension multi-call (arcs | pacing | threads separately)
+#   multi_pass  — iterative refinement with a second verification pass
+#   multi_book  — cross-story / book-series analysis
+
+_MANUSCRIPT_MAX_CHAPTERS = 60    # summary_pass per-call limit
+_MANUSCRIPT_RICH_CUTOFF  = 20    # chapters ≤ this get raw_summary for deeper arc analysis
+
+
+async def _strategy_manuscript_summary_pass(chapters: list[dict]) -> dict:
+    """
+    Adaptive Qwen call for full manuscript editorial analysis.
+
+    ≤ _MANUSCRIPT_RICH_CUTOFF chapters: includes raw_summary (richer arc analysis).
+    > _MANUSCRIPT_RICH_CUTOFF chapters: structured fields only (scalable to cap).
+    Caps at _MANUSCRIPT_MAX_CHAPTERS.
+
+    chapters: [{chapter, events, characters, locations, tone, purpose, word_count, raw_summary}]
+    Returns:  {character_arcs, pacing, unresolved_threads, strengths, improvements,
+               note, mode_note, chapters_analyzed, word_count_total}
+    """
+    capped   = chapters[:_MANUSCRIPT_MAX_CHAPTERS]
+    rich     = len(capped) <= _MANUSCRIPT_RICH_CUTOFF
+    cap_note = (
+        f"Chapter cap applied — chapters {_MANUSCRIPT_MAX_CHAPTERS + 1}+ not analyzed in this pass."
+        if len(chapters) > _MANUSCRIPT_MAX_CHAPTERS else ""
+    )
+    mode_note = (
+        f"Rich analysis (raw summaries included, {len(capped)} chapters)."
+        if rich else
+        f"Structured analysis ({len(capped)} chapters — raw summaries excluded to fit context window)."
+    )
+
+    system = (
+        "You are a developmental editor producing an editorial analysis report.\n\n"
+        "Given the chapter-by-chapter manuscript data below, return a structured analysis.\n\n"
+        "ANALYZE THESE DIMENSIONS:\n"
+        "1. CHARACTER_ARCS — for each character appearing in ≥2 chapters: their journey and arc "
+        "completeness.\n"
+        "   - appears_in MUST be in ascending order.\n"
+        "   - arc_summary: 1-2 sentences on how the character changes from first to last appearance.\n"
+        "   - completeness: 'complete' (arc resolved), 'partial' (arc in progress), "
+        "'unresolved' (arc set up but never developed).\n"
+        "   - CITE the actual chapter numbers from the data.\n"
+        "2. PACING — identify slow chapters (few events, low word count, transitional) and "
+        "intense chapters (many events, high emotion/conflict).\n"
+        "   - slow_chapters and intense_chapters MUST be actual chapter numbers from the data.\n"
+        "3. UNRESOLVED_THREADS — significant conflicts, mysteries, or subplots set up but never "
+        "resolved.\n"
+        "   - introduced_in: the chapter number where the thread is first established.\n"
+        "   - chapters: ALL chapter numbers (ascending) where this thread appears.\n"
+        "4. STRENGTHS — 2-4 specific observations about what this manuscript does well.\n"
+        "   - chapters: the actual chapter numbers that demonstrate this strength.\n"
+        "5. IMPROVEMENTS — 2-4 specific, actionable revision suggestions.\n"
+        "   - chapters: the actual chapter numbers that motivated this recommendation.\n\n"
+        "RULES:\n"
+        "- Every chapter reference MUST be an actual chapter number from the data below.\n"
+        "- Do NOT invent chapter numbers or make generic observations without chapter evidence.\n"
+        "- Cite specific chapters for every finding.\n\n"
+        'Return ONLY valid JSON:\n'
+        '{"character_arcs": [{"name": str, "appears_in": [int], "arc_summary": str, '
+        '"completeness": "complete|partial|unresolved"}], '
+        '"pacing": {"slow_chapters": [int], "intense_chapters": [int], "assessment": str}, '
+        '"unresolved_threads": [{"description": str, "introduced_in": int, "chapters": [int]}], '
+        '"strengths": [{"text": str, "chapters": [int]}], '
+        '"improvements": [{"text": str, "chapters": [int]}], '
+        '"note": "one-sentence summary"}'
+    )
+
+    lines = []
+    for c in capped:
+        events  = "; ".join(c.get("events",     []) or []) or "—"
+        chars   = ", ".join(c.get("characters", []) or []) or "—"
+        tone    = c.get("tone",    "") or "—"
+        purpose = c.get("purpose", "") or "—"
+        wc      = c.get("word_count", 0) or 0
+        line    = (
+            f"Ch{c['chapter']} (WC:{wc}) | Events: {events} | "
+            f"Characters: {chars} | Tone: {tone} | Purpose: {purpose}"
+        )
+        if rich and c.get("raw_summary"):
+            line += f"\nSummary: {c['raw_summary']}"
+        lines.append(line)
+
+    separator = "\n\n" if rich else "\n"
+    raw = await _complete(
+        system,
+        "Manuscript chapters:\n\n" + separator.join(lines),
+        temperature=0.1,
+        max_tokens=1800,
+    )
+    result = _extract_json(raw, None)
+
+    if not isinstance(result, dict) or "character_arcs" not in result:
+        print(f"[manuscript] summary_pass: Qwen returned invalid JSON. Raw: {raw[:300]!r}")
+        raise ValueError(
+            "Manuscript analysis failed: AI model returned invalid output. Please try again."
+        )
+
+    wc_total = sum(c.get("word_count", 0) or 0 for c in capped)
+    return {
+        "character_arcs":     result.get("character_arcs",     []),
+        "pacing":             result.get("pacing", {"slow_chapters": [], "intense_chapters": [], "assessment": ""}),
+        "unresolved_threads": result.get("unresolved_threads", []),
+        "strengths":          result.get("strengths",          []),
+        "improvements":       result.get("improvements",       []),
+        "note":               cap_note or result.get("note", ""),
+        "mode_note":          mode_note,
+        "chapters_analyzed":  len(capped),
+        "word_count_total":   wc_total,
+    }
+
+
+# Strategy registry — register new strategies here; nothing else changes.
+_MANUSCRIPT_STRATEGIES: dict[str, Callable] = {
+    "summary_pass": _strategy_manuscript_summary_pass,
+    # "deep_pass":  _strategy_manuscript_deep_pass,   # future
+    # "multi_pass": _strategy_manuscript_multi_pass,  # future
+    # "multi_book": _strategy_manuscript_multi_book,  # future
+}
+
+
+async def analyze_manuscript(
+    story_id:  str,
+    chapters:  list[dict],
+    strategy:  str = "summary_pass",
+) -> dict:
+    """
+    Dispatch to the named manuscript analysis strategy and return results.
+
+    chapters — structured chapter data from the router:
+               [{chapter, events, characters, tone, purpose, word_count, raw_summary}]
+    strategy — analysis strategy name (default "summary_pass")
+               Future strategies added to _MANUSCRIPT_STRATEGIES are immediately
+               selectable from the router without endpoint or schema changes.
+
+    Returns dict with: character_arcs, pacing, unresolved_threads, strengths,
+                       improvements, note, mode_note, chapters_analyzed, word_count_total
+    """
+    fn = _MANUSCRIPT_STRATEGIES.get(strategy)
+    if fn is None:
+        raise ValueError(
+            f"Unknown manuscript strategy: {strategy!r}. "
+            f"Available: {list(_MANUSCRIPT_STRATEGIES)}"
+        )
+
+    print(
+        f"[manuscript] story={story_id[:8]}... "
+        f"strategy={strategy!r} total_chapters={len(chapters)}"
+    )
+    result = await fn(chapters)
+    print(
+        f"[manuscript] done — "
+        f"{result['chapters_analyzed']} analyzed, "
+        f"{len(result.get('character_arcs', []))} arc(s), "
+        f"{len(result.get('unresolved_threads', []))} thread(s)"
+    )
+    return result
+
+
 # ── OCR text cleanup (called by ocr_service after GOT-OCR2.0) ────────────────
 
 async def clean_ocr_text(raw_text: str) -> tuple[str, str]:

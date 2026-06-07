@@ -174,6 +174,49 @@ class PlotHoleResponse(BaseModel):
     analysis_note:     str    # e.g. "No issues detected." or cap/stale warning
 
 
+# ── Manuscript Report ──────────────────────────────────────────────────────────
+
+class CharacterArcEntry(BaseModel):
+    name:         str
+    appears_in:   List[int]   # chapter numbers, ascending — first=appears_in[0], last=appears_in[-1]
+    arc_summary:  str
+    completeness: str         # "complete" | "partial" | "unresolved"
+
+
+class PacingAnalysis(BaseModel):
+    slow_chapters:    List[int]   # low-event, low-tension chapters
+    intense_chapters: List[int]   # high-event, high-tension chapters
+    assessment:       str
+
+
+class UnresolvedThread(BaseModel):
+    description:   str
+    introduced_in: int          # chapter where thread is first established
+    chapters:      List[int]    # all chapters where thread appears (ascending)
+
+
+class StrengthEntry(BaseModel):
+    text:     str
+    chapters: List[int]         # chapters that exhibit this strength
+
+
+class ImprovementEntry(BaseModel):
+    text:     str
+    chapters: List[int]         # chapters that motivated this recommendation
+
+
+class ManuscriptReport(BaseModel):
+    story_id:           str
+    chapters_analyzed:  int
+    word_count_total:   int
+    character_arcs:     List[CharacterArcEntry]
+    pacing:             PacingAnalysis
+    unresolved_threads: List[UnresolvedThread]
+    strengths:          List[StrengthEntry]
+    improvements:       List[ImprovementEntry]
+    analysis_note:      str
+
+
 # ── AI Transform ──────────────────────────────────────────────────────────────
 
 class TransformRequest(BaseModel):

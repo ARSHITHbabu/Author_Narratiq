@@ -86,6 +86,49 @@ export interface PlotHoleResponse {
   analysis_note:     string
 }
 
+// ── Manuscript Report ─────────────────────────────────────────────────────────
+
+export interface CharacterArcEntry {
+  name:         string
+  appears_in:   number[]   // ascending chapter numbers
+  arc_summary:  string
+  completeness: 'complete' | 'partial' | 'unresolved'
+}
+
+export interface PacingAnalysis {
+  slow_chapters:    number[]
+  intense_chapters: number[]
+  assessment:       string
+}
+
+export interface UnresolvedThread {
+  description:   string
+  introduced_in: number     // chapter where thread is first established
+  chapters:      number[]   // all chapters where thread appears
+}
+
+export interface StrengthEntry {
+  text:     string
+  chapters: number[]        // chapters that exhibit this strength
+}
+
+export interface ImprovementEntry {
+  text:     string
+  chapters: number[]        // chapters that motivated this recommendation
+}
+
+export interface ManuscriptReport {
+  story_id:           string
+  chapters_analyzed:  number
+  word_count_total:   number
+  character_arcs:     CharacterArcEntry[]
+  pacing:             PacingAnalysis
+  unresolved_threads: UnresolvedThread[]
+  strengths:          StrengthEntry[]
+  improvements:       ImprovementEntry[]
+  analysis_note:      string
+}
+
 export interface TransformResponse {
   original: string
   transformed: string

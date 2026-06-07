@@ -114,17 +114,7 @@ export default function PlotHolesPanel({ storyId }: Props) {
     : []
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="px-4 py-3 border-b border-[#1f2440] flex-shrink-0">
-        <div className="flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 text-amber-500" />
-          <span className="text-xs font-medium text-[#9da3c8] uppercase tracking-wider">Story Audit</span>
-        </div>
-        <p className="text-xs text-[#3d4466] mt-1">Scan for plot holes and inconsistencies</p>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+    <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
 
         {/* Scan button */}
         <button
@@ -201,7 +191,6 @@ export default function PlotHolesPanel({ storyId }: Props) {
             </div>
           </div>
         )}
-      </div>
     </div>
   )
 }

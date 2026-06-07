@@ -18,7 +18,7 @@ import OCRPanel from '@/components/ocr/OCRPanel'
 import SearchPanel from '@/components/search/SearchPanel'
 import CharacterList from '@/components/characters/CharacterList'
 import NotesPanel from '@/components/notes/NotesPanel'
-import PlotHolesPanel from '@/components/plot-holes/PlotHolesPanel'
+import AuditPanel from '@/components/plot-holes/AuditPanel'
 import { toast } from 'sonner'
 
 type RightPanel = 'ai' | 'plot' | 'ocr' | 'notes' | 'suggestions' | 'characters' | 'audit'
@@ -379,7 +379,7 @@ export default function EditorPage({ params }: { params: { id: string } }) {
                   <CharacterList storyId={storyId} />
                 )}
                 {rightPanel === 'audit' && (
-                  <PlotHolesPanel storyId={storyId} />
+                  <AuditPanel storyId={storyId} />
                 )}
               </div>
             </>

@@ -10,7 +10,7 @@ from config import settings
 from database import engine, Base, run_db_migrations
 import models  # noqa: F401
 
-from routers import auth, projects, chapters, intake, plot_assistant, ai_transform, ocr, manuscript, export, characters, plot_holes
+from routers import auth, projects, chapters, intake, plot_assistant, ai_transform, ocr, manuscript, export, characters, plot_holes, manuscript_report
 from routers import search as search_router
 
 Base.metadata.create_all(bind=engine)
@@ -185,7 +185,8 @@ app.include_router(ocr.router,            prefix="/api/ocr")
 app.include_router(manuscript.router,     prefix="/api/manuscript")
 app.include_router(export.router,         prefix="/api/export")
 app.include_router(search_router.router,  prefix="/api/search")
-app.include_router(plot_holes.router,     prefix="/api/stories")
+app.include_router(plot_holes.router,        prefix="/api/stories")
+app.include_router(manuscript_report.router, prefix="/api/stories")
 
 
 @app.get("/api/health")

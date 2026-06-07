@@ -276,6 +276,8 @@ export const searchApi = {
 export const analysisApi = {
   detectPlotHoles: (storyId: string) =>
     api.post(`/api/stories/${storyId}/plot-holes`),
+  getManuscriptReport: (storyId: string) =>
+    api.post(`/api/stories/${storyId}/manuscript-report`),
 }
 
 // ── Export ────────────────────────────────────────────────────────────────────
