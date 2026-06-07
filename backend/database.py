@@ -5,6 +5,15 @@ from config import settings
 
 DATABASE_URL = settings.database_url
 
+if DATABASE_URL.startswith("sqlite"):
+    import warnings
+    warnings.warn(
+        "[NarratIQ] DATABASE_URL is SQLite. "
+        "Set DATABASE_URL=postgresql+psycopg2://... for production. "
+        "pgvector features (Vector columns, HNSW indexes) are unavailable on SQLite.",
+        stacklevel=2,
+    )
+
 
 def _build_engine():
     kwargs: dict = {}
@@ -55,22 +64,21 @@ def run_db_migrations(eng) -> None:
         except Exception as exc:
             print(f"[DB migration] Warning ({table}.{col}): {exc}")
 
-    # chapter_summaries
-    _add_col("chapter_summaries", "embedding", "TEXT")
+    is_postgres = eng.dialect.name == "postgresql"
 
     # character_profiles — new structured fields
-    _add_col("character_profiles", "goals",   "TEXT    DEFAULT ''")
-    _add_col("character_profiles", "traits",  "TEXT    DEFAULT '[]'")
+    _add_col("character_profiles", "goals",  "TEXT DEFAULT ''")
+    _add_col("character_profiles", "traits", "TEXT DEFAULT '[]'")
 
-    # character_profiles — mention embedding for story-grounded retrieval
-    _add_col("character_profiles", "mention_embedding", "TEXT DEFAULT NULL")
+    # chapter_chunks / chapter_summaries — character UUID index
+    _add_col("chapter_chunks",     "character_ids", "TEXT DEFAULT '[]'")
+    _add_col("chapter_summaries",  "character_ids", "TEXT DEFAULT '[]'")
 
-    # chapter_chunks — character index
-    _add_col("chapter_chunks", "character_ids", "TEXT DEFAULT '[]'")
-
-    # chapter_summaries — character UUID index (replaces name strings)
-    _add_col("chapter_summaries", "character_ids", "TEXT DEFAULT '[]'")
-
-    # story_notes + note_cards — BGE-M3 embeddings for Note RAG
-    _add_col("story_notes", "embedding", "TEXT DEFAULT NULL")
-    _add_col("note_cards",  "embedding", "TEXT DEFAULT NULL")
+    # Embedding columns — only add as TEXT on SQLite (legacy local dev).
+    # On PostgreSQL, create_all() creates them as vector(1024) automatically;
+    # adding them here as TEXT would create a type mismatch with HNSW indexes.
+    if not is_postgres:
+        _add_col("chapter_summaries",  "embedding",       "TEXT DEFAULT NULL")
+        _add_col("character_profiles", "mention_embedding","TEXT DEFAULT NULL")
+        _add_col("story_notes",        "embedding",        "TEXT DEFAULT NULL")
+        _add_col("note_cards",         "embedding",        "TEXT DEFAULT NULL")
