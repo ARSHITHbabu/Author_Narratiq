@@ -1,10 +1,26 @@
 from sqlalchemy import create_engine, text, inspect as sa_inspect
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from config import settings
 
-DATABASE_URL = "sqlite:///./narratiq.db"
+DATABASE_URL = settings.database_url
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+
+def _build_engine():
+    kwargs: dict = {}
+    if DATABASE_URL.startswith("sqlite"):
+        kwargs["connect_args"] = {"check_same_thread": False}
+    else:
+        kwargs.update({
+            "pool_size": 10,
+            "max_overflow": 20,
+            "pool_pre_ping": True,
+            "pool_recycle": 3600,
+        })
+    return create_engine(DATABASE_URL, **kwargs)
+
+
+engine = _build_engine()
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 

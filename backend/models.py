@@ -5,6 +5,7 @@ from sqlalchemy import (
     ForeignKey, DateTime, JSON, UniqueConstraint
 )
 from sqlalchemy.orm import relationship
+from pgvector.sqlalchemy import Vector
 from database import Base
 
 
