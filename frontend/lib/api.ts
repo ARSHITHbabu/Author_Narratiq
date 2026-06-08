@@ -172,6 +172,9 @@ export const charactersApi = {
     suggestions: {
       name: string; role: string; status: string;
       description: string; aliases: string[]; evidence_snippet: string;
+      age?: string; appearance?: string; personality?: string;
+      goals?: string; motivations?: string; backstory?: string;
+      arc_notes?: string; traits?: string[];
     }[],
   ) => api.post(`/api/stories/${storyId}/characters/confirm-cast`, { suggestions }),
   getMentions: (storyId: string, characterId: string) =>

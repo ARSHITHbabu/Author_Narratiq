@@ -166,6 +166,22 @@ async def plot_assistant(
         data.story_id, data.question, db, top_k=3, token_budget=note_token_budget,
     )
 
+    # ── Intelligence context (P29) — semantic memory + story knowledge ────────
+    intel_context: dict | None = None
+    try:
+        from services.story_intel_service import build_integration_context
+        intel_context = await build_integration_context(
+            db, data.story_id, query=data.question, top_k=8
+        )
+    except Exception as exc:
+        # Never block the plot assistant if intelligence isn't ready yet, but do
+        # log it — silent failures here previously masked missing analysis.
+        print(
+            f"[plot_assistant] integration context unavailable for "
+            f"story={data.story_id[:8]}... ({type(exc).__name__}: {exc}) — "
+            f"continuing without it"
+        )
+
     answer:      str | None        = None
     suggestions: list[PlotSuggestion] = []
 
@@ -191,6 +207,7 @@ async def plot_assistant(
                 retrieved_chunks   = retrieved_chunks,
                 character_profiles = character_context or None,
                 note_context       = note_context or None,
+                intel_context      = intel_context,
             )
             suggestions = [
                 PlotSuggestion(id=s["id"], text=s["text"], rationale=s["rationale"])
@@ -214,6 +231,7 @@ async def plot_assistant(
                 retrieved_chunks   = retrieved_chunks,
                 character_profiles = character_context or None,
                 note_context       = note_context or None,
+                intel_context      = intel_context,
             )
             answer, raw = await asyncio.gather(answer_coro, suggestions_coro)
             suggestions = [

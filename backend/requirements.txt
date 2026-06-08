@@ -1,3 +1,8 @@
+# Versions are pinned to the known-good set this app was validated against.
+# Floating ranges (>=) previously let a fresh install pull a newer release whose
+# behaviour differed (e.g. SQLAlchemy bind-parsing, async client changes), which
+# is how "it worked, then broke after a reinstall" happened. Pin, don't float.
+
 # ── Web framework ─────────────────────────────────────────────────────────────
 fastapi==0.111.0
 uvicorn[standard]==0.30.1
@@ -12,22 +17,32 @@ httpx==0.27.0
 python-dotenv==1.0.1
 alembic==1.13.1
 
+# ── Database: PostgreSQL driver + pgvector binding (REQUIRED) ─────────────────
+# The app uses PostgreSQL 16 + pgvector exclusively. SQLite is no longer used.
+# These were previously undeclared — a fresh install could silently miss them.
+psycopg2-binary==2.9.12
+pgvector==0.4.2
+
 # ── AI inference client ───────────────────────────────────────────────────────
 # FastAPI talks to vLLM via the OpenAI-compatible API.
 # vLLM itself is installed separately on the GPU server (see requirements.vllm.txt).
-openai>=1.40.0
+openai==1.90.0
 
 # ── Embeddings (BGE-M3, runs in-process) ─────────────────────────────────────
-sentence-transformers>=3.0.0
+sentence-transformers==5.5.1
 
 # ── OCR (GOT-OCR2.0 — end-to-end handwriting recognition) ───────────────────
 # GOT-OCR2.0 (stepfun-ai/GOT-OCR2_0): single-pass full-page OCR.
 #   ViT-large encoder + Qwen-1.5-0.5B decoder. ~1.2 GB VRAM (float16).
 #   Uses GPU when ≥2.5 GB VRAM is free; automatically falls back to CPU.
-#   No additional packages beyond transformers, torch, Pillow below.
-transformers>=4.46.0
-torch>=2.2.0
-Pillow>=11.1.0
-pillow-heif>=1.0.0
-sentencepiece>=0.2.0
-accelerate>=0.30.0
+# transformers is pinned to the validated version; do NOT float it — vLLM and
+# GOT-OCR2.0 are sensitive to transformers API changes.
+transformers==4.57.6
+# torch is installed separately as the CUDA build (2.7.0+cu128 for Blackwell sm_120;
+# see start-narratiq.sh / CLAUDE.md). Keep a floor here, not an exact pin, so the
+# GPU wheel is not overwritten by a CPU build.
+torch>=2.7.0
+Pillow==12.2.0
+pillow-heif==1.3.0
+sentencepiece==0.2.1
+accelerate==1.13.0

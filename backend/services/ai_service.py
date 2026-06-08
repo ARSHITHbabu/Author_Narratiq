@@ -48,6 +48,48 @@ def get_bge() -> SentenceTransformer:
     return _bge_model
 
 
+# ── pgvector / embedding helpers — SINGLE SOURCE OF TRUTH ──────────────────────
+#
+# Every raw pgvector query MUST build its distance/similarity term with these
+# helpers, and MUST format the query vector with vector_literal(). This exists
+# because the same two mistakes kept recurring across copy-pasted queries:
+#
+#   1. Writing `embedding <=> :q::vector` inline. SQLAlchemy's text() bind parser
+#      does NOT recognise a bind (`:q`) immediately followed by `::`, so the
+#      literal `:q` leaks to Postgres → "syntax error at or near ':'". The
+#      CAST(:q AS vector) form binds correctly. (Verified on SQLAlchemy 2.0.x.)
+#   2. Calling the async embed_text() without await in a sync code path, which
+#      silently produces an un-awaited coroutine used as data. Sync code MUST use
+#      embed_text_sync(); async code uses `await embed_text()`.
+#
+# Keep these the only place that knows the cast syntax — fix once, fixed forever.
+
+def embed_text_sync(text: str) -> list[float]:
+    """Synchronous BGE-M3 embedding for non-async code paths (routers/helpers
+    that are plain `def`). Async paths should use `await embed_text()` instead,
+    which offloads to a worker thread."""
+    return get_bge().encode(text, normalize_embeddings=True).tolist()
+
+
+def vector_literal(embedding) -> str:
+    """Format an embedding as a pgvector text literal: '[0.1,0.2,...]'.
+    Bind this string as the query parameter used by vector_distance()."""
+    return "[" + ",".join(str(float(v)) for v in embedding) + "]"
+
+
+def vector_distance(column: str, param: str = "q") -> str:
+    """Canonical pgvector cosine-DISTANCE SQL fragment (smaller = closer).
+    Use in WHERE/ORDER BY. Never write `:param::vector` by hand — see the
+    module comment above for why that breaks."""
+    return f"{column} <=> CAST(:{param} AS vector)"
+
+
+def vector_similarity(column: str, param: str = "q") -> str:
+    """Canonical pgvector cosine-SIMILARITY SQL fragment (1 - distance; larger =
+    closer). Use in SELECT. See vector_distance() for the cast rationale."""
+    return f"1 - ({vector_distance(column, param)})"
+
+
 # ── Core inference primitives ─────────────────────────────────────────────────
 
 async def _complete(
@@ -96,13 +138,97 @@ async def _stream_generate(
             yield token
 
 
+def _strip_code_fences(text: str) -> str:
+    """Remove a leading ```json / ``` fence and its closing ``` if present."""
+    t = text.strip()
+    if t.startswith("```"):
+        # Drop the opening fence line (``` or ```json) and the trailing fence.
+        t = re.sub(r'^```[a-zA-Z0-9_-]*\s*\n?', '', t)
+        t = re.sub(r'\n?```\s*$', '', t)
+    return t.strip()
+
+
+def _balanced_json_spans(text: str) -> list[str]:
+    """
+    Return every top-level balanced {...} or [...] span in `text`, in order,
+    using a depth counter that is aware of string literals and escapes. Far more
+    robust than a greedy regex, which over-matches when the model emits prose or
+    multiple JSON objects. Returning all spans lets the caller skip a stray
+    {placeholder} in surrounding prose and still find the real JSON.
+    """
+    spans: list[str] = []
+    i, n = 0, len(text)
+    while i < n:
+        ch = text[i]
+        if ch in "{[":
+            open_ch, close_ch = ch, ("}" if ch == "{" else "]")
+            depth = 0
+            in_str = False
+            escape = False
+            j = i
+            while j < n:
+                c = text[j]
+                if in_str:
+                    if escape:
+                        escape = False
+                    elif c == "\\":
+                        escape = True
+                    elif c == '"':
+                        in_str = False
+                elif c == '"':
+                    in_str = True
+                elif c == open_ch:
+                    depth += 1
+                elif c == close_ch:
+                    depth -= 1
+                    if depth == 0:
+                        spans.append(text[i:j + 1])
+                        break
+                j += 1
+            i = j + 1
+        else:
+            i += 1
+    return spans
+
+
 def _extract_json(text: str, fallback):
-    match = re.search(r'(\{[\s\S]*\}|\[[\s\S]*\])', text)
-    if match:
+    """
+    Robustly extract a JSON object/array from an LLM response.
+
+    Handles, in order:
+      1. clean JSON                          → direct parse
+      2. ```json fenced ``` blocks           → fence strip + parse
+      3. JSON embedded in surrounding prose  → balanced-brace span + parse
+      4. trailing commas (a common LLM tic)  → strip + retry
+
+    Returns `fallback` only when every strategy fails, and logs the raw head of
+    the response so failures are diagnosable instead of silent.
+    """
+    if not text or not text.strip():
+        print("[json] empty model response — using fallback")
+        return fallback
+
+    candidates: list[str] = []
+    stripped = _strip_code_fences(text)
+    candidates.append(stripped)
+    # Try every balanced span (over stripped text, then raw) so a stray
+    # {placeholder} in prose doesn't block the real JSON object/array.
+    for span in _balanced_json_spans(stripped) + _balanced_json_spans(text):
+        if span not in candidates:
+            candidates.append(span)
+
+    for cand in candidates:
         try:
-            return json.loads(match.group(1))
+            return json.loads(cand)
         except json.JSONDecodeError:
-            pass
+            # Retry after removing trailing commas: {"a":1,}  /  [1,2,]
+            repaired = re.sub(r',\s*([}\]])', r'\1', cand)
+            try:
+                return json.loads(repaired)
+            except json.JSONDecodeError:
+                continue
+
+    print(f"[json] failed to parse model output as JSON. Raw head: {text[:300]!r}")
     return fallback
 
 
@@ -180,21 +306,101 @@ async def warmup():
 # ── Genre Detection ───────────────────────────────────────────────────────────
 
 async def detect_genre(description: str, audience_hint: Optional[str] = None) -> dict:
+    """
+    Quick Story Intelligence analysis from a story description, run at intake
+    time before any chapters exist.
+
+    Returns the original base fields (genre, sub_genre, tone, audience, structure,
+    conflict, themes, writing_direction, confidence) for backwards compatibility,
+    PLUS richer intelligence fields:
+      secondary_genres   — other genres the story blends in (string array)
+      comparable_titles  — comp titles for positioning (string array)
+      marketing_category — bookstore/marketing shelf (string)
+      emotional_arc      — the intended emotional journey (string)
+      narrative_pov      — likely point of view / tense (string)
+      pacing             — pacing expectation (string)
+      content_warnings   — sensitive content flags (string array)
+      intelligence_notes — 1-2 sentence craft-level direction (string)
+
+    Unknown fields come back as "" or [] — never invented.
+    """
     audience = audience_hint or "Adult"
     system = (
-        "You are a literary genre expert. Analyse the story description and return ONLY a valid JSON "
-        "object with keys: genre, sub_genre, tone (string array), audience, structure, conflict, "
-        "themes (string array), writing_direction, confidence (float 0–1). No extra text, just JSON."
+        "You are a senior literary analyst and acquiring editor. Analyse the story description "
+        "and produce a rich genre & story-intelligence profile.\n\n"
+        "Return ONLY a valid JSON object with these exact keys:\n"
+        '  "genre": primary genre (string)\n'
+        '  "sub_genre": most specific sub-genre (string)\n'
+        '  "tone": dominant tones (array of strings)\n'
+        '  "audience": target audience (string)\n'
+        '  "structure": suggested narrative structure (string)\n'
+        '  "conflict": the core emotional/dramatic direction (string)\n'
+        '  "themes": thematic hints (array of strings)\n'
+        '  "writing_direction": craft guidance for the author (string)\n'
+        '  "secondary_genres": other genres the story blends (array of strings; [] if none)\n'
+        '  "comparable_titles": 2-4 comparable published titles (array of strings; [] if unsure)\n'
+        '  "marketing_category": the shelf/marketing category (string)\n'
+        '  "emotional_arc": the intended emotional journey for the reader (string)\n'
+        '  "narrative_pov": likely point of view and tense, e.g. "Third-person past" (string)\n'
+        '  "pacing": pacing expectation, e.g. "Slow-burn", "Fast-paced" (string)\n'
+        '  "content_warnings": sensitive-content flags (array of strings; [] if none)\n'
+        '  "intelligence_notes": 1-2 sentences of distinctive craft-level direction (string)\n'
+        '  "confidence": overall confidence (float 0-1)\n\n'
+        "Rules:\n"
+        "- Base every field on the description. Do NOT fabricate comp titles or warnings; "
+        'use [] or "" when genuinely unsure.\n'
+        "- Output ONLY the JSON object — no markdown fences, no prose."
     )
-    raw = await _complete(system, f"Description: {description}\nAudience: {audience}", max_tokens=350)
+    raw = await _complete(
+        system,
+        f"Description: {description}\nAudience: {audience}",
+        max_tokens=800,
+    )
     result = _extract_json(raw, None)
-    if result is None:
-        print(f"[detect_genre] Qwen returned invalid JSON. Raw response: {raw[:300]!r}")
+    if result is None or not isinstance(result, dict):
+        print(f"[detect_genre] model returned invalid JSON. Raw head: {raw[:300]!r}")
         raise ValueError(
-            "Genre detection failed: AI model returned invalid output. "
+            "Genre detection failed: the AI model returned invalid output. "
             "Please try again."
         )
-    return result
+
+    # Normalise so downstream code and the response schema always see safe types.
+    def _str(key: str) -> str:
+        v = result.get(key, "")
+        return str(v).strip() if v is not None else ""
+
+    def _list(key: str) -> list:
+        v = result.get(key, [])
+        if isinstance(v, list):
+            return [str(x).strip() for x in v if str(x).strip()]
+        if isinstance(v, str) and v.strip():
+            return [v.strip()]
+        return []
+
+    try:
+        confidence = float(result.get("confidence", 0.85))
+    except (TypeError, ValueError):
+        confidence = 0.85
+
+    return {
+        "genre":              _str("genre"),
+        "sub_genre":          _str("sub_genre"),
+        "tone":               _list("tone"),
+        "audience":           _str("audience") or audience,
+        "structure":          _str("structure"),
+        "conflict":           _str("conflict"),
+        "themes":             _list("themes"),
+        "writing_direction":  _str("writing_direction"),
+        "secondary_genres":   _list("secondary_genres"),
+        "comparable_titles":  _list("comparable_titles"),
+        "marketing_category": _str("marketing_category"),
+        "emotional_arc":      _str("emotional_arc"),
+        "narrative_pov":      _str("narrative_pov"),
+        "pacing":             _str("pacing"),
+        "content_warnings":   _list("content_warnings"),
+        "intelligence_notes": _str("intelligence_notes"),
+        "confidence":         max(0.0, min(1.0, confidence)),
+    }
 
 
 # ── Text Refinement ───────────────────────────────────────────────────────────
@@ -342,59 +548,257 @@ async def stream_translate(text: str, target_language: str, source_language: str
 
 # ── Cast Extraction ────────────────────────────────────────────────────────────
 
+_CAST_SYSTEM = (
+    'You are a literary analyst building a character bible from a manuscript.\n'
+    'Extract every named character and every significant recurring person from the '
+    'story text below, with as much grounded detail as the text supports.\n\n'
+    'Return ONLY a valid JSON array. Each element must be an object with these exact keys:\n'
+    '  "name": canonical full name (string)\n'
+    '  "role": one of "protagonist", "antagonist", "supporting", "minor"\n'
+    '  "status": one of "active", "deceased", "unknown"\n'
+    '  "aliases": other names/nicknames/titles this character is called by (array of strings; [] if none)\n'
+    '  "description": 1-2 sentence summary of who this character is (string)\n'
+    '  "age": age or life-stage if stated or strongly implied, else "" (string, e.g. "early 30s", "teenager")\n'
+    '  "appearance": physical description grounded in the text, else "" (string)\n'
+    '  "personality": personality/temperament grounded in behaviour and dialogue, else "" (string)\n'
+    '  "goals": what the character is actively trying to achieve, else "" (string)\n'
+    '  "motivations": why they pursue those goals — their drives/fears, else "" (string)\n'
+    '  "backstory": established history/origin revealed in the text, else "" (string)\n'
+    '  "arc_notes": how the character changes or what unfolds across chapters, else "" (string)\n'
+    '  "traits": 3-8 personality adjectives drawn from the text (array of strings; [] if unclear)\n'
+    '  "first_appearance": chapter where the character first appears (e.g. "Chapter 1")\n'
+    '  "evidence_snippet": short quote or close paraphrase confirming this character (max 80 words)\n'
+    '  "confidence": "high" if clearly named and present; "uncertain" if inferred or ambiguous\n\n'
+    'Rules:\n'
+    '- Include named individuals AND named groups/collectives that act as characters.\n'
+    '- Include unnamed but significant recurring characters by their role (e.g. "Ravi\'s Mother").\n'
+    '- Extract ALL evidence available — fill appearance/personality/goals/motivations/backstory '
+    'whenever the text supports them. Do not leave a field empty if the text gives evidence for it.\n'
+    '- Do NOT invent facts. If a field is genuinely not established in the text, use "" (or [] for arrays).\n'
+    '- Do NOT invent characters absent from the text.\n'
+    '- Return [] if no characters are found.\n'
+    '- Output ONLY the JSON array — no preamble, no markdown fences, no trailing prose.'
+)
+
+_CAST_COMPLETION_TOKENS = 1500   # headroom for the JSON array of one window
+_ROLE_PRIORITY   = {"protagonist": 3, "antagonist": 2, "supporting": 1, "minor": 0}
+_STATUS_PRIORITY = {"deceased": 2, "active": 1, "unknown": 0}
+
+# Honorifics/titles stripped before matching name variants across windows so
+# "Captain Mara Halloran", "Captain Mara" and "Mara" collapse to one character.
+_NAME_TITLES = frozenset({
+    "captain", "capt", "dr", "mr", "mrs", "ms", "miss", "sir", "lord", "lady",
+    "master", "mistress", "prof", "professor", "father", "sister", "brother",
+    "king", "queen", "prince", "princess", "general", "colonel", "major",
+    "sergeant", "admiral", "commander", "lieutenant", "uncle", "aunt",
+})
+
+
+def _name_tokens(name: str) -> frozenset:
+    """Lowercased significant name tokens with titles/punctuation removed."""
+    toks = [t.strip(".,'\"-").lower() for t in str(name).split()]
+    return frozenset(t for t in toks if t and t not in _NAME_TITLES)
+
+
+def _cast_window_word_budget() -> int:
+    """
+    Words of story text per LLM pass, derived from the model context window so
+    we never exceed it. Tokens ≈ 1.3×words for English; we divide by 1.5 for a
+    safety margin (names/markup tokenise heavier). Reserves room for the system
+    prompt and the JSON completion.
+    """
+    max_ctx = getattr(settings, "max_model_len", 8192) or 8192
+    system_overhead = 1000  # system prompt + framing + safety margin
+    input_token_budget = max_ctx - _CAST_COMPLETION_TOKENS - system_overhead
+    words = int(input_token_budget / 1.5)
+    return max(800, words)
+
+
+def _build_cast_windows(chapter_texts: list, words_per_window: int) -> list[str]:
+    """
+    Pack chapter texts into windows of ~words_per_window words each, preserving
+    chapter labels so the model can report first_appearance. A chapter larger
+    than one window is split across windows (marked '(cont.)'). Small chapters
+    are combined so we make as few passes as possible.
+    """
+    windows: list[str] = []
+    cur_parts: list[str] = []
+    cur_wc = 0
+
+    for idx, text in enumerate(chapter_texts, 1):
+        words = (text or "").split()
+        if not words:
+            continue
+        pos = 0
+        while pos < len(words):
+            space = words_per_window - cur_wc
+            if space <= 0:                       # current window full → flush
+                windows.append("\n\n".join(cur_parts))
+                cur_parts, cur_wc = [], 0
+                space = words_per_window
+            take = min(space, len(words) - pos)
+            seg_words = words[pos:pos + take]
+            label = f"=== Chapter {idx} ===" + ("" if pos == 0 else " (continued)")
+            cur_parts.append(f"{label}\n{' '.join(seg_words)}")
+            cur_wc += take
+            pos += take
+
+    if cur_parts:
+        windows.append("\n\n".join(cur_parts))
+    return windows
+
+
+def _merge_cast(window_results: list[list]) -> list:
+    """
+    Merge per-window character lists into one deduplicated cast.
+
+    Characters are keyed by canonical name (case-insensitive). For each repeated
+    character, text fields take the richer (longer) non-empty value, aliases and
+    traits are unioned, role/status take the more central/definite value, and
+    confidence is "high" if any window was confident.
+    """
+    entries: list[dict] = []   # each: {..character.., "_tokens": frozenset}
+
+    def _richer(a, b) -> str:
+        a = (str(a).strip() if a is not None else "")
+        b = (str(b).strip() if b is not None else "")
+        return a if len(a) >= len(b) else b
+
+    def _norm_list(v) -> list[str]:
+        if isinstance(v, list):
+            return [str(x).strip() for x in v if str(x).strip()]
+        if isinstance(v, str) and v.strip():
+            return [v.strip()]
+        return []
+
+    def _find(tokens: frozenset, name: str):
+        """Match an existing entry whose name is the same character: identical
+        tokens, or one token-set is a subset of the other (e.g. {mara} vs
+        {mara, halloran}). Empty token-sets fall back to exact name match."""
+        if not tokens:
+            return next((e for e in entries if e["name"].lower() == name.lower()), None)
+        for e in entries:
+            et = e["_tokens"]
+            if et and (tokens <= et or et <= tokens):
+                return e
+        return None
+
+    text_fields = ("description", "appearance", "personality", "goals",
+                   "motivations", "backstory", "arc_notes", "age", "evidence_snippet")
+
+    for lst in window_results:
+        if not isinstance(lst, list):
+            continue
+        for ch in lst:
+            if not isinstance(ch, dict):
+                continue
+            name = str(ch.get("name", "")).strip()
+            if not name:
+                continue
+            tokens = _name_tokens(name)
+            existing = _find(tokens, name)
+            if existing is None:
+                entries.append({
+                    "name": name,
+                    "role": ch.get("role", "supporting"),
+                    "status": ch.get("status", "active"),
+                    "aliases": _norm_list(ch.get("aliases")),
+                    "traits": _norm_list(ch.get("traits")),
+                    "first_appearance": str(ch.get("first_appearance", "")).strip(),
+                    "confidence": ch.get("confidence", "high"),
+                    "_tokens": tokens,
+                    **{f: str(ch.get(f, "") or "").strip() for f in text_fields},
+                })
+            else:
+                m = existing
+                # Keep the most complete name as canonical; demote the other to alias.
+                if len(tokens) > len(m["_tokens"]):
+                    if m["name"].lower() != name.lower():
+                        m["aliases"] = sorted(set(m["aliases"]) | {m["name"]})
+                    m["name"], m["_tokens"] = name, tokens
+                elif name.lower() != m["name"].lower():
+                    m["aliases"] = sorted(set(m["aliases"]) | {name})
+                for f in text_fields:
+                    m[f] = _richer(m.get(f), ch.get(f))
+                m["aliases"] = sorted((set(m["aliases"]) | set(_norm_list(ch.get("aliases")))) - {m["name"]})
+                m["traits"] = sorted(set(m["traits"]) | set(_norm_list(ch.get("traits"))))
+                if _ROLE_PRIORITY.get(ch.get("role", ""), -1) > _ROLE_PRIORITY.get(m["role"], -1):
+                    m["role"] = ch.get("role")
+                if _STATUS_PRIORITY.get(ch.get("status", ""), -1) > _STATUS_PRIORITY.get(m["status"], -1):
+                    m["status"] = ch.get("status")
+                if ch.get("confidence") == "high":
+                    m["confidence"] = "high"
+
+    for e in entries:
+        e.pop("_tokens", None)
+    return entries
+
+
 async def extract_cast(chapter_texts: list) -> list:
     """
-    Extract named characters and significant recurring persons from story text.
-    chapter_texts: list of plain-text strings, one per chapter (already chunked/cleaned).
+    Extract named characters and significant recurring persons from the WHOLE
+    story, together with as much grounded profile detail as the text supports.
+
+    The story is split into context-window-sized passes (so we never exceed the
+    model's max context length), each pass is analysed concurrently, and the
+    per-window results are merged per character. This lets long manuscripts
+    (many chapters of several thousand words) be analysed in full.
+
+    chapter_texts: list of plain-text strings, one per chapter (cleaned).
     Returns a list of dicts with keys: name, role, status, description, aliases,
-    first_appearance, evidence_snippet, confidence.
+    first_appearance, evidence_snippet, confidence, age, appearance, personality,
+    goals, motivations, backstory, arc_notes, traits.
+
+    Profile fields are extracted from evidence only. Unknown fields are returned
+    as "" (or [] for traits) — never invented.
     """
-    MAX_WORDS = 8000
-    parts = []
-    total_words = 0
-
-    for i, text in enumerate(chapter_texts, 1):
-        if total_words >= MAX_WORDS:
-            break
-        words = text.split()
-        remaining = MAX_WORDS - total_words
-        if len(words) > remaining:
-            text = " ".join(words[:remaining]) + " [truncated]"
-            words = words[:remaining]
-        parts.append(f"=== Chapter {i} ===\n{text}")
-        total_words += len(words)
-
-    if not parts:
+    words_per_window = _cast_window_word_budget()
+    windows = _build_cast_windows(chapter_texts, words_per_window)
+    if not windows:
+        print("[extract_cast] no chapter text supplied — nothing to analyse")
         return []
 
-    combined = "\n\n".join(parts)
+    total_words = sum(len((t or "").split()) for t in chapter_texts)
+    print(f"[extract_cast] analysing {total_words} words across {len(windows)} "
+          f"window(s) of ~{words_per_window} words (model ctx="
+          f"{getattr(settings, 'max_model_len', 8192)})")
 
-    system = (
-        'You are a literary analyst. Extract all characters from the story text below.\n'
-        'Return ONLY a valid JSON array. Each element must be an object with these exact keys:\n'
-        '  "name": canonical full name (string)\n'
-        '  "role": one of "protagonist", "antagonist", "supporting", "minor"\n'
-        '  "status": one of "active", "deceased", "unknown"\n'
-        '  "description": 1-2 sentence summary of who this character is (string)\n'
-        '  "aliases": other names this character is called by (array of strings, may be empty)\n'
-        '  "first_appearance": which chapter this character first appears in (e.g. "Chapter 1")\n'
-        '  "evidence_snippet": short quote or paraphrase from the text confirming this character (max 80 words)\n'
-        '  "confidence": "high" if the character is clearly named and present; "uncertain" if inferred or ambiguous\n\n'
-        'Rules:\n'
-        '- Include named individuals AND named groups/collectives that act as characters\n'
-        '- Include unnamed but significant recurring characters by their role (e.g. "Ravi\'s Mother")\n'
-        '- Do NOT invent characters absent from the text\n'
-        '- Return [] if no characters are found\n'
-        '- No text outside the JSON array'
-    )
+    async def _run_window(i: int, body: str):
+        try:
+            raw = await _complete(
+                _CAST_SYSTEM, f"Story text:\n\n{body}",
+                temperature=0.1, max_tokens=_CAST_COMPLETION_TOKENS,
+            )
+        except Exception as exc:
+            print(f"[extract_cast] window {i+1}/{len(windows)} LLM call failed: {exc!r}")
+            return exc  # surfaced below so we can distinguish "all failed"
+        parsed = _extract_json(raw, None)
+        if not isinstance(parsed, list):
+            print(f"[extract_cast] window {i+1}/{len(windows)} returned non-array JSON. "
+                  f"Raw head: {raw[:200]!r}")
+            return None
+        print(f"[extract_cast] window {i+1}/{len(windows)} → {len(parsed)} character(s)")
+        return parsed
 
-    raw = await _complete(system, f"Story text:\n\n{combined}", temperature=0.1, max_tokens=2000)
-    result = _extract_json(raw, [])
-    if not isinstance(result, list):
-        print(f"[extract_cast] LLM returned non-list. Raw: {raw[:200]!r}")
-        return []
-    print(f"[extract_cast] extracted {len(result)} character(s) from {len(parts)} chapter(s)")
-    return result
+    results = await asyncio.gather(*[_run_window(i, w) for i, w in enumerate(windows)])
+
+    parsed_lists = [r for r in results if isinstance(r, list)]
+    errors       = [r for r in results if isinstance(r, Exception)]
+
+    if not parsed_lists:
+        # Nothing usable came back. Distinguish transport failure from bad output
+        # so the router can map it to the right status / message.
+        if errors:
+            raise errors[0]
+        raise ValueError(
+            "Cast generation failed: the AI model returned output that could not be "
+            "parsed as JSON. Please try again."
+        )
+
+    cast = _merge_cast(parsed_lists)
+    print(f"[extract_cast] merged into {len(cast)} unique character(s) "
+          f"from {len(parsed_lists)}/{len(windows)} successful window(s)")
+    return cast
 
 
 # ── AI Suggestions ─────────────────────────────────────────────────────────────
@@ -561,16 +965,16 @@ async def retrieve_character_context(
     ):
         from sqlalchemy import text
         q_emb = await embed_text(question)
-        q_vec_str = "[" + ",".join(str(v) for v in q_emb) + "]"
+        q_vec_str = vector_literal(q_emb)
 
         score_rows = db.execute(
-            text("""
+            text(f"""
                 SELECT character_id,
                        CASE WHEN embedding IS NOT NULL
-                            THEN 1 - (embedding <=> :q::vector)
+                            THEN {vector_similarity('embedding')}
                             ELSE 0.0 END AS profile_score,
                        CASE WHEN mention_embedding IS NOT NULL
-                            THEN 1 - (mention_embedding <=> :q::vector)
+                            THEN {vector_similarity('mention_embedding')}
                             ELSE 0.0 END AS mention_score
                 FROM character_profiles
                 WHERE story_id = :story_id
@@ -634,7 +1038,7 @@ async def retrieve_character_context(
             f"[char_rag_v2] story={story_id[:8]}... — "
             f"{len(result)}/{len(characters)} character(s) injected "
             f"({tokens_used}≈tok, name_boost={len(name_mentioned_ids)}, "
-            f"has_mention_emb={sum(1 for p in profiles_map.values() if p.mention_embedding)})"
+            f"has_mention_emb={sum(1 for p in profiles_map.values() if p.mention_embedding is not None)})"
         )
     return result
 
@@ -661,18 +1065,18 @@ async def retrieve_note_context(
     from sqlalchemy import text
 
     q_emb = await embed_text(question)
-    q_vec_str = "[" + ",".join(str(v) for v in q_emb) + "]"
+    q_vec_str = vector_literal(q_emb)
 
     rows = db.execute(
-        text("""
+        text(f"""
             SELECT 'note' AS kind, note_id AS record_id, title, content,
                    NULL AS card_type,
-                   1 - (embedding <=> :q::vector) AS score
+                   {vector_similarity('embedding')} AS score
             FROM story_notes
             WHERE story_id = :story_id AND embedding IS NOT NULL
             UNION ALL
             SELECT 'card', card_id, title, content, card_type,
-                   1 - (embedding <=> :q::vector) AS score
+                   {vector_similarity('embedding')} AS score
             FROM note_cards
             WHERE story_id = :story_id AND embedding IS NOT NULL
             ORDER BY score DESC
@@ -808,6 +1212,7 @@ async def generate_plot_suggestions(
     genre_profile: dict = None,
     retrieved_chunks: list = None,
     note_context: list[str] = None,
+    intel_context: dict = None,
 ) -> list:
     """
     Generate 4 plot suggestions grounded in story context.
@@ -864,6 +1269,27 @@ async def generate_plot_suggestions(
             "Author's notes (story notes and research cards):\n\n"
             + "\n\n".join(note_context)
         )
+
+    # Intelligence context from Story Intelligence System (P29)
+    if intel_context:
+        intel_parts = []
+        if intel_context.get("story_premise"):
+            intel_parts.append(f"Story premise: {intel_context['story_premise']}")
+        if intel_context.get("central_question"):
+            intel_parts.append(f"Central question: {intel_context['central_question']}")
+        if intel_context.get("primary_theme"):
+            intel_parts.append(f"Theme: {intel_context['primary_theme']}")
+        if intel_context.get("primary_conflict"):
+            intel_parts.append(f"Primary conflict: {intel_context['primary_conflict']}")
+        if intel_context.get("critical_issues"):
+            intel_parts.append(f"Known issues to avoid: {', '.join(intel_context['critical_issues'][:3])}")
+        if intel_context.get("unresolved_threads"):
+            intel_parts.append(f"Unresolved threads: {', '.join(intel_context['unresolved_threads'][:3])}")
+        if intel_context.get("memory_hits"):
+            mem_blocks = [f"  • {h['content']}" for h in intel_context["memory_hits"][:6]]
+            intel_parts.append("Relevant story knowledge:\n" + "\n".join(mem_blocks))
+        if intel_parts:
+            parts.append("Story intelligence context:\n" + "\n".join(intel_parts))
 
     if current_chapter:
         parts.append(f"Current chapter excerpt (last 600 chars):\n{current_chapter[-600:]}")
@@ -2445,7 +2871,7 @@ async def retrieve_chunks_from_store(
 
     print(f"[chunk_retrieval] story={story_id[:8]}... — embedding query: {question[:80]!r}")
     q_emb = await embed_text(question)
-    q_vec_str = "[" + ",".join(str(v) for v in q_emb) + "]"
+    q_vec_str = vector_literal(q_emb)
 
     chapter_filter = "AND chapter_number <= :max_ch" if max_chapter_number is not None else ""
     params: dict = {"q": q_vec_str, "story_id": story_id, "limit": top_k}
@@ -2455,12 +2881,12 @@ async def retrieve_chunks_from_store(
     rows = db.execute(
         text(f"""
             SELECT chunk_id, chapter_number, chunk_index, text, word_count,
-                   1 - (embedding <=> :q::vector) AS score
+                   {vector_similarity('embedding')} AS score
             FROM chapter_chunks
             WHERE story_id = :story_id
               AND embedding IS NOT NULL
               {chapter_filter}
-            ORDER BY embedding <=> :q::vector
+            ORDER BY {vector_distance('embedding')}
             LIMIT :limit
         """),
         params,
@@ -2622,7 +3048,7 @@ async def retrieve_relevant_chunks(
 
     print(f"[retrieval] story={story_id[:8]}... — embedding query: {question[:80]!r}")
     q_emb = await embed_text(question)
-    q_vec_str = "[" + ",".join(str(v) for v in q_emb) + "]"
+    q_vec_str = vector_literal(q_emb)
 
     chapter_filter = "AND chapter_number <= :max_ch" if max_chapter_number is not None else ""
     params: dict = {"q": q_vec_str, "story_id": story_id, "limit": top_k}
@@ -2632,12 +3058,12 @@ async def retrieve_relevant_chunks(
     rows = db.execute(
         text(f"""
             SELECT chapter_number, raw_summary, key_events, characters_present,
-                   locations, 1 - (embedding <=> :q::vector) AS score
+                   locations, {vector_similarity('embedding')} AS score
             FROM chapter_summaries
             WHERE story_id = :story_id
               AND embedding IS NOT NULL
               {chapter_filter}
-            ORDER BY embedding <=> :q::vector
+            ORDER BY {vector_distance('embedding')}
             LIMIT :limit
         """),
         params,

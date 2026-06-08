@@ -7,6 +7,21 @@ import { intakeApi } from '@/lib/api'
 import { GenreProfile, IntakeResponse } from '@/lib/types'
 import { toast } from 'sonner'
 
+// Richer Story Intelligence fields, rendered dynamically only when the backend
+// actually returns a value. No hardcoded values, no placeholders.
+const INTEL_TEXT_FIELDS: { key: keyof GenreProfile; label: string }[] = [
+  { key: 'marketing_category', label: 'Marketing Category' },
+  { key: 'narrative_pov',      label: 'Narrative POV' },
+  { key: 'pacing',             label: 'Pacing' },
+  { key: 'emotional_arc',      label: 'Emotional Arc' },
+]
+
+const INTEL_CHIP_FIELDS: { key: keyof GenreProfile; label: string; danger?: boolean }[] = [
+  { key: 'secondary_genres',  label: 'Secondary Genres' },
+  { key: 'comparable_titles', label: 'Comparable Titles' },
+  { key: 'content_warnings',  label: 'Content Warnings', danger: true },
+]
+
 export default function StoryIntakePage({ params }: { params: { id: string } }) {
   const { id: storyId } = params
   const router = useRouter()
@@ -204,6 +219,54 @@ export default function StoryIntakePage({ params }: { params: { id: string } }) 
                     ))}
                   </div>
                 </div>
+
+                {/* ── Richer Story Intelligence — rendered dynamically ──────── */}
+                {/* Single-value craft fields: only shown when the backend returns them */}
+                {INTEL_TEXT_FIELDS.map(({ key, label }) => {
+                  const value = (profile as any)?.[key]
+                  if (!value) return null
+                  return (
+                    <div key={key} className="bg-[#0d0f1a] rounded-xl p-4 border border-[#1f2440]">
+                      <div className="text-xs text-[#5c6391] mb-1">{label}</div>
+                      <p className="text-sm text-[#e8eaf6]">{value}</p>
+                    </div>
+                  )
+                })}
+
+                {/* Chip/array fields: only shown when non-empty */}
+                {INTEL_CHIP_FIELDS.map(({ key, label, danger }) => {
+                  const list: string[] = (profile as any)?.[key] || []
+                  if (!list.length) return null
+                  return (
+                    <div key={key} className="sm:col-span-2 bg-[#0d0f1a] rounded-xl p-4 border border-[#1f2440]">
+                      <div className="text-xs text-[#5c6391] mb-2">{label}</div>
+                      <div className="flex flex-wrap gap-2">
+                        {list.map((t) => (
+                          <span
+                            key={t}
+                            className={`px-3 py-1 rounded-full text-xs border ${
+                              danger
+                                ? 'bg-red-500/10 border-red-500/30 text-red-300'
+                                : 'bg-[#1f2440] border-transparent text-[#9da3c8]'
+                            }`}
+                          >
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+
+                {profile?.intelligence_notes && (
+                  <div className="sm:col-span-2 bg-amber-500/5 rounded-xl p-4 border border-amber-500/20">
+                    <div className="flex items-center gap-1.5 text-xs text-amber-400 mb-1">
+                      <Sparkles className="w-3 h-3" />
+                      Story Intelligence Notes
+                    </div>
+                    <p className="text-sm text-[#9da3c8] italic">{profile.intelligence_notes}</p>
+                  </div>
+                )}
               </div>
 
               <p className="text-xs text-[#5c6391] mt-4 flex items-center gap-1">

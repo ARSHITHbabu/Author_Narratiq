@@ -22,6 +22,26 @@ const ROLE_COLORS: Record<string, string> = {
   minor:       'text-[#5c6391] border-[#2e3454]    bg-transparent',
 }
 
+// Rich profile fields the model may extract. Rendered dynamically — only fields
+// the model actually populated are shown (no empty placeholders, no fakes).
+const DETAIL_FIELDS: { key: keyof CastSuggestion; label: string }[] = [
+  { key: 'age',         label: 'Age' },
+  { key: 'appearance',  label: 'Appearance' },
+  { key: 'personality', label: 'Personality' },
+  { key: 'goals',       label: 'Goals' },
+  { key: 'motivations', label: 'Motivations' },
+  { key: 'backstory',   label: 'Backstory' },
+  { key: 'arc_notes',   label: 'Arc notes' },
+  { key: 'traits',      label: 'Traits' },
+]
+
+function hasDetail(s: CastSuggestion): boolean {
+  return DETAIL_FIELDS.some(({ key }) => {
+    const v = (s as any)[key]
+    return Array.isArray(v) ? v.length > 0 : Boolean(v)
+  })
+}
+
 export default function CastGenerationModal({ storyId, onClose, onConfirmed }: Props) {
   const [phase,    setPhase]    = useState<'loading' | 'review' | 'confirming' | 'error'>('loading')
   const [result,   setResult]   = useState<CastGenerationResult | null>(null)
@@ -76,6 +96,14 @@ export default function CastGenerationModal({ storyId, onClose, onConfirmed }: P
         description:      s.description,
         aliases:          s.aliases,
         evidence_snippet: s.evidence_snippet,
+        age:              s.age ?? '',
+        appearance:       s.appearance ?? '',
+        personality:      s.personality ?? '',
+        goals:            s.goals ?? '',
+        motivations:      s.motivations ?? '',
+        backstory:        s.backstory ?? '',
+        arc_notes:        s.arc_notes ?? '',
+        traits:           s.traits ?? [],
       }))
     try {
       const res = await charactersApi.confirmCast(storyId, toSave)
@@ -320,12 +348,12 @@ function SuggestionRow({ suggestion: s, checked, expanded, disabled, onToggle, o
           )}
         </div>
 
-        {/* Expand toggle (evidence) */}
-        {s.evidence_snippet && (
+        {/* Expand toggle (evidence + extracted detail) */}
+        {(s.evidence_snippet || hasDetail(s)) && (
           <button
             onClick={onExpand}
             className="flex-shrink-0 text-[#3d4466] hover:text-[#5c6391] transition-colors mt-0.5"
-            title="Show evidence"
+            title="Show extracted detail"
           >
             {expanded
               ? <ChevronDown className="w-3 h-3" />
@@ -334,19 +362,38 @@ function SuggestionRow({ suggestion: s, checked, expanded, disabled, onToggle, o
         )}
       </div>
 
-      {/* Evidence snippet */}
-      {expanded && s.evidence_snippet && (
-        <div className="px-3 pb-3 pt-0">
-          <div className="border-l-2 border-[#2e3454] pl-2.5">
-            <p className="text-[9px] text-[#5c6391] leading-relaxed italic">
-              &ldquo;{s.evidence_snippet}&rdquo;
-            </p>
-            {s.first_appearance && (
-              <p className="text-[9px] text-[#3d4466] mt-0.5">
-                First appears: {s.first_appearance}
+      {/* Extracted detail + evidence */}
+      {expanded && (s.evidence_snippet || hasDetail(s)) && (
+        <div className="px-3 pb-3 pt-0 flex flex-col gap-2">
+          {/* Extracted profile fields — only render what the model actually found */}
+          {hasDetail(s) && (
+            <div className="grid grid-cols-1 gap-1">
+              {DETAIL_FIELDS.map(({ key, label }) => {
+                const val = (s as any)[key]
+                const text = Array.isArray(val) ? val.join(', ') : (val || '')
+                if (!text) return null
+                return (
+                  <div key={key} className="flex gap-1.5 text-[9px] leading-relaxed">
+                    <span className="text-[#3d4466] flex-shrink-0 w-20">{label}</span>
+                    <span className="text-[#9da3c8]">{text}</span>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
+          {s.evidence_snippet && (
+            <div className="border-l-2 border-[#2e3454] pl-2.5">
+              <p className="text-[9px] text-[#5c6391] leading-relaxed italic">
+                &ldquo;{s.evidence_snippet}&rdquo;
               </p>
-            )}
-          </div>
+              {s.first_appearance && (
+                <p className="text-[9px] text-[#3d4466] mt-0.5">
+                  First appears: {s.first_appearance}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

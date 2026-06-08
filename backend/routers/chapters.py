@@ -120,6 +120,20 @@ async def update_chapter(
                 content=data.content,
             )
         )
+        # Trigger per-chapter intelligence passes P08-P12 in background
+        try:
+            from services.story_intel_orchestrator import run_analysis_background
+            asyncio.create_task(
+                run_analysis_background(
+                    story_id=story_id,
+                    user_id=current_user.user_id,
+                    triggered_by="chapter_save",
+                    passes=["P08", "P09", "P10", "P11", "P12",
+                            "P13", "P14", "P15", "P16", "P17"],
+                )
+            )
+        except Exception:
+            pass  # never block chapter save due to intelligence errors
 
     return chapter
 

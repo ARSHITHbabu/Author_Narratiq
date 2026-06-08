@@ -137,8 +137,14 @@ else
   echo "  NumPy ${NUMPY_VER} — OK"
 fi
 
-# ── 1g. transformers — vLLM 0.9+ works with both 4.x and 5.x ─
+# ── 1g. transformers — vLLM 0.9.2 calls all_special_tokens_extended (removed in 5.x) ─
 TRANSFORMERS_VER=$(pip show transformers 2>/dev/null | grep "^Version:" | awk '{print $2}')
+TRANSFORMERS_MAJOR=$(echo "$TRANSFORMERS_VER" | cut -d. -f1)
+if [ "${TRANSFORMERS_MAJOR:-0}" -ge 5 ] 2>/dev/null; then
+  echo "  Downgrading transformers ${TRANSFORMERS_VER} → <5.0 (vLLM 0.9.2 compatibility)..."
+  pip install -q "transformers>=4.51.1,<5.0.0" >> "$LOG_DIR/pip-backend.log" 2>&1
+  TRANSFORMERS_VER=$(pip show transformers 2>/dev/null | grep "^Version:" | awk '{print $2}')
+fi
 echo "  transformers ${TRANSFORMERS_VER:-not installed} — OK"
 
 # ── 1f. Backend Python dependencies ──────────────────────────
@@ -194,7 +200,7 @@ echo "[2/6] Checking model files..."
 MODELS_MISSING=0
 # Required models: LLM, embeddings, and GOT-OCR2.0 (replaced TrOCR + EasyOCR)
 for model in "Qwen2.5-7B-Instruct" "bge-m3" "GOT-OCR2_0"; do
-  if [ ! -d "$MODEL_DIR/$model" ] || [ -z "$(ls -A "$MODEL_DIR/$model" 2>/dev/null)" ]; then
+  if [ ! -f "$MODEL_DIR/$model/config.json" ]; then
     echo "  Missing: $model"
     MODELS_MISSING=1
   fi
@@ -206,7 +212,7 @@ if [ "$MODELS_MISSING" -eq 1 ]; then
   echo "  Tip: set HF_TOKEN=hf_xxx before running for higher rate limits"
   echo ""
   # Enable fast Rust-based downloader for ~3x speed
-  export HF_HUB_ENABLE_HF_TRANSFER=1
+  export HF_XET_HIGH_PERFORMANCE=1
   export MODEL_BASE_DIR="$MODEL_DIR"
   bash /workspace/narratiq-ai/scripts/download_models.sh 2>&1 | tee "$LOG_DIR/model-download.log"
   echo ""

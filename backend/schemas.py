@@ -115,6 +115,15 @@ class GenreProfile(BaseModel):
     themes: List[str]
     writing_direction: Optional[str] = None
     confidence: float
+    # Richer Story Intelligence quick-analysis fields (optional, backwards-compatible)
+    secondary_genres:   List[str] = []
+    comparable_titles:  List[str] = []
+    marketing_category: Optional[str] = None
+    emotional_arc:      Optional[str] = None
+    narrative_pov:      Optional[str] = None
+    pacing:             Optional[str] = None
+    content_warnings:   List[str] = []
+    intelligence_notes: Optional[str] = None
 
 
 class IntakeResponse(BaseModel):
@@ -596,6 +605,15 @@ class CastSuggestion(BaseModel):
     first_appearance:      str
     evidence_snippet:      str
     confidence:            str          # "high" | "uncertain"
+    # Rich profile fields extracted from chapter evidence (may be "" / [] if not established)
+    age:                   str = ""
+    appearance:            str = ""
+    personality:           str = ""
+    goals:                 str = ""
+    motivations:           str = ""
+    backstory:             str = ""
+    arc_notes:             str = ""
+    traits:                List[str] = []
     already_exists:        bool = False
     existing_character_id: Optional[str] = None
 
@@ -615,6 +633,16 @@ class CastConfirmItem(BaseModel):
     description:      str
     aliases:          List[str]
     evidence_snippet: str
+    # Rich profile fields carried through from the suggestion so the saved
+    # CharacterProfile is populated, not empty. All optional / default-empty.
+    age:              str = ""
+    appearance:       str = ""
+    personality:      str = ""
+    goals:            str = ""
+    motivations:      str = ""
+    backstory:        str = ""
+    arc_notes:        str = ""
+    traits:           List[str] = []
 
 
 class CastConfirmRequest(BaseModel):
@@ -704,3 +732,490 @@ class ExportRequest(BaseModel):
     format: str  # docx | pdf
     include_chapter_numbers: Optional[bool] = True
     font_size: Optional[int] = 12
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Story Intelligence System Schemas
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ── Job control ───────────────────────────────────────────────────────────────
+
+class IntelJobTriggerRequest(BaseModel):
+    passes: Optional[List[str]] = None  # None = all passes
+    force_refresh: Optional[bool] = False
+
+
+class IntelJobOut(BaseModel):
+    model_config = {"from_attributes": True}
+    job_id:           str
+    story_id:         str
+    status:           str
+    triggered_by:     str
+    passes_requested: Optional[List[Any]] = []
+    passes_completed: Optional[List[Any]] = []
+    passes_failed:    Optional[List[Any]] = []
+    current_pass:     Optional[str] = ""
+    percent:          Optional[int] = 0
+    error_message:    Optional[str] = ""
+    created_at:       Optional[datetime] = None
+    updated_at:       Optional[datetime] = None
+
+
+# ── Genre Hierarchy ───────────────────────────────────────────────────────────
+
+class StoryGenreHierarchyOut(BaseModel):
+    model_config = {"from_attributes": True}
+    genre_id:                 str
+    story_id:                 str
+    primary_genre:            Optional[str] = ""
+    primary_genre_confidence: Optional[float] = 0.0
+    secondary_genres:         Optional[List[Any]] = []
+    genre_blend_rationale:    Optional[str] = ""
+    marketing_category:       Optional[str] = ""
+    comparable_titles:        Optional[List[Any]] = []
+    tone_markers:             Optional[List[Any]] = []
+    author_overrides:         Optional[Any] = {}
+    is_stale:                 Optional[bool] = False
+    generated_at:             Optional[datetime] = None
+
+
+# ── Story DNA ─────────────────────────────────────────────────────────────────
+
+class StoryDNAOut(BaseModel):
+    model_config = {"from_attributes": True}
+    dna_id:                str
+    story_id:              str
+    premise:               Optional[str] = ""
+    central_question:      Optional[str] = ""
+    thematic_core:         Optional[str] = ""
+    narrative_engine:      Optional[str] = ""
+    story_promise:         Optional[str] = ""
+    resolution_type:       Optional[str] = ""
+    pov_style:             Optional[str] = ""
+    tense:                 Optional[str] = ""
+    sentence_rhythm:       Optional[str] = ""
+    vocabulary_tier:       Optional[str] = ""
+    prose_style:           Optional[str] = ""
+    structural_complexity: Optional[str] = ""
+    chapter_dna:           Optional[List[Any]] = []
+    confidence:            Optional[float] = 0.0
+    author_overrides:      Optional[Any] = {}
+    is_stale:              Optional[bool] = False
+    generated_at:          Optional[datetime] = None
+
+
+# ── Audience Profile ──────────────────────────────────────────────────────────
+
+class StoryAudienceProfileOut(BaseModel):
+    model_config = {"from_attributes": True}
+    audience_id:           str
+    story_id:              str
+    primary_audience:      Optional[str] = ""
+    age_range:             Optional[str] = ""
+    reading_level:         Optional[str] = ""
+    content_warnings:      Optional[List[Any]] = []
+    appeal_factors:        Optional[List[Any]] = []
+    comparable_readership: Optional[List[Any]] = []
+    marketing_hooks:       Optional[List[Any]] = []
+    author_overrides:      Optional[Any] = {}
+    is_stale:              Optional[bool] = False
+    generated_at:          Optional[datetime] = None
+
+
+# ── Themes ────────────────────────────────────────────────────────────────────
+
+class StoryThemesOut(BaseModel):
+    model_config = {"from_attributes": True}
+    theme_id:          str
+    story_id:          str
+    primary_theme:     Optional[str] = ""
+    theme_statement:   Optional[str] = ""
+    secondary_themes:  Optional[List[Any]] = []
+    motifs:            Optional[List[Any]] = []
+    symbols:           Optional[List[Any]] = []
+    thematic_arc:      Optional[str] = ""
+    chapter_theme_map: Optional[Any] = {}
+    author_overrides:  Optional[Any] = {}
+    is_stale:          Optional[bool] = False
+    generated_at:      Optional[datetime] = None
+
+
+# ── Conflicts ─────────────────────────────────────────────────────────────────
+
+class StoryConflictsOut(BaseModel):
+    model_config = {"from_attributes": True}
+    conflict_id:              str
+    story_id:                 str
+    primary_conflict:         Optional[str] = ""
+    conflict_type:            Optional[str] = ""
+    secondary_conflicts:      Optional[List[Any]] = []
+    conflict_evolution:       Optional[List[Any]] = []
+    unresolved_conflicts:     Optional[List[Any]] = []
+    conflict_resolution_path: Optional[str] = ""
+    chapter_conflict_map:     Optional[Any] = {}
+    author_overrides:         Optional[Any] = {}
+    is_stale:                 Optional[bool] = False
+    generated_at:             Optional[datetime] = None
+
+
+# ── World Profile ─────────────────────────────────────────────────────────────
+
+class StoryWorldProfileOut(BaseModel):
+    model_config = {"from_attributes": True}
+    world_id:           str
+    story_id:           str
+    setting_type:       Optional[str] = ""
+    primary_settings:   Optional[List[Any]] = []
+    world_rules:        Optional[List[Any]] = []
+    time_period:        Optional[str] = ""
+    social_structure:   Optional[str] = ""
+    technology_level:   Optional[str] = ""
+    magic_system:       Optional[Any] = {}
+    cultural_elements:  Optional[List[Any]] = []
+    consistency_issues: Optional[List[Any]] = []
+    author_overrides:   Optional[Any] = {}
+    is_stale:           Optional[bool] = False
+    generated_at:       Optional[datetime] = None
+
+
+# ── Narrative Structure ───────────────────────────────────────────────────────
+
+class StoryNarrativeStructureOut(BaseModel):
+    model_config = {"from_attributes": True}
+    structure_id:             str
+    story_id:                 str
+    structure_type:           Optional[str] = ""
+    act_breakdown:            Optional[Any] = {}
+    inciting_incident_chapter:Optional[int] = None
+    midpoint_chapter:         Optional[int] = None
+    climax_chapter:           Optional[int] = None
+    resolution_chapter:       Optional[int] = None
+    narrative_promises:       Optional[List[Any]] = []
+    promises_kept:            Optional[List[Any]] = []
+    promises_broken:          Optional[List[Any]] = []
+    structural_issues:        Optional[List[Any]] = []
+    author_overrides:         Optional[Any] = {}
+    is_stale:                 Optional[bool] = False
+    generated_at:             Optional[datetime] = None
+
+
+# ── Emotional Arc ─────────────────────────────────────────────────────────────
+
+class StoryEmotionalArcOut(BaseModel):
+    model_config = {"from_attributes": True}
+    arc_id:                    str
+    story_id:                  str
+    overall_arc_shape:         Optional[str] = ""
+    opening_emotion:           Optional[str] = ""
+    midpoint_emotion:          Optional[str] = ""
+    climax_emotion:            Optional[str] = ""
+    resolution_emotion:        Optional[str] = ""
+    emotional_contrast_score:  Optional[float] = 0.0
+    chapter_emotions:          Optional[List[Any]] = []
+    dominant_emotions:         Optional[List[Any]] = []
+    emotional_gaps:            Optional[List[Any]] = []
+    author_overrides:          Optional[Any] = {}
+    is_stale:                  Optional[bool] = False
+    generated_at:              Optional[datetime] = None
+
+
+# ── Pacing Map ────────────────────────────────────────────────────────────────
+
+class StoryPacingMapOut(BaseModel):
+    model_config = {"from_attributes": True}
+    pacing_id:       str
+    story_id:        str
+    overall_pacing:  Optional[str] = ""
+    act_structure:   Optional[Any] = {}
+    chapter_pacing:  Optional[List[Any]] = []
+    slow_zones:      Optional[List[Any]] = []
+    tension_peaks:   Optional[List[Any]] = []
+    pacing_score:    Optional[float] = 0.0
+    pacing_issues:   Optional[List[Any]] = []
+    author_overrides:Optional[Any] = {}
+    is_stale:        Optional[bool] = False
+    generated_at:    Optional[datetime] = None
+
+
+# ── Strength Indicators ───────────────────────────────────────────────────────
+
+class StoryStrengthIndicatorsOut(BaseModel):
+    model_config = {"from_attributes": True}
+    strength_id:            str
+    story_id:               str
+    overall_score:          Optional[float] = 0.0
+    voice_score:            Optional[float] = 0.0
+    originality_score:      Optional[float] = 0.0
+    character_depth_score:  Optional[float] = 0.0
+    plot_coherence_score:   Optional[float] = 0.0
+    pacing_score:           Optional[float] = 0.0
+    world_building_score:   Optional[float] = 0.0
+    dialogue_quality_score: Optional[float] = 0.0
+    strengths:              Optional[List[Any]] = []
+    score_rationale:        Optional[Any] = {}
+    author_overrides:       Optional[Any] = {}
+    is_stale:               Optional[bool] = False
+    generated_at:           Optional[datetime] = None
+
+
+# ── Risk Register ─────────────────────────────────────────────────────────────
+
+class StoryRiskRegisterOut(BaseModel):
+    model_config = {"from_attributes": True}
+    risk_id:                   str
+    story_id:                  str
+    plot_holes:                Optional[List[Any]] = []
+    continuity_risks:          Optional[List[Any]] = []
+    character_inconsistencies: Optional[List[Any]] = []
+    pacing_risks:              Optional[List[Any]] = []
+    tonal_shifts:              Optional[List[Any]] = []
+    unresolved_threads:        Optional[List[Any]] = []
+    risk_score:                Optional[float] = 0.0
+    critical_issues:           Optional[List[Any]] = []
+    author_overrides:          Optional[Any] = {}
+    is_stale:                  Optional[bool] = False
+    generated_at:              Optional[datetime] = None
+
+
+# ── Foreshadowing Registry ────────────────────────────────────────────────────
+
+class StoryForeshadowingRegistryOut(BaseModel):
+    model_config = {"from_attributes": True}
+    foreshadow_id:           str
+    story_id:                str
+    active_foreshadowings:   Optional[List[Any]] = []
+    resolved_foreshadowings: Optional[List[Any]] = []
+    orphaned_hints:          Optional[List[Any]] = []
+    payoffs_without_setup:   Optional[List[Any]] = []
+    is_stale:                Optional[bool] = False
+    generated_at:            Optional[datetime] = None
+
+
+# ── Continuity Risks ──────────────────────────────────────────────────────────
+
+class StoryContinuityRisksOut(BaseModel):
+    model_config = {"from_attributes": True}
+    continuity_id:                str
+    story_id:                     str
+    character_continuity_issues:  Optional[List[Any]] = []
+    world_continuity_issues:      Optional[List[Any]] = []
+    timeline_continuity_issues:   Optional[List[Any]] = []
+    object_continuity_issues:     Optional[List[Any]] = []
+    chapter_continuity_map:       Optional[Any] = {}
+    risk_score:                   Optional[float] = 0.0
+    is_stale:                     Optional[bool] = False
+    generated_at:                 Optional[datetime] = None
+
+
+# ── Character Intelligence ────────────────────────────────────────────────────
+
+class CharacterIntelligenceOut(BaseModel):
+    model_config = {"from_attributes": True}
+    intel_id:                str
+    character_id:            str
+    story_id:                str
+    goals:                   Optional[List[Any]] = []
+    motivations:             Optional[str] = ""
+    internal_wounds:         Optional[str] = ""
+    external_objectives:     Optional[List[Any]] = []
+    secrets:                 Optional[List[Any]] = []
+    fears:                   Optional[List[Any]] = []
+    contradictions:          Optional[List[Any]] = []
+    arc_stage:               Optional[str] = ""
+    arc_stage_rationale:     Optional[str] = ""
+    voice_distinction_score: Optional[float] = 0.0
+    voice_markers:           Optional[List[Any]] = []
+    plot_influence_score:    Optional[float] = 0.0
+    consistency_score:       Optional[float] = 0.0
+    consistency_issues:      Optional[List[Any]] = []
+    memory_timeline:         Optional[List[Any]] = []
+    confidence:              Optional[float] = 0.0
+    author_overrides:        Optional[Any] = {}
+    is_stale:                Optional[bool] = False
+    generated_at:            Optional[datetime] = None
+
+
+class CharacterIntelligenceOverrideRequest(BaseModel):
+    author_overrides: Any
+
+
+# ── Relationship Intelligence ─────────────────────────────────────────────────
+
+class RelationshipIntelligenceOut(BaseModel):
+    model_config = {"from_attributes": True}
+    intel_id:             str
+    relationship_id:      str
+    story_id:             str
+    from_character_id:    str
+    to_character_id:      str
+    evolution_trajectory: Optional[str] = ""
+    turning_points:       Optional[List[Any]] = []
+    tension_score:        Optional[float] = 0.0
+    trust_score:          Optional[float] = 0.0
+    conflict_score:       Optional[float] = 0.0
+    dependency_score:     Optional[float] = 0.0
+    is_hidden:            Optional[bool] = False
+    hidden_reason:        Optional[str] = ""
+    impact_on_plot:       Optional[str] = ""
+    history:              Optional[List[Any]] = []
+    confidence:           Optional[float] = 0.0
+    author_overrides:     Optional[Any] = {}
+    is_stale:             Optional[bool] = False
+    generated_at:         Optional[datetime] = None
+
+
+# ── Story Memory ──────────────────────────────────────────────────────────────
+
+class StoryMemoryEntryOut(BaseModel):
+    model_config = {"from_attributes": True}
+    entry_id:                  str
+    story_id:                  str
+    memory_type:               str
+    memory_key:                str
+    entity_type:               Optional[str] = ""
+    entity_id:                 Optional[str] = ""
+    content:                   str
+    chapter_first_established: Optional[int] = None
+    chapter_last_updated:      Optional[int] = None
+    importance:                Optional[float] = 0.5
+    is_active:                 Optional[bool] = True
+    is_ai_generated:           Optional[bool] = True
+    is_author_added:           Optional[bool] = False
+    created_at:                Optional[datetime] = None
+    updated_at:                Optional[datetime] = None
+
+
+class StoryMemorySearchRequest(BaseModel):
+    query: str
+    top_k: Optional[int] = 10
+    memory_type: Optional[str] = None
+    entity_type: Optional[str] = None
+
+
+class StoryMemorySearchResult(BaseModel):
+    entry: StoryMemoryEntryOut
+    score: float
+
+
+class AuthorMemoryAddRequest(BaseModel):
+    memory_type: str
+    memory_key:  str
+    content:     str
+    entity_type: Optional[str] = ""
+    entity_id:   Optional[str] = ""
+    importance:  Optional[float] = 0.5
+
+
+# ── Timeline ──────────────────────────────────────────────────────────────────
+
+class StoryTimelineOut(BaseModel):
+    model_config = {"from_attributes": True}
+    timeline_id:              str
+    story_id:                 str
+    timeline_type:            Optional[str] = "linear"
+    estimated_story_duration: Optional[str] = ""
+    start_period:             Optional[str] = ""
+    end_period:               Optional[str] = ""
+    seasons_mentioned:        Optional[List[Any]] = []
+    significant_time_gaps:    Optional[List[Any]] = []
+    character_age_map:        Optional[Any] = {}
+    contradictions:           Optional[List[Any]] = []
+    contradictions_detected:  Optional[int] = 0
+    confidence:               Optional[float] = 0.0
+    is_stale:                 Optional[bool] = False
+    generated_at:             Optional[datetime] = None
+
+
+class StoryTimelineEventOut(BaseModel):
+    model_config = {"from_attributes": True}
+    event_id:             str
+    story_id:             str
+    chapter_number:       int
+    event_type:           Optional[str] = "action"
+    story_date:           Optional[str] = ""
+    temporal_marker:      Optional[str] = ""
+    characters_involved:  Optional[List[Any]] = []
+    location:             Optional[str] = ""
+    event_description:    Optional[str] = ""
+    is_flashback:         Optional[bool] = False
+    is_flashforward:      Optional[bool] = False
+    flash_origin_chapter: Optional[int] = None
+    generated_at:         Optional[datetime] = None
+
+
+# ── Story Graph ───────────────────────────────────────────────────────────────
+
+class StoryGraphNodeOut(BaseModel):
+    model_config = {"from_attributes": True}
+    node_id:            str
+    story_id:           str
+    node_type:          str
+    label:              str
+    entity_id:          Optional[str] = ""
+    properties:         Optional[Any] = {}
+    chapter_introduced: Optional[int] = None
+    is_active:          Optional[bool] = True
+    created_at:         Optional[datetime] = None
+
+
+class StoryGraphEdgeOut(BaseModel):
+    model_config = {"from_attributes": True}
+    edge_id:             str
+    story_id:            str
+    from_node_id:        str
+    to_node_id:          str
+    edge_type:           str
+    weight:              Optional[float] = 1.0
+    label:               Optional[str] = ""
+    chapter_established: Optional[int] = None
+    properties:          Optional[Any] = {}
+    is_active:           Optional[bool] = True
+    created_at:          Optional[datetime] = None
+
+
+class StoryGraphResponse(BaseModel):
+    nodes: List[StoryGraphNodeOut]
+    edges: List[StoryGraphEdgeOut]
+    node_count: int
+    edge_count: int
+
+
+# ── Intelligence Dashboard ────────────────────────────────────────────────────
+
+class StoryIntelligenceDashboard(BaseModel):
+    story_id:              str
+    latest_job:            Optional[IntelJobOut] = None
+    genre_hierarchy:       Optional[StoryGenreHierarchyOut] = None
+    story_dna:             Optional[StoryDNAOut] = None
+    audience_profile:      Optional[StoryAudienceProfileOut] = None
+    themes:                Optional[StoryThemesOut] = None
+    conflicts:             Optional[StoryConflictsOut] = None
+    world_profile:         Optional[StoryWorldProfileOut] = None
+    narrative_structure:   Optional[StoryNarrativeStructureOut] = None
+    emotional_arc:         Optional[StoryEmotionalArcOut] = None
+    pacing_map:            Optional[StoryPacingMapOut] = None
+    strength_indicators:   Optional[StoryStrengthIndicatorsOut] = None
+    risk_register:         Optional[StoryRiskRegisterOut] = None
+    foreshadowing_registry:Optional[StoryForeshadowingRegistryOut] = None
+    continuity_risks:      Optional[StoryContinuityRisksOut] = None
+    timeline:              Optional[StoryTimelineOut] = None
+    character_intel_count: int = 0
+    relationship_intel_count: int = 0
+    memory_entry_count:    int = 0
+    graph_node_count:      int = 0
+    graph_edge_count:      int = 0
+
+
+# ── Author Overrides ──────────────────────────────────────────────────────────
+
+class AuthorOverrideRequest(BaseModel):
+    author_overrides: Any
+
+
+class IntelVersionOut(BaseModel):
+    model_config = {"from_attributes": True}
+    version_id:     str
+    story_id:       str
+    version_number: int
+    trigger:        Optional[str] = "manual"
+    created_at:     Optional[datetime] = None

@@ -56,6 +56,29 @@ class Story(Base):
     character_hints          = relationship("CharacterHint",         back_populates="story", cascade="all, delete-orphan")
     character_arc_snapshots  = relationship("CharacterArcSnapshot",  back_populates="story", cascade="all, delete-orphan")
     manuscript_jobs          = relationship("ManuscriptJob",          back_populates="story", cascade="all, delete-orphan")
+    # Intelligence system relationships
+    intel_jobs               = relationship("StoryIntelJob",             back_populates="story", cascade="all, delete-orphan")
+    genre_hierarchy          = relationship("StoryGenreHierarchy",       back_populates="story", uselist=False, cascade="all, delete-orphan")
+    story_dna                = relationship("StoryDNA",                  back_populates="story", uselist=False, cascade="all, delete-orphan")
+    audience_profile         = relationship("StoryAudienceProfile",      back_populates="story", uselist=False, cascade="all, delete-orphan")
+    story_themes             = relationship("StoryThemes",               back_populates="story", uselist=False, cascade="all, delete-orphan")
+    story_conflicts          = relationship("StoryConflicts",            back_populates="story", uselist=False, cascade="all, delete-orphan")
+    world_profile            = relationship("StoryWorldProfile",         back_populates="story", uselist=False, cascade="all, delete-orphan")
+    narrative_structure      = relationship("StoryNarrativeStructure",   back_populates="story", uselist=False, cascade="all, delete-orphan")
+    emotional_arc            = relationship("StoryEmotionalArc",         back_populates="story", uselist=False, cascade="all, delete-orphan")
+    pacing_map               = relationship("StoryPacingMap",            back_populates="story", uselist=False, cascade="all, delete-orphan")
+    strength_indicators      = relationship("StoryStrengthIndicators",   back_populates="story", uselist=False, cascade="all, delete-orphan")
+    risk_register            = relationship("StoryRiskRegister",         back_populates="story", uselist=False, cascade="all, delete-orphan")
+    foreshadowing_registry   = relationship("StoryForeshadowingRegistry",back_populates="story", uselist=False, cascade="all, delete-orphan")
+    continuity_risks         = relationship("StoryContinuityRisks",      back_populates="story", uselist=False, cascade="all, delete-orphan")
+    intel_versions           = relationship("StoryIntelVersion",         back_populates="story", cascade="all, delete-orphan")
+    character_intelligence   = relationship("CharacterIntelligence",     back_populates="story", cascade="all, delete-orphan")
+    relationship_intelligence= relationship("RelationshipIntelligence",  back_populates="story", cascade="all, delete-orphan")
+    memory_entries           = relationship("StoryMemoryEntry",          back_populates="story", cascade="all, delete-orphan")
+    timeline                 = relationship("StoryTimeline",             back_populates="story", uselist=False, cascade="all, delete-orphan")
+    timeline_events          = relationship("StoryTimelineEvent",        back_populates="story", cascade="all, delete-orphan")
+    graph_nodes              = relationship("StoryGraphNode",            back_populates="story", cascade="all, delete-orphan")
+    graph_edges              = relationship("StoryGraphEdge",            back_populates="story", cascade="all, delete-orphan")
 
 
 class Chapter(Base):
@@ -232,6 +255,8 @@ class Character(Base):
                                  uselist=False, cascade="all, delete-orphan")
     mentions      = relationship("CharacterMention",   back_populates="character", cascade="all, delete-orphan")
     arc_snapshots = relationship("CharacterArcSnapshot", back_populates="character", cascade="all, delete-orphan")
+    intelligence  = relationship("CharacterIntelligence", back_populates="character",
+                                 uselist=False, cascade="all, delete-orphan")
 
 
 class CharacterProfile(Base):
@@ -329,6 +354,8 @@ class CharacterRelationship(Base):
     story          = relationship("Story",     back_populates="character_relationships")
     from_character = relationship("Character", foreign_keys=[from_character_id])
     to_character   = relationship("Character", foreign_keys=[to_character_id])
+    intelligence   = relationship("RelationshipIntelligence", back_populates="char_relationship",
+                                  uselist=False, cascade="all, delete-orphan")
 
 
 # ── Character Mentions ─────────────────────────────────────────────────────────
@@ -511,3 +538,507 @@ class ManuscriptJob(Base):
     updated_at    = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     story = relationship("Story", back_populates="manuscript_jobs")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Story Intelligence System — V1 + V2 Tables
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class StoryIntelJob(Base):
+    """Tracks a full-story intelligence analysis run (P1–P29)."""
+    __tablename__ = "story_intel_jobs"
+    job_id             = Column(String,   primary_key=True, default=gen_uuid)
+    story_id           = Column(String,   ForeignKey("stories.story_id"), nullable=False)
+    user_id            = Column(String,   ForeignKey("users.user_id"),    nullable=False)
+    status             = Column(String,   default="pending")   # pending|running|complete|error
+    triggered_by       = Column(String,   default="manual")    # intake|chapter_save|manual|auto
+    passes_requested   = Column(JSON,     default=list)
+    passes_completed   = Column(JSON,     default=list)
+    passes_failed      = Column(JSON,     default=list)
+    current_pass       = Column(String,   default="")
+    percent            = Column(Integer,  default=0)
+    error_message      = Column(Text,     default="")
+    created_at         = Column(DateTime, default=datetime.utcnow)
+    updated_at         = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    story = relationship("Story", back_populates="intel_jobs")
+
+
+class StoryGenreHierarchy(Base):
+    """Hierarchical genre analysis (Pass P1)."""
+    __tablename__ = "story_genre_hierarchy"
+    genre_id                  = Column(String,   primary_key=True, default=gen_uuid)
+    story_id                  = Column(String,   ForeignKey("stories.story_id"), nullable=False, unique=True)
+    primary_genre             = Column(String,   default="")
+    primary_genre_confidence  = Column(Float,    default=0.0)
+    secondary_genres          = Column(JSON,     default=list)
+    genre_blend_rationale     = Column(Text,     default="")
+    marketing_category        = Column(String,   default="")
+    comparable_titles         = Column(JSON,     default=list)
+    tone_markers              = Column(JSON,     default=list)
+    author_overrides          = Column(JSON,     default=dict)
+    is_stale                  = Column(Boolean,  default=False)
+    input_hash                = Column(String,   default="")
+    generated_at              = Column(DateTime, default=datetime.utcnow)
+
+    story = relationship("Story", back_populates="genre_hierarchy")
+
+
+class StoryDNA(Base):
+    """Core story identity and prose fingerprint (Pass P2)."""
+    __tablename__ = "story_dna"
+    dna_id                = Column(String,   primary_key=True, default=gen_uuid)
+    story_id              = Column(String,   ForeignKey("stories.story_id"), nullable=False, unique=True)
+    premise               = Column(Text,     default="")
+    central_question      = Column(Text,     default="")
+    thematic_core         = Column(Text,     default="")
+    narrative_engine      = Column(Text,     default="")
+    story_promise         = Column(Text,     default="")
+    resolution_type       = Column(Text,     default="")
+    pov_style             = Column(String,   default="")
+    tense                 = Column(String,   default="")
+    sentence_rhythm       = Column(String,   default="")
+    vocabulary_tier       = Column(String,   default="")
+    prose_style           = Column(Text,     default="")
+    structural_complexity = Column(String,   default="")
+    chapter_dna           = Column(JSON,     default=list)
+    confidence            = Column(Float,    default=0.0)
+    author_overrides      = Column(JSON,     default=dict)
+    is_stale              = Column(Boolean,  default=False)
+    input_hash            = Column(String,   default="")
+    generated_at          = Column(DateTime, default=datetime.utcnow)
+
+    story = relationship("Story", back_populates="story_dna")
+
+
+class StoryAudienceProfile(Base):
+    """Audience and market positioning analysis (Pass P3)."""
+    __tablename__ = "story_audience_profile"
+    audience_id          = Column(String,   primary_key=True, default=gen_uuid)
+    story_id             = Column(String,   ForeignKey("stories.story_id"), nullable=False, unique=True)
+    primary_audience     = Column(String,   default="")
+    age_range            = Column(String,   default="")
+    reading_level        = Column(String,   default="")
+    content_warnings     = Column(JSON,     default=list)
+    appeal_factors       = Column(JSON,     default=list)
+    comparable_readership= Column(JSON,     default=list)
+    marketing_hooks      = Column(JSON,     default=list)
+    author_overrides     = Column(JSON,     default=dict)
+    is_stale             = Column(Boolean,  default=False)
+    input_hash           = Column(String,   default="")
+    generated_at         = Column(DateTime, default=datetime.utcnow)
+
+    story = relationship("Story", back_populates="audience_profile")
+
+
+class StoryThemes(Base):
+    """Theme and motif extraction (Pass P4)."""
+    __tablename__ = "story_themes"
+    theme_id          = Column(String,   primary_key=True, default=gen_uuid)
+    story_id          = Column(String,   ForeignKey("stories.story_id"), nullable=False, unique=True)
+    primary_theme     = Column(Text,     default="")
+    theme_statement   = Column(Text,     default="")
+    secondary_themes  = Column(JSON,     default=list)
+    motifs            = Column(JSON,     default=list)
+    symbols           = Column(JSON,     default=list)
+    thematic_arc      = Column(Text,     default="")
+    chapter_theme_map = Column(JSON,     default=dict)
+    author_overrides  = Column(JSON,     default=dict)
+    is_stale          = Column(Boolean,  default=False)
+    input_hash        = Column(String,   default="")
+    generated_at      = Column(DateTime, default=datetime.utcnow)
+
+    story = relationship("Story", back_populates="story_themes")
+
+
+class StoryConflicts(Base):
+    """Conflict mapping and evolution (Passes P5, P15)."""
+    __tablename__ = "story_conflicts"
+    conflict_id            = Column(String,   primary_key=True, default=gen_uuid)
+    story_id               = Column(String,   ForeignKey("stories.story_id"), nullable=False, unique=True)
+    primary_conflict       = Column(Text,     default="")
+    conflict_type          = Column(String,   default="")
+    secondary_conflicts    = Column(JSON,     default=list)
+    conflict_evolution     = Column(JSON,     default=list)
+    unresolved_conflicts   = Column(JSON,     default=list)
+    conflict_resolution_path= Column(Text,   default="")
+    chapter_conflict_map   = Column(JSON,     default=dict)
+    author_overrides       = Column(JSON,     default=dict)
+    is_stale               = Column(Boolean,  default=False)
+    input_hash             = Column(String,   default="")
+    generated_at           = Column(DateTime, default=datetime.utcnow)
+
+    story = relationship("Story", back_populates="story_conflicts")
+
+
+class StoryWorldProfile(Base):
+    """World-building and setting analysis (Passes P6, P16)."""
+    __tablename__ = "story_world_profile"
+    world_id            = Column(String,   primary_key=True, default=gen_uuid)
+    story_id            = Column(String,   ForeignKey("stories.story_id"), nullable=False, unique=True)
+    setting_type        = Column(String,   default="")
+    primary_settings    = Column(JSON,     default=list)
+    world_rules         = Column(JSON,     default=list)
+    time_period         = Column(String,   default="")
+    social_structure    = Column(Text,     default="")
+    technology_level    = Column(String,   default="")
+    magic_system        = Column(JSON,     default=dict)
+    cultural_elements   = Column(JSON,     default=list)
+    consistency_issues  = Column(JSON,     default=list)
+    author_overrides    = Column(JSON,     default=dict)
+    is_stale            = Column(Boolean,  default=False)
+    input_hash          = Column(String,   default="")
+    generated_at        = Column(DateTime, default=datetime.utcnow)
+
+    story = relationship("Story", back_populates="world_profile")
+
+
+class StoryNarrativeStructure(Base):
+    """Narrative structure and promise analysis (Passes P7, P17)."""
+    __tablename__ = "story_narrative_structure"
+    structure_id            = Column(String,   primary_key=True, default=gen_uuid)
+    story_id                = Column(String,   ForeignKey("stories.story_id"), nullable=False, unique=True)
+    structure_type          = Column(String,   default="")
+    act_breakdown           = Column(JSON,     default=dict)
+    inciting_incident_chapter= Column(Integer, nullable=True)
+    midpoint_chapter        = Column(Integer,  nullable=True)
+    climax_chapter          = Column(Integer,  nullable=True)
+    resolution_chapter      = Column(Integer,  nullable=True)
+    narrative_promises      = Column(JSON,     default=list)
+    promises_kept           = Column(JSON,     default=list)
+    promises_broken         = Column(JSON,     default=list)
+    structural_issues       = Column(JSON,     default=list)
+    author_overrides        = Column(JSON,     default=dict)
+    is_stale                = Column(Boolean,  default=False)
+    input_hash              = Column(String,   default="")
+    generated_at            = Column(DateTime, default=datetime.utcnow)
+
+    story = relationship("Story", back_populates="narrative_structure")
+
+
+class StoryEmotionalArc(Base):
+    """Story-level emotional arc synthesis (Pass P13)."""
+    __tablename__ = "story_emotional_arc"
+    arc_id                   = Column(String,   primary_key=True, default=gen_uuid)
+    story_id                 = Column(String,   ForeignKey("stories.story_id"), nullable=False, unique=True)
+    overall_arc_shape        = Column(String,   default="")
+    opening_emotion          = Column(String,   default="")
+    midpoint_emotion         = Column(String,   default="")
+    climax_emotion           = Column(String,   default="")
+    resolution_emotion       = Column(String,   default="")
+    emotional_contrast_score = Column(Float,    default=0.0)
+    chapter_emotions         = Column(JSON,     default=list)
+    dominant_emotions        = Column(JSON,     default=list)
+    emotional_gaps           = Column(JSON,     default=list)
+    author_overrides         = Column(JSON,     default=dict)
+    is_stale                 = Column(Boolean,  default=False)
+    input_hash               = Column(String,   default="")
+    generated_at             = Column(DateTime, default=datetime.utcnow)
+
+    story = relationship("Story", back_populates="emotional_arc")
+
+
+class StoryPacingMap(Base):
+    """Pacing analysis across all chapters (Pass P14)."""
+    __tablename__ = "story_pacing_map"
+    pacing_id      = Column(String,   primary_key=True, default=gen_uuid)
+    story_id       = Column(String,   ForeignKey("stories.story_id"), nullable=False, unique=True)
+    overall_pacing = Column(String,   default="")
+    act_structure  = Column(JSON,     default=dict)
+    chapter_pacing = Column(JSON,     default=list)
+    slow_zones     = Column(JSON,     default=list)
+    tension_peaks  = Column(JSON,     default=list)
+    pacing_score   = Column(Float,    default=0.0)
+    pacing_issues  = Column(JSON,     default=list)
+    author_overrides= Column(JSON,    default=dict)
+    is_stale       = Column(Boolean,  default=False)
+    input_hash     = Column(String,   default="")
+    generated_at   = Column(DateTime, default=datetime.utcnow)
+
+    story = relationship("Story", back_populates="pacing_map")
+
+
+class StoryStrengthIndicators(Base):
+    """Quantified strength scores across craft dimensions (Pass P18)."""
+    __tablename__ = "story_strength_indicators"
+    strength_id           = Column(String,   primary_key=True, default=gen_uuid)
+    story_id              = Column(String,   ForeignKey("stories.story_id"), nullable=False, unique=True)
+    overall_score         = Column(Float,    default=0.0)
+    voice_score           = Column(Float,    default=0.0)
+    originality_score     = Column(Float,    default=0.0)
+    character_depth_score = Column(Float,    default=0.0)
+    plot_coherence_score  = Column(Float,    default=0.0)
+    pacing_score          = Column(Float,    default=0.0)
+    world_building_score  = Column(Float,    default=0.0)
+    dialogue_quality_score= Column(Float,    default=0.0)
+    strengths             = Column(JSON,     default=list)
+    score_rationale       = Column(JSON,     default=dict)
+    author_overrides      = Column(JSON,     default=dict)
+    is_stale              = Column(Boolean,  default=False)
+    input_hash            = Column(String,   default="")
+    generated_at          = Column(DateTime, default=datetime.utcnow)
+
+    story = relationship("Story", back_populates="strength_indicators")
+
+
+class StoryRiskRegister(Base):
+    """Identified risks, plot holes, and continuity issues (Pass P19)."""
+    __tablename__ = "story_risk_register"
+    risk_id                    = Column(String,   primary_key=True, default=gen_uuid)
+    story_id                   = Column(String,   ForeignKey("stories.story_id"), nullable=False, unique=True)
+    plot_holes                 = Column(JSON,     default=list)
+    continuity_risks           = Column(JSON,     default=list)
+    character_inconsistencies  = Column(JSON,     default=list)
+    pacing_risks               = Column(JSON,     default=list)
+    tonal_shifts               = Column(JSON,     default=list)
+    unresolved_threads         = Column(JSON,     default=list)
+    risk_score                 = Column(Float,    default=0.0)
+    critical_issues            = Column(JSON,     default=list)
+    author_overrides           = Column(JSON,     default=dict)
+    is_stale                   = Column(Boolean,  default=False)
+    input_hash                 = Column(String,   default="")
+    generated_at               = Column(DateTime, default=datetime.utcnow)
+
+    story = relationship("Story", back_populates="risk_register")
+
+
+class StoryForeshadowingRegistry(Base):
+    """Foreshadowing hints and their payoffs across all chapters (P11 aggregate)."""
+    __tablename__ = "story_foreshadowing_registry"
+    foreshadow_id           = Column(String,   primary_key=True, default=gen_uuid)
+    story_id                = Column(String,   ForeignKey("stories.story_id"), nullable=False, unique=True)
+    active_foreshadowings   = Column(JSON,     default=list)
+    resolved_foreshadowings = Column(JSON,     default=list)
+    orphaned_hints          = Column(JSON,     default=list)
+    payoffs_without_setup   = Column(JSON,     default=list)
+    is_stale                = Column(Boolean,  default=False)
+    input_hash              = Column(String,   default="")
+    generated_at            = Column(DateTime, default=datetime.utcnow)
+
+    story = relationship("Story", back_populates="foreshadowing_registry")
+
+
+class StoryContinuityRisks(Base):
+    """Cross-chapter continuity issue aggregation (P12 aggregate)."""
+    __tablename__ = "story_continuity_risks"
+    continuity_id               = Column(String,   primary_key=True, default=gen_uuid)
+    story_id                    = Column(String,   ForeignKey("stories.story_id"), nullable=False, unique=True)
+    character_continuity_issues = Column(JSON,     default=list)
+    world_continuity_issues     = Column(JSON,     default=list)
+    timeline_continuity_issues  = Column(JSON,     default=list)
+    object_continuity_issues    = Column(JSON,     default=list)
+    chapter_continuity_map      = Column(JSON,     default=dict)
+    risk_score                  = Column(Float,    default=0.0)
+    is_stale                    = Column(Boolean,  default=False)
+    input_hash                  = Column(String,   default="")
+    generated_at                = Column(DateTime, default=datetime.utcnow)
+
+    story = relationship("Story", back_populates="continuity_risks")
+
+
+class StoryIntelVersion(Base):
+    """Snapshots of intelligence state for audit and rollback."""
+    __tablename__ = "story_intel_versions"
+    version_id     = Column(String,   primary_key=True, default=gen_uuid)
+    story_id       = Column(String,   ForeignKey("stories.story_id"), nullable=False)
+    version_number = Column(Integer,  nullable=False)
+    snapshot       = Column(JSON,     default=dict)
+    trigger        = Column(String,   default="manual")
+    created_at     = Column(DateTime, default=datetime.utcnow)
+
+    story = relationship("Story", back_populates="intel_versions")
+
+
+# ── V2: Character Intelligence ─────────────────────────────────────────────────
+
+class CharacterIntelligence(Base):
+    """Deep per-character psychographic and arc analysis (Pass P23)."""
+    __tablename__ = "character_intelligence"
+    intel_id               = Column(String,   primary_key=True, default=gen_uuid)
+    character_id           = Column(String,   ForeignKey("characters.character_id"), nullable=False, unique=True)
+    story_id               = Column(String,   ForeignKey("stories.story_id"),        nullable=False)
+    goals                  = Column(JSON,     default=list)
+    motivations            = Column(Text,     default="")
+    internal_wounds        = Column(Text,     default="")
+    external_objectives    = Column(JSON,     default=list)
+    secrets                = Column(JSON,     default=list)
+    fears                  = Column(JSON,     default=list)
+    contradictions         = Column(JSON,     default=list)
+    arc_stage              = Column(String,   default="")
+    arc_stage_rationale    = Column(Text,     default="")
+    voice_distinction_score= Column(Float,    default=0.0)
+    voice_markers          = Column(JSON,     default=list)
+    plot_influence_score   = Column(Float,    default=0.0)
+    consistency_score      = Column(Float,    default=0.0)
+    consistency_issues     = Column(JSON,     default=list)
+    memory_timeline        = Column(JSON,     default=list)
+    confidence             = Column(Float,    default=0.0)
+    author_overrides       = Column(JSON,     default=dict)
+    is_stale               = Column(Boolean,  default=False)
+    input_hash             = Column(String,   default="")
+    generated_at           = Column(DateTime, default=datetime.utcnow)
+
+    character = relationship("Character", back_populates="intelligence")
+    story     = relationship("Story",     back_populates="character_intelligence")
+
+
+# ── V2: Relationship Intelligence ──────────────────────────────────────────────
+
+class RelationshipIntelligence(Base):
+    """Deep per-relationship evolution and dynamics analysis (Pass P24)."""
+    __tablename__ = "relationship_intelligence"
+    intel_id             = Column(String,   primary_key=True, default=gen_uuid)
+    relationship_id      = Column(String,   ForeignKey("character_relationships.relationship_id"), nullable=False, unique=True)
+    story_id             = Column(String,   ForeignKey("stories.story_id"),         nullable=False)
+    from_character_id    = Column(String,   ForeignKey("characters.character_id"),  nullable=False)
+    to_character_id      = Column(String,   ForeignKey("characters.character_id"),  nullable=False)
+    evolution_trajectory = Column(Text,     default="")
+    turning_points       = Column(JSON,     default=list)
+    tension_score        = Column(Float,    default=0.0)
+    trust_score          = Column(Float,    default=0.0)
+    conflict_score       = Column(Float,    default=0.0)
+    dependency_score     = Column(Float,    default=0.0)
+    is_hidden            = Column(Boolean,  default=False)
+    hidden_reason        = Column(Text,     default="")
+    impact_on_plot       = Column(Text,     default="")
+    history              = Column(JSON,     default=list)
+    confidence           = Column(Float,    default=0.0)
+    author_overrides     = Column(JSON,     default=dict)
+    is_stale             = Column(Boolean,  default=False)
+    input_hash           = Column(String,   default="")
+    generated_at         = Column(DateTime, default=datetime.utcnow)
+
+    char_relationship = relationship("CharacterRelationship", back_populates="intelligence")
+    story             = relationship("Story",     back_populates="relationship_intelligence")
+    from_character    = relationship("Character", foreign_keys=[from_character_id])
+    to_character      = relationship("Character", foreign_keys=[to_character_id])
+
+
+# ── V2: Story Memory System ────────────────────────────────────────────────────
+
+class StoryMemoryEntry(Base):
+    """
+    Universal knowledge bus — every intelligence pass writes here; every AI
+    assistance feature (Plot Assistant, enrichment, transforms) reads via
+    BGE-M3 semantic search.
+
+    memory_key is UNIQUE per story to allow upsert semantics:
+      INSERT … ON CONFLICT (story_id, memory_key) DO UPDATE SET …
+    """
+    __tablename__ = "story_memory_entries"
+    entry_id                = Column(String,   primary_key=True, default=gen_uuid)
+    story_id                = Column(String,   ForeignKey("stories.story_id"), nullable=False)
+    memory_type             = Column(String,   nullable=False)
+    # character|relationship|plot|world|theme|conflict|timeline
+    memory_key              = Column(String,   nullable=False)
+    entity_type             = Column(String,   default="")
+    entity_id               = Column(String,   default="")
+    content                 = Column(Text,     nullable=False)
+    chapter_first_established= Column(Integer, nullable=True)
+    chapter_last_updated    = Column(Integer,  nullable=True)
+    importance              = Column(Float,    default=0.5)
+    is_active               = Column(Boolean,  default=True)
+    embedding               = Column(Vector(1024), nullable=True)
+    is_ai_generated         = Column(Boolean,  default=True)
+    is_author_added         = Column(Boolean,  default=False)
+    created_at              = Column(DateTime, default=datetime.utcnow)
+    updated_at              = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    __table_args__ = (
+        UniqueConstraint("story_id", "memory_key", name="uq_story_memory_key"),
+    )
+
+    story = relationship("Story", back_populates="memory_entries")
+
+
+# ── V2: Timeline Intelligence ──────────────────────────────────────────────────
+
+class StoryTimeline(Base):
+    """Story-level temporal structure summary (Pass P26)."""
+    __tablename__ = "story_timeline"
+    timeline_id              = Column(String,   primary_key=True, default=gen_uuid)
+    story_id                 = Column(String,   ForeignKey("stories.story_id"), nullable=False, unique=True)
+    timeline_type            = Column(String,   default="linear")
+    estimated_story_duration = Column(String,   default="")
+    start_period             = Column(String,   default="")
+    end_period               = Column(String,   default="")
+    seasons_mentioned        = Column(JSON,     default=list)
+    significant_time_gaps    = Column(JSON,     default=list)
+    character_age_map        = Column(JSON,     default=dict)
+    contradictions           = Column(JSON,     default=list)
+    contradictions_detected  = Column(Integer,  default=0)
+    confidence               = Column(Float,    default=0.0)
+    is_stale                 = Column(Boolean,  default=False)
+    input_hash               = Column(String,   default="")
+    generated_at             = Column(DateTime, default=datetime.utcnow)
+
+    story  = relationship("Story",  back_populates="timeline")
+    events = relationship("StoryTimelineEvent", back_populates="timeline", cascade="all, delete-orphan")
+
+
+class StoryTimelineEvent(Base):
+    """Individual temporal event extracted from a chapter (Pass P26)."""
+    __tablename__ = "story_timeline_events"
+    event_id              = Column(String,   primary_key=True, default=gen_uuid)
+    story_id              = Column(String,   ForeignKey("stories.story_id"), nullable=False)
+    timeline_id           = Column(String,   ForeignKey("story_timeline.timeline_id"), nullable=True)
+    chapter_id            = Column(String,   ForeignKey("chapters.chapter_id"), nullable=True)
+    chapter_number        = Column(Integer,  nullable=False)
+    event_type            = Column(String,   default="action")
+    story_date            = Column(String,   default="")
+    temporal_marker       = Column(String,   default="")
+    characters_involved   = Column(JSON,     default=list)
+    location              = Column(String,   default="")
+    event_description     = Column(Text,     default="")
+    is_flashback          = Column(Boolean,  default=False)
+    is_flashforward       = Column(Boolean,  default=False)
+    flash_origin_chapter  = Column(Integer,  nullable=True)
+    is_stale              = Column(Boolean,  default=False)
+    generated_at          = Column(DateTime, default=datetime.utcnow)
+
+    story    = relationship("Story",         back_populates="timeline_events")
+    timeline = relationship("StoryTimeline", back_populates="events")
+
+
+# ── V2: Story Graph ────────────────────────────────────────────────────────────
+
+class StoryGraphNode(Base):
+    """PostgreSQL adjacency-list node — entity in the story knowledge graph (P28)."""
+    __tablename__ = "story_graph_nodes"
+    node_id            = Column(String,   primary_key=True, default=gen_uuid)
+    story_id           = Column(String,   ForeignKey("stories.story_id"), nullable=False)
+    node_type          = Column(String,   nullable=False)
+    # story|chapter|character|location|object|event|theme|conflict|promise
+    label              = Column(String,   nullable=False)
+    entity_id          = Column(String,   default="")
+    properties         = Column(JSON,     default=dict)
+    embedding          = Column(Vector(1024), nullable=True)
+    chapter_introduced = Column(Integer,  nullable=True)
+    is_active          = Column(Boolean,  default=True)
+    created_at         = Column(DateTime, default=datetime.utcnow)
+
+    story         = relationship("Story", back_populates="graph_nodes")
+    outgoing_edges= relationship("StoryGraphEdge", foreign_keys="StoryGraphEdge.from_node_id",
+                                 back_populates="from_node", cascade="all, delete-orphan")
+    incoming_edges= relationship("StoryGraphEdge", foreign_keys="StoryGraphEdge.to_node_id",
+                                 back_populates="to_node")
+
+
+class StoryGraphEdge(Base):
+    """Directed edge in the story knowledge graph (P28)."""
+    __tablename__ = "story_graph_edges"
+    edge_id             = Column(String,   primary_key=True, default=gen_uuid)
+    story_id            = Column(String,   ForeignKey("stories.story_id"),       nullable=False)
+    from_node_id        = Column(String,   ForeignKey("story_graph_nodes.node_id"), nullable=False)
+    to_node_id          = Column(String,   ForeignKey("story_graph_nodes.node_id"), nullable=False)
+    edge_type           = Column(String,   nullable=False)
+    weight              = Column(Float,    default=1.0)
+    label               = Column(String,   default="")
+    chapter_established = Column(Integer,  nullable=True)
+    properties          = Column(JSON,     default=dict)
+    is_active           = Column(Boolean,  default=True)
+    created_at          = Column(DateTime, default=datetime.utcnow)
+
+    story     = relationship("Story",          back_populates="graph_edges")
+    from_node = relationship("StoryGraphNode", foreign_keys=[from_node_id], back_populates="outgoing_edges")
+    to_node   = relationship("StoryGraphNode", foreign_keys=[to_node_id],   back_populates="incoming_edges")

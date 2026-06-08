@@ -1,5 +1,5 @@
 #!/bin/bash
-# Download all three NarratIQ AI models from Hugging Face into /workspace/models.
+# Download all NarratIQ AI models from Hugging Face into /workspace/models.
 #
 # Usage:
 #   bash scripts/download_models.sh
@@ -7,10 +7,7 @@
 # With a Hugging Face token (for gated models or higher rate limits):
 #   HF_TOKEN=hf_xxx bash scripts/download_models.sh
 #
-# To use the fast Rust downloader (~3x speed on large models):
-#   HF_HUB_ENABLE_HF_TRANSFER=1 bash scripts/download_models.sh
-#
-# Safe to re-run — huggingface-cli skips files that already exist.
+# Safe to re-run — skips directories that are already populated.
 
 set -euo pipefail
 
@@ -22,16 +19,10 @@ echo " NarratIQ AI — Model Download"
 echo " Destination: ${MODEL_BASE_DIR}"
 echo "======================================================"
 
-# ── 0. Install download tooling if missing ────────────────────────────────────
-if ! command -v huggingface-cli &> /dev/null; then
-    echo "[setup] Installing huggingface-hub + hf-transfer..."
-    pip install -q --upgrade huggingface-hub hf-transfer
-fi
-
 # ── 1. Authenticate (optional) ───────────────────────────────────────────────
 if [ -n "${HF_TOKEN}" ]; then
     echo "[auth] Logging in to Hugging Face with provided token..."
-    huggingface-cli login --token "${HF_TOKEN}" --add-to-git-credential
+    hf auth login --token "${HF_TOKEN}"
 else
     echo "[auth] No HF_TOKEN set — downloading public models without authentication."
     echo "       Set HF_TOKEN=hf_xxx if you need gated model access or higher rate limits."
@@ -46,10 +37,9 @@ download_model() {
     local local_dir="$2"
     local friendly_name="$3"
 
-    if [ -d "${local_dir}" ] && [ "$(ls -A "${local_dir}" 2>/dev/null)" ]; then
+    if [ -f "${local_dir}/config.json" ]; then
         echo ""
         echo "[skip] ${friendly_name} already exists at ${local_dir}"
-        echo "       Delete the folder and re-run to force a fresh download."
         return 0
     fi
 
@@ -59,17 +49,15 @@ download_model() {
     echo "  To   : ${local_dir}"
     mkdir -p "${local_dir}"
 
-    huggingface-cli download "${repo_id}" \
-        --local-dir "${local_dir}" \
-        --local-dir-use-symlinks False
+    hf download "${repo_id}" \
+        --local-dir "${local_dir}"
 
     echo "  Done : ${friendly_name}"
 }
 
 # ── 3. Download models ────────────────────────────────────────────────────────
 echo ""
-echo "Downloading 3 models. Qwen2.5-7B-Instruct is ~14 GB — be patient."
-echo "Tip: export HF_HUB_ENABLE_HF_TRANSFER=1 for 3× faster downloads."
+echo "Downloading models. Qwen2.5-7B-Instruct is ~14 GB — be patient."
 
 download_model \
     "Qwen/Qwen2.5-7B-Instruct" \
@@ -91,8 +79,4 @@ echo ""
 echo "======================================================"
 echo " Download complete. Model directory sizes:"
 du -sh "${MODEL_BASE_DIR}"/*/  2>/dev/null || true
-echo ""
-echo " Next steps:"
-echo "   1. Set env vars (or copy .env.example to backend/.env)"
-echo "   2. bash start.sh"
 echo "======================================================"

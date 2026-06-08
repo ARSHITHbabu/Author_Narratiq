@@ -1,3 +1,4 @@
+import asyncio
 import uuid
 from fastapi import APIRouter, Depends, HTTPException
 import json
@@ -64,6 +65,15 @@ async def analyze_story(
         themes=result["themes"],
         writing_direction=result.get("writing_direction"),
         confidence=result["confidence"],
+        # Richer Story Intelligence quick-analysis fields
+        secondary_genres=result.get("secondary_genres", []),
+        comparable_titles=result.get("comparable_titles", []),
+        marketing_category=result.get("marketing_category") or None,
+        emotional_arc=result.get("emotional_arc") or None,
+        narrative_pov=result.get("narrative_pov") or None,
+        pacing=result.get("pacing") or None,
+        content_warnings=result.get("content_warnings", []),
+        intelligence_notes=result.get("intelligence_notes") or None,
     )
 
     return IntakeResponse(intake_id=intake.intake_id, genre_profile=profile, model=settings.vllm_model_name)
@@ -101,6 +111,24 @@ def confirm_intake(
     gp.target_audience = audience
     gp.writing_direction = direction
     db.commit()
+
+    # Trigger foundation intelligence passes P01–P07 in background
+    try:
+        from services.story_intel_orchestrator import run_analysis_background
+        asyncio.create_task(
+            run_analysis_background(
+                story_id=story_id,
+                user_id=current_user.user_id,
+                triggered_by="intake",
+                passes=["P01", "P02", "P03", "P04", "P05", "P06", "P07"],
+            )
+        )
+    except Exception as exc:
+        # Never block intake confirm due to intelligence errors, but log them.
+        print(
+            f"[intake] failed to schedule background intelligence passes for "
+            f"story={story_id[:8]}... ({type(exc).__name__}: {exc})"
+        )
 
     return {"confirmed": True, "story_id": story_id}
 

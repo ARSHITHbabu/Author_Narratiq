@@ -208,7 +208,10 @@ async def generate_cast(
     """
     _check_story_access(story_id, current_user.user_id, db)
 
-    from models import ChapterChunk
+    from models import Chapter, ChapterChunk
+    from services.ai_service import _html_to_plain, extract_cast
+
+    # Primary source: indexed chunks (clean, paragraph-structured text).
     chunks = (
         db.query(ChapterChunk)
         .filter(ChapterChunk.story_id == story_id)
@@ -216,20 +219,56 @@ async def generate_cast(
         .all()
     )
 
-    if not chunks:
-        raise HTTPException(
-            status_code=422,
-            detail="No indexed chapter content found. Save and open your chapters first so they can be indexed.",
-        )
-
-    # Group by chapter number and join chunk texts
     chapter_map: dict[int, list[str]] = {}
     for c in chunks:
         chapter_map.setdefault(c.chapter_number, []).append(c.text)
+
+    # Fallback: if chapters were never indexed (no chunks), read the raw chapter
+    # content directly so cast generation works on any saved story — not only
+    # ones the author happened to open and sync. This is what fixes the
+    # "failed to get chapters" path.
+    if not chapter_map:
+        chapters = (
+            db.query(Chapter)
+            .filter(Chapter.story_id == story_id)
+            .order_by(Chapter.chapter_number)
+            .all()
+        )
+        for ch in chapters:
+            plain = _html_to_plain(ch.content or "")
+            if plain.strip():
+                chapter_map[ch.chapter_number] = [plain]
+        if chapter_map:
+            print(
+                f"[generate_cast] story={story_id[:8]}... not indexed — "
+                f"using raw content from {len(chapter_map)} chapter(s)"
+            )
+
+    if not chapter_map:
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                "No chapter text found for this story. Write and save at least one "
+                "chapter before generating a cast."
+            ),
+        )
+
     per_chapter = [" ".join(texts) for _, texts in sorted(chapter_map.items())]
 
-    from services.ai_service import extract_cast
-    raw_suggestions = await extract_cast(per_chapter)
+    try:
+        raw_suggestions = await extract_cast(per_chapter)
+    except ValueError as exc:
+        # extract_cast raises ValueError on unparseable / malformed model output.
+        raise HTTPException(status_code=503, detail=str(exc))
+    except Exception as exc:  # vLLM unreachable, timeout, etc.
+        print(f"[generate_cast] LLM call failed for story={story_id[:8]}...: {exc!r}")
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "The AI model is currently unavailable, so the cast could not be "
+                "generated. Please wait a moment and try again."
+            ),
+        )
 
     # Build existing character index (name + aliases → character)
     existing = db.query(Character).filter(Character.story_id == story_id).all()
@@ -268,15 +307,33 @@ async def generate_cast(
                 if existing_char:
                     break
 
+        def _s(key: str) -> str:
+            v = raw.get(key, "")
+            return str(v).strip() if v is not None else ""
+
+        raw_traits = raw.get("traits", [])
+        traits = (
+            [str(t).strip() for t in raw_traits if str(t).strip()]
+            if isinstance(raw_traits, list) else []
+        )
+
         suggestions.append(CastSuggestion(
             name=name,
             role=role,
             status=status,
-            description=str(raw.get("description", "")),
+            description=_s("description"),
             aliases=aliases,
-            first_appearance=str(raw.get("first_appearance", "")),
-            evidence_snippet=str(raw.get("evidence_snippet", "")),
+            first_appearance=_s("first_appearance"),
+            evidence_snippet=_s("evidence_snippet"),
             confidence=confidence,
+            age=_s("age"),
+            appearance=_s("appearance"),
+            personality=_s("personality"),
+            goals=_s("goals"),
+            motivations=_s("motivations"),
+            backstory=_s("backstory"),
+            arc_notes=_s("arc_notes"),
+            traits=traits,
             already_exists=existing_char is not None,
             existing_character_id=existing_char.character_id if existing_char else None,
         ))
@@ -348,11 +405,24 @@ async def confirm_cast(
         if s.evidence_snippet:
             profile_notes = (profile_notes + "\n\nStory evidence: " + s.evidence_snippet).strip()
 
+        # backstory: prefer extracted backstory, fall back to the description so
+        # the field is never silently empty when we have something to show.
+        backstory = (s.backstory or "").strip() or (s.description or "").strip()
+
+        traits = [t.strip() for t in (s.traits or []) if t and t.strip()]
+
         profile = CharacterProfile(
             character_id=character.character_id,
             story_id=story_id,
             raw_notes=profile_notes,
-            backstory=s.description or "",
+            age=(s.age or "").strip(),
+            appearance=(s.appearance or "").strip(),
+            personality=(s.personality or "").strip(),
+            goals=(s.goals or "").strip(),
+            motivations=(s.motivations or "").strip(),
+            backstory=backstory,
+            arc_notes=(s.arc_notes or "").strip(),
+            traits=traits,
         )
         db.add(profile)
         db.flush()

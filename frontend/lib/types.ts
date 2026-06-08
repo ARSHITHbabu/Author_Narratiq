@@ -46,6 +46,15 @@ export interface GenreProfile {
   themes: string[]
   writing_direction?: string
   confidence: number
+  // Richer Story Intelligence quick-analysis fields (optional)
+  secondary_genres?:   string[]
+  comparable_titles?:  string[]
+  marketing_category?: string | null
+  emotional_arc?:      string | null
+  narrative_pov?:      string | null
+  pacing?:             string | null
+  content_warnings?:   string[]
+  intelligence_notes?: string | null
 }
 
 export interface IntakeResponse {
@@ -310,6 +319,15 @@ export interface CastSuggestion {
   first_appearance:      string
   evidence_snippet:      string
   confidence:            'high' | 'uncertain'
+  // Rich profile fields extracted from chapter evidence (may be "" / [])
+  age:                   string
+  appearance:            string
+  personality:           string
+  goals:                 string
+  motivations:           string
+  backstory:             string
+  arc_notes:             string
+  traits:                string[]
   already_exists:        boolean
   existing_character_id: string | null
 }

@@ -12,6 +12,7 @@ import models  # noqa: F401
 
 from routers import auth, projects, chapters, intake, plot_assistant, ai_transform, ocr, manuscript, export, characters, plot_holes, manuscript_report
 from routers import search as search_router
+from routers import story_intel
 
 Base.metadata.create_all(bind=engine)
 run_db_migrations(engine)   # add new columns to existing tables
@@ -115,6 +116,36 @@ async def lifespan(app: FastAPI):
     app.state.embeddings_ready = True
     print(f"BGE-M3 loaded on {settings.bge_device}.")
 
+    # ── pgvector path self-check (fail fast) ──────────────────────────────────
+    # Validates the embedding → pgvector bind/cast round-trip at boot so a broken
+    # vector query surfaces here in the logs, not as a per-request 500. This is
+    # the exact failure mode (`:q::vector` bind leak) that silently broke all
+    # retrieval after the SQLite→PostgreSQL migration.
+    print("NarratIQ startup: verifying pgvector query path...")
+    try:
+        from sqlalchemy import text as _sql_text
+        from database import SessionLocal
+        from services.ai_service import embed_text_sync, vector_similarity
+        _probe = embed_text_sync("startup vector self-check")
+        _db = SessionLocal()
+        try:
+            _score = _db.execute(
+                _sql_text(f"SELECT {vector_similarity('CAST(:q AS vector)')} AS s"),
+                {"q": "[" + ",".join(str(float(v)) for v in _probe) + "]"},
+            ).scalar()
+        finally:
+            _db.close()
+        if _score is None or abs(float(_score) - 1.0) > 1e-3:
+            raise RuntimeError(f"unexpected self-similarity score: {_score}")
+        print(f"pgvector query path OK (self-similarity={float(_score):.4f}).")
+    except Exception as e:
+        # Hard failure: retrieval (plot assistant, QA, character RAG) cannot work.
+        raise RuntimeError(
+            "pgvector query path self-check FAILED — vector retrieval is broken. "
+            f"Cause: {type(e).__name__}: {e}. "
+            "Check pgvector is installed and the embedding<=>vector cast syntax."
+        ) from e
+
     print(f"NarratIQ startup: connecting to vLLM at {settings.vllm_base_url}...")
     async with httpx.AsyncClient(timeout=10.0) as client:
         try:
@@ -187,6 +218,7 @@ app.include_router(export.router,         prefix="/api/export")
 app.include_router(search_router.router,  prefix="/api/search")
 app.include_router(plot_holes.router,        prefix="/api/stories")
 app.include_router(manuscript_report.router, prefix="/api/stories")
+app.include_router(story_intel.router,       prefix="/api/stories")
 
 
 @app.get("/api/health")

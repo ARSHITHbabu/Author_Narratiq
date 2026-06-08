@@ -50,8 +50,10 @@ class Settings(BaseSettings):
 
     # ── vLLM server ───────────────────────────────────────────────────────────
     # VLLM_BASE_URL overrides host+port construction.
-    # Default: http://127.0.0.1:8001/v1  (matches start.sh which binds on 8001)
-    vllm_base_url: str = "http://127.0.0.1:8001/v1"
+    # The running vLLM instance listens on 9001 (see start-narratiq.sh and
+    # CLAUDE.md). The default matches that port so the backend reaches the model
+    # even if VLLM_BASE_URL is omitted from .env. Override in .env if needed.
+    vllm_base_url: str = "http://127.0.0.1:9001/v1"
     # Name vLLM was started with via --served-model-name.
     # Must match exactly what the OpenAI client sends as `model=`.
     vllm_model_name: str = "Qwen/Qwen2.5-7B-Instruct"
