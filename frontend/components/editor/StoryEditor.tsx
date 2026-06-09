@@ -105,7 +105,14 @@ export default function StoryEditor({ storyId, chapter, onWordCountChange, onEdi
     },
   })
 
-  // Load chapter content when chapter changes
+  // Load chapter content when chapter changes OR when the TipTap editor first
+  // becomes available.  TipTap's useEditor returns null on the first render and
+  // becomes non-null in a subsequent render (it creates the editor in a
+  // useEffect internally).  Without `editor` in the dep array the effect fires
+  // once while editor is null (exits early) and never re-fires for the same
+  // chapter.chapter_id — leaving Chapter 1 blank until the user navigates away
+  // and back.  Adding `editor` here makes the effect re-run the moment the
+  // editor instance is ready, loading the correct content on first visit.
   useEffect(() => {
     if (!editor) return
     const load = async () => {
@@ -128,7 +135,8 @@ export default function StoryEditor({ storyId, chapter, onWordCountChange, onEdi
     }
     load()
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current) }
-  }, [chapter.chapter_id, reloadTrigger])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editor, chapter.chapter_id, reloadTrigger])
 
   const saveContent = useCallback(async (html: string) => {
     setSaving(true)

@@ -32,6 +32,9 @@ export default function EditorPage({ params }: { params: { id: string } }) {
   const [activeChapter, setActiveChapter] = useState<Chapter | null>(null)
   const [loading, setLoading] = useState(true)
   const [wordCount, setWordCount] = useState(0)
+
+  // Stable ref so handleWordCountChange never closes over a stale activeChapter
+  const activeChapterIdRef = useRef<string | null>(null)
   const [rightPanel, setRightPanel] = useState<RightPanel>('ai')
   const [suggestions, setSuggestions] = useState<AISuggestion[]>([])
   const [loadingSuggestions, setLoadingSuggestions] = useState(false)
@@ -64,6 +67,13 @@ export default function EditorPage({ params }: { params: { id: string } }) {
     caseSensitive: boolean
     wholeWord: boolean
   } | null>(null)
+
+  // Keep ref in sync so handleWordCountChange can read the latest chapter id
+  // without being recreated on every chapter switch (which would cause TipTap
+  // to re-capture the callback on every render unnecessarily).
+  useEffect(() => {
+    activeChapterIdRef.current = activeChapter?.chapter_id ?? null
+  }, [activeChapter])
 
   useEffect(() => {
     loadProject()
@@ -115,6 +125,20 @@ export default function EditorPage({ params }: { params: { id: string } }) {
       // so the author sees which matches exist here (all inactive/yellow; no scroll)
       const { query, caseSensitive, wholeWord } = activeSearchRef.current
       editorSearchRef.current.applySearch(query, caseSensitive, wholeWord, -1)
+    }
+  }, [])
+
+  // Updates the status-bar word count AND the sidebar's ch.word_count for the
+  // active chapter so both reflect the live editor count without a page refresh.
+  // Uses a ref for the active chapter id so this callback stays stable across
+  // chapter switches — TipTap picks up the latest version each render.
+  const handleWordCountChange = useCallback((count: number) => {
+    setWordCount(count)
+    const chId = activeChapterIdRef.current
+    if (chId) {
+      setChapters(prev =>
+        prev.map(ch => ch.chapter_id === chId ? { ...ch, word_count: count } : ch)
+      )
     }
   }, [])
 
@@ -297,7 +321,7 @@ export default function EditorPage({ params }: { params: { id: string } }) {
           <EditorWithMethods
             storyId={storyId}
             chapter={activeChapter}
-            onWordCountChange={setWordCount}
+            onWordCountChange={handleWordCountChange}
             onMethodsReady={setEditorMethods}
             onSearchReady={(fns) => { editorSearchRef.current = fns }}
             onContentLoaded={handleContentLoaded}

@@ -21,13 +21,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const t = localStorage.getItem('narratiq_token')
-    const u = localStorage.getItem('narratiq_user')
-    if (t && u) {
-      setToken(t)
-      setUser(JSON.parse(u))
+    try {
+      const t = localStorage.getItem('narratiq_token')
+      const u = localStorage.getItem('narratiq_user')
+      if (t && u) {
+        setToken(t)
+        setUser(JSON.parse(u))
+      }
+    } catch {
+      localStorage.removeItem('narratiq_token')
+      localStorage.removeItem('narratiq_user')
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }, [])
 
   const login = async (email: string, password: string) => {

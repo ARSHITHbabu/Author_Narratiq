@@ -311,21 +311,92 @@ echo "[4c/6] Setting up PostgreSQL database..."
 pg_ctlcluster 16 main start 2>/dev/null \
   || service postgresql start 2>/dev/null \
   || true
-sleep 2
 
-# Create role + database + extension (all idempotent)
-sudo -u postgres psql -c "CREATE USER narratiq WITH PASSWORD 'narratiq';" 2>/dev/null || true
-sudo -u postgres psql -c "CREATE DATABASE narratiq OWNER narratiq;" 2>/dev/null || true
-sudo -u postgres psql -d narratiq -c "CREATE EXTENSION IF NOT EXISTS vector;" 2>/dev/null || true
+# Helper: run psql as the postgres OS user, preserving all argument quoting.
+# Preference order: runuser (util-linux, always on Ubuntu) → sudo → su with
+# printf-quoting as last resort.  'su -c "psql $*"' is intentionally avoided
+# because $* loses quoting and semicolons in SQL strings become shell separators.
+_PG() {
+  if command -v runuser &>/dev/null; then
+    runuser -u postgres -- psql "$@"
+  elif command -v sudo &>/dev/null; then
+    sudo -u postgres psql "$@"
+  else
+    # Build a safely-quoted command string for the sub-shell started by su.
+    local _cmd="psql"
+    for _a in "$@"; do _cmd="$_cmd $(printf '%q' "$_a")"; done
+    su - postgres -s /bin/bash -c "$_cmd"
+  fi
+}
+
+# Use pg_isready for the readiness probe — it only needs the TCP port to
+# respond, requires no password, and works before any role exists.
+echo "  Waiting for PostgreSQL to be ready..."
+for i in $(seq 1 30); do
+  if pg_isready -h localhost -U postgres -q 2>/dev/null; then
+    echo "  PostgreSQL ready after ${i}s"
+    break
+  fi
+  if [ $i -eq 30 ]; then
+    echo "  ERROR: PostgreSQL did not start within 30 s."
+    echo "  Try: pg_ctlcluster 16 main status"
+    exit 1
+  fi
+  sleep 1
+done
+
+# ── Idempotent role creation — ALWAYS synchronise the password ────────────────
+# CREATE USER fails when the role already exists; that error is suppressed.
+# ALTER USER then unconditionally sets the password, making this safe to run
+# on every startup regardless of prior state.
+_PG -c "CREATE USER narratiq WITH PASSWORD 'narratiq';" 2>/dev/null || true
+_PG -c "ALTER USER narratiq WITH PASSWORD 'narratiq';" 2>/dev/null || true
+
+# ── Database + extension (both fully idempotent) ─────────────────────────────
+_PG -c "CREATE DATABASE narratiq OWNER narratiq;" 2>/dev/null || true
+# PostgreSQL ≥15 revokes CREATE on public schema from PUBLIC by default;
+# grant it back explicitly so the narratiq user can create tables.
+_PG -d narratiq -c "GRANT ALL PRIVILEGES ON DATABASE narratiq TO narratiq;" 2>/dev/null || true
+_PG -d narratiq -c "GRANT ALL ON SCHEMA public TO narratiq;" 2>/dev/null || true
+_PG -d narratiq -c "CREATE EXTENSION IF NOT EXISTS vector;" 2>/dev/null || true
 echo "  Database 'narratiq' ready, pgvector extension enabled"
 
-# Write DATABASE_URL to backend/.env (idempotent)
-if ! grep -q "^DATABASE_URL=" "$ENV_FILE" 2>/dev/null; then
-  echo "DATABASE_URL=postgresql+psycopg2://narratiq:narratiq@localhost:5432/narratiq" >> "$ENV_FILE"
-  echo "  DATABASE_URL written to backend/.env"
-else
-  echo "  DATABASE_URL: OK"
-fi
+# ── Always write the correct DATABASE_URL — overwrite any stale/wrong value ──
+# The "only write when missing" guard would leave a SQLite or wrong-host URL
+# intact across restarts.  Remove + re-add is fully idempotent.
+sed -i '/^DATABASE_URL=/d' "$ENV_FILE" 2>/dev/null || true
+echo "DATABASE_URL=postgresql+psycopg2://narratiq:narratiq@localhost:5432/narratiq" >> "$ENV_FILE"
+echo "  DATABASE_URL set in backend/.env"
+
+# ── Always persist vLLM settings to .env so backend works without this script ─
+# These are also export-ed below for the uvicorn child process, but writing to
+# .env makes a manual 'uvicorn main:app' invocation use the correct values too.
+sed -i '/^VLLM_BASE_URL=/d'    "$ENV_FILE" 2>/dev/null || true
+sed -i '/^VLLM_MODEL_NAME=/d'  "$ENV_FILE" 2>/dev/null || true
+sed -i '/^CORS_ORIGINS=/d'     "$ENV_FILE" 2>/dev/null || true
+echo "VLLM_BASE_URL=http://127.0.0.1:${VLLM_PORT}/v1"                                   >> "$ENV_FILE"
+echo "VLLM_MODEL_NAME=Qwen/Qwen2.5-7B-Instruct"                                         >> "$ENV_FILE"
+echo "CORS_ORIGINS=[\"${FRONTEND_PUBLIC_URL}\",\"http://localhost:3000\",\"http://127.0.0.1:3000\"]" >> "$ENV_FILE"
+echo "  vLLM + CORS settings written to backend/.env"
+
+# ── DB connection health check — verify credentials before Python runs ────────
+echo "  Verifying DB connection (narratiq@localhost)..."
+for i in $(seq 1 15); do
+  if PGPASSWORD=narratiq psql -h localhost -U narratiq -d narratiq -c "SELECT 1;" > /dev/null 2>&1; then
+    echo "  DB credentials verified OK"
+    break
+  fi
+  if [ $i -eq 15 ]; then
+    echo ""
+    echo "  ERROR: Cannot connect to PostgreSQL as narratiq user."
+    echo "  Possible causes:"
+    echo "    - pg_hba.conf does not allow password auth for host connections"
+    echo "    - Password was not applied correctly"
+    echo "  Fix: runuser -u postgres -- psql -c \"ALTER USER narratiq WITH PASSWORD 'narratiq';\""
+    exit 1
+  fi
+  sleep 1
+done
 
 # Pre-create tables from ORM models (idempotent; needed before alembic runs)
 cd "$BACKEND_DIR"
@@ -347,16 +418,21 @@ echo "  Alembic migrations applied"
 # ══════════════════════════════════════════════════════════════
 echo ""
 echo "[5/6] Starting FastAPI backend..."
+
+# Kill any existing uvicorn then wait until the port is actually free.
+# 'sleep 1' after pkill is not enough — the OS needs to finish TCP teardown.
 pkill -f "uvicorn main:app" 2>/dev/null || true
-sleep 1
+for i in $(seq 1 10); do
+  if ! ss -tlnp 2>/dev/null | grep -q ":${BACKEND_PORT} "; then break; fi
+  sleep 1
+done
 
 cd "$BACKEND_DIR"
 
-# Tell the backend where vLLM is (port 9001, not the default 8001)
+# Also export as env vars so the child process gets them even before .env loads.
 export VLLM_BASE_URL="http://127.0.0.1:${VLLM_PORT}/v1"
 export VLLM_MODEL_NAME="Qwen/Qwen2.5-7B-Instruct"
 export MODEL_BASE_DIR="$MODEL_DIR"
-# CORS: allow the RunPod proxy URL + localhost for development
 export CORS_ORIGINS='["'"${FRONTEND_PUBLIC_URL}"'","http://localhost:3000","http://127.0.0.1:3000"]'
 
 python3 -m uvicorn main:app \
@@ -369,19 +445,65 @@ python3 -m uvicorn main:app \
 BACKEND_PID=$!
 echo "  Backend PID: $BACKEND_PID"
 
-for i in $(seq 1 15); do
-  if curl -s "http://localhost:${BACKEND_PORT}/api/health" > /dev/null 2>&1; then
-    echo "  Backend ready"
+# BGE-M3 loading takes 30-60s — wait up to 90s with a clear error if it fails.
+BACKEND_READY=0
+for i in $(seq 1 45); do
+  if curl -sf "http://localhost:${BACKEND_PORT}/api/health" 2>/dev/null | grep -q '"status":"ok"'; then
+    echo "  Backend ready after $((i*2))s"
+    BACKEND_READY=1
     break
   fi
   sleep 2
 done
+if [ "$BACKEND_READY" -eq 0 ]; then
+  echo ""
+  echo "  WARNING: Backend did not respond within 90s."
+  echo "  BGE-M3 may still be loading.  Check: tail -30 $LOG_DIR/backend.log"
+  echo "  The frontend will still build; backend should be ready by the time you open the app."
+fi
 
 # ══════════════════════════════════════════════════════════════
 # STEP 6 — Build & start Next.js frontend
 # ══════════════════════════════════════════════════════════════
 echo ""
 echo "[6/6] Building & starting Next.js frontend..."
+
+# ── Stop EVERY existing Next.js process BEFORE rebuilding ─────────────────────
+# A stale build is the root cause of "ChunkLoadError: Loading chunk N failed":
+# an old next-server keeps serving HTML that references chunk hashes from the
+# previous build, but those chunks get deleted by the clean rebuild below. The
+# browser then 404s on /_next/static/chunks/... → ChunkLoadError. So we must
+# guarantee NO old frontend process is alive (and not serving old HTML) before
+# we wipe .next and rebuild.
+echo "  Stopping any existing Next.js frontend process(es)..."
+
+# Match the server itself, the `npm start`/`next start` wrappers, and any
+# `sh -c next start` shim. Graceful TERM first, then KILL the stubborn ones.
+NEXT_PATTERNS='next-server|next start|next/dist/bin/next'
+pkill -TERM -f "$NEXT_PATTERNS" 2>/dev/null || true
+sleep 2
+pkill -KILL -f "$NEXT_PATTERNS" 2>/dev/null || true
+
+# Belt-and-suspenders: kill whatever still holds port 3000, then wait for the
+# OS to finish TCP teardown so the new server can bind cleanly.
+fuser -k "${FRONTEND_PORT}/tcp" 2>/dev/null || true
+for i in $(seq 1 15); do
+  if ! ss -tlnp 2>/dev/null | grep -q ":${FRONTEND_PORT} "; then
+    echo "  Port ${FRONTEND_PORT} is free"
+    break
+  fi
+  if [ "$i" -eq 15 ]; then
+    echo "  WARNING: Port ${FRONTEND_PORT} still busy after 15s — forcing kill"
+    fuser -k "${FRONTEND_PORT}/tcp" 2>/dev/null || true
+  fi
+  sleep 1
+done
+
+# Confirm no next-server survived (should print 0).
+# NOTE: `|| true` is required — pgrep exits 1 when zero processes match (the
+# normal case after a successful kill), which would abort the script under set -e.
+LEFTOVER=$(pgrep -fc "next-server" 2>/dev/null || true); LEFTOVER=${LEFTOVER:-0}
+echo "  Remaining next-server processes before rebuild: ${LEFTOVER}"
 
 cd "$FRONTEND_DIR"
 
@@ -391,13 +513,41 @@ NEXT_PUBLIC_API_URL=${BACKEND_PUBLIC_URL}
 EOF
 echo "  NEXT_PUBLIC_API_URL=${BACKEND_PUBLIC_URL}"
 
-echo "  Building (~30-60s)..."
-npm run build > "$LOG_DIR/frontend-build.log" 2>&1
+# Clear ALL stale build artifacts so the rebuild emits fresh, self-consistent
+# chunk hashes and no deleted-chunk references survive. Without this, old .next/
+# files survive pod restarts and stale CSS/JS (and stale chunk manifests) ship.
+echo "  Removing stale build artifacts (.next + next cache)..."
+rm -rf "$FRONTEND_DIR/.next"
+rm -rf "$FRONTEND_DIR/node_modules/.cache" 2>/dev/null || true
 
+echo "  Building cleanly (~30-60s)..."
+if ! npm run build > "$LOG_DIR/frontend-build.log" 2>&1; then
+  echo "  ERROR: Frontend build FAILED. Check: tail -40 $LOG_DIR/frontend-build.log"
+  tail -20 "$LOG_DIR/frontend-build.log" || true
+  exit 1
+fi
+
+# Start exactly ONE frontend server instance from the freshly built .next.
 npm start -- --port $FRONTEND_PORT > "$LOG_DIR/frontend.log" 2>&1 &
 FRONTEND_PID=$!
-sleep 4
-echo "  Frontend PID: $FRONTEND_PID"
+
+# Wait for the port to accept connections (up to 15s).
+for i in $(seq 1 15); do
+  if curl -so /dev/null -w "%{http_code}" "http://localhost:${FRONTEND_PORT}" 2>/dev/null | grep -q "200\|30[0-9]"; then
+    echo "  Frontend ready after ${i}s"
+    break
+  fi
+  if [ $i -eq 15 ]; then
+    echo "  WARNING: Frontend did not respond within 15s. Check: tail -20 $LOG_DIR/frontend.log"
+  fi
+  sleep 1
+done
+
+# Sanity-check that only a single next-server is running (no duplicate servers
+# fighting over old/new builds).
+RUNNING=$(pgrep -fc "next-server" 2>/dev/null || true); RUNNING=${RUNNING:-0}
+echo "  Active next-server processes: ${RUNNING} (expected: 1)"
+echo "  Frontend PID: $FRONTEND_PID  (BUILD_ID: $(cat "$FRONTEND_DIR/.next/BUILD_ID" 2>/dev/null || echo '?'))"
 
 # ══════════════════════════════════════════════════════════════
 # Done
