@@ -72,7 +72,7 @@ async def recover_orphaned_jobs() -> dict[str, int]:
         )
         for job in stuck_intel:
             job.status     = "error"
-            job.error      = _ORPHAN_MESSAGE
+            job.error_message = _ORPHAN_MESSAGE
             job.updated_at = now
         counts["story_intel_jobs"] = len(stuck_intel)
 

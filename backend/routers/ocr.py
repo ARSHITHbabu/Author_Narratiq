@@ -205,7 +205,7 @@ async def extract_ocr(
     ocr_dir = settings.upload_dir_ocr
     os.makedirs(ocr_dir, exist_ok=True)
     file_id   = str(uuid.uuid4())
-    file_path = os.path.join(ocr_dir, f"{file_id}_{file.filename}")
+    file_path = os.path.join(ocr_dir, f"{file_id}{_ext}")
     with open(file_path, "wb") as f:
         f.write(content)
 

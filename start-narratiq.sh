@@ -172,6 +172,7 @@ pip install \
   "python-docx>=1.1.0" \
   "reportlab>=4.0.0" \
   "faster-whisper>=1.0.3" \
+  "slowapi==0.1.9" \
   >> "$LOG_DIR/pip-backend.log" 2>&1
 # Also ensure HF download tooling is available (needed for model downloads)
 pip install -q "huggingface-hub>=0.24.0" "hf-transfer>=0.1.8" >> "$LOG_DIR/pip-backend.log" 2>&1

@@ -55,7 +55,26 @@ async def upload_manuscript(
     if actual_mb > settings.max_manuscript_upload_mb:
         raise UploadTooLargeError(limit_mb=settings.max_manuscript_upload_mb, actual_mb=actual_mb)
 
-    text = content.decode("utf-8", errors="ignore")
+    _DOCX_CT = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    if file.content_type == _DOCX_CT:
+        try:
+            import io
+            from docx import Document as DocxDocument
+            doc = DocxDocument(io.BytesIO(content))
+            text = "\n".join(p.text for p in doc.paragraphs if p.text.strip())
+        except Exception as exc:
+            logger.warning("[manuscript] DOCX extraction failed: %s", exc)
+            raise HTTPException(
+                status_code=422,
+                detail=f"Failed to read DOCX file. Ensure the file is a valid Word document. ({exc})",
+            )
+        if not text.strip():
+            raise HTTPException(
+                status_code=422,
+                detail="The DOCX file contains no readable text paragraphs. Please check the file.",
+            )
+    else:
+        text = content.decode("utf-8", errors="ignore")
     raw_chapters = _segment_chapters(text)
 
     job = ManuscriptJob(
