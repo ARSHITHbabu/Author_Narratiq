@@ -159,6 +159,84 @@ Bundle sizes after lazy loading:
 
 `ChunkLoadError` auto-recovery is in `components/chunk-error-recovery.tsx` (window error listener + sessionStorage 10s debounce to prevent loops).
 
+## Production Hardening (Phase 3)
+
+**8 hardening items implemented. All configurable via `.env` / `config.py`. No hardcoded values.**
+
+### New Files
+
+| File | Purpose |
+|------|---------|
+| `backend/exceptions.py` | `AIServiceUnavailableError` (→ 503) and `UploadTooLargeError` (→ 413) |
+| `backend/logger.py` | `setup_logging()` — text/JSON formatter, called first in `main.py` |
+| `backend/middleware/rate_limit.py` | slowapi `Limiter` singleton + `get_user_id()` per-JWT key function |
+| `backend/middleware/upload_guard.py` | `enforce_upload_size()` — Content-Length pre-check + post-read byte guard |
+| `backend/middleware/concurrency.py` | `bg_ai_semaphore()` and `embedding_semaphore()` — lazy-init singletons |
+| `backend/startup/orphan_recovery.py` | `recover_orphaned_jobs()` — startup sweep of stuck AudioUpload / ManuscriptJob / StoryIntelJob |
+
+### New `.env` Variables (all optional, have sensible defaults)
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `RATE_LIMIT_AUTH` | `5/minute` | Login + register per-IP |
+| `RATE_LIMIT_REALTIME_AI` | `20/minute` | All ai_transform endpoints per-user |
+| `RATE_LIMIT_HEAVY_AI` | `5/minute` | Continuity, analysis, plot-holes, intake per-user |
+| `RATE_LIMIT_BACKGROUND_AI` | `3/minute` | Story bible, narrative threads per-user |
+| `RATE_LIMIT_UPLOAD` | `10/minute` | Audio/OCR/manuscript upload per-user |
+| `MAX_AUDIO_UPLOAD_MB` | `100` | Audio upload hard limit |
+| `MAX_OCR_UPLOAD_MB` | `50` | OCR upload hard limit |
+| `MAX_MANUSCRIPT_UPLOAD_MB` | `25` | Manuscript upload hard limit |
+| `UPLOAD_DIR_AUDIO` | `uploads/audio` | Local audio storage path (swap for S3 prefix) |
+| `UPLOAD_DIR_OCR` | `uploads/ocr` | Local OCR storage path |
+| `BG_AI_CONCURRENCY` | `3` | Max concurrent Qwen background tasks |
+| `EMBEDDING_CONCURRENCY` | `2` | Max concurrent BGE-M3 background tasks |
+| `JWT_EXPIRE_MINUTES` | `10080` | JWT lifetime (7 days) |
+| `JWT_ALGORITHM` | `HS256` | JWT signing algorithm |
+| `LOG_LEVEL` | `INFO` | Logging level (DEBUG/INFO/WARNING/ERROR) |
+| `LOG_FORMAT` | `text` | `text` for dev, `json` for production log aggregators |
+
+### Rate Limiting Architecture
+
+- **slowapi** wraps `limits` library — in-memory by default, Redis-upgradeable via `SLOWAPI_STORAGE_URI`
+- Auth endpoints: per-IP (no JWT required at login time)
+- All AI and upload endpoints: per-user JWT `sub` claim, falls back to IP if token absent/invalid
+- Global handler: `RateLimitExceeded` → HTTP 429 with `Retry-After` header
+
+### AI Error Handling
+
+- `_complete()` and `_stream_generate()` in `ai_service.py` catch `APIConnectionError` → `AIServiceUnavailableError`
+- `APIStatusError` with status 429/500/502/503/504 → `AIServiceUnavailableError`
+- Global handler returns HTTP 503 `{"detail": "...", "retry_after": 30}`
+- Background tasks catch `AIServiceUnavailableError` → sets DB record status to `failed`/`error`
+
+### Background AI Concurrency
+
+- `bg_ai_semaphore` (default=3): guards all Qwen background calls in audio, manuscript, chapters, story_bible, narrative_threads, story_intel_orchestrator, ocr
+- `embedding_semaphore` (default=2): guards BGE-M3 calls in ocr `_embed_*` functions
+- Both are lazy-init module singletons — replaceable with Redis/Celery locks without changing call sites
+
+### Orphan Job Recovery
+
+Runs at startup (first step in `lifespan()`), before model loading:
+- `AudioUpload` status=`processing` → `failed`
+- `ManuscriptJob` status=`processing` → `error`
+- `StoryIntelJob` status in `(pending, running)` → `error`
+
+### JWT Staging Plan (Deferred)
+
+Phase 3 partial: removed hardcoded `ALGORITHM`/`ACCESS_TOKEN_EXPIRE_MINUTES` from `auth.py`. Both now configurable.
+Phase B (future): HttpOnly cookie migration requires frontend auth flow changes.
+
+### Bugs Fixed
+
+- `clean_transcript()` in `audio_service.py`: `_complete(prompt, max_tokens=1024)` was missing the required `user` arg — transcript cleaning never ran. Fixed to `_complete(system=system, user=raw_text[:3000], max_tokens=1024)`.
+
+### Migration Notes
+
+- **Redis**: Set `SLOWAPI_STORAGE_URI=redis://...` to move rate limits from in-memory to Redis with zero code changes
+- **Celery**: Replace `asyncio.create_task()` calls with Celery `.delay()` — semaphore guards can be replaced with Celery worker concurrency limits
+- **S3/R2**: Change `UPLOAD_DIR_AUDIO` and `UPLOAD_DIR_OCR` env vars to bucket prefixes; swap `open()` calls for boto3 client
+
 ## Config Gotchas
 
 `config.py` `vllm_base_url` defaults to `http://127.0.0.1:8001/v1` but the actual vLLM process listens on **9001**. The `.env` file must set `VLLM_BASE_URL=http://127.0.0.1:9001/v1` or the backend will target the wrong port.

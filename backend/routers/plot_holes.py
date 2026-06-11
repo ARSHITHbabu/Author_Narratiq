@@ -1,12 +1,18 @@
-from fastapi import APIRouter, Depends, HTTPException
+import logging
+
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from openai import APIConnectionError, APIStatusError
 
+from config import settings
 from database import get_db
+from middleware.rate_limit import limiter, get_user_id
 from models import Story, ChapterSummary
 from schemas import PlotHoleIssue, PlotHoleResponse
 from routers.auth import get_current_user, User
 from services.ai_service import detect_plot_holes
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["plot-holes"])
 
@@ -22,17 +28,16 @@ def _check_story_access(story_id: str, user_id: str, db: Session) -> Story:
 
 
 @router.post("/{story_id}/plot-holes", response_model=PlotHoleResponse)
+@limiter.limit(settings.rate_limit_heavy_ai, key_func=get_user_id)
 async def analyze_plot_holes(
+    request: Request,
     story_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
     Run plot hole detection over all indexed chapter summaries for the story.
-
-    Uses the single_pass strategy by default.  Future strategies (batched,
-    hierarchical, deep_audit) can be selected by the router without endpoint
-    or frontend changes — see detect_plot_holes() in ai_service.py.
+    Uses the single_pass strategy by default.
     """
     _check_story_access(story_id, current_user.user_id, db)
 
@@ -76,7 +81,7 @@ async def analyze_plot_holes(
         raise HTTPException(
             status_code=503,
             detail=(
-                "The AI model (Qwen/vLLM) is currently unavailable. "
+                "The AI model is currently unavailable. "
                 f"Please wait a moment and try again. ({type(exc).__name__})"
             ),
         )
@@ -104,7 +109,7 @@ async def analyze_plot_holes(
                 suggestion  = raw.get("suggestion", ""),
             ))
         except Exception as exc:
-            print(f"[plot_holes] skipping malformed issue #{i}: {exc}")
+            logger.warning("[plot_holes] skipping malformed issue #%d: %s", i, exc)
 
     return PlotHoleResponse(
         story_id          = story_id,

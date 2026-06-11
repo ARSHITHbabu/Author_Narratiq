@@ -1,5 +1,7 @@
 import asyncio
 
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from openai import APIConnectionError, APIStatusError
@@ -8,6 +10,8 @@ from database import get_db
 from models import Story, PlotAssistantSession, GenreProfile, ChapterSummary
 from schemas import PlotAssistantRequest, PlotAssistantResponse, PlotSuggestion
 from routers.auth import get_current_user, User
+logger = logging.getLogger(__name__)
+
 from services.ai_service import (
     detect_query_intent,
     answer_story_question,
@@ -34,12 +38,7 @@ async def plot_assistant(
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
 
-    print(
-        f"\n[plot_assistant] ── New request ──────────────────────────────\n"
-        f"  story_id : {data.story_id[:8]}...\n"
-        f"  question : {data.question!r}\n"
-        f"  cur_chapter_len : {len(data.current_chapter_text or '')}"
-    )
+    logger.info( f"\n[plot_assistant] ── New request ──────────────────────────────\n" f"  story_id : {data.story_id[:8]}...\n" f"  question : {data.question!r}\n" f"  cur_chapter_len : {len(data.current_chapter_text or '')}" )
 
     # ── Load genre profile ────────────────────────────────────────────────────
     genre_profile = db.query(GenreProfile).filter(
@@ -54,10 +53,9 @@ async def plot_assistant(
             "tone":      genre_profile.tone,
             "audience":  genre_profile.target_audience,
         }
-        print(f"[plot_assistant] Genre: {genre_profile.genre} / {genre_profile.sub_genre}")
+        logger.info(f"[plot_assistant] Genre: {genre_profile.genre} / {genre_profile.sub_genre}")
     else:
-        print("[plot_assistant] No genre profile.")
-
+        logger.info("[plot_assistant] No genre profile.")
     # ── Fallback summary list (used if no embeddings available) ───────────────
     _fallback_q = db.query(ChapterSummary).filter(
         ChapterSummary.story_id == data.story_id
@@ -76,8 +74,7 @@ async def plot_assistant(
         {"chapter": s.chapter_number, "events": s.key_events, "characters": s.characters_present}
         for s in summaries
     ]
-    print(f"[plot_assistant] ChapterSummary rows in DB: {len(summaries)}")
-
+    logger.info(f"[plot_assistant] ChapterSummary rows in DB: {len(summaries)}")
     cur_chapter = data.current_chapter_text or ""
 
     # ── Step 1: intent detection + chapter retrieval in parallel ──────────────
@@ -90,7 +87,7 @@ async def plot_assistant(
             ),
         )
     except (APIConnectionError, APIStatusError) as exc:
-        print(f"[plot_assistant] vLLM unavailable during intent/retrieval: {exc}")
+        logger.warning(f"[plot_assistant] vLLM unavailable during intent/retrieval: {exc}")
         raise HTTPException(
             status_code=503,
             detail=(
@@ -100,10 +97,7 @@ async def plot_assistant(
             ),
         )
 
-    print(
-        f"[plot_assistant] intent={intent!r} | "
-        f"chapter_summaries_retrieved={len(retrieved_chunks)}"
-    )
+    logger.info( f"[plot_assistant] intent={intent!r} | " f"chapter_summaries_retrieved={len(retrieved_chunks)}" )
 
     # ── Step 2: fine-grained chunk retrieval + character context ─────────────
     # For QA: paragraph chunks are the primary retrieval signal.
@@ -138,12 +132,7 @@ async def plot_assistant(
             data.question, data.story_id, db, top_k=qa_top_k,
             max_chapter_number=data.current_chapter_number,
         )
-        print(
-            f"[plot_assistant] chunk-level retrieval: "
-            f"{len(text_chunks)} passage(s) across "
-            f"{len({c['chapter'] for c in text_chunks})} chapter(s) "
-            f"(top_k={qa_top_k}, name_mention={has_name_mention})"
-        )
+        logger.info( f"[plot_assistant] chunk-level retrieval: " f"{len(text_chunks)} passage(s) across " f"{len({c['chapter'] for c in text_chunks})} chapter(s) " f"(top_k={qa_top_k}, name_mention={has_name_mention})" )
 
         # Character context for QA — only when a character is explicitly named
         if has_name_mention:
@@ -176,11 +165,7 @@ async def plot_assistant(
     except Exception as exc:
         # Never block the plot assistant if intelligence isn't ready yet, but do
         # log it — silent failures here previously masked missing analysis.
-        print(
-            f"[plot_assistant] integration context unavailable for "
-            f"story={data.story_id[:8]}... ({type(exc).__name__}: {exc}) — "
-            f"continuing without it"
-        )
+        logger.warning( f"[plot_assistant] integration context unavailable for " f"story={data.story_id[:8]}... ({type(exc).__name__}: {exc}) — " f"continuing without it" )
 
     answer:      str | None        = None
     suggestions: list[PlotSuggestion] = []
@@ -196,8 +181,7 @@ async def plot_assistant(
                 character_context = character_context or None,
                 note_context      = note_context or None,
             )
-            print(f"[plot_assistant] QA answer → {len(answer)} chars")
-
+            logger.info(f"[plot_assistant] QA answer → {len(answer)} chars")
         elif intent == "creative":
             raw = await generate_plot_suggestions(
                 question           = data.question,
@@ -238,10 +222,9 @@ async def plot_assistant(
                 PlotSuggestion(id=s["id"], text=s["text"], rationale=s["rationale"])
                 for s in raw
             ]
-            print(f"[plot_assistant] mixed: answer={len(answer)} chars, {len(suggestions)} suggestions")
-
+            logger.info(f"[plot_assistant] mixed: answer={len(answer)} chars, {len(suggestions)} suggestions")
     except (APIConnectionError, APIStatusError) as exc:
-        print(f"[plot_assistant] vLLM unavailable: {exc}")
+        logger.warning(f"[plot_assistant] vLLM unavailable: {exc}")
         raise HTTPException(
             status_code=503,
             detail=(
@@ -251,7 +234,7 @@ async def plot_assistant(
             ),
         )
     except ValueError as exc:
-        print(f"[plot_assistant] Invalid model output: {exc}")
+        logger.warning(f"[plot_assistant] Invalid model output: {exc}")
         raise HTTPException(status_code=503, detail=str(exc))
 
     # ── Persist session ───────────────────────────────────────────────────────
@@ -300,9 +283,8 @@ async def plot_assistant(
         if genre_profile:
             context_desc = f"{genre_profile.genre} genre profile + {context_desc}"
 
-    print(f"[plot_assistant] mode={intent!r} | context_used={context_desc!r}")
-    print("[plot_assistant] ── Done ─────────────────────────────────────────")
-
+    logger.info(f"[plot_assistant] mode={intent!r} | context_used={context_desc!r}")
+    logger.debug("[plot_assistant] ── Done ─────────────────────────────────────────")
     return PlotAssistantResponse(
         session_id=session.session_id,
         mode=intent,

@@ -1,7 +1,10 @@
 import asyncio
+import logging
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+
+logger = logging.getLogger(__name__)
 
 from database import get_db
 from models import Story, Chapter, ChapterSummary, StoryVersion
@@ -147,14 +150,17 @@ async def _regenerate_summary(
     """
     Background task: generate chapter summary via Qwen and embed it with BGE-M3.
     Uses its own DB session so the request session can close immediately.
+    Governed by bg_ai_semaphore to prevent vLLM queue flooding.
     """
     from database import SessionLocal
     from services.ai_service import summarize_and_embed_chapter
+    from middleware.concurrency import bg_ai_semaphore
     db = SessionLocal()
     try:
-        await summarize_and_embed_chapter(chapter_id, story_id, chapter_number, content, db)
+        async with bg_ai_semaphore():
+            await summarize_and_embed_chapter(chapter_id, story_id, chapter_number, content, db)
     except Exception as exc:
-        print(f"[summary bg] Failed for chapter {chapter_id[:8]}...: {exc}")
+        logger.error("[summary bg] failed for chapter %s: %s", chapter_id[:8], exc)
     finally:
         db.close()
 
@@ -237,9 +243,9 @@ async def sync_chapter_summaries(
             if existing is None or existing.embedding is None or not has_chunks:
                 to_process.append(ch)
 
-    print(
-        f"[sync-summaries] story={story_id[:8]}... — "
-        f"{len(to_process)}/{len(chapters)} chapters need indexing"
+    logger.info(
+        "[sync-summaries] story=%s — %d/%d chapters need indexing",
+        story_id[:8], len(to_process), len(chapters),
     )
 
     for ch in to_process:

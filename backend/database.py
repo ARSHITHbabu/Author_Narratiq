@@ -1,7 +1,11 @@
+import logging
+
 from sqlalchemy import create_engine, text, inspect as sa_inspect
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from config import settings
+
+logger = logging.getLogger(__name__)
 
 DATABASE_URL = settings.database_url
 
@@ -60,9 +64,9 @@ def run_db_migrations(eng) -> None:
                 with eng.connect() as conn:
                     conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col} {col_def}"))
                     conn.commit()
-                print(f"[DB migration] Added '{col}' to {table}.")
+                logger.info("[DB migration] Added '%s' to %s.", col, table)
         except Exception as exc:
-            print(f"[DB migration] Warning ({table}.{col}): {exc}")
+            logger.warning("[DB migration] Warning (%s.%s): %s", table, col, exc)
 
     is_postgres = eng.dialect.name == "postgresql"
 

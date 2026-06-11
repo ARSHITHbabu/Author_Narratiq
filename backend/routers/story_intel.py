@@ -5,6 +5,8 @@ All routes require JWT auth. Ownership is enforced via _get_owned_story().
 """
 from typing import List, Optional
 
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -47,6 +49,8 @@ from schemas import (
     StoryTimelineOut,
     StoryWorldProfileOut,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["story-intelligence"])
 
@@ -459,8 +463,7 @@ def add_author_memory(
         # Sync endpoint — embed_text is async and cannot be awaited here.
         emb = embed_text_sync(req.content[:512])
     except Exception as exc:
-        print(f"[story_intel] author-memory embedding failed for key={req.memory_key!r}: {exc!r}")
-
+        logger.warning(f"[story_intel] author-memory embedding failed for key={req.memory_key!r}: {exc!r}")
     existing = db.query(StoryMemoryEntry).filter_by(
         story_id=story_id, memory_key=req.memory_key
     ).first()

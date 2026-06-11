@@ -3,12 +3,25 @@ import asyncio
 import os
 import httpx
 from datetime import datetime, timedelta
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from slowapi.errors import RateLimitExceeded
 
+from logger import setup_logging
 from config import settings
+
+# Configure logging before anything else logs
+setup_logging(level=settings.log_level, fmt=settings.log_format)
+
+import logging
+logger = logging.getLogger(__name__)
+
 from database import engine, Base, run_db_migrations
 import models  # noqa: F401
+
+from exceptions import AIServiceUnavailableError, UploadTooLargeError
+from middleware.rate_limit import limiter
 
 from routers import auth, projects, chapters, intake, plot_assistant, ai_transform, ocr, manuscript, export, characters, plot_holes, manuscript_report
 from routers import search as search_router
@@ -19,21 +32,12 @@ Base.metadata.create_all(bind=engine)
 run_db_migrations(engine)   # add new columns to existing tables
 
 # ── OCR image cleanup ─────────────────────────────────────────────────────────
-# Confirmed uploads: text is safely in the DB; original image no longer needed.
-# Unconfirmed uploads: author abandoned the session; remove after 3 days.
 _OCR_CONFIRMED_TTL_HOURS   = 24
 _OCR_UNCONFIRMED_TTL_HOURS = 72
 _OCR_CLEANUP_INTERVAL_SECS = 3600   # sweep every hour
 
 
 async def _cleanup_ocr_images() -> int:
-    """
-    Delete OCR image files whose retention window has expired and null their
-    image_path in the DB.  The OcrUpload record itself is kept — it provides
-    the idempotency guard (confirmed=True) and OCR text traceability.
-
-    Returns the count of files removed this run.
-    """
     from database import SessionLocal
     from models import OcrUpload
     from sqlalchemy import and_, or_
@@ -64,20 +68,20 @@ async def _cleanup_ocr_images() -> int:
                     os.remove(path)
                     removed += 1
             except OSError as exc:
-                print(f"[ocr_cleanup] could not delete {path!r}: {exc}")
+                logger.warning("[ocr_cleanup] could not delete %r: %s", path, exc)
             finally:
                 upload.image_path = None
 
         if stale:
             db.commit()
-            print(
-                f"[ocr_cleanup] swept {len(stale)} record(s): "
-                f"{removed} file(s) deleted "
-                f"(confirmed>{_OCR_CONFIRMED_TTL_HOURS}h or "
-                f"unconfirmed>{_OCR_UNCONFIRMED_TTL_HOURS}h)"
+            logger.info(
+                "[ocr_cleanup] swept %d record(s): %d file(s) deleted "
+                "(confirmed>%dh or unconfirmed>%dh)",
+                len(stale), removed,
+                _OCR_CONFIRMED_TTL_HOURS, _OCR_UNCONFIRMED_TTL_HOURS,
             )
     except Exception as exc:
-        print(f"[ocr_cleanup] error during cleanup: {exc}")
+        logger.error("[ocr_cleanup] error during cleanup: %s", exc)
         db.rollback()
     finally:
         db.close()
@@ -86,10 +90,6 @@ async def _cleanup_ocr_images() -> int:
 
 
 async def _cleanup_audio_files() -> None:
-    """
-    Delete confirmed audio files older than 24 h and failed/unconfirmed ones older than 72 h.
-    The AudioUpload DB record is retained for traceability.
-    """
     from database import SessionLocal
     from models import AudioUpload
     from sqlalchemy import and_, or_
@@ -119,14 +119,14 @@ async def _cleanup_audio_files() -> None:
                     os.remove(path)
                     removed += 1
             except OSError as exc:
-                print(f"[audio_cleanup] could not delete {path!r}: {exc}")
+                logger.warning("[audio_cleanup] could not delete %r: %s", path, exc)
             finally:
                 upload.audio_path = None
         if stale:
             db.commit()
-            print(f"[audio_cleanup] swept {len(stale)} record(s): {removed} file(s) deleted")
+            logger.info("[audio_cleanup] swept %d record(s): %d file(s) deleted", len(stale), removed)
     except Exception as exc:
-        print(f"[audio_cleanup] error: {exc}")
+        logger.error("[audio_cleanup] error: %s", exc)
         db.rollback()
     finally:
         db.close()
@@ -142,12 +142,21 @@ async def _run_periodic_cleanup() -> None:
             await _cleanup_ocr_images()
             await _cleanup_audio_files()
         except Exception as exc:
-            print(f"[cleanup] periodic sweep failed: {exc}")
+            logger.error("[cleanup] periodic sweep failed: %s", exc)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # ── Startup ───────────────────────────────────────────────────────────────
+
+    # ── Orphan job recovery (before accepting any requests) ───────────────────
+    from startup.orphan_recovery import recover_orphaned_jobs
+    await recover_orphaned_jobs()
+
+    # ── Create upload directories from config ─────────────────────────────────
+    os.makedirs(settings.upload_dir_audio, exist_ok=True)
+    os.makedirs(settings.upload_dir_ocr,   exist_ok=True)
+    logger.info("[startup] upload dirs: audio=%r ocr=%r", settings.upload_dir_audio, settings.upload_dir_ocr)
 
     # Validate model paths before attempting to load anything
     missing = settings.validate_model_paths()
@@ -160,18 +169,14 @@ async def lifespan(app: FastAPI):
             f"Expected under: {settings.model_base_dir}"
         )
 
-    print("NarratIQ startup: loading BGE-M3 embeddings model...")
+    logger.info("[startup] loading BGE-M3 embeddings model...")
     from services.ai_service import get_bge
-    get_bge()   # blocks until BGE-M3 is in memory — fast (~3 s on CPU)
+    get_bge()
     app.state.embeddings_ready = True
-    print(f"BGE-M3 loaded on {settings.bge_device}.")
+    logger.info("[startup] BGE-M3 loaded on %s", settings.bge_device)
 
-    # ── pgvector path self-check (fail fast) ──────────────────────────────────
-    # Validates the embedding → pgvector bind/cast round-trip at boot so a broken
-    # vector query surfaces here in the logs, not as a per-request 500. This is
-    # the exact failure mode (`:q::vector` bind leak) that silently broke all
-    # retrieval after the SQLite→PostgreSQL migration.
-    print("NarratIQ startup: verifying pgvector query path...")
+    # ── pgvector path self-check ──────────────────────────────────────────────
+    logger.info("[startup] verifying pgvector query path...")
     try:
         from sqlalchemy import text as _sql_text
         from database import SessionLocal
@@ -187,45 +192,45 @@ async def lifespan(app: FastAPI):
             _db.close()
         if _score is None or abs(float(_score) - 1.0) > 1e-3:
             raise RuntimeError(f"unexpected self-similarity score: {_score}")
-        print(f"pgvector query path OK (self-similarity={float(_score):.4f}).")
+        logger.info("[startup] pgvector query path OK (self-similarity=%.4f)", float(_score))
     except Exception as e:
-        # Hard failure: retrieval (plot assistant, QA, character RAG) cannot work.
         raise RuntimeError(
             "pgvector query path self-check FAILED — vector retrieval is broken. "
             f"Cause: {type(e).__name__}: {e}. "
             "Check pgvector is installed and the embedding<=>vector cast syntax."
         ) from e
 
-    print(f"NarratIQ startup: connecting to vLLM at {settings.vllm_base_url}...")
+    logger.info("[startup] connecting to vLLM at %s...", settings.vllm_base_url)
     async with httpx.AsyncClient(timeout=10.0) as client:
         try:
             r = await client.get(settings.vllm_health_url)
             r.raise_for_status()
             app.state.llm_ready = True
-            print("vLLM health check passed.")
+            logger.info("[startup] vLLM health check passed")
         except Exception as e:
             app.state.llm_ready = False
-            print(
-                f"WARNING: vLLM not reachable at {settings.vllm_health_url} ({e}). "
-                "AI generation features will be unavailable until vLLM starts."
+            logger.warning(
+                "[startup] vLLM not reachable at %s (%s). "
+                "AI generation features will be unavailable until vLLM starts.",
+                settings.vllm_health_url, e,
             )
 
     if app.state.llm_ready:
-        print("NarratIQ startup: warming up vLLM (first-token pre-heat)...")
+        logger.info("[startup] warming up vLLM (first-token pre-heat)...")
         try:
             from services.ai_service import warmup
             await warmup()
-            print("vLLM warmup complete — first user request will be fast.")
+            logger.info("[startup] vLLM warmup complete — first user request will be fast")
         except Exception as e:
-            print(f"WARNING: vLLM warmup failed ({e}).")
+            logger.warning("[startup] vLLM warmup failed: %s", e)
 
     asyncio.create_task(_run_periodic_cleanup())
-    print(f"OCR+Audio cleanup scheduler started "
-          f"(confirmed>{_OCR_CONFIRMED_TTL_HOURS}h, "
-          f"unconfirmed>{_OCR_UNCONFIRMED_TTL_HOURS}h, "
-          f"interval={_OCR_CLEANUP_INTERVAL_SECS//3600}h).")
+    logger.info(
+        "[startup] cleanup scheduler started (confirmed>%dh, unconfirmed>%dh, interval=%dh)",
+        _OCR_CONFIRMED_TTL_HOURS, _OCR_UNCONFIRMED_TTL_HOURS, _OCR_CLEANUP_INTERVAL_SECS // 3600,
+    )
 
-    print("NarratIQ ready.")
+    logger.info("[startup] NarratIQ ready (log_level=%s, log_format=%s)", settings.log_level, settings.log_format)
     yield
 
     # ── Shutdown ──────────────────────────────────────────────────────────────
@@ -241,20 +246,58 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# ── Rate limiter ──────────────────────────────────────────────────────────────
+app.state.limiter = limiter
+
+
+# ── Global exception handlers ─────────────────────────────────────────────────
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
+    retry_after = 60
+    return JSONResponse(
+        status_code=429,
+        content={
+            "error":       "rate_limit_exceeded",
+            "message":     "Too many requests. Please wait before trying again.",
+            "retry_after": retry_after,
+        },
+        headers={"Retry-After": str(retry_after)},
+    )
+
+
+@app.exception_handler(AIServiceUnavailableError)
+async def ai_unavailable_handler(request: Request, exc: AIServiceUnavailableError) -> JSONResponse:
+    return JSONResponse(
+        status_code=503,
+        content={
+            "error":       "ai_unavailable",
+            "message":     exc.message,
+            "retry_after": exc.retry_after,
+        },
+        headers={"Retry-After": str(exc.retry_after)},
+    )
+
+
+@app.exception_handler(UploadTooLargeError)
+async def upload_too_large_handler(request: Request, exc: UploadTooLargeError) -> JSONResponse:
+    return JSONResponse(
+        status_code=413,
+        content={
+            "error":   "upload_too_large",
+            "message": exc.message,
+        },
+    )
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
-    # Allow any RunPod proxy domain so both
-    # https://{pod-id}-3000.proxy.runpod.net (frontend on RunPod) and
-    # http://localhost:3000 (local frontend dev) work without changing .env each time.
     allow_origin_regex=r"https://.*\.proxy\.runpod\.net",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-os.makedirs("uploads/ocr",   exist_ok=True)
-os.makedirs("uploads/audio", exist_ok=True)
 
 app.include_router(auth.router,           prefix="/api/auth")
 app.include_router(projects.router,       prefix="/api/projects")
@@ -285,16 +328,15 @@ async def health():
     vllm_status = "ready" if getattr(app.state, "llm_ready",       False) else "unavailable"
     bge_status  = "ready" if getattr(app.state, "embeddings_ready", False) else "loading"
 
-    # GPU info — populated by start.sh via env vars before FastAPI boots
     gpu_info: dict = {}
     try:
         import torch
         if torch.cuda.is_available():
             gpu_info = {
-                "count":              torch.cuda.device_count(),
-                "tensor_parallel":    settings.tensor_parallel_size,
-                "vram_per_gpu_gb":    round(torch.cuda.get_device_properties(0).total_memory / 1024**3, 1),
-                "total_vram_gb":      round(
+                "count":           torch.cuda.device_count(),
+                "tensor_parallel": settings.tensor_parallel_size,
+                "vram_per_gpu_gb": round(torch.cuda.get_device_properties(0).total_memory / 1024**3, 1),
+                "total_vram_gb":   round(
                     torch.cuda.get_device_properties(0).total_memory / 1024**3
                     * torch.cuda.device_count(), 1
                 ),

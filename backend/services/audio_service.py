@@ -5,9 +5,12 @@ Model: Systran/faster-whisper-large-v3-turbo (~1.5 GB)
 Transcription runs in asyncio.to_thread to avoid blocking the event loop.
 """
 import asyncio
+import logging
 import os
 
 from config import settings
+
+logger = logging.getLogger(__name__)
 
 _whisper_model = None
 
@@ -29,8 +32,10 @@ def _get_whisper():
             compute_type=settings.whisper_compute_type,
             num_workers=1,
         )
-        print(f"[audio_service] faster-whisper loaded: {model_path} "
-              f"(device={settings.whisper_device}, compute={settings.whisper_compute_type})")
+        logger.info(
+            "[audio_service] faster-whisper loaded: %s (device=%s, compute=%s)",
+            model_path, settings.whisper_device, settings.whisper_compute_type,
+        )
     return _whisper_model
 
 
@@ -94,18 +99,18 @@ async def clean_transcript(raw_text: str) -> str:
         return raw_text
 
     from services.ai_service import _complete
-    prompt = (
+    system = (
         "You are a transcript editor. Clean the following raw speech-to-text transcript.\n"
         "Rules:\n"
         "- Remove filler words: um, uh, like, you know, so, basically, actually (when used as filler)\n"
         "- Add proper punctuation and sentence breaks\n"
         "- Fix repeated words (e.g. 'the the' → 'the')\n"
         "- Do NOT change meaning, do NOT add or remove facts\n"
-        "- Return ONLY the cleaned text with no commentary\n\n"
-        f"Raw transcript:\n{raw_text[:3000]}"
+        "- Return ONLY the cleaned text with no commentary"
     )
     try:
-        result = await _complete(prompt, max_tokens=1024)
+        result = await _complete(system=system, user=raw_text[:3000], max_tokens=1024)
         return result.strip() if result else raw_text
-    except Exception:
+    except Exception as exc:
+        logger.warning("[audio_service] clean_transcript failed: %s", exc)
         return raw_text

@@ -6,18 +6,25 @@ Background task with polling-compatible status approach.
 """
 import asyncio
 import json
+import logging
 import uuid
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
+from config import settings
 from database import get_db
+from exceptions import AIServiceUnavailableError
+from middleware.rate_limit import limiter, get_user_id
+from middleware.concurrency import bg_ai_semaphore
 from models import Story, ChapterSummary, CharacterProfile, Character, StoryNote, NoteCard, GenreProfile, StoryBible
 from schemas import StoryBibleOut, StoryBibleJobResponse
 from routers.auth import get_current_user, User
 from services.ai_service import generate_story_bible_section
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["story-bible"])
 
@@ -111,6 +118,7 @@ async def _generate_bible_pipeline(story_id: str, user_id: str, existing_bible_i
     """
     Background task: generate all 5 sections of the story bible, store result.
     If existing_bible_id is provided, the existing row is updated (regeneration).
+    Runs under bg_ai_semaphore to prevent vLLM queue flooding.
     """
     from database import SessionLocal
     db = SessionLocal()
@@ -118,15 +126,17 @@ async def _generate_bible_pipeline(story_id: str, user_id: str, existing_bible_i
         _generating.add(story_id)
         context = _build_full_context(story_id, db)
 
-        # For very large contexts, chunk summaries 20 at a time
-        # and synthesise each chunk before producing the final section
         content: dict[str, str] = {}
-        for section in _BIBLE_SECTIONS:
-            try:
-                text = await generate_story_bible_section(section=section, context=context)
-                content[section] = text
-            except Exception as exc:
-                content[section] = f"[Error generating {section}: {exc}]"
+        async with bg_ai_semaphore():
+            for section in _BIBLE_SECTIONS:
+                try:
+                    text = await generate_story_bible_section(section=section, context=context)
+                    content[section] = text
+                except AIServiceUnavailableError as exc:
+                    logger.warning("[story_bible] AI unavailable for section %s (story=%s): %s", section, story_id[:8], exc)
+                    content[section] = f"[AI temporarily unavailable — please regenerate]"
+                except Exception as exc:
+                    content[section] = f"[Error generating {section}: {exc}]"
 
         content_json = json.dumps(content, ensure_ascii=False)
 
@@ -137,7 +147,7 @@ async def _generate_bible_pipeline(story_id: str, user_id: str, existing_bible_i
                 bible.version      = (bible.version or 1) + 1
                 bible.updated_at   = datetime.utcnow()
                 db.commit()
-                print(f"[story_bible] regenerated v{bible.version} for {story_id[:8]}...")
+                logger.info("[story_bible] regenerated v%d for %s", bible.version, story_id[:8])
                 return
 
         bible = StoryBible(
@@ -147,16 +157,18 @@ async def _generate_bible_pipeline(story_id: str, user_id: str, existing_bible_i
         )
         db.add(bible)
         db.commit()
-        print(f"[story_bible] generated v1 for {story_id[:8]}...")
+        logger.info("[story_bible] generated v1 for %s", story_id[:8])
     except Exception as exc:
-        print(f"[story_bible] generation failed for {story_id[:8]}... : {exc}")
+        logger.error("[story_bible] generation failed for %s: %s", story_id[:8], exc)
     finally:
         _generating.discard(story_id)
         db.close()
 
 
 @router.post("/{story_id}/story-bible", response_model=StoryBibleJobResponse)
+@limiter.limit(settings.rate_limit_background_ai, key_func=get_user_id)
 async def create_or_regenerate_bible(
+    request: Request,
     story_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),

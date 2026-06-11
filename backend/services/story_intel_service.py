@@ -130,7 +130,7 @@ def _upsert_memory(
         # Sync helper — embed_text is async and cannot be awaited here.
         emb = embed_text_sync(content[:512])
     except Exception as exc:
-        print(f"[story_intel] memory embedding failed for key={memory_key!r}: {exc!r}")
+        logger.warning("[story_intel] memory embedding failed for key=%r: %r", memory_key, exc)
 
     if existing:
         existing.content = content
@@ -1380,7 +1380,7 @@ async def run_p28_graph_population(db: Session, story: Story) -> Tuple[int, int]
             # Sync helper — embed_text is async and cannot be awaited here.
             emb = embed_text_sync(f"{node_type} {label}"[:256])
         except Exception as exc:
-            print(f"[story_intel] graph-node embedding failed for {node_type}:{label!r}: {exc!r}")
+            logger.warning("[story_intel] graph-node embedding failed for %s:%r: %r", node_type, label, exc)
         node = StoryGraphNode(
             node_id=gen_uuid(),
             story_id=story.story_id,

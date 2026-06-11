@@ -4,6 +4,7 @@ Upload an audio recording, transcribe via faster-whisper, optionally append to a
 Background task returns job_id immediately; client polls GET /{audio_id} for completion.
 """
 import asyncio
+import logging
 import os
 import uuid
 from datetime import datetime
@@ -12,16 +13,21 @@ from typing import Optional
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from sqlalchemy.orm import Session
 
+from config import settings
 from database import get_db
+from exceptions import AIServiceUnavailableError, UploadTooLargeError
+from middleware.rate_limit import limiter, get_user_id
+from middleware.upload_guard import enforce_upload_size
+from middleware.concurrency import bg_ai_semaphore
 from models import Story, StoryNote, AudioUpload
 from schemas import AudioTranscribeResponse, AudioUploadOut, AudioConfirmRequest, AudioConfirmResponse
 from routers.auth import get_current_user, User
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(tags=["audio"])
 
-_AUDIO_UPLOAD_DIR = "uploads/audio"
 _ALLOWED_EXTENSIONS = {".mp3", ".mp4", ".m4a", ".wav", ".ogg", ".flac", ".webm", ".opus"}
-_MAX_AUDIO_SIZE_MB  = 100
 
 
 def _get_owned_story(story_id: str, user_id: str, db: Session) -> Story:
@@ -37,7 +43,7 @@ def _get_owned_story(story_id: str, user_id: str, db: Session) -> Story:
 async def _run_transcription(audio_id: str, audio_path: str) -> None:
     """
     Background task: transcribe the audio file with faster-whisper,
-    clean the transcript with Qwen, then persist results.
+    clean the transcript with Qwen (under bg_ai_semaphore), then persist results.
     """
     from database import SessionLocal
     from services.audio_service import transcribe_audio, clean_transcript
@@ -48,10 +54,13 @@ async def _run_transcription(audio_id: str, audio_path: str) -> None:
         if not upload:
             return
 
-        # ── Transcription ──────────────────────────────────────────────────────
+        # Whisper runs in asyncio.to_thread — not under the Qwen semaphore
         result = await transcribe_audio(audio_path)
         raw = result.get("raw_transcript", "")
-        cleaned = await clean_transcript(raw)
+
+        # Qwen cleanup — governed by bg_ai_semaphore
+        async with bg_ai_semaphore():
+            cleaned = await clean_transcript(raw)
 
         upload.raw_transcript    = raw
         upload.cleaned_text      = cleaned
@@ -62,11 +71,23 @@ async def _run_transcription(audio_id: str, audio_path: str) -> None:
         upload.status            = "completed"
         upload.updated_at        = datetime.utcnow()
         db.commit()
-        print(f"[audio] transcription done for {audio_id[:8]}... — "
-              f"{upload.word_count} words, lang={upload.language_detected}")
+        logger.info(
+            "[audio] transcription done for %s — %d words, lang=%s",
+            audio_id[:8], upload.word_count, upload.language_detected,
+        )
 
+    except AIServiceUnavailableError as exc:
+        logger.warning("[audio] AI unavailable for %s: %s", audio_id[:8], exc)
+        try:
+            upload = db.query(AudioUpload).filter(AudioUpload.audio_id == audio_id).first()
+            if upload:
+                upload.status     = "failed"
+                upload.updated_at = datetime.utcnow()
+                db.commit()
+        except Exception:
+            pass
     except Exception as exc:
-        print(f"[audio] transcription failed for {audio_id[:8]}... : {exc}")
+        logger.error("[audio] transcription failed for %s: %s", audio_id[:8], exc)
         try:
             upload = db.query(AudioUpload).filter(AudioUpload.audio_id == audio_id).first()
             if upload:
@@ -80,6 +101,7 @@ async def _run_transcription(audio_id: str, audio_path: str) -> None:
 
 
 @router.post("/{story_id}/audio", response_model=AudioTranscribeResponse)
+@limiter.limit(settings.rate_limit_upload, key_func=get_user_id)
 async def upload_audio(
     request: Request,
     story_id: str,
@@ -93,13 +115,8 @@ async def upload_audio(
     Accepted formats: mp3, mp4, m4a, wav, ogg, flac, webm, opus.
     Returns audio_id + status="processing". Poll GET /{audio_id} for the transcript.
     """
-    # Reject oversized uploads before reading the body (saves memory on large abusive requests)
-    cl = request.headers.get("content-length")
-    if cl and int(cl) > _MAX_AUDIO_SIZE_MB * 1024 * 1024:
-        raise HTTPException(
-            status_code=413,
-            detail=f"Audio file too large. Maximum is {_MAX_AUDIO_SIZE_MB} MB.",
-        )
+    # Pre-check Content-Length before reading body (protects against OOM on large uploads)
+    enforce_upload_size(request, limit_mb=settings.max_audio_upload_mb)
 
     _get_owned_story(story_id, current_user.user_id, db)
 
@@ -112,7 +129,7 @@ async def upload_audio(
         if not note:
             raise HTTPException(status_code=404, detail="Story note not found")
 
-    # ── File validation ────────────────────────────────────────────────────────
+    # File extension validation
     filename = file.filename or "audio"
     ext = os.path.splitext(filename)[1].lower()
     if ext not in _ALLOWED_EXTENSIONS:
@@ -123,21 +140,18 @@ async def upload_audio(
         )
 
     content = await file.read()
-    size_mb = len(content) / (1024 * 1024)
-    if size_mb > _MAX_AUDIO_SIZE_MB:
-        raise HTTPException(
-            status_code=413,
-            detail=f"Audio file too large ({size_mb:.1f} MB). Maximum is {_MAX_AUDIO_SIZE_MB} MB.",
-        )
+    actual_mb = len(content) / (1024 * 1024)
+    if actual_mb > settings.max_audio_upload_mb:
+        raise UploadTooLargeError(limit_mb=settings.max_audio_upload_mb, actual_mb=actual_mb)
 
-    # ── Persist to disk ────────────────────────────────────────────────────────
-    os.makedirs(_AUDIO_UPLOAD_DIR, exist_ok=True)
+    # Persist to disk (directory created at startup from settings)
+    audio_dir = settings.upload_dir_audio
+    os.makedirs(audio_dir, exist_ok=True)
     audio_id   = str(uuid.uuid4())
-    audio_path = os.path.join(_AUDIO_UPLOAD_DIR, f"{audio_id}{ext}")
+    audio_path = os.path.join(audio_dir, f"{audio_id}{ext}")
     with open(audio_path, "wb") as f:
         f.write(content)
 
-    # ── Create DB record ───────────────────────────────────────────────────────
     upload = AudioUpload(
         audio_id=audio_id,
         story_id=story_id,
@@ -149,7 +163,10 @@ async def upload_audio(
     db.add(upload)
     db.commit()
 
-    # ── Kick off background transcription ─────────────────────────────────────
+    logger.info(
+        "[audio] upload accepted: %s (%.1f MB, story=%s)",
+        audio_id[:8], actual_mb, story_id[:8],
+    )
     asyncio.create_task(_run_transcription(audio_id, audio_path))
 
     return AudioTranscribeResponse(
@@ -221,7 +238,6 @@ def confirm_audio_transcript(
             detail=f"Transcript not ready (status={upload.status}). Wait for completion.",
         )
 
-    # Resolve target note
     note_id = body.note_id or upload.note_id
     if not note_id:
         raise HTTPException(
@@ -236,14 +252,12 @@ def confirm_audio_transcript(
     if not note:
         raise HTTPException(status_code=404, detail="Story note not found")
 
-    # Text to save — prefer author-edited version, else cleaned, else raw
     text_to_save = (
         body.edited_text.strip()
         if body.edited_text and body.edited_text.strip()
         else (upload.cleaned_text or upload.raw_transcript or "")
     )
 
-    # Append with separator if note already has content
     if note.content:
         note.content = note.content.rstrip() + "\n\n---\n\n" + text_to_save
     else:
@@ -254,6 +268,7 @@ def confirm_audio_transcript(
     upload.updated_at = datetime.utcnow()
     db.commit()
 
+    logger.info("[audio] transcript confirmed: %s → note %s", audio_id[:8], note_id[:8])
     return AudioConfirmResponse(
         audio_id=audio_id,
         note_id=note_id,

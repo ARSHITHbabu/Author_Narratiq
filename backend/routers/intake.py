@@ -1,21 +1,28 @@
 import asyncio
-import uuid
-from fastapi import APIRouter, Depends, HTTPException
 import json
+import logging
+import uuid
+
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from config import settings
 from database import get_db
+from middleware.rate_limit import limiter, get_user_id
 from models import Story, StoryIntake, GenreProfile
 from schemas import IntakeRequest, IntakeResponse, IntakeConfirm, GenreProfile as GenreProfileSchema
 from routers.auth import get_current_user, User
 from services.ai_service import detect_genre
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(tags=["intake"])
 
 
 @router.post("/{story_id}", response_model=IntakeResponse)
+@limiter.limit(settings.rate_limit_heavy_ai, key_func=get_user_id)
 async def analyze_story(
+    request: Request,
     story_id: str,
     data: IntakeRequest,
     current_user: User = Depends(get_current_user),
@@ -31,29 +38,27 @@ async def analyze_story(
     try:
         result = await detect_genre(data.description, data.audience_hint)
     except ValueError as exc:
-        raise HTTPException(
-            status_code=503,
-            detail=str(exc),
-        )
+        raise HTTPException(status_code=503, detail=str(exc))
 
-    # Upsert intake record
     intake = db.query(StoryIntake).filter(StoryIntake.story_id == story_id).first()
     if not intake:
         intake = StoryIntake(story_id=story_id)
         db.add(intake)
 
-    intake.raw_description = data.description
-    intake.detected_genre = result["genre"]
-    intake.detected_sub_genre = result["sub_genre"]
-    intake.detected_tone = result["tone"]
-    intake.detected_audience = result["audience"]
-    intake.detected_structure = result["structure"]
+    intake.raw_description     = data.description
+    intake.detected_genre      = result["genre"]
+    intake.detected_sub_genre  = result["sub_genre"]
+    intake.detected_tone       = result["tone"]
+    intake.detected_audience   = result["audience"]
+    intake.detected_structure  = result["structure"]
     conflict = result["conflict"]
-    intake.detected_conflict = json.dumps(conflict) if isinstance(conflict, list) else conflict
-    intake.theme_hints = result["themes"]
-    intake.author_confirmed = False
+    intake.detected_conflict   = json.dumps(conflict) if isinstance(conflict, list) else conflict
+    intake.theme_hints         = result["themes"]
+    intake.author_confirmed    = False
     db.commit()
     db.refresh(intake)
+
+    logger.info("[intake] genre detected for story=%s: %s", story_id[:8], result["genre"])
 
     profile = GenreProfileSchema(
         genre=result["genre"],
@@ -65,7 +70,6 @@ async def analyze_story(
         themes=result["themes"],
         writing_direction=result.get("writing_direction"),
         confidence=result["confidence"],
-        # Richer Story Intelligence quick-analysis fields
         secondary_genres=result.get("secondary_genres", []),
         comparable_titles=result.get("comparable_titles", []),
         marketing_category=result.get("marketing_category") or None,
@@ -86,18 +90,20 @@ def confirm_intake(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    intake = db.query(StoryIntake).filter(StoryIntake.intake_id == data.intake_id, StoryIntake.story_id == story_id).first()
+    intake = db.query(StoryIntake).filter(
+        StoryIntake.intake_id == data.intake_id,
+        StoryIntake.story_id  == story_id,
+    ).first()
     if not intake:
         raise HTTPException(status_code=404, detail="Intake not found")
 
     intake.author_confirmed = True
     intake.author_overrides = data.overrides or {}
 
-    # Apply overrides and save to genre_profiles
-    genre = data.overrides.get("genre", intake.detected_genre)
-    sub_genre = data.overrides.get("sub_genre", intake.detected_sub_genre)
-    tone = data.overrides.get("tone", intake.detected_tone)
-    audience = data.overrides.get("audience", intake.detected_audience)
+    genre     = data.overrides.get("genre",             intake.detected_genre)
+    sub_genre = data.overrides.get("sub_genre",         intake.detected_sub_genre)
+    tone      = data.overrides.get("tone",              intake.detected_tone)
+    audience  = data.overrides.get("audience",          intake.detected_audience)
     direction = data.overrides.get("writing_direction", "")
 
     gp = db.query(GenreProfile).filter(GenreProfile.story_id == story_id).first()
@@ -105,14 +111,15 @@ def confirm_intake(
         gp = GenreProfile(story_id=story_id)
         db.add(gp)
 
-    gp.genre = genre
-    gp.sub_genre = sub_genre
-    gp.tone = tone
-    gp.target_audience = audience
+    gp.genre             = genre
+    gp.sub_genre         = sub_genre
+    gp.tone              = tone
+    gp.target_audience   = audience
     gp.writing_direction = direction
     db.commit()
 
-    # Trigger foundation intelligence passes P01–P07 in background
+    logger.info("[intake] confirmed for story=%s genre=%s", story_id[:8], genre)
+
     try:
         from services.story_intel_orchestrator import run_analysis_background
         asyncio.create_task(
@@ -124,24 +131,27 @@ def confirm_intake(
             )
         )
     except Exception as exc:
-        # Never block intake confirm due to intelligence errors, but log them.
-        print(
-            f"[intake] failed to schedule background intelligence passes for "
-            f"story={story_id[:8]}... ({type(exc).__name__}: {exc})"
+        logger.error(
+            "[intake] failed to schedule background passes for story=%s: %s",
+            story_id[:8], exc,
         )
 
     return {"confirmed": True, "story_id": story_id}
 
 
 @router.get("/{story_id}/genre-profile")
-def get_genre_profile(story_id: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def get_genre_profile(
+    story_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     gp = db.query(GenreProfile).filter(GenreProfile.story_id == story_id).first()
     if not gp:
         return None
     return {
-        "genre": gp.genre,
-        "sub_genre": gp.sub_genre,
-        "tone": gp.tone,
-        "target_audience": gp.target_audience,
+        "genre":             gp.genre,
+        "sub_genre":         gp.sub_genre,
+        "tone":              gp.tone,
+        "target_audience":   gp.target_audience,
         "writing_direction": gp.writing_direction,
     }

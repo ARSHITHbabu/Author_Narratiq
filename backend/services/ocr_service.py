@@ -41,18 +41,20 @@ Compatibility patches applied to modeling_GOT.py (see patch in this repo):
 """
 
 import asyncio
+import logging
 import os
 from concurrent.futures import ThreadPoolExecutor
+
+logger = logging.getLogger(__name__)
 
 # Register HEIC/HEIF decoder with Pillow so PIL.Image.open() handles .heic/.heif
 # files transparently — required for iPhone camera photos (default HEIC format).
 try:
     from pillow_heif import register_heif_opener as _register_heif_opener
     _register_heif_opener()
-    print("[ocr_service] pillow-heif registered — HEIC/HEIF support enabled.")
+    logger.info("[ocr_service] pillow-heif registered — HEIC/HEIF support enabled.")
 except ImportError:
-    print("[ocr_service] pillow-heif not installed — HEIC/HEIF not supported.")
-
+    logger.info("[ocr_service] pillow-heif not installed — HEIC/HEIF not supported.")
 # Single-worker executor: GOT is sequential; no concurrent CUDA context conflicts.
 _ocr_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="ocr")
 
@@ -100,10 +102,9 @@ def get_best_ocr_device(required_vram_gb: float) -> tuple[str, str]:
         except Exception as exc:
             lines.append(f"GPU {i}: query failed ({exc})")
 
-    print(f"[ocr] GPU survey ({n_gpus} GPU(s), need ≥{required_vram_gb} GB):")
+    logger.info(f"[ocr] GPU survey ({n_gpus} GPU(s), need ≥{required_vram_gb} GB):")
     for ln in lines:
-        print(f"[ocr]   {ln}")
-
+        logger.info(f"[ocr]   {ln}")
     if best_idx < 0:
         return "cpu", "no GPUs found"
 
@@ -139,14 +140,12 @@ def _load_got():
             "Run: bash scripts/download_models.sh"
         )
 
-    print(f"[ocr] Loading GOT-OCR2.0 from {model_path}...")
-
+    logger.info(f"[ocr] Loading GOT-OCR2.0 from {model_path}...")
     device, reason = get_best_ocr_device(GOT_MIN_VRAM_GB)
     use_gpu = device.startswith("cuda")
     dtype   = torch.float16 if use_gpu else torch.float32
 
-    print(f"[ocr] GOT-OCR2.0 → device: {device} ({reason})")
-
+    logger.info(f"[ocr] GOT-OCR2.0 → device: {device} ({reason})")
     _got_tokenizer = AutoTokenizer.from_pretrained(
         model_path, trust_remote_code=True
     )
@@ -163,7 +162,7 @@ def _load_got():
     _got_device = device
 
     label = f"GPU ({device})" if use_gpu else "CPU"
-    print(f"[ocr] GOT-OCR2.0 ready on {label}.")
+    logger.info(f"[ocr] GOT-OCR2.0 ready on {label}.")
     return _got_tokenizer, _got_model, _got_device
 
 
@@ -209,13 +208,11 @@ def _sync_run_got_pipeline(image_path: str) -> dict:
     img     = PILImage.open(image_path)
     w, h    = img.size
     fname   = os.path.basename(image_path)
-    print(f"[ocr] Processing {fname} ({w}×{h}px) with GOT-OCR2.0")
-
+    logger.info(f"[ocr] Processing {fname} ({w}×{h}px) with GOT-OCR2.0")
     tokenizer, model, device = _load_got()
 
     label = f"GPU ({device})" if device.startswith("cuda") else "CPU"
-    print(f"[ocr] Inference on {label}…")
-
+    logger.info(f"[ocr] Inference on {label}…")
     try:
         raw_text = model.chat(tokenizer, image_path, ocr_type="ocr")
     except RuntimeError as exc:
@@ -224,10 +221,7 @@ def _sync_run_got_pipeline(image_path: str) -> dict:
         if oom and device != "cpu":
             import torch
             global _got_device
-            print(
-                f"[ocr] GOT CUDA OOM ({str(exc)[:80]}) — "
-                "moving model to CPU and retrying."
-            )
+            logger.info( f"[ocr] GOT CUDA OOM ({str(exc)[:80]}) — " "moving model to CPU and retrying." )
             torch.cuda.empty_cache()
             model.to("cpu")
             _got_device = "cpu"
@@ -239,10 +233,7 @@ def _sync_run_got_pipeline(image_path: str) -> dict:
     quality  = _quality_score(raw_text)
     n_words  = len(raw_text.split())
 
-    print(
-        f"[ocr] GOT complete: {n_words} words | "
-        f"quality={quality:.3f} | device={device}"
-    )
+    logger.info( f"[ocr] GOT complete: {n_words} words | " f"quality={quality:.3f} | device={device}" )
 
     return {
         "raw_text":      raw_text,
@@ -271,10 +262,7 @@ async def process_ocr_image(image_path: str) -> dict:
     confidence = ocr_result["confidence"]
 
     if len(raw_text.strip()) < 5:
-        print(
-            f"[ocr] raw_text too short ({len(raw_text.strip())} chars) — "
-            "skipping Qwen cleanup."
-        )
+        logger.info( f"[ocr] raw_text too short ({len(raw_text.strip())} chars) — " "skipping Qwen cleanup." )
         return {
             "raw_text":       raw_text,
             "cleaned_text":   "",

@@ -330,17 +330,24 @@ async def run_analysis_background(
         db.close()
 
     async def _worker():
+        from middleware.concurrency import bg_ai_semaphore
+        from exceptions import AIServiceUnavailableError
         worker_db = SessionLocal()
         try:
-            await run_full_analysis(
-                story_id=story_id,
-                db=worker_db,
-                passes=passes,
-                force_refresh=force_refresh,
-                job_id=job_id,
-            )
+            async with bg_ai_semaphore():
+                await run_full_analysis(
+                    story_id=story_id,
+                    db=worker_db,
+                    passes=passes,
+                    force_refresh=force_refresh,
+                    job_id=job_id,
+                )
+        except AIServiceUnavailableError as exc:
+            logger.warning("[intel_worker] AI unavailable for story=%s: %s", story_id[:8], exc)
+            _update_job(worker_db, job_id, status="error", error_message="AI temporarily unavailable — please retry")
+            worker_db.commit()
         except Exception as e:
-            logger.error(f"[intel_worker] unhandled error story={story_id}: {e}")
+            logger.error("[intel_worker] unhandled error story=%s: %s", story_id[:8], e)
             _update_job(worker_db, job_id, status="error", error_message=str(e))
             worker_db.commit()
         finally:

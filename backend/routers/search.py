@@ -18,6 +18,8 @@ import re
 from html import unescape
 from typing import Optional
 
+import logging
+
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -37,6 +39,8 @@ from schemas import (
     SemanticSearchRequest,
     SemanticSearchResponse,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["search"])
 
@@ -154,9 +158,9 @@ async def _reindex_chapter_chunks(
     try:
         plain = ai_plain(content_html)
         n = await embed_and_store_chunks(chapter_id, story_id, chapter_number, plain, db)
-        print(f"[search] Re-indexed {n} chunk(s) for ch{chapter_number} ({chapter_id[:8]}…)")
+        logger.info(f"[search] Re-indexed {n} chunk(s) for ch{chapter_number} ({chapter_id[:8]}…)")
     except Exception as exc:
-        print(f"[search] BGE-M3 re-index failed for {chapter_id[:8]}…: {exc}")
+        logger.warning(f"[search] BGE-M3 re-index failed for {chapter_id[:8]}…: {exc}")
     finally:
         db.close()
 
@@ -351,7 +355,7 @@ async def replace_in_story(
                 ch.chapter_number,
                 ch.content,
             )
-        print(f"[search] Replace done: {total_replaced} occurrence(s) in {len(affected)} chapter(s). BGE-M3 re-index queued.")
+        logger.debug(f"[search] Replace done: {total_replaced} occurrence(s) in {len(affected)} chapter(s). BGE-M3 re-index queued.")
     else:
         total_replaced = sum(p.match_count for p in preview)
 

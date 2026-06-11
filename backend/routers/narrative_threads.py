@@ -4,14 +4,19 @@ Scans chapter summaries via Qwen, clusters thread names via BGE-M3,
 stores results in narrative_threads table.
 """
 import asyncio
+import logging
 import uuid
 from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
+from config import settings
 from database import get_db
+from exceptions import AIServiceUnavailableError
+from middleware.rate_limit import limiter, get_user_id
+from middleware.concurrency import bg_ai_semaphore
 from models import Story, Chapter, ChapterSummary, NarrativeThread
 from schemas import NarrativeThreadOut, NarrativeThreadUpdate, NarrativeScanResponse
 from routers.auth import get_current_user, User
@@ -19,6 +24,8 @@ from services.ai_service import (
     extract_narrative_threads_from_summaries,
     embed_text,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["narrative-threads"])
 
@@ -213,7 +220,9 @@ async def _run_scan_pipeline(story_id: str, user_id: str) -> int:
 
 
 @router.post("/{story_id}/narrative-threads/scan", response_model=NarrativeScanResponse)
+@limiter.limit(settings.rate_limit_background_ai, key_func=get_user_id)
 async def scan_narrative_threads(
+    request: Request,
     story_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -241,10 +250,13 @@ async def scan_narrative_threads(
 
     async def _bg():
         try:
-            count = await _run_scan_pipeline(story_id, current_user.user_id)
-            print(f"[narrative_threads] scan complete for {story_id[:8]}... : {count} thread(s) written")
+            async with bg_ai_semaphore():
+                count = await _run_scan_pipeline(story_id, current_user.user_id)
+            logger.info("[narrative_threads] scan complete for %s: %d thread(s) written", story_id[:8], count)
+        except AIServiceUnavailableError as exc:
+            logger.warning("[narrative_threads] AI unavailable for %s: %s", story_id[:8], exc)
         except Exception as exc:
-            print(f"[narrative_threads] scan failed for {story_id[:8]}... : {exc}")
+            logger.error("[narrative_threads] scan failed for %s: %s", story_id[:8], exc)
 
     asyncio.create_task(_bg())
 

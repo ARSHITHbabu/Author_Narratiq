@@ -3,11 +3,14 @@ Phase 2 Writing Tools Router
 Handles: P2-02 Chapter Continuation Suggestion, P2-04 Scene Outline Generator
 All endpoints enforce story ownership and use existing RAG pipelines.
 """
-from fastapi import APIRouter, Depends, HTTPException
+import logging
 
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
+from config import settings
 from database import get_db
+from middleware.rate_limit import limiter, get_user_id
 from models import Story, Chapter, ChapterSummary, GenreProfile
 from schemas import (
     ContinuationRequest, ContinuationSuggestion, ContinuationResponse,
@@ -20,6 +23,8 @@ from services.ai_service import (
     retrieve_relevant_chunks,
     retrieve_character_context,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["writing-tools"])
 
@@ -62,7 +67,9 @@ def _trim_to_words(text: str, max_words: int) -> str:
 # ── P2-02: Chapter Continuation Suggestion ────────────────────────────────────
 
 @router.post("/{story_id}/chapters/{chapter_id}/continue", response_model=ContinuationResponse)
+@limiter.limit(settings.rate_limit_heavy_ai, key_func=get_user_id)
 async def generate_chapter_continuation(
+    request: Request,
     story_id: str,
     chapter_id: str,
     body: ContinuationRequest,
@@ -144,7 +151,9 @@ async def generate_chapter_continuation(
 # ── P2-04: Chapter / Scene Outline Generator ──────────────────────────────────
 
 @router.post("/{story_id}/chapters/{chapter_id}/outline", response_model=OutlineResponse)
+@limiter.limit(settings.rate_limit_heavy_ai, key_func=get_user_id)
 async def generate_outline(
+    request: Request,
     story_id: str,
     chapter_id: str,
     body: OutlineRequest,

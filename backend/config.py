@@ -79,6 +79,44 @@ class Settings(BaseSettings):
     backend_host: str = "0.0.0.0"
     backend_port: int = 8000
 
+    # ── Rate limiting ─────────────────────────────────────────────────────────
+    # All limits follow slowapi's string format: "N/period" where period is
+    # second | minute | hour | day. Redis-upgradeable: set SLOWAPI_STORAGE_URI.
+    rate_limit_auth:          str = "5/minute"    # per IP — /login, /register
+    rate_limit_realtime_ai:   str = "20/minute"   # per user — refine, tone, etc.
+    rate_limit_heavy_ai:      str = "5/minute"    # per user — continuity, plot-holes
+    rate_limit_background_ai: str = "3/minute"    # per user — bible, threads scan
+    rate_limit_upload:        str = "10/minute"   # per user — audio, OCR, manuscript
+
+    # ── Upload size limits ────────────────────────────────────────────────────
+    max_audio_upload_mb:      int = 100   # audio files (mp3, wav, m4a, …)
+    max_ocr_upload_mb:        int = 50    # OCR images (jpg, png, webp, heic)
+    max_manuscript_upload_mb: int = 25    # DOCX / TXT manuscripts
+
+    # ── Storage paths ─────────────────────────────────────────────────────────
+    # Relative to the backend working directory. Change here (or via env) to
+    # point at a mounted volume or object storage path. S3 migration: swap these
+    # for bucket/prefix values and update the StorageBackend implementation.
+    upload_dir_audio: str = "uploads/audio"
+    upload_dir_ocr:   str = "uploads/ocr"
+
+    # ── Background AI concurrency ─────────────────────────────────────────────
+    # Hard cap on simultaneous background Qwen calls so foreground (realtime)
+    # requests are not starved. Raise via BG_AI_CONCURRENCY env var when needed.
+    # Celery migration: replace semaphore with worker concurrency setting.
+    bg_ai_concurrency:     int = 3   # Qwen background tasks
+    embedding_concurrency: int = 2   # BGE-M3 background embedding tasks
+
+    # ── JWT settings ──────────────────────────────────────────────────────────
+    # All token values are now configurable without a code deployment.
+    # Production: set JWT_EXPIRE_MINUTES=60 for short-lived tokens.
+    jwt_expire_minutes: int = 10080   # default 7 days; set to 60 in production
+    jwt_algorithm:      str = "HS256" # HS256 default; future: RS256
+
+    # ── Logging ───────────────────────────────────────────────────────────────
+    log_level:  str = "INFO"    # DEBUG | INFO | WARNING | ERROR | CRITICAL
+    log_format: str = "text"    # text (human-readable) | json (structured)
+
     # ── CORS origins ──────────────────────────────────────────────────────────
     # On RunPod add your frontend URL: CORS_ORIGINS='["https://your-app.vercel.app"]'
     cors_origins: list[str] = [

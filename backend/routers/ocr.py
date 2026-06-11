@@ -1,13 +1,19 @@
 import asyncio
 import html as _html
+import logging
 import os
 import uuid
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Response
+from fastapi import APIRouter, Depends, Request, UploadFile, File, HTTPException, Response
 from sqlalchemy.orm import Session
 
+from config import settings
 from database import get_db
+from exceptions import UploadTooLargeError
+from middleware.rate_limit import limiter, get_user_id
+from middleware.upload_guard import enforce_upload_size
+from middleware.concurrency import embedding_semaphore
 from models import Chapter, Character, CharacterProfile, NoteCard, OcrUpload, Story, StoryNote, StoryVersion
 from schemas import (
     OcrConfirm, OcrConfirmResponse, OcrExtractResponse, OcrSuggestion,
@@ -18,10 +24,11 @@ from routers.auth import get_current_user, User
 from services.ocr_service import process_ocr_image
 from services.ai_service import generate_ocr_suggestions
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(tags=["ocr"])
 
-UPLOAD_DIR = "uploads/ocr"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+# UPLOAD_DIR is read from settings at runtime — see startup in main.py for makedirs
 
 _VALID_DESTINATIONS = {"story_notes", "chapter_draft", "character_profile", "note_card"}
 
@@ -67,11 +74,13 @@ async def _regenerate_chapter_index(
     """Re-summarise and re-embed a chapter after OCR content is appended."""
     from database import SessionLocal
     from services.ai_service import summarize_and_embed_chapter
+    from middleware.concurrency import bg_ai_semaphore
     db = SessionLocal()
     try:
-        await summarize_and_embed_chapter(chapter_id, story_id, chapter_number, content, db)
+        async with bg_ai_semaphore():
+            await summarize_and_embed_chapter(chapter_id, story_id, chapter_number, content, db)
     except Exception as exc:
-        print(f"[ocr→index bg] chapter {chapter_id[:8]}...: {exc}")
+        logger.error("[ocr→index bg] chapter %s: %s", chapter_id[:8], exc)
     finally:
         db.close()
 
@@ -88,13 +97,14 @@ async def _embed_story_note(note_id: str) -> None:
         text = f"{note.title} {note.content}".strip() if note.title else note.content
         if not text.strip():
             return
-        emb = await embed_text(text)
+        async with embedding_semaphore():
+            emb = await embed_text(text)
         note.embedding = emb
         note.updated_at = datetime.utcnow()
         db.commit()
-        print(f"[note_embed] story_note {note_id[:8]}... done ({len(emb)}-dim)")
+        logger.debug("[note_embed] story_note %s done (%d-dim)", note_id[:8], len(emb))
     except Exception as exc:
-        print(f"[note_embed] failed for story_note {note_id[:8]}...: {exc}")
+        logger.error("[note_embed] failed for story_note %s: %s", note_id[:8], exc)
     finally:
         db.close()
 
@@ -111,13 +121,14 @@ async def _embed_note_card(card_id: str) -> None:
         text = f"{card.title} {card.content}".strip() if card.title else card.content
         if not text.strip():
             return
-        emb = await embed_text(text)
+        async with embedding_semaphore():
+            emb = await embed_text(text)
         card.embedding = emb
         card.updated_at = datetime.utcnow()
         db.commit()
-        print(f"[note_embed] note_card {card_id[:8]}... done ({len(emb)}-dim)")
+        logger.debug("[note_embed] note_card %s done (%d-dim)", card_id[:8], len(emb))
     except Exception as exc:
-        print(f"[note_embed] failed for note_card {card_id[:8]}...: {exc}")
+        logger.error("[note_embed] failed for note_card %s: %s", card_id[:8], exc)
     finally:
         db.close()
 
@@ -125,9 +136,7 @@ async def _embed_note_card(card_id: str) -> None:
 async def _embed_character_profile(profile_id: str) -> None:
     """
     Compute and store a BGE-M3 embedding for a character profile.
-
-    Combines all structured fields and raw_notes into one text block so the
-    embedding captures the full character description for Character RAG retrieval.
+    Combines all structured fields into one text block for Character RAG retrieval.
     """
     from database import SessionLocal
     from services.ai_service import embed_text
@@ -149,13 +158,14 @@ async def _embed_character_profile(profile_id: str) -> None:
         combined = " ".join(p for p in parts if p and p.strip())
         if not combined.strip():
             return
-        emb = await embed_text(combined)
+        async with embedding_semaphore():
+            emb = await embed_text(combined)
         profile.embedding = emb
         profile.updated_at = datetime.utcnow()
         db.commit()
-        print(f"[character_embed] profile {profile_id[:8]}... done ({len(emb)}-dim)")
+        logger.debug("[character_embed] profile %s done (%d-dim)", profile_id[:8], len(emb))
     except Exception as exc:
-        print(f"[character_embed] failed for profile {profile_id[:8]}...: {exc}")
+        logger.error("[character_embed] failed for profile %s: %s", profile_id[:8], exc)
     finally:
         db.close()
 
@@ -163,12 +173,17 @@ async def _embed_character_profile(profile_id: str) -> None:
 # ── Routes ────────────────────────────────────────────────────────────────────
 
 @router.post("/extract/{story_id}", response_model=OcrExtractResponse)
+@limiter.limit(settings.rate_limit_upload, key_func=get_user_id)
 async def extract_ocr(
+    request: Request,
     story_id: str,
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    # Pre-check Content-Length before reading body
+    enforce_upload_size(request, limit_mb=settings.max_ocr_upload_mb)
+
     _allowed_types = {"image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"}
     _allowed_exts  = {".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"}
     _ext = os.path.splitext(file.filename or "")[1].lower()
@@ -178,22 +193,30 @@ async def extract_ocr(
             detail="Only JPEG, PNG, WebP, and HEIC images are accepted",
         )
 
-    # BUG-1: verify the authenticated user owns this story before creating any
-    # upload record or touching the filesystem.
     _get_owned_story(story_id, current_user.user_id, db)
 
-    file_id = str(uuid.uuid4())
-    file_path = os.path.join(UPLOAD_DIR, f"{file_id}_{file.filename}")
     content = await file.read()
+
+    # Byte-level size guard (defense-in-depth)
+    actual_mb = len(content) / (1024 * 1024)
+    if actual_mb > settings.max_ocr_upload_mb:
+        raise UploadTooLargeError(limit_mb=settings.max_ocr_upload_mb, actual_mb=actual_mb)
+
+    ocr_dir = settings.upload_dir_ocr
+    os.makedirs(ocr_dir, exist_ok=True)
+    file_id   = str(uuid.uuid4())
+    file_path = os.path.join(ocr_dir, f"{file_id}_{file.filename}")
     with open(file_path, "wb") as f:
         f.write(content)
+
+    logger.info("[ocr] upload accepted: %s (%.1f MB, story=%s)", file_id[:8], actual_mb, story_id[:8])
 
     try:
         result = await process_ocr_image(file_path)
     except RuntimeError as exc:
         raise HTTPException(status_code=500, detail=str(exc))
     except Exception as exc:
-        print(f"[ocr endpoint] Unexpected pipeline error: {exc}")
+        logger.error("[ocr] unexpected pipeline error: %s", exc)
         raise HTTPException(
             status_code=500,
             detail="OCR processing failed unexpectedly. Please try again.",
@@ -330,9 +353,9 @@ async def confirm_ocr(
         )
 
         target_id = chapter.chapter_id
-        print(
-            f"[ocr_inject] chapter_draft → chapter {chapter.chapter_id[:8]}... "
-            f"(ch{chapter.chapter_number}, story {story.story_id[:8]}...)"
+        logger.info(
+            "[ocr_inject] chapter_draft → chapter %s (ch%d, story %s)",
+            chapter.chapter_id[:8], chapter.chapter_number, story.story_id[:8],
         )
 
     # ── story_notes ───────────────────────────────────────────────────────────
@@ -349,7 +372,7 @@ async def confirm_ocr(
         db.refresh(note)
         target_id = note.note_id
         asyncio.create_task(_embed_story_note(note.note_id))
-        print(f"[ocr_inject] story_notes → note {note.note_id[:8]}...")
+        logger.info("[ocr_inject] story_notes → note %s", note.note_id[:8])
 
     # ── note_card ─────────────────────────────────────────────────────────────
     elif data.destination == "note_card":
@@ -365,7 +388,7 @@ async def confirm_ocr(
         db.refresh(card)
         target_id = card.card_id
         asyncio.create_task(_embed_note_card(card.card_id))
-        print(f"[ocr_inject] note_card → card {card.card_id[:8]}...")
+        logger.info("[ocr_inject] note_card → card %s", card.card_id[:8])
 
     # ── character_profile ─────────────────────────────────────────────────────
     elif data.destination == "character_profile":
@@ -393,7 +416,7 @@ async def confirm_ocr(
             )
             db.add(character)
             db.flush()   # obtain character_id before creating profile
-            print(f"[ocr_inject] created new character '{char_name}' ({character.character_id[:8]}...)")
+            logger.info("[ocr_inject] created new character '%s' (%s)", char_name, character.character_id[:8])
 
         # Get or create the character profile
         profile = (
@@ -423,7 +446,7 @@ async def confirm_ocr(
 
         # Background: compute BGE-M3 embedding for Character RAG
         asyncio.create_task(_embed_character_profile(profile.profile_id))
-        print(f"[ocr_inject] character_profile → '{char_name}' profile {profile.profile_id[:8]}...")
+        logger.info("[ocr_inject] character_profile → '%s' profile %s", char_name, profile.profile_id[:8])
 
     return OcrConfirmResponse(
         confirmed=True,

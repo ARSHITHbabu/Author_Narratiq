@@ -2,6 +2,8 @@ import asyncio
 from datetime import datetime
 from typing import Optional
 
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
@@ -18,6 +20,8 @@ from schemas import (
     VoiceCheckResponse, VoiceInconsistentPair,
 )
 from routers.auth import get_current_user, User
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["characters"])
 
@@ -115,9 +119,9 @@ async def _embed_profile(profile_id: str) -> None:
         profile.embedding = emb
         profile.updated_at = datetime.utcnow()
         db.commit()
-        print(f"[character_embed] profile {profile_id[:8]}... done ({len(emb)}-dim)")
+        logger.debug(f"[character_embed] profile {profile_id[:8]}... done ({len(emb)}-dim)")
     except Exception as exc:
-        print(f"[character_embed] failed for {profile_id[:8]}...: {exc}")
+        logger.warning(f"[character_embed] failed for {profile_id[:8]}...: {exc}")
     finally:
         db.close()
 
@@ -131,7 +135,7 @@ async def _run_mention_index(chapter_id: str, story_id: str, chapter_number: int
         for char_id in counts:
             await update_mention_embedding(char_id, story_id, db)
     except Exception as exc:
-        print(f"[mention_index bg] Failed for chapter {chapter_id[:8]}...: {exc}")
+        logger.warning(f"[mention_index bg] Failed for chapter {chapter_id[:8]}...: {exc}")
     finally:
         db.close()
 
@@ -240,10 +244,7 @@ async def generate_cast(
             if plain.strip():
                 chapter_map[ch.chapter_number] = [plain]
         if chapter_map:
-            print(
-                f"[generate_cast] story={story_id[:8]}... not indexed — "
-                f"using raw content from {len(chapter_map)} chapter(s)"
-            )
+            logger.info( f"[generate_cast] story={story_id[:8]}... not indexed — " f"using raw content from {len(chapter_map)} chapter(s)" )
 
     if not chapter_map:
         raise HTTPException(
@@ -262,7 +263,7 @@ async def generate_cast(
         # extract_cast raises ValueError on unparseable / malformed model output.
         raise HTTPException(status_code=503, detail=str(exc))
     except Exception as exc:  # vLLM unreachable, timeout, etc.
-        print(f"[generate_cast] LLM call failed for story={story_id[:8]}...: {exc!r}")
+        logger.warning(f"[generate_cast] LLM call failed for story={story_id[:8]}...: {exc!r}")
         raise HTTPException(
             status_code=503,
             detail=(
@@ -464,10 +465,7 @@ async def confirm_cast(
                 ))
                 queued += 1
         if queued:
-            print(
-                f"[confirm_cast] {len(created_entries)} character(s) created — "
-                f"triggered mention re-indexing for {queued} chapter(s)"
-            )
+            logger.info( f"[confirm_cast] {len(created_entries)} character(s) created — " f"triggered mention re-indexing for {queued} chapter(s)" )
 
     return CastConfirmResult(
         created=created_chars,
@@ -821,7 +819,7 @@ async def get_arc_timeline(
             db.flush()
             saved.append(row)
         except Exception as exc:
-            print(f"[arc_timeline] Failed to save snapshot ch{snap.get('chapter_number')}: {exc}")
+            logger.warning(f"[arc_timeline] Failed to save snapshot ch{snap.get('chapter_number')}: {exc}")
             db.rollback()
 
     db.commit()

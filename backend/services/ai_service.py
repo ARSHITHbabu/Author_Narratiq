@@ -12,15 +12,19 @@ Models stay permanently loaded in GPU VRAM — no cold starts after warmup.
 
 import asyncio
 import json
+import logging
 import re
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from typing import Any, AsyncGenerator, Callable, Optional
 
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI, APIConnectionError, APIStatusError
 from sentence_transformers import SentenceTransformer
 
 from config import settings
+from exceptions import AIServiceUnavailableError
+
+logger = logging.getLogger(__name__)
 
 # ── Singletons ────────────────────────────────────────────────────────────────
 
@@ -98,18 +102,30 @@ async def _complete(
     temperature: float = 0.0,
     max_tokens: int = 512,
 ) -> str:
-    """Non-streaming completion. Use for structured JSON outputs."""
-    resp = await get_vllm_client().chat.completions.create(
-        model=settings.vllm_model_name,
-        messages=[
-            {"role": "system", "content": system},
-            {"role": "user",   "content": user},
-        ],
-        temperature=temperature,
-        max_tokens=max_tokens,
-        stream=False,
-    )
-    return resp.choices[0].message.content.strip()
+    """
+    Non-streaming completion. Use for structured JSON outputs.
+    Raises AIServiceUnavailableError on connection errors or vLLM 5xx responses.
+    """
+    try:
+        resp = await get_vllm_client().chat.completions.create(
+            model=settings.vllm_model_name,
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user",   "content": user},
+            ],
+            temperature=temperature,
+            max_tokens=max_tokens,
+            stream=False,
+        )
+        return resp.choices[0].message.content.strip()
+    except APIConnectionError as exc:
+        logger.warning("[ai_service] vLLM connection error: %s", exc)
+        raise AIServiceUnavailableError() from exc
+    except APIStatusError as exc:
+        if exc.status_code in (429, 500, 502, 503, 504):
+            logger.warning("[ai_service] vLLM status %d: %s", exc.status_code, exc)
+            raise AIServiceUnavailableError() from exc
+        raise
 
 
 async def _stream_generate(
@@ -120,18 +136,28 @@ async def _stream_generate(
 ) -> AsyncGenerator[str, None]:
     """
     Streaming completion. Yields token strings as vLLM produces them.
-    Caller wraps this in an SSE generator.
+    Raises AIServiceUnavailableError on connection errors before streaming starts.
     """
-    stream = await get_vllm_client().chat.completions.create(
-        model=settings.vllm_model_name,
-        messages=[
-            {"role": "system", "content": system},
-            {"role": "user",   "content": user},
-        ],
-        temperature=temperature,
-        max_tokens=max_tokens,
-        stream=True,
-    )
+    try:
+        stream = await get_vllm_client().chat.completions.create(
+            model=settings.vllm_model_name,
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user",   "content": user},
+            ],
+            temperature=temperature,
+            max_tokens=max_tokens,
+            stream=True,
+        )
+    except APIConnectionError as exc:
+        logger.warning("[ai_service] vLLM stream connection error: %s", exc)
+        raise AIServiceUnavailableError() from exc
+    except APIStatusError as exc:
+        if exc.status_code in (429, 500, 502, 503, 504):
+            logger.warning("[ai_service] vLLM stream status %d: %s", exc.status_code, exc)
+            raise AIServiceUnavailableError() from exc
+        raise
+
     async for chunk in stream:
         token = chunk.choices[0].delta.content
         if token:
@@ -205,7 +231,7 @@ def _extract_json(text: str, fallback):
     the response so failures are diagnosable instead of silent.
     """
     if not text or not text.strip():
-        print("[json] empty model response — using fallback")
+        logger.debug("[ai_service] empty model response — using fallback")
         return fallback
 
     candidates: list[str] = []
@@ -228,7 +254,7 @@ def _extract_json(text: str, fallback):
             except json.JSONDecodeError:
                 continue
 
-    print(f"[json] failed to parse model output as JSON. Raw head: {text[:300]!r}")
+    logger.warning("[ai_service] failed to parse model output as JSON. Raw head: %r", text[:300])
     return fallback
 
 
@@ -358,7 +384,7 @@ async def detect_genre(description: str, audience_hint: Optional[str] = None) ->
     )
     result = _extract_json(raw, None)
     if result is None or not isinstance(result, dict):
-        print(f"[detect_genre] model returned invalid JSON. Raw head: {raw[:300]!r}")
+        logger.warning("[ai_service] detect_genre invalid JSON. Raw head: %r", raw[:300])
         raise ValueError(
             "Genre detection failed: the AI model returned invalid output. "
             "Please try again."
@@ -755,11 +781,11 @@ async def extract_cast(chapter_texts: list) -> list:
     words_per_window = _cast_window_word_budget()
     windows = _build_cast_windows(chapter_texts, words_per_window)
     if not windows:
-        print("[extract_cast] no chapter text supplied — nothing to analyse")
+        logger.debug("[ai_service] extract_cast: no chapter text supplied")
         return []
 
     total_words = sum(len((t or "").split()) for t in chapter_texts)
-    print(f"[extract_cast] analysing {total_words} words across {len(windows)} "
+    logger.info("[ai_service] extract_cast: analysing %d words across %d "
           f"window(s) of ~{words_per_window} words (model ctx="
           f"{getattr(settings, 'max_model_len', 8192)})")
 
@@ -770,14 +796,14 @@ async def extract_cast(chapter_texts: list) -> list:
                 temperature=0.1, max_tokens=_CAST_COMPLETION_TOKENS,
             )
         except Exception as exc:
-            print(f"[extract_cast] window {i+1}/{len(windows)} LLM call failed: {exc!r}")
+            logger.warning("[ai_service] extract_cast window %d/%d LLM failed: %r", i+1, len(windows), exc)
             return exc  # surfaced below so we can distinguish "all failed"
         parsed = _extract_json(raw, None)
         if not isinstance(parsed, list):
-            print(f"[extract_cast] window {i+1}/{len(windows)} returned non-array JSON. "
+            logger.warning("[ai_service] extract_cast window %d/%d non-array JSON. ",
                   f"Raw head: {raw[:200]!r}")
             return None
-        print(f"[extract_cast] window {i+1}/{len(windows)} → {len(parsed)} character(s)")
+        logger.debug("[ai_service] extract_cast window %d/%d → %d character(s)", i+1, len(windows), len(parsed))
         return parsed
 
     results = await asyncio.gather(*[_run_window(i, w) for i, w in enumerate(windows)])
@@ -796,8 +822,10 @@ async def extract_cast(chapter_texts: list) -> list:
         )
 
     cast = _merge_cast(parsed_lists)
-    print(f"[extract_cast] merged into {len(cast)} unique character(s) "
-          f"from {len(parsed_lists)}/{len(windows)} successful window(s)")
+    logger.info(
+        "[ai_service] extract_cast merged into %d unique character(s) from %d/%d successful window(s)",
+        len(cast), len(parsed_lists), len(windows),
+    )
     return cast
 
 
@@ -819,7 +847,7 @@ async def generate_suggestions(text: str, story_context: str = "", genre: str = 
     result = _extract_json(raw, None)
     if isinstance(result, list):
         return result
-    print(f"[generate_suggestions] Qwen returned invalid JSON. Raw response: {raw[:300]!r}")
+    logger.warning("[ai_service] generate_suggestions invalid JSON. Raw: %r", raw[:300])
     raise ValueError(
         "Writing suggestions failed: AI model returned invalid output. "
         "Please try again."
@@ -859,7 +887,7 @@ async def detect_query_intent(question: str) -> str:
     raw = await _complete(system, f"Question: {question}", temperature=0.0, max_tokens=10)
     token = raw.strip().lower().split()[0] if raw.strip() else "creative"
     intent = token if token in ("qa", "creative", "mixed") else "creative"
-    print(f"[intent] question={question[:60]!r} → intent={intent!r} (raw={raw.strip()!r})")
+    logger.debug("[ai_service] intent: question=%r → intent=%r", question[:60], intent)
     return intent
 
 
@@ -1034,12 +1062,10 @@ async def retrieve_character_context(
         tokens_used += block_tokens
 
     if result:
-        print(
-            f"[char_rag_v2] story={story_id[:8]}... — "
+        logger.info(f"[char_rag_v2] story={story_id[:8]}... — "
             f"{len(result)}/{len(characters)} character(s) injected "
             f"({tokens_used}≈tok, name_boost={len(name_mentioned_ids)}, "
-            f"has_mention_emb={sum(1 for p in profiles_map.values() if p.mention_embedding is not None)})"
-        )
+            f"has_mention_emb={sum(1 for p in profiles_map.values() if p.mention_embedding is not None)})")
     return result
 
 
@@ -1108,10 +1134,8 @@ async def retrieve_note_context(
         tokens_used += block_tokens
 
     if result:
-        print(
-            f"[note_rag] story={story_id[:8]}... — "
-            f"{len(result)}/{len(rows)} note(s) injected ({tokens_used}≈tok)"
-        )
+        logger.info(f"[note_rag] story={story_id[:8]}... — "
+            f"{len(result)}/{len(rows)} note(s) injected ({tokens_used}≈tok)")
     return result
 
 
@@ -1181,11 +1205,9 @@ async def answer_story_question(
         )
         user_prompt = "\n\n".join(parts)
         total_chars  = len(system) + len(user_prompt)
-        print(
-            f"[qa_answer] {len(text_chunks)} chunk(s), {total_words} words, "
+        logger.info(f"[qa_answer] {len(text_chunks)} chunk(s), {total_words} words, "
             f"char_ctx={len(character_context or [])}, "
-            f"prompt≈{total_chars//4} tokens, max_tokens=900"
-        )
+            f"prompt≈{total_chars//4} tokens, max_tokens=900")
     else:
         parts.append(
             "No indexed story passages found for this story. "
@@ -1193,7 +1215,7 @@ async def answer_story_question(
             "so the content can be indexed."
         )
         user_prompt = "\n\n".join(parts)
-        print("[qa_answer] No chunks available — answering without story context")
+        logger.info("[qa_answer] No chunks available — answering without story context")
 
     if current_chapter:
         parts.append(f"Current chapter (last 600 chars):\n{current_chapter[-600:]}")
@@ -1299,13 +1321,13 @@ async def generate_plot_suggestions(
         f"summaries={len(summaries) if summaries else 0}, "
         f"current_chapter={'yes' if current_chapter else 'no'}"
     )
-    print(f"[plot_suggestions] Calling Qwen — {context_status}")
+    logger.info("[ai_service] plot_suggestions: calling Qwen — %s", context_status)
 
     raw = await _complete(system, "\n\n".join(parts), temperature=0.0, max_tokens=800)
     result = _extract_json(raw, None)
     if isinstance(result, list):
         return result
-    print(f"[generate_plot_suggestions] Qwen returned invalid JSON. Raw response: {raw[:300]!r}")
+    logger.warning("[ai_service] generate_plot_suggestions invalid JSON. Raw: %r", raw[:300])
     raise ValueError(
         "Plot suggestion generation failed: AI model returned invalid output. "
         "Please try again."
@@ -1389,7 +1411,7 @@ async def _strategy_single_pass(chapters: list[dict]) -> dict:
     result = _extract_json(raw, None)
 
     if not isinstance(result, dict) or "issues" not in result:
-        print(f"[plot_holes] single_pass: Qwen returned invalid JSON. Raw: {raw[:300]!r}")
+        logger.warning("[ai_service] plot_holes single_pass invalid JSON. Raw: %r", raw[:300])
         raise ValueError(
             "Plot hole analysis failed: AI model returned invalid output. Please try again."
         )
@@ -1434,16 +1456,12 @@ async def detect_plot_holes(
             f"Available: {list(_PLOT_HOLE_STRATEGIES)}"
         )
 
-    print(
-        f"[plot_holes] story={story_id[:8]}... "
-        f"strategy={strategy!r} total_chapters={len(summaries)}"
-    )
+    logger.info(f"[plot_holes] story={story_id[:8]}... "
+        f"strategy={strategy!r} total_chapters={len(summaries)}")
     result = await fn(summaries)
-    print(
-        f"[plot_holes] done — "
+    logger.info(f"[plot_holes] done — "
         f"{result['chapters_analyzed']} analyzed, "
-        f"{len(result['issues'])} issue(s) found"
-    )
+        f"{len(result['issues'])} issue(s) found")
     return result
 
 
@@ -1551,7 +1569,7 @@ async def _strategy_manuscript_summary_pass(chapters: list[dict]) -> dict:
     result = _extract_json(raw, None)
 
     if not isinstance(result, dict) or "character_arcs" not in result:
-        print(f"[manuscript] summary_pass: Qwen returned invalid JSON. Raw: {raw[:300]!r}")
+        logger.warning(f"[manuscript] summary_pass: Qwen returned invalid JSON. Raw: {raw[:300]!r}")
         raise ValueError(
             "Manuscript analysis failed: AI model returned invalid output. Please try again."
         )
@@ -1603,17 +1621,13 @@ async def analyze_manuscript(
             f"Available: {list(_MANUSCRIPT_STRATEGIES)}"
         )
 
-    print(
-        f"[manuscript] story={story_id[:8]}... "
-        f"strategy={strategy!r} total_chapters={len(chapters)}"
-    )
+    logger.info(f"[manuscript] story={story_id[:8]}... "
+        f"strategy={strategy!r} total_chapters={len(chapters)}")
     result = await fn(chapters)
-    print(
-        f"[manuscript] done — "
+    logger.info(f"[manuscript] done — "
         f"{result['chapters_analyzed']} analyzed, "
         f"{len(result.get('character_arcs', []))} arc(s), "
-        f"{len(result.get('unresolved_threads', []))} thread(s)"
-    )
+        f"{len(result.get('unresolved_threads', []))} thread(s)")
     return result
 
 
@@ -1628,10 +1642,8 @@ async def clean_ocr_text(raw_text: str) -> tuple[str, str]:
     to clean" filler response that would be shown as the extracted text.
     """
     if not raw_text or len(raw_text.strip()) < 5:
-        print(
-            f"[clean_ocr_text] raw_text too short ({len(raw_text.strip())} chars) — "
-            "skipping Qwen call."
-        )
+        logger.warning(f"[clean_ocr_text] raw_text too short ({len(raw_text.strip())} chars) — "
+            "skipping Qwen call.")
         return ("", "other")
 
     clean_system = (
@@ -1812,10 +1824,8 @@ def _apply_entity_safety_filter(
 
         # Rule 1 — original is a known-protected span
         if orig_lower in protected:
-            print(
-                f"[entity_safety] Discarded '{s['original']}' → '{s['suggested']}': "
-                "original is a protected entity span (Rule 1)"
-            )
+            logger.info(f"[entity_safety] Discarded '{s['original']}' → '{s['suggested']}': "
+                "original is a protected entity span (Rule 1)")
             continue
 
         # Rule 2 — original is a high-similarity form of any registry entity
@@ -1824,10 +1834,8 @@ def _apply_entity_safety_filter(
             default=0.0,
         )
         if max_sim >= 0.90:
-            print(
-                f"[entity_safety] Discarded '{s['original']}' → '{s['suggested']}': "
-                f"original matches registry entity at {max_sim:.2f} (Rule 2)"
-            )
+            logger.info(f"[entity_safety] Discarded '{s['original']}' → '{s['suggested']}': "
+                f"original matches registry entity at {max_sim:.2f} (Rule 2)")
             continue
 
         # Rule 3 — suggested replacement must be a known registry entity
@@ -1836,10 +1844,8 @@ def _apply_entity_safety_filter(
             for e in registry_lower
         )
         if not sugg_in_registry:
-            print(
-                f"[entity_safety] Discarded '{s['original']}' → '{s['suggested']}': "
-                "suggested term is not a registry entity (Rule 3)"
-            )
+            logger.info(f"[entity_safety] Discarded '{s['original']}' → '{s['suggested']}': "
+                "suggested term is not a registry entity (Rule 3)")
             continue
 
         safe.append(s)
@@ -2114,24 +2120,24 @@ async def generate_ocr_suggestions(raw_text: str, story_id: str, db) -> list[dic
     # Step 1: Entity registry
     registry, term_chapter_count, n_summaries = _build_entity_registry(story_id, db)
     if not registry:
-        print("[ocr_suggestions] No entities in registry yet — no suggestions generated")
+        logger.info("[ocr_suggestions] No entities in registry yet — no suggestions generated")
         return []
 
     # Step 2: Protected spans
     protected = _find_protected_spans(raw_text, registry)
     if protected:
         sample = list(protected)[:6]
-        print(f"[ocr_suggestions] {len(protected)} protected span(s): {sample}")
+        logger.info(f"[ocr_suggestions] {len(protected)} protected span(s): {sample}")
 
     # Step 3A: BGE-M3 retrieval + Qwen
     try:
         chunks = await retrieve_chunks_from_store(raw_text, story_id, db, top_k=4)
     except Exception as exc:
-        print(f"[ocr_suggestions] BGE-M3 retrieval failed ({exc}) — using difflib fallback")
+        logger.warning(f"[ocr_suggestions] BGE-M3 retrieval failed ({exc}) — using difflib fallback")
         chunks = []
 
     if not chunks:
-        print("[ocr_suggestions] No indexed chunks — using difflib fallback")
+        logger.info("[ocr_suggestions] No indexed chunks — using difflib fallback")
         return _suggest_difflib(raw_text, registry, protected, term_chapter_count, n_summaries)
 
     # Build entity registry section for Qwen
@@ -2185,11 +2191,11 @@ async def generate_ocr_suggestions(raw_text: str, story_id: str, db) -> list[dic
         raw_response = await _complete(system, user_prompt, temperature=0.0, max_tokens=600)
         suggestions  = _extract_json(raw_response, [])
     except Exception as exc:
-        print(f"[ocr_suggestions] Qwen call failed ({exc}) — using difflib fallback")
+        logger.warning(f"[ocr_suggestions] Qwen call failed ({exc}) — using difflib fallback")
         return _suggest_difflib(raw_text, registry, protected, term_chapter_count, n_summaries)
 
     if not isinstance(suggestions, list):
-        print("[ocr_suggestions] Qwen returned non-list — using difflib fallback")
+        logger.info("[ocr_suggestions] Qwen returned non-list — using difflib fallback")
         return _suggest_difflib(raw_text, registry, protected, term_chapter_count, n_summaries)
 
     # Validate structure
@@ -2212,10 +2218,8 @@ async def generate_ocr_suggestions(raw_text: str, story_id: str, db) -> list[dic
 
     # Apply entity-safety post-filter (three rules)
     safe = _apply_entity_safety_filter(validated, registry, protected)
-    print(
-        f"[ocr_suggestions] {len(safe)} safe suggestion(s) "
-        f"(Qwen: {len(validated)}, after safety filter: {len(safe)})"
-    )
+    logger.info(f"[ocr_suggestions] {len(safe)} safe suggestion(s) "
+        f"(Qwen: {len(validated)}, after safety filter: {len(safe)})")
     return safe
 
 
@@ -2336,12 +2340,10 @@ async def index_character_mentions(
     db.commit()
 
     if mention_counts:
-        print(
-            f"[mention_index] ch{chapter_number} ({chapter_id[:8]}...): "
+        logger.info(f"[mention_index] ch{chapter_number} ({chapter_id[:8]}...): "
             f"{sum(mention_counts.values())} mention(s) for "
             f"{len(mention_counts)} character(s): "
-            f"{ {k[:6]: v for k, v in mention_counts.items()} }"
-        )
+            f"{ {k[:6]: v for k, v in mention_counts.items()} }")
     return mention_counts
 
 
@@ -2400,10 +2402,8 @@ async def update_mention_embedding(character_id: str, story_id: str, db) -> bool
         profile.mention_embedding = emb
         profile.updated_at = datetime.utcnow()
         db.commit()
-        print(
-            f"[mention_embed] char {character_id[:8]}...: "
-            f"mention_embedding updated from {len(selected)} mention(s)"
-        )
+        logger.info(f"[mention_embed] char {character_id[:8]}...: "
+            f"mention_embedding updated from {len(selected)} mention(s)")
         return True
 
     return False
@@ -2526,14 +2526,12 @@ async def enrich_character_from_story(
 
     result = _extract_json(raw, [])
     if not isinstance(result, list):
-        print(f"[enrich] LLM returned non-list for {char.name}. Raw: {raw[:200]!r}")
+        logger.info(f"[enrich] LLM returned non-list for {char.name}. Raw: {raw[:200]!r}")
         return []
 
     chapters_covered = list({m.chapter_number for m in selected})
-    print(
-        f"[enrich] {char.name}: {len(result)} suggestion(s) from "
-        f"{len(selected)} mention(s) across chapters {sorted(chapters_covered)}"
-    )
+    logger.info(f"[enrich] {char.name}: {len(result)} suggestion(s) from "
+        f"{len(selected)} mention(s) across chapters {sorted(chapters_covered)}")
     return result
 
 
@@ -2667,7 +2665,7 @@ async def build_character_arc_timeline(
     result = _extract_json(raw, [])
 
     if not isinstance(result, list):
-        print(f"[arc_timeline] Qwen returned non-list for {char.name}. Raw: {raw[:200]!r}")
+        logger.info(f"[arc_timeline] Qwen returned non-list for {char.name}. Raw: {raw[:200]!r}")
         return []
 
     chnum_to_id    = {s.chapter_number: s.chapter_id for s in capped}
@@ -2695,13 +2693,11 @@ async def build_character_arc_timeline(
                 "mention_count":    chnum_to_count.get(chnum, 0),
             })
         except Exception as exc:
-            print(f"[arc_timeline] Skipping malformed snapshot item: {exc}")
+            logger.warning(f"[arc_timeline] Skipping malformed snapshot item: {exc}")
 
     mode_note = "rich" if rich else "compact"
-    print(
-        f"[arc_timeline] {char.name}: {len(snapshots)} snapshot(s) across "
-        f"{len(capped)} chapter(s) — mode={mode_note}{cap_note}"
-    )
+    logger.info(f"[arc_timeline] {char.name}: {len(snapshots)} snapshot(s) across "
+        f"{len(capped)} chapter(s) — mode={mode_note}{cap_note}")
     return snapshots
 
 
@@ -2766,7 +2762,7 @@ async def _detect_new_character_hints(
 
     if new_count > 0:
         db.commit()
-        print(f"[char_hints] ch{chapter_number}: {new_count} new character hint(s) added")
+        logger.info(f"[char_hints] ch{chapter_number}: {new_count} new character hint(s) added")
 
     return new_count
 
@@ -2792,10 +2788,8 @@ async def generate_chapter_summary(chapter_text: str, chapter_number: int) -> di
     result = _extract_json(raw, None)
     if isinstance(result, dict):
         return result
-    print(
-        f"[generate_chapter_summary] Ch{chapter_number}: Qwen returned invalid JSON. "
-        f"Raw response: {raw[:300]!r}"
-    )
+    logger.warning(f"[generate_chapter_summary] Ch{chapter_number}: Qwen returned invalid JSON. "
+        f"Raw response: {raw[:300]!r}")
     raise ValueError(
         f"Chapter {chapter_number} summary generation failed: AI model returned invalid output."
     )
@@ -2825,10 +2819,8 @@ async def embed_and_store_chunks(
 
     chunks = _chunk_text(plain_text)
     word_total = len(plain_text.split())
-    print(
-        f"[chunks] ch{chapter_number} ({chapter_id[:8]}...): "
-        f"{word_total} words → {len(chunks)} chunk(s)"
-    )
+    logger.info(f"[chunks] ch{chapter_number} ({chapter_id[:8]}...): "
+        f"{word_total} words → {len(chunks)} chunk(s)")
 
     for i, chunk_text in enumerate(chunks):
         emb = await embed_text(chunk_text)
@@ -2843,7 +2835,7 @@ async def embed_and_store_chunks(
         ))
 
     db.commit()
-    print(f"[chunks] {len(chunks)} chunk(s) stored — ch{chapter_number}")
+    logger.info(f"[chunks] {len(chunks)} chunk(s) stored — ch{chapter_number}")
     return len(chunks)
 
 
@@ -2869,7 +2861,7 @@ async def retrieve_chunks_from_store(
     """
     from sqlalchemy import text
 
-    print(f"[chunk_retrieval] story={story_id[:8]}... — embedding query: {question[:80]!r}")
+    logger.debug(f"[chunk_retrieval] story={story_id[:8]}... — embedding query: {question[:80]!r}")
     q_emb = await embed_text(question)
     q_vec_str = vector_literal(q_emb)
 
@@ -2893,21 +2885,17 @@ async def retrieve_chunks_from_store(
     ).fetchall()
 
     if not rows:
-        print(f"[chunk_retrieval] story={story_id[:8]}... — no indexed chunks found")
+        logger.info(f"[chunk_retrieval] story={story_id[:8]}... — no indexed chunks found")
         return []
 
     chapters_hit = sorted({row.chapter_number for row in rows})
-    print(
-        f"[chunk_retrieval] top-{len(rows)}: "
+    logger.info(f"[chunk_retrieval] top-{len(rows)}: "
         f"scores={[round(float(row.score), 3) for row in rows]}, "
-        f"chapters={chapters_hit}"
-    )
+        f"chapters={chapters_hit}")
     best = rows[0]
-    print(
-        f"[chunk_retrieval] best: "
+    logger.info(f"[chunk_retrieval] best: "
         f"ch{best.chapter_number}[chunk {best.chunk_index}]: "
-        f"{best.text[:120]!r}"
-    )
+        f"{best.text[:120]!r}")
 
     return [
         {
@@ -2945,16 +2933,14 @@ async def summarize_and_embed_chapter(
     # Plain text for summary (single line, no paragraph structure needed)
     plain_flat = _strip_html(content)
     if not plain_flat.strip():
-        print(f"[summary] Ch{chapter_number} ({chapter_id[:8]}...) has no text — skipping.")
+        logger.warning(f"[summary] Ch{chapter_number} ({chapter_id[:8]}...) has no text — skipping.")
         return
 
     # Para-structured plain text for chunking
     plain_para = _html_to_plain(content)
 
-    print(
-        f"[summary] Ch{chapter_number} ({chapter_id[:8]}... story={story_id[:8]}...): "
-        f"{len(plain_flat.split())} words"
-    )
+    logger.info(f"[summary] Ch{chapter_number} ({chapter_id[:8]}... story={story_id[:8]}...): "
+        f"{len(plain_flat.split())} words")
 
     # 1 + 2: summary + summary embedding
     try:
@@ -2962,13 +2948,13 @@ async def summarize_and_embed_chapter(
     except ValueError as exc:
         # Qwen returned invalid output — do NOT store or embed anything fake.
         # The chapter remains un-indexed until the next sync-summaries run.
-        print(f"[summary] Ch{chapter_number} ({chapter_id[:8]}...): {exc} — skipping indexing.")
+        logger.warning(f"[summary] Ch{chapter_number} ({chapter_id[:8]}...): {exc} — skipping indexing.")
         return
     raw_summary  = summary_data.get("raw_summary", "")
 
-    print(f"[embedding] BGE-M3 embedding for ch{chapter_number} summary...")
+    logger.debug(f"[embedding] BGE-M3 embedding for ch{chapter_number} summary...")
     summary_emb = await embed_text(raw_summary)
-    print(f"[embedding] Summary dim={len(summary_emb)}")
+    logger.debug(f"[embedding] Summary dim={len(summary_emb)}")
 
     # Upsert ChapterSummary
     cs = db.query(ChapterSummary).filter(ChapterSummary.chapter_id == chapter_id).first()
@@ -3020,10 +3006,8 @@ async def summarize_and_embed_chapter(
         summary_data.get("characters_present", []), db
     )
 
-    print(
-        f"[summary] Ch{chapter_number} fully indexed: "
-        f"summary + {n_chunks} chunk(s) + {sum(mention_counts.values())} mention(s)."
-    )
+    logger.info(f"[summary] Ch{chapter_number} fully indexed: "
+        f"summary + {n_chunks} chunk(s) + {sum(mention_counts.values())} mention(s).")
 
 
 # ── BGE-M3 semantic retrieval ──────────────────────────────────────────────────
@@ -3046,7 +3030,7 @@ async def retrieve_relevant_chunks(
     """
     from sqlalchemy import text
 
-    print(f"[retrieval] story={story_id[:8]}... — embedding query: {question[:80]!r}")
+    logger.debug(f"[retrieval] story={story_id[:8]}... — embedding query: {question[:80]!r}")
     q_emb = await embed_text(question)
     q_vec_str = vector_literal(q_emb)
 
@@ -3069,23 +3053,17 @@ async def retrieve_relevant_chunks(
         params,
     ).fetchall()
 
-    print(
-        f"[retrieval] story={story_id[:8]}... — "
-        f"{len(rows)} chapter(s) with embeddings found"
-    )
+    logger.info(f"[retrieval] story={story_id[:8]}... — "
+        f"{len(rows)} chapter(s) with embeddings found")
 
     if not rows:
         return []
 
-    print(
-        f"[retrieval] Top-{len(rows)} results: "
-        f"scores={[round(float(row.score), 3) for row in rows]}"
-    )
+    logger.info(f"[retrieval] Top-{len(rows)} results: "
+        f"scores={[round(float(row.score), 3) for row in rows]}")
     best = rows[0]
-    print(
-        f"[retrieval] Best match — Chapter {best.chapter_number}: "
-        f"{best.raw_summary[:150]!r}"
-    )
+    logger.info(f"[retrieval] Best match — Chapter {best.chapter_number}: "
+        f"{best.raw_summary[:150]!r}")
 
     return [
         {

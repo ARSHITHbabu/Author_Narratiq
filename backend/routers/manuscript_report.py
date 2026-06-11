@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from openai import APIConnectionError, APIStatusError
@@ -10,6 +12,8 @@ from schemas import (
 )
 from routers.auth import get_current_user, User
 from services.ai_service import analyze_manuscript
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["manuscript-report"])
 
@@ -119,8 +123,7 @@ async def get_manuscript_report(
                 completeness = raw.get("completeness", "partial"),
             ))
         except Exception as exc:
-            print(f"[manuscript] skipping malformed arc: {exc}")
-
+            logger.warning(f"[manuscript] skipping malformed arc: {exc}")
     raw_pacing = result.get("pacing") or {}
     pacing = PacingAnalysis(
         slow_chapters    = raw_pacing.get("slow_chapters",    []),
@@ -137,8 +140,7 @@ async def get_manuscript_report(
                 chapters      = raw.get("chapters",      []),
             ))
         except Exception as exc:
-            print(f"[manuscript] skipping malformed thread: {exc}")
-
+            logger.warning(f"[manuscript] skipping malformed thread: {exc}")
     strengths: list[StrengthEntry] = []
     for raw in result.get("strengths", []):
         try:
@@ -147,8 +149,7 @@ async def get_manuscript_report(
                 chapters = raw.get("chapters", []),
             ))
         except Exception as exc:
-            print(f"[manuscript] skipping malformed strength: {exc}")
-
+            logger.warning(f"[manuscript] skipping malformed strength: {exc}")
     improvements: list[ImprovementEntry] = []
     for raw in result.get("improvements", []):
         try:
@@ -157,8 +158,7 @@ async def get_manuscript_report(
                 chapters = raw.get("chapters", []),
             ))
         except Exception as exc:
-            print(f"[manuscript] skipping malformed improvement: {exc}")
-
+            logger.warning(f"[manuscript] skipping malformed improvement: {exc}")
     wc_total = story.word_count or result.get("word_count_total", 0)
 
     return ManuscriptReport(

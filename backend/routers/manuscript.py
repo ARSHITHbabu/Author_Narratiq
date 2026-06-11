@@ -1,25 +1,39 @@
+import logging
 import uuid
 import asyncio
 from datetime import datetime
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
+
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Request
 from sqlalchemy.orm import Session
 
+from config import settings
 from database import get_db
+from exceptions import AIServiceUnavailableError, UploadTooLargeError
+from middleware.rate_limit import limiter, get_user_id
+from middleware.upload_guard import enforce_upload_size
+from middleware.concurrency import bg_ai_semaphore
 from models import Story, Chapter, ManuscriptJob
 from schemas import ManuscriptUploadResponse, JobStatus
 from routers.auth import get_current_user, User
 from services.ai_service import summarize_and_embed_chapter
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(tags=["manuscript"])
 
 
 @router.post("/upload/{story_id}", response_model=ManuscriptUploadResponse)
+@limiter.limit(settings.rate_limit_upload, key_func=get_user_id)
 async def upload_manuscript(
+    request: Request,
     story_id: str,
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    # Pre-check Content-Length before reading body
+    enforce_upload_size(request, limit_mb=settings.max_manuscript_upload_mb)
+
     story = db.query(Story).filter(
         Story.story_id == story_id,
         Story.user_id == current_user.user_id,
@@ -35,8 +49,13 @@ async def upload_manuscript(
         raise HTTPException(status_code=400, detail="Only TXT and DOCX files are accepted")
 
     content = await file.read()
-    text = content.decode("utf-8", errors="ignore")
 
+    # Byte-level size guard (defense-in-depth for clients without Content-Length)
+    actual_mb = len(content) / (1024 * 1024)
+    if actual_mb > settings.max_manuscript_upload_mb:
+        raise UploadTooLargeError(limit_mb=settings.max_manuscript_upload_mb, actual_mb=actual_mb)
+
+    text = content.decode("utf-8", errors="ignore")
     raw_chapters = _segment_chapters(text)
 
     job = ManuscriptJob(
@@ -53,6 +72,10 @@ async def upload_manuscript(
     db.commit()
     db.refresh(job)
 
+    logger.info(
+        "[manuscript] upload accepted: job=%s, story=%s, chapters=%d, size=%.1f MB",
+        job.job_id[:8], story_id[:8], len(raw_chapters), actual_mb,
+    )
     asyncio.create_task(_ingest_pipeline(job.job_id, story_id, raw_chapters))
 
     return ManuscriptUploadResponse(
@@ -100,9 +123,10 @@ async def _ingest_pipeline(job_id: str, story_id: str, raw_chapters: list) -> No
             local_db.commit()
             local_db.refresh(chapter)
 
-            await summarize_and_embed_chapter(
-                chapter.chapter_id, story_id, i + 1, ch["content"], local_db
-            )
+            async with bg_ai_semaphore():
+                await summarize_and_embed_chapter(
+                    chapter.chapter_id, story_id, i + 1, ch["content"], local_db
+                )
             await asyncio.sleep(0.05)
 
         _update_job(local_db, job_id, {
@@ -111,7 +135,17 @@ async def _ingest_pipeline(job_id: str, story_id: str, raw_chapters: list) -> No
             "percent": 100,
             "message": "",
         })
+        logger.info("[manuscript] ingest complete: job=%s, %d chapters", job_id[:8], total)
+    except AIServiceUnavailableError as exc:
+        logger.warning("[manuscript] AI unavailable during ingest: job=%s: %s", job_id[:8], exc)
+        _update_job(local_db, job_id, {
+            "status":  "error",
+            "stage":   "Error",
+            "percent": 0,
+            "message": "AI temporarily unavailable — please retry",
+        })
     except Exception as exc:
+        logger.error("[manuscript] ingest failed: job=%s: %s", job_id[:8], exc)
         _update_job(local_db, job_id, {
             "status":  "error",
             "stage":   "Error",

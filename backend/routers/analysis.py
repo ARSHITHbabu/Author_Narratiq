@@ -5,13 +5,16 @@ Handles: P2-01 Emotional Arc Map, P2-05 Continuity Validator,
 All endpoints are story-scoped and enforce ownership via _get_owned_story().
 """
 import asyncio
+import logging
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from config import settings
 from database import get_db
+from middleware.rate_limit import limiter, get_user_id
 from models import Story, Chapter, ChapterSummary, ChapterChunk, StoryNote, NoteCard, CharacterProfile, Character
 from schemas import (
     EmotionalArcEntry, EmotionalArcResponse,
@@ -27,6 +30,8 @@ from services.ai_service import (
     get_bge,
     vector_distance,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["analysis"])
 
@@ -44,7 +49,9 @@ def _get_owned_story(story_id: str, user_id: str, db: Session) -> Story:
 # ── P2-01: Emotional Arc Map ──────────────────────────────────────────────────
 
 @router.get("/{story_id}/emotional-arc", response_model=EmotionalArcResponse)
+@limiter.limit(settings.rate_limit_heavy_ai, key_func=get_user_id)
 async def get_emotional_arc(
+    request: Request,
     story_id: str,
     include_assessment: bool = Query(default=False),
     current_user: User = Depends(get_current_user),
@@ -107,7 +114,9 @@ async def get_emotional_arc(
 # ── P2-05: Continuity & World Consistency Validator ──────────────────────────
 
 @router.post("/{story_id}/continuity-check", response_model=ContinuityCheckResponse)
+@limiter.limit(settings.rate_limit_heavy_ai, key_func=get_user_id)
 async def run_continuity_check(
+    request: Request,
     story_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -217,7 +226,9 @@ async def run_continuity_check(
 # ── P2-08: Writing Style Drift Detector ──────────────────────────────────────
 
 @router.post("/{story_id}/style-drift", response_model=StyleDriftResponse)
+@limiter.limit(settings.rate_limit_heavy_ai, key_func=get_user_id)
 async def detect_style_drift(
+    request: Request,
     story_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -360,7 +371,9 @@ async def detect_style_drift(
 # ── P2-10: Duplicate Scene Detector ──────────────────────────────────────────
 
 @router.post("/{story_id}/duplicate-scenes", response_model=DuplicateScenesResponse)
+@limiter.limit(settings.rate_limit_heavy_ai, key_func=get_user_id)
 async def detect_duplicate_scenes(
+    request: Request,
     story_id: str,
     threshold: float = Query(default=0.92, ge=0.5, le=1.0),
     current_user: User = Depends(get_current_user),
