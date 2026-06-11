@@ -5,11 +5,11 @@ import {
   ArrowLeft, Loader2, Trash2, Plus, X, ChevronDown, ChevronUp,
   Crown, Sword, Users, Eye, Check, BookOpen, Wand2, GitBranch,
 } from 'lucide-react'
-import { charactersApi, relationshipsApi } from '@/lib/api'
+import { charactersApi, relationshipsApi, voiceCheckApi } from '@/lib/api'
 import {
   Character, CharacterMention, CharacterRelationship,
   CharacterRole, CharacterStatus, EnrichResult, EnrichSuggestion,
-  RelationshipType, RelationshipStrength,
+  RelationshipType, RelationshipStrength, VoiceCheckResponse,
 } from '@/lib/types'
 import { toast } from 'sonner'
 import CharacterArcTimelinePanel from './CharacterArcTimelinePanel'
@@ -120,6 +120,11 @@ export default function CharacterProfilePanel({
 
   // ── Arc Timeline ───────────────────────────────────────────────────────────
   const [showArcTimeline, setShowArcTimeline] = useState(false)
+
+  // ── Voice Check ────────────────────────────────────────────────────────────
+  const [voiceResult,  setVoiceResult]  = useState<VoiceCheckResponse | null>(null)
+  const [voiceLoading, setVoiceLoading] = useState(false)
+  const [showVoice,    setShowVoice]    = useState(false)
 
   // ── Delete ─────────────────────────────────────────────────────────────────
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -718,6 +723,84 @@ export default function CharacterProfilePanel({
               characterId={character.character_id}
               characterName={character.name}
             />
+          )}
+        </section>
+
+        {/* ── Voice Consistency Check ─────────────────────────────────────── */}
+        <section>
+          <div className="flex items-center justify-between mb-1.5">
+            <button
+              onClick={() => setShowVoice(v => !v)}
+              className="flex items-center gap-1.5 text-[10px] font-semibold text-[#3d4466] uppercase tracking-wider"
+            >
+              <Wand2 className="w-3 h-3" />
+              Voice Consistency
+              {showVoice ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            </button>
+            {showVoice && (
+              <button
+                onClick={async () => {
+                  setVoiceLoading(true)
+                  setVoiceResult(null)
+                  try {
+                    const res = await voiceCheckApi.check(storyId, character.character_id)
+                    setVoiceResult(res.data)
+                  } catch (err: any) {
+                    toast.error(err?.response?.data?.detail ?? 'Voice check failed')
+                  } finally {
+                    setVoiceLoading(false)
+                  }
+                }}
+                disabled={voiceLoading}
+                className="flex items-center gap-1 text-[9px] text-[#5c6391] hover:text-amber-400 disabled:opacity-50"
+              >
+                {voiceLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
+                Run Check
+              </button>
+            )}
+          </div>
+          {showVoice && (
+            <div className="flex flex-col gap-2">
+              {!voiceResult && !voiceLoading && (
+                <p className="text-[10px] text-[#3d4466]">
+                  Analyse dialogue passages to detect inconsistent voice across chapters. Click "Run Check" above.
+                </p>
+              )}
+              {voiceLoading && (
+                <div className="flex items-center gap-1.5 text-[#5c6391] text-xs">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />Analysing passages…
+                </div>
+              )}
+              {voiceResult && (
+                <>
+                  <div className="flex items-center gap-3 text-xs">
+                    {voiceResult.consistency_score != null && (
+                      <span className="text-[#9da3c8]">
+                        Score: <span className="text-amber-400 font-medium">{Math.round(voiceResult.consistency_score * 100)}%</span>
+                      </span>
+                    )}
+                    <span className="text-[#5c6391]">{voiceResult.dialogue_count} passages</span>
+                    <span className="text-[#5c6391]">{voiceResult.inconsistent_pairs.length} inconsistencies</span>
+                  </div>
+                  {voiceResult.inconsistent_pairs.length === 0 ? (
+                    <p className="text-[11px] text-emerald-400">Voice is consistent across all analysed passages.</p>
+                  ) : (
+                    voiceResult.inconsistent_pairs.map((pair, i) => (
+                      <div key={i} className="bg-[#0d0f1a] border border-[#1f2440] rounded-xl p-3">
+                        <div className="text-[10px] text-amber-400 mb-1.5">Ch {pair.chapter_a} vs Ch {pair.chapter_b} · {Math.round(pair.similarity_score * 100)}% similar</div>
+                        <div className="grid grid-cols-2 gap-2 mb-1.5">
+                          <p className="text-[11px] text-[#9da3c8] italic leading-relaxed line-clamp-3">"{pair.passage_a}"</p>
+                          <p className="text-[11px] text-[#9da3c8] italic leading-relaxed line-clamp-3">"{pair.passage_b}"</p>
+                        </div>
+                        {pair.description && (
+                          <p className="text-[10px] text-[#5c6391] leading-relaxed">{pair.description}</p>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </>
+              )}
+            </div>
           )}
         </section>
 

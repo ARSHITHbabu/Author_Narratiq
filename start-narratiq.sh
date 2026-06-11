@@ -171,6 +171,7 @@ pip install \
   "verovio" \
   "python-docx>=1.1.0" \
   "reportlab>=4.0.0" \
+  "faster-whisper>=1.0.3" \
   >> "$LOG_DIR/pip-backend.log" 2>&1
 # Also ensure HF download tooling is available (needed for model downloads)
 pip install -q "huggingface-hub>=0.24.0" "hf-transfer>=0.1.8" >> "$LOG_DIR/pip-backend.log" 2>&1
@@ -205,6 +206,25 @@ for model in "Qwen2.5-7B-Instruct" "bge-m3" "GOT-OCR2_0"; do
     MODELS_MISSING=1
   fi
 done
+
+# faster-whisper-large-v3-turbo (P2-11 audio transcription, ~1.5 GB)
+WHISPER_DIR="$MODEL_DIR/faster-whisper-large-v3-turbo"
+if [ ! -f "$WHISPER_DIR/model.bin" ] && [ ! -f "$WHISPER_DIR/config.json" ]; then
+  echo "  Missing: faster-whisper-large-v3-turbo — downloading (~1.5 GB)..."
+  python3 - <<'PYEOF'
+import os
+from huggingface_hub import snapshot_download
+model_dir = os.environ.get("MODEL_BASE_DIR", "/workspace/models")
+snapshot_download(
+    repo_id="Systran/faster-whisper-large-v3-turbo",
+    local_dir=os.path.join(model_dir, "faster-whisper-large-v3-turbo"),
+    local_dir_use_symlinks=False,
+)
+print("  faster-whisper-large-v3-turbo downloaded")
+PYEOF
+else
+  echo "  faster-whisper-large-v3-turbo — OK"
+fi
 
 if [ "$MODELS_MISSING" -eq 1 ]; then
   echo "  One or more models missing — starting download..."

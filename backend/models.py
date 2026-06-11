@@ -79,6 +79,11 @@ class Story(Base):
     timeline_events          = relationship("StoryTimelineEvent",        back_populates="story", cascade="all, delete-orphan")
     graph_nodes              = relationship("StoryGraphNode",            back_populates="story", cascade="all, delete-orphan")
     graph_edges              = relationship("StoryGraphEdge",            back_populates="story", cascade="all, delete-orphan")
+    # Phase 2 relationships
+    story_bibles             = relationship("StoryBible",                back_populates="story", cascade="all, delete-orphan")
+    narrative_threads        = relationship("NarrativeThread",           back_populates="story", cascade="all, delete-orphan")
+    pacing_goal              = relationship("PacingGoal",                back_populates="story", uselist=False, cascade="all, delete-orphan")
+    audio_uploads            = relationship("AudioUpload",               back_populates="story", cascade="all, delete-orphan")
 
 
 class Chapter(Base):
@@ -1042,3 +1047,78 @@ class StoryGraphEdge(Base):
     story     = relationship("Story",          back_populates="graph_edges")
     from_node = relationship("StoryGraphNode", foreign_keys=[from_node_id], back_populates="outgoing_edges")
     to_node   = relationship("StoryGraphNode", foreign_keys=[to_node_id],   back_populates="incoming_edges")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Phase 2 Tables
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class StoryBible(Base):
+    """Generated story bible — structured reference document for the manuscript."""
+    __tablename__ = "story_bibles"
+    bible_id     = Column(String,   primary_key=True, default=gen_uuid)
+    story_id     = Column(String,   ForeignKey("stories.story_id", ondelete="CASCADE"), nullable=False)
+    user_id      = Column(String,   ForeignKey("users.user_id"),    nullable=False)
+    title        = Column(String,   default="Story Bible")
+    content_json = Column(Text,     nullable=False, default="{}")
+    version      = Column(Integer,  default=1)
+    created_at   = Column(DateTime, default=datetime.utcnow)
+    updated_at   = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    story = relationship("Story", back_populates="story_bibles")
+
+
+class NarrativeThread(Base):
+    """Tracks a named narrative thread (subplot, arc, mystery) across chapters."""
+    __tablename__ = "narrative_threads"
+    thread_id           = Column(String,   primary_key=True, default=gen_uuid)
+    story_id            = Column(String,   ForeignKey("stories.story_id", ondelete="CASCADE"), nullable=False)
+    user_id             = Column(String,   ForeignKey("users.user_id"),    nullable=False)
+    name                = Column(String,   nullable=False)
+    description         = Column(Text,     default="")
+    introduced_chapter  = Column(Integer,  nullable=True)
+    resolved_chapter    = Column(Integer,  nullable=True)
+    last_seen_chapter   = Column(Integer,  nullable=True)
+    status              = Column(String,   default="open")  # open|resolved|dead_end
+    created_at          = Column(DateTime, default=datetime.utcnow)
+    updated_at          = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    story = relationship("Story", back_populates="narrative_threads")
+
+
+class PacingGoal(Base):
+    """Per-story word count and chapter pacing targets — one row per story."""
+    __tablename__ = "pacing_goals"
+    goal_id                  = Column(String,   primary_key=True, default=gen_uuid)
+    story_id                 = Column(String,   ForeignKey("stories.story_id", ondelete="CASCADE"), nullable=False, unique=True)
+    user_id                  = Column(String,   ForeignKey("users.user_id"),    nullable=False)
+    target_word_count        = Column(Integer,  default=0)
+    target_chapter_count     = Column(Integer,  default=0)
+    target_words_per_chapter = Column(Integer,  default=0)
+    current_streak_days      = Column(Integer,  default=0)
+    created_at               = Column(DateTime, default=datetime.utcnow)
+    updated_at               = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    story = relationship("Story", back_populates="pacing_goal")
+
+
+class AudioUpload(Base):
+    """Audio recording + Whisper transcription result for the Notes audio workflow."""
+    __tablename__ = "audio_uploads"
+    audio_id          = Column(String,    primary_key=True, default=gen_uuid)
+    story_id          = Column(String,    ForeignKey("stories.story_id", ondelete="CASCADE"), nullable=False)
+    user_id           = Column(String,    ForeignKey("users.user_id"),    nullable=False)
+    note_id           = Column(String,    ForeignKey("story_notes.note_id", ondelete="SET NULL"), nullable=True)
+    audio_path        = Column(Text,      nullable=True)
+    raw_transcript    = Column(Text,      default="")
+    cleaned_text      = Column(Text,      default="")
+    language_detected = Column(String(10), default="")
+    duration_seconds  = Column(Float,     default=0.0)
+    confidence        = Column(Float,     default=0.0)
+    word_count        = Column(Integer,   default=0)
+    status            = Column(String,    default="processing")  # processing|completed|failed
+    confirmed         = Column(Boolean,   default=False)
+    created_at        = Column(DateTime,  default=datetime.utcnow)
+    updated_at        = Column(DateTime,  default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    story = relationship("Story", back_populates="audio_uploads")

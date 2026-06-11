@@ -416,3 +416,192 @@ export interface CharacterArcTimelineResponse {
   snapshots:              CharacterArcSnapshot[]
   analysis_note:          string
 }
+
+// ── Phase 2 Types ─────────────────────────────────────────────────────────────
+
+// P2-01 Emotional Arc Map
+export interface EmotionalArcEntry {
+  chapter_number: number
+  chapter_title:  string
+  emotional_tone: string | null
+}
+
+export interface EmotionalArcResponse {
+  story_id:     string
+  chapter_count: number
+  arc:          EmotionalArcEntry[]
+  assessment:   string | null
+}
+
+// P2-02 Chapter Continuation
+export interface ContinuationSuggestion {
+  direction: string
+  text:      string
+  rationale: string
+}
+
+export interface ContinuationResponse {
+  story_id:    string
+  chapter_id:  string
+  suggestions: ContinuationSuggestion[]
+}
+
+// P2-03 Voice Check
+export interface VoiceInconsistentPair {
+  passage_a:        string
+  passage_b:        string
+  chapter_a:        number
+  chapter_b:        number
+  similarity_score: number
+  description:      string
+}
+
+export interface VoiceCheckResponse {
+  character_id:       string
+  character_name:     string
+  status:             string
+  dialogue_count:     number
+  consistency_score:  number | null
+  inconsistent_pairs: VoiceInconsistentPair[]
+}
+
+// P2-04 Chapter Outline
+export interface OutlineBeat {
+  scene_number:       number
+  beat_description:   string
+  characters_present: string[]
+  location:           string
+  pacing_note:        string
+}
+
+export interface OutlineResponse {
+  story_id:   string
+  chapter_id: string
+  beats:      OutlineBeat[]
+}
+
+// P2-05 Continuity Check
+export interface ContinuityIssue {
+  type:            string
+  description:     string
+  chapter_refs:    number[]
+  severity:        'low' | 'medium' | 'high'
+  resolution_hint: string
+}
+
+export interface ContinuityCheckResponse {
+  story_id:         string
+  issues_found:     number
+  issues:           ContinuityIssue[]
+  chapters_scanned: number
+  note:             string
+}
+
+// P2-06 Story Bible
+export interface StoryBibleOut {
+  bible_id:     string
+  story_id:     string
+  content_json: string   // JSON string: {characters, locations, timeline, world_rules, themes}
+  version:      number
+  created_at:   string
+  updated_at:   string
+}
+
+export interface StoryBibleJobResponse {
+  job_id:    string
+  status:    string
+  bible_id:  string | null
+}
+
+// P2-07 Narrative Threads
+export interface NarrativeThreadOut {
+  thread_id:          string
+  story_id:           string
+  name:               string
+  description:        string
+  introduced_chapter: number | null
+  last_seen_chapter:  number | null
+  resolved_chapter:   number | null
+  status:             'open' | 'dead_end' | 'resolved'
+  created_at:         string
+  updated_at:         string
+}
+
+export interface NarrativeScanResponse {
+  job_id: string
+  status: string
+}
+
+// P2-08 Style Drift
+export interface StyleDriftResponse {
+  story_id:       string
+  status:         string
+  drift_score:    number | null
+  early_chapters: number[]
+  late_chapters:  number[]
+  description:    string
+  sample_early:   string | null
+  sample_late:    string | null
+}
+
+// P2-09 Pacing
+export interface ChapterWordCount {
+  chapter_number: number
+  chapter_title:  string
+  word_count:     number
+}
+
+export interface PacingGoalResponse {
+  story_id:                   string
+  target_word_count:          number
+  target_chapter_count:       number
+  target_words_per_chapter:   number
+  actual_word_count:          number
+  actual_chapter_count:       number
+  avg_words_per_chapter:      number
+  progress_pct:               number
+  estimated_chapters_remaining: number
+  chapter_distribution:       ChapterWordCount[]
+  current_streak_days:        number
+}
+
+// P2-10 Duplicate Scenes
+export interface DuplicatePair {
+  chapter_a:        number
+  chapter_b:        number
+  a_title:          string
+  b_title:          string
+  similarity_score: number
+  a_snippet:        string
+  b_snippet:        string
+}
+
+export interface DuplicateScenesResponse {
+  story_id:    string
+  threshold:   number
+  pairs_found: number
+  pairs:       DuplicatePair[]
+}
+
+// P2-11 Audio
+export interface AudioUploadOut {
+  audio_id:         string
+  story_id:         string
+  note_id:          string | null
+  status:           string
+  raw_transcript:   string | null
+  cleaned_text:     string | null
+  language_detected: string | null
+  duration_seconds:  number | null
+  confidence:        number | null
+  word_count:        number | null
+  confirmed:         boolean
+  created_at:        string | null
+  updated_at:        string | null
+}
+
+export interface AudioTranscribeResponse {
+  audio_id:         string
+  status:           string
+  duration_seconds: number | null
+}

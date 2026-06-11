@@ -3,10 +3,11 @@
 import { useState } from 'react'
 import {
   Wand2, Palette, Heart, Users, Type, Globe,
-  Copy, Check, Loader2, X, ArrowDownToLine
+  Copy, Check, Loader2, X, ArrowDownToLine,
+  Play, List,
 } from 'lucide-react'
-import { aiApi } from '@/lib/api'
-import { TransformResponse } from '@/lib/types'
+import { aiApi, continuationApi, outlineApi } from '@/lib/api'
+import { TransformResponse, ContinuationSuggestion, OutlineBeat } from '@/lib/types'
 import { toast } from 'sonner'
 
 interface Props {
@@ -17,15 +18,17 @@ interface Props {
   insertText?: (text: string) => void
 }
 
-type TabId = 'refine' | 'tone' | 'emotion' | 'age' | 'style' | 'translate'
+type TabId = 'refine' | 'tone' | 'emotion' | 'age' | 'style' | 'translate' | 'continue' | 'outline'
 
 const TABS = [
-  { id: 'refine' as TabId, label: 'Refine', icon: Wand2 },
-  { id: 'tone' as TabId, label: 'Tone', icon: Palette },
-  { id: 'emotion' as TabId, label: 'Emotion', icon: Heart },
-  { id: 'age' as TabId, label: 'Audience', icon: Users },
-  { id: 'style' as TabId, label: 'Style', icon: Type },
-  { id: 'translate' as TabId, label: 'Translate', icon: Globe },
+  { id: 'refine'    as TabId, label: 'Refine',    icon: Wand2    },
+  { id: 'tone'      as TabId, label: 'Tone',      icon: Palette  },
+  { id: 'emotion'   as TabId, label: 'Emotion',   icon: Heart    },
+  { id: 'age'       as TabId, label: 'Audience',  icon: Users    },
+  { id: 'style'     as TabId, label: 'Style',     icon: Type     },
+  { id: 'translate' as TabId, label: 'Translate', icon: Globe    },
+  { id: 'continue'  as TabId, label: 'Continue',  icon: Play     },
+  { id: 'outline'   as TabId, label: 'Outline',   icon: List     },
 ]
 
 const TONES = [
@@ -141,6 +144,48 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
   const [refineMode, setRefineMode] = useState('standard')
   const [hadSelection, setHadSelection] = useState(false)
 
+  // Continue tab
+  const [continuations, setContinuations] = useState<ContinuationSuggestion[]>([])
+  const [contLoading, setContLoading] = useState(false)
+  const [contLength, setContLength] = useState<'short' | 'medium' | 'long'>('medium')
+
+  // Outline tab
+  const [chapterGoal, setChapterGoal] = useState('')
+  const [sceneCount, setSceneCount] = useState(4)
+  const [beats, setBeats] = useState<OutlineBeat[]>([])
+  const [outlineLoading, setOutlineLoading] = useState(false)
+
+  const generateContinuations = async () => {
+    const tail = getFullText().split(/\s+/).slice(-300).join(' ')
+    if (!tail.trim()) return toast.error('Write some text in the editor first')
+    setContLoading(true)
+    setContinuations([])
+    try {
+      const res = await continuationApi.suggest(storyId, chapterId, tail, contLength)
+      setContinuations(res.data.suggestions ?? [])
+    } catch (e: any) {
+      toast.error(e?.response?.data?.detail ?? 'Failed to generate continuations')
+    } finally {
+      setContLoading(false)
+    }
+  }
+
+  const generateOutline = async () => {
+    if (chapterGoal.trim().split(/\s+/).length < 3) {
+      return toast.error('Chapter goal must be at least 3 words')
+    }
+    setOutlineLoading(true)
+    setBeats([])
+    try {
+      const res = await outlineApi.generate(storyId, chapterId, chapterGoal, sceneCount)
+      setBeats(res.data.beats ?? [])
+    } catch (e: any) {
+      toast.error(e?.response?.data?.detail ?? 'Failed to generate outline')
+    } finally {
+      setOutlineLoading(false)
+    }
+  }
+
   const getText = () => {
     const sel = getSelectedText()
     return sel.trim() || getFullText().slice(0, 2000)
@@ -176,12 +221,14 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
 
   const runLabel = (() => {
     const actionMap: Record<TabId, string> = {
-      refine: 'Refine',
-      tone: `Apply ${selectedTone} Tone`,
-      emotion: `Apply ${selectedEmotion}`,
-      age: `Adapt for ${selectedAge === 'ya' ? 'YA' : selectedAge.charAt(0).toUpperCase() + selectedAge.slice(1)}`,
-      style: `Apply ${selectedStyle} Style`,
+      refine:    'Refine',
+      tone:      `Apply ${selectedTone} Tone`,
+      emotion:   `Apply ${selectedEmotion}`,
+      age:       `Adapt for ${selectedAge === 'ya' ? 'YA' : selectedAge.charAt(0).toUpperCase() + selectedAge.slice(1)}`,
+      style:     `Apply ${selectedStyle} Style`,
       translate: `Translate to ${selectedLang}`,
+      continue:  'Generate Continuations',
+      outline:   'Generate Outline',
     }
     return actionMap[activeTab]
   })()
@@ -388,24 +435,121 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
           </div>
         )}
 
-        {/* Run button */}
-        <button
-          onClick={run}
-          disabled={loading}
-          className="w-full mt-5 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-black font-semibold py-3 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Processing...
-            </>
-          ) : (
-            <>
-              <Wand2 className="w-4 h-4" />
-              {runLabel}
-            </>
-          )}
-        </button>
+        {/* ── Continue Tab ─────────────────────────────────────────────────── */}
+        {activeTab === 'continue' && (
+          <div className="space-y-3">
+            <p className="text-xs text-[#5c6391]">Generate 3 possible continuations based on your chapter's tail text and story context.</p>
+            <div>
+              <label className="text-[10px] text-[#5c6391] block mb-1.5">Length</label>
+              <div className="grid grid-cols-3 gap-1.5">
+                {(['short', 'medium', 'long'] as const).map(l => (
+                  <button
+                    key={l}
+                    onClick={() => setContLength(l)}
+                    className={`py-1.5 rounded-lg border text-xs capitalize transition-all ${
+                      contLength === l
+                        ? 'border-amber-500/50 bg-amber-500/10 text-amber-400'
+                        : 'border-[#2e3454] text-[#9da3c8] hover:border-[#3d4466]'
+                    }`}
+                  >
+                    {l}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <button
+              onClick={generateContinuations}
+              disabled={contLoading}
+              className="w-full bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-black font-semibold py-2.5 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
+            >
+              {contLoading ? <><Loader2 className="w-4 h-4 animate-spin" />Generating…</> : <><Play className="w-4 h-4" />Generate Continuations</>}
+            </button>
+            {continuations.map((c, i) => (
+              <div key={i} className="bg-[#0d0f1a] border border-[#1f2440] rounded-xl p-3">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[10px] font-medium text-amber-400">Option {i + 1} · {c.direction}</span>
+                  <button
+                    onClick={() => { insertText?.(c.text); toast.success('Inserted at cursor') }}
+                    className="text-[10px] text-[#5c6391] hover:text-amber-400 flex items-center gap-1"
+                  >
+                    <ArrowDownToLine className="w-3 h-3" />Insert
+                  </button>
+                </div>
+                <p className="text-xs text-[#9da3c8] leading-relaxed line-clamp-5 font-serif">{c.text}</p>
+                {c.rationale && <p className="text-[10px] text-[#5c6391] mt-1.5 italic">{c.rationale}</p>}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ── Outline Tab ──────────────────────────────────────────────────── */}
+        {activeTab === 'outline' && (
+          <div className="space-y-3">
+            <p className="text-xs text-[#5c6391]">Generate a scene-by-scene outline for this chapter based on your story context.</p>
+            <div>
+              <label className="text-[10px] text-[#5c6391] block mb-1.5">Chapter goal (what must happen)</label>
+              <textarea
+                value={chapterGoal}
+                onChange={e => setChapterGoal(e.target.value)}
+                rows={3}
+                placeholder="e.g. The protagonist discovers the forged letter and confronts her mentor"
+                className="w-full bg-[#0d0f1a] border border-[#2e3454] rounded-lg px-3 py-2 text-xs text-[#e8eaf6] focus:border-amber-500/50 outline-none resize-none"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] text-[#5c6391] block mb-1.5">Number of scenes: {sceneCount}</label>
+              <input
+                type="range" min={2} max={8} value={sceneCount}
+                onChange={e => setSceneCount(Number(e.target.value))}
+                className="w-full accent-amber-500"
+              />
+              <div className="flex justify-between text-[10px] text-[#3d4466] mt-0.5">
+                <span>2</span><span>8</span>
+              </div>
+            </div>
+            <button
+              onClick={generateOutline}
+              disabled={outlineLoading}
+              className="w-full bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-black font-semibold py-2.5 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
+            >
+              {outlineLoading ? <><Loader2 className="w-4 h-4 animate-spin" />Generating…</> : <><List className="w-4 h-4" />Generate Outline</>}
+            </button>
+            {beats.map((beat, i) => (
+              <div key={i} className="bg-[#0d0f1a] border border-[#1f2440] rounded-xl p-3">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[10px] font-medium text-amber-400">Scene {beat.scene_number}</span>
+                  {beat.pacing_note && <span className="text-[10px] text-[#5c6391]">{beat.pacing_note}</span>}
+                </div>
+                <p className="text-xs text-[#c8cce8] font-medium mb-1">{beat.beat_description}</p>
+                {beat.location && <p className="text-[10px] text-[#5c6391] mt-0.5">@ {beat.location}</p>}
+                {beat.characters_present?.length > 0 && (
+                  <p className="text-[10px] text-[#5c6391] mt-0.5">{beat.characters_present.join(', ')}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Run button — only for transform tabs */}
+        {!(['continue', 'outline'] as TabId[]).includes(activeTab) && (
+          <button
+            onClick={run}
+            disabled={loading}
+            className="w-full mt-5 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-black font-semibold py-3 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <Wand2 className="w-4 h-4" />
+                {runLabel}
+              </>
+            )}
+          </button>
+        )}
 
         {result && (
           <ResultPanel

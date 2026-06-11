@@ -3,25 +3,80 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import {
   Feather, ArrowLeft, BarChart3, Download, Brain, Camera,
   Wand2, Lightbulb, Loader2, Sparkles, Search, Users, StickyNote, AlertTriangle,
+  BookOpen, Target, Mic,
 } from 'lucide-react'
 import { chaptersApi, projectsApi, exportApi, aiApi } from '@/lib/api'
 import { Story, Chapter, AISuggestion } from '@/lib/types'
 import ChapterSidebar from '@/components/editor/ChapterSidebar'
 import StoryEditor from '@/components/editor/StoryEditor'
 import { EditorSearchFunctions } from '@/components/editor/StoryEditor'
-import AIToolsSidebar from '@/components/ai-tools/AIToolsSidebar'
-import PlotAssistantPanel from '@/components/plot-assistant/PlotAssistantPanel'
-import OCRPanel from '@/components/ocr/OCRPanel'
-import SearchPanel from '@/components/search/SearchPanel'
-import CharacterList from '@/components/characters/CharacterList'
-import NotesPanel from '@/components/notes/NotesPanel'
-import AuditPanel from '@/components/plot-holes/AuditPanel'
 import { toast } from 'sonner'
 
-type RightPanel = 'ai' | 'plot' | 'ocr' | 'notes' | 'suggestions' | 'characters' | 'audit'
+// ── Lazy panel imports ────────────────────────────────────────────────────────
+// All right-panel components are loaded only when the author first opens that
+// tab. This keeps the initial JS payload to the editor + sidebar only (~70 kB
+// page-specific vs 143 kB with static imports). Each panel becomes its own
+// chunk and is cached after first load. ssr:false is correct — all panels are
+// client-only and use browser APIs (localStorage, DOM).
+
+function PanelSkeleton() {
+  return (
+    <div className="flex flex-col gap-3 p-4 h-full">
+      <div className="h-3 bg-[#1f2440] rounded animate-pulse w-1/2" />
+      <div className="h-3 bg-[#1f2440] rounded animate-pulse w-3/4" />
+      <div className="h-3 bg-[#1f2440] rounded animate-pulse w-2/3" />
+      <div className="h-20 bg-[#1a1e36] rounded-xl animate-pulse mt-2" />
+      <div className="h-20 bg-[#1a1e36] rounded-xl animate-pulse" />
+    </div>
+  )
+}
+
+const AIToolsSidebar = dynamic(
+  () => import('@/components/ai-tools/AIToolsSidebar'),
+  { ssr: false, loading: () => <PanelSkeleton /> },
+)
+const PlotAssistantPanel = dynamic(
+  () => import('@/components/plot-assistant/PlotAssistantPanel'),
+  { ssr: false, loading: () => <PanelSkeleton /> },
+)
+const OCRPanel = dynamic(
+  () => import('@/components/ocr/OCRPanel'),
+  { ssr: false, loading: () => <PanelSkeleton /> },
+)
+const NotesPanel = dynamic(
+  () => import('@/components/notes/NotesPanel'),
+  { ssr: false, loading: () => <PanelSkeleton /> },
+)
+const CharacterList = dynamic(
+  () => import('@/components/characters/CharacterList'),
+  { ssr: false, loading: () => <PanelSkeleton /> },
+)
+const AuditPanel = dynamic(
+  () => import('@/components/plot-holes/AuditPanel'),
+  { ssr: false, loading: () => <PanelSkeleton /> },
+)
+const StoryBiblePanel = dynamic(
+  () => import('@/components/story-bible/StoryBiblePanel'),
+  { ssr: false, loading: () => <PanelSkeleton /> },
+)
+const PacingGoalPanel = dynamic(
+  () => import('@/components/pacing/PacingGoalPanel'),
+  { ssr: false, loading: () => <PanelSkeleton /> },
+)
+const AudioPanel = dynamic(
+  () => import('@/components/audio/AudioPanel'),
+  { ssr: false, loading: () => <PanelSkeleton /> },
+)
+const SearchPanel = dynamic(
+  () => import('@/components/search/SearchPanel'),
+  { ssr: false },
+)
+
+type RightPanel = 'ai' | 'plot' | 'ocr' | 'notes' | 'suggestions' | 'characters' | 'audit' | 'bible' | 'pacing' | 'audio'
 
 export default function EditorPage({ params }: { params: { id: string } }) {
   const { id: storyId } = params
@@ -343,26 +398,29 @@ export default function EditorPage({ params }: { params: { id: string } }) {
           {!rightCollapsed && (
             <>
               {/* Right panel tabs */}
-              <div className="flex border-b border-[#1f2440] flex-shrink-0">
+              <div className="flex flex-wrap border-b border-[#1f2440] flex-shrink-0">
                 {[
-                  { id: 'ai' as RightPanel, icon: Wand2, label: 'AI' },
-                  { id: 'plot' as RightPanel, icon: Brain, label: 'Plot' },
-                  { id: 'ocr' as RightPanel, icon: Camera, label: 'OCR' },
-                  { id: 'notes' as RightPanel, icon: StickyNote, label: 'Notes' },
-                  { id: 'suggestions' as RightPanel, icon: Lightbulb, label: 'Tips' },
-                  { id: 'characters' as RightPanel, icon: Users, label: 'Cast' },
-                  { id: 'audit' as RightPanel, icon: AlertTriangle, label: 'Audit' },
+                  { id: 'ai'          as RightPanel, icon: Wand2,        label: 'AI'     },
+                  { id: 'plot'        as RightPanel, icon: Brain,        label: 'Plot'   },
+                  { id: 'ocr'         as RightPanel, icon: Camera,       label: 'OCR'    },
+                  { id: 'notes'       as RightPanel, icon: StickyNote,   label: 'Notes'  },
+                  { id: 'suggestions' as RightPanel, icon: Lightbulb,    label: 'Tips'   },
+                  { id: 'characters'  as RightPanel, icon: Users,        label: 'Cast'   },
+                  { id: 'audit'       as RightPanel, icon: AlertTriangle,label: 'Audit'  },
+                  { id: 'bible'       as RightPanel, icon: BookOpen,     label: 'Bible'  },
+                  { id: 'pacing'      as RightPanel, icon: Target,       label: 'Pacing' },
+                  { id: 'audio'       as RightPanel, icon: Mic,          label: 'Audio'  },
                 ].map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setRightPanel(tab.id)}
-                    className={`flex-1 py-2.5 text-xs flex flex-col items-center gap-0.5 transition-colors ${
+                    className={`flex-1 py-2 text-[10px] flex flex-col items-center gap-0.5 min-w-[30px] transition-colors ${
                       rightPanel === tab.id
                         ? 'border-b-2 border-amber-500 text-amber-400'
                         : 'text-[#5c6391] hover:text-[#9da3c8]'
                     }`}
                   >
-                    <tab.icon className="w-3.5 h-3.5" />
+                    <tab.icon className="w-3 h-3" />
                     {tab.label}
                   </button>
                 ))}
@@ -405,13 +463,22 @@ export default function EditorPage({ params }: { params: { id: string } }) {
                 {rightPanel === 'audit' && (
                   <AuditPanel storyId={storyId} />
                 )}
+                {rightPanel === 'bible' && (
+                  <StoryBiblePanel storyId={storyId} />
+                )}
+                {rightPanel === 'pacing' && (
+                  <PacingGoalPanel storyId={storyId} />
+                )}
+                {rightPanel === 'audio' && (
+                  <AudioPanel storyId={storyId} />
+                )}
               </div>
             </>
           )}
         </div>
       </div>
 
-      {/* Floating Search Panel */}
+      {/* Floating Search Panel — loaded lazily (only when user opens search) */}
       {searchOpen && (
         <SearchPanel
           storyId={storyId}

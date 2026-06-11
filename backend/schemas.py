@@ -1219,3 +1219,244 @@ class IntelVersionOut(BaseModel):
     version_number: int
     trigger:        Optional[str] = "manual"
     created_at:     Optional[datetime] = None
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Phase 2 Schemas
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ── P2-01: Emotional Arc Map ──────────────────────────────────────────────────
+
+class EmotionalArcEntry(BaseModel):
+    chapter_number: int
+    chapter_title:  str
+    emotional_tone: Optional[str] = None   # None when summary exists but tone is NULL
+
+
+class EmotionalArcResponse(BaseModel):
+    story_id:        str
+    chapter_count:   int
+    arc:             List[EmotionalArcEntry]
+    assessment:      Optional[str] = None  # Qwen arc paragraph, if requested
+
+
+# ── P2-02: Chapter Continuation Suggestion ────────────────────────────────────
+
+class ContinuationRequest(BaseModel):
+    tail_text:           str
+    continuation_length: Optional[int] = 200   # words per suggestion
+
+
+class ContinuationSuggestion(BaseModel):
+    direction: str
+    text:      str
+    rationale: str
+
+
+class ContinuationResponse(BaseModel):
+    chapter_id:  str
+    suggestions: List[ContinuationSuggestion]
+
+
+# ── P2-03: Dialogue Voice Consistency Checker ─────────────────────────────────
+
+class VoiceInconsistentPair(BaseModel):
+    passage_a:       str
+    passage_b:       str
+    chapter_a:       int
+    chapter_b:       int
+    similarity_score: float
+    description:     str
+
+
+class VoiceCheckResponse(BaseModel):
+    character_id:       str
+    character_name:     str
+    status:             str    # ok | inconsistent | insufficient_data
+    dialogue_count:     int
+    consistency_score:  Optional[float] = None
+    inconsistent_pairs: List[VoiceInconsistentPair] = []
+    min_passages_required: Optional[int] = None
+    note:               Optional[str] = None
+
+
+# ── P2-04: Chapter / Scene Outline Generator ──────────────────────────────────
+
+class OutlineRequest(BaseModel):
+    chapter_goal: str
+    scene_count:  Optional[int] = 4
+
+
+class OutlineBeat(BaseModel):
+    scene_number:     int
+    beat_description: str
+    characters_present: List[str] = []
+    location:         str
+    pacing_note:      str
+
+
+class OutlineResponse(BaseModel):
+    chapter_id: str
+    outline:    List[OutlineBeat]
+
+
+# ── P2-05: Continuity & World Consistency Validator ───────────────────────────
+
+class ContinuityIssue(BaseModel):
+    type:             str    # character_appearance | character_location | world_rule | timeline
+    description:      str
+    chapter_refs:     List[int]
+    severity:         str    # high | medium | low
+    resolution_hint:  str
+
+
+class ContinuityCheckResponse(BaseModel):
+    story_id:         str
+    issues_found:     int
+    issues:           List[ContinuityIssue]
+    chapters_scanned: int
+    note:             str
+
+
+# ── P2-06: Story Bible Generator ─────────────────────────────────────────────
+
+class StoryBibleOut(BaseModel):
+    model_config = {"from_attributes": True}
+    bible_id:     str
+    story_id:     str
+    title:        str
+    content_json: str   # raw JSON string — frontend parses as needed
+    version:      int
+    created_at:   Optional[datetime] = None
+    updated_at:   Optional[datetime] = None
+
+
+class StoryBibleJobResponse(BaseModel):
+    job_id:   str
+    status:   str
+    bible_id: Optional[str] = None
+
+
+# ── P2-07: Dead-End Narrative Thread Tracker ─────────────────────────────────
+
+class NarrativeThreadOut(BaseModel):
+    model_config = {"from_attributes": True}
+    thread_id:          str
+    story_id:           str
+    name:               str
+    description:        str
+    introduced_chapter: Optional[int] = None
+    resolved_chapter:   Optional[int] = None
+    last_seen_chapter:  Optional[int] = None
+    status:             str
+    created_at:         Optional[datetime] = None
+    updated_at:         Optional[datetime] = None
+
+
+class NarrativeThreadUpdate(BaseModel):
+    status: str   # resolved | open | dead_end
+
+
+class NarrativeScanResponse(BaseModel):
+    job_id:        str
+    status:        str
+    threads_found: Optional[int] = None
+
+
+# ── P2-08: Writing Style Drift Detector ──────────────────────────────────────
+
+class StyleDriftResponse(BaseModel):
+    story_id:            str
+    status:              str   # ok | drifted | insufficient_data
+    drift_score:         Optional[float] = None   # 0..1
+    early_chapters:      List[int] = []
+    late_chapters:       List[int] = []
+    description:         str
+    sample_early:        Optional[str] = None
+    sample_late:         Optional[str] = None
+    min_chapters_required: Optional[int] = None
+    actual_chapters:     Optional[int] = None
+
+
+# ── P2-09: Pacing & Word Count Goal Tracker ───────────────────────────────────
+
+class PacingGoalCreate(BaseModel):
+    target_word_count:       Optional[int] = 0
+    target_chapter_count:    Optional[int] = 0
+    target_words_per_chapter: Optional[int] = 0
+
+
+class ChapterWordCount(BaseModel):
+    chapter_number: int
+    chapter_title:  str
+    word_count:     int
+
+
+class PacingGoalResponse(BaseModel):
+    story_id:                 str
+    target_word_count:        int
+    target_chapter_count:     int
+    target_words_per_chapter: int
+    actual_word_count:        int
+    actual_chapter_count:     int
+    avg_words_per_chapter:    int
+    progress_pct:             float
+    estimated_chapters_remaining: int
+    chapter_distribution:     List[ChapterWordCount]
+    current_streak_days:      int
+
+
+# ── P2-10: Duplicate Scene Detector ──────────────────────────────────────────
+
+class DuplicatePair(BaseModel):
+    chapter_a:       int
+    chapter_b:       int
+    a_title:         str
+    b_title:         str
+    similarity_score: float
+    a_snippet:       str
+    b_snippet:       str
+
+
+class DuplicateScenesResponse(BaseModel):
+    story_id:   str
+    threshold:  float
+    pairs_found: int
+    pairs:      List[DuplicatePair]
+
+
+# ── P2-11: Audio Notes Transcription ─────────────────────────────────────────
+
+class AudioTranscribeResponse(BaseModel):
+    audio_id:         str
+    status:           str   # processing | completed | failed
+    duration_seconds: Optional[float] = None
+
+
+class AudioConfirmRequest(BaseModel):
+    note_id:    str
+    edited_text: Optional[str] = None   # author-edited version; falls back to cleaned_text
+
+
+class AudioConfirmResponse(BaseModel):
+    audio_id: str
+    note_id:  str
+    appended: bool
+
+
+class AudioUploadOut(BaseModel):
+    model_config = {"from_attributes": True}
+    audio_id:         str
+    story_id:         str
+    note_id:          Optional[str] = None
+    status:           str
+    raw_transcript:   Optional[str] = None
+    cleaned_text:     Optional[str] = None
+    language_detected: Optional[str] = None
+    duration_seconds: Optional[float] = None
+    confidence:       Optional[float] = None
+    word_count:       Optional[int] = None
+    confirmed:        bool
+    suggestions:      Optional[List[dict]] = None
+    created_at:       Optional[datetime] = None
+    updated_at:       Optional[datetime] = None

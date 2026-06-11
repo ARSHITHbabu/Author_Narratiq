@@ -3105,3 +3105,354 @@ async def retrieve_relevant_chunks(
 async def process_ocr_image(image_path: str) -> dict:
     from services.ocr_service import process_ocr_image as _ocr
     return await _ocr(image_path)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Phase 2 AI Service Functions
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ── P2-01: Emotional Arc Assessment ──────────────────────────────────────────
+
+async def get_arc_assessment(arc_entries: list[dict]) -> str:
+    """
+    Given a list of {chapter_number, chapter_title, emotional_tone} dicts,
+    ask Qwen for a one-paragraph arc assessment describing how the emotional
+    trajectory flows across the manuscript.
+    """
+    tone_lines = "\n".join(
+        f"  Chapter {e['chapter_number']} ({e['chapter_title']}): {e['emotional_tone'] or 'unknown'}"
+        for e in arc_entries
+    )
+    system = (
+        "You are a literary analyst specialising in narrative structure. "
+        "You will receive a chapter-by-chapter emotional tone map and must write "
+        "exactly ONE paragraph assessing the emotional arc of the manuscript."
+    )
+    user = (
+        f"Emotional tone per chapter:\n{tone_lines}\n\n"
+        "Write a single paragraph (4–6 sentences) describing how the emotional "
+        "arc of this manuscript flows: where tension builds, where it plateaus, "
+        "where it peaks, and how it resolves. Be specific about chapter numbers."
+    )
+    return await _complete(system, user, temperature=0.3, max_tokens=300)
+
+
+# ── P2-02: Chapter Continuation Suggestion ───────────────────────────────────
+
+async def generate_continuations(
+    tail_text: str,
+    story_context: str,
+    character_context: str,
+    genre_context: str,
+    continuation_length: int = 200,
+) -> list[dict]:
+    """
+    Given the last few paragraphs of a chapter plus manuscript context,
+    generate 3 continuation options in different narrative directions.
+    Returns [{direction, text, rationale}].
+    """
+    system = (
+        "You are a skilled creative writing assistant helping an author continue their chapter. "
+        "You write continuations that are grounded in the author's established narrative — "
+        "never invent characters, places, or events not present in the provided context."
+    )
+    user = (
+        f"{genre_context}\n\n"
+        f"## Story Context\n{story_context}\n\n"
+        f"## Character Context\n{character_context}\n\n"
+        f"## Current Chapter — Last Few Paragraphs\n{tail_text}\n\n"
+        f"Generate exactly 3 continuation suggestions (each ~{continuation_length} words). "
+        "Each must take a distinctly different narrative direction. "
+        "Return a JSON array with exactly 3 objects, each having these keys:\n"
+        '  "direction": one-line description of the narrative direction (e.g. "Conflict Escalation")\n'
+        '  "text": the continuation prose (~' + str(continuation_length) + ' words)\n'
+        '  "rationale": one sentence explaining why this direction fits the manuscript\n'
+        "Return ONLY the JSON array. No explanation outside it."
+    )
+    raw = await _complete(system, user, temperature=0.8, max_tokens=1600)
+    parsed = _extract_json(raw, fallback=[])
+    if not isinstance(parsed, list):
+        parsed = []
+    result = []
+    for item in parsed[:3]:
+        if isinstance(item, dict):
+            result.append({
+                "direction": str(item.get("direction", "")),
+                "text":      str(item.get("text", "")),
+                "rationale": str(item.get("rationale", "")),
+            })
+    return result
+
+
+# ── P2-03: Dialogue Voice Consistency Checker ─────────────────────────────────
+
+async def check_dialogue_consistency(
+    character_name: str,
+    passage_pairs: list[tuple],
+) -> list[dict]:
+    """
+    For each (passage_a, passage_b, chapter_a, chapter_b, sim) pair where
+    similarity < threshold, ask Qwen whether the two passages sound like the
+    same character and describe the inconsistency.
+    Returns [{description}] aligned with the input pairs.
+    """
+    results = []
+    for pa, pb, cha, chb, sim in passage_pairs:
+        system = (
+            "You are a literary editor checking character voice consistency. "
+            "Answer concisely and specifically."
+        )
+        user = (
+            f"Character name: {character_name}\n\n"
+            f"Passage A (Chapter {cha}):\n\"{pa}\"\n\n"
+            f"Passage B (Chapter {chb}):\n\"{pb}\"\n\n"
+            "Do these two passages sound like the same character speaking? "
+            "In 1–2 sentences, describe any inconsistency in vocabulary, register, "
+            "sentence structure, or personality. If they are actually consistent despite "
+            "a low similarity score, say so."
+        )
+        desc = await _complete(system, user, temperature=0.1, max_tokens=120)
+        results.append({"description": desc})
+    return results
+
+
+# ── P2-04: Chapter / Scene Outline Generator ──────────────────────────────────
+
+async def generate_chapter_outline(
+    chapter_goal: str,
+    scene_count: int,
+    story_context: str,
+    character_context: str,
+    genre_context: str,
+) -> list[dict]:
+    """
+    Generate a scene-by-scene outline for a chapter based on the author's goal
+    and the established manuscript context.
+    Returns [{scene_number, beat_description, characters_present, location, pacing_note}].
+    """
+    system = (
+        "You are a story structure expert helping an author plan their next chapter. "
+        "Generate a concrete, grounded outline using only the characters, locations, "
+        "and narrative threads that already exist in the manuscript context provided. "
+        "Never invent new characters, places, or events not present in the context."
+    )
+    user = (
+        f"{genre_context}\n\n"
+        f"## Story Context\n{story_context}\n\n"
+        f"## Character Context\n{character_context}\n\n"
+        f"## Author's Chapter Goal\n{chapter_goal}\n\n"
+        f"Generate a scene-by-scene outline with exactly {scene_count} beats. "
+        "Return a JSON array of objects, each with these keys:\n"
+        '  "scene_number": integer starting at 1\n'
+        '  "beat_description": 2–3 sentences describing what happens in this scene\n'
+        '  "characters_present": array of character names present in this scene\n'
+        '  "location": the setting for this scene (one phrase)\n'
+        '  "pacing_note": one word or phrase describing the pacing (e.g. "slow build", "high tension", "quiet reflection")\n'
+        "Return ONLY the JSON array."
+    )
+    raw = await _complete(system, user, temperature=0.5, max_tokens=1200)
+    parsed = _extract_json(raw, fallback=[])
+    if not isinstance(parsed, list):
+        parsed = []
+    result = []
+    for i, item in enumerate(parsed[:scene_count]):
+        if isinstance(item, dict):
+            chars = item.get("characters_present", [])
+            if isinstance(chars, str):
+                chars = [c.strip() for c in chars.split(",") if c.strip()]
+            result.append({
+                "scene_number":      int(item.get("scene_number", i + 1)),
+                "beat_description":  str(item.get("beat_description", "")),
+                "characters_present": chars if isinstance(chars, list) else [],
+                "location":          str(item.get("location", "")),
+                "pacing_note":       str(item.get("pacing_note", "")),
+            })
+    return result
+
+
+# ── P2-05: Continuity & World Consistency Validator ──────────────────────────
+
+async def check_continuity(
+    character_profiles: list[dict],
+    chapter_summaries: list[dict],
+    story_notes: list[str],
+    note_cards: list[str],
+) -> list[dict]:
+    """
+    Synthesise all manuscript data and identify contradictions.
+    For large manuscripts, the caller passes pre-chunked data and
+    merges results. Returns [{type, description, chapter_refs, severity, resolution_hint}].
+    """
+    char_block = "\n".join(
+        f"- {p['name']}: appearance={p.get('appearance','')}, status={p.get('status','')}, goals={p.get('goals','')}"
+        for p in character_profiles
+    ) or "(no characters)"
+
+    chap_block = "\n".join(
+        f"- Ch{s['chapter_number']}: locations={s.get('locations','')}, "
+        f"characters_present={s.get('characters_present','')}, "
+        f"key_events={s.get('key_events','')}"
+        for s in chapter_summaries
+    ) or "(no summaries)"
+
+    notes_block = "\n".join(f"- {n}" for n in story_notes[:20]) or "(none)"
+    cards_block  = "\n".join(f"- {c}" for c in note_cards[:20]) or "(none)"
+
+    system = (
+        "You are a continuity editor reviewing a manuscript for internal contradictions. "
+        "Be specific: quote the conflicting facts and cite chapter numbers."
+    )
+    user = (
+        "## Character Profiles\n" + char_block + "\n\n"
+        "## Chapter-by-Chapter Summary\n" + chap_block + "\n\n"
+        "## World/Story Notes\n" + notes_block + "\n\n"
+        "## Location/World Cards\n" + cards_block + "\n\n"
+        "Identify contradictions in: character appearance, character locations, "
+        "world rules, and timeline. Return a JSON array of objects with keys:\n"
+        '  "type": one of character_appearance | character_location | world_rule | timeline\n'
+        '  "description": specific description of the contradiction\n'
+        '  "chapter_refs": array of chapter numbers involved\n'
+        '  "severity": high | medium | low\n'
+        '  "resolution_hint": one sentence suggestion for the author\n'
+        "If no contradictions found, return an empty array []. "
+        "Return ONLY the JSON array."
+    )
+    raw = await _complete(system, user, temperature=0.1, max_tokens=1200)
+    parsed = _extract_json(raw, fallback=[])
+    if not isinstance(parsed, list):
+        return []
+    result = []
+    for item in parsed:
+        if not isinstance(item, dict):
+            continue
+        refs = item.get("chapter_refs", [])
+        if isinstance(refs, str):
+            refs = [int(x.strip()) for x in refs.split(",") if x.strip().isdigit()]
+        result.append({
+            "type":            str(item.get("type", "continuity_break")),
+            "description":     str(item.get("description", "")),
+            "chapter_refs":    [int(r) for r in refs if str(r).lstrip("-").isdigit()],
+            "severity":        str(item.get("severity", "medium")),
+            "resolution_hint": str(item.get("resolution_hint", "")),
+        })
+    return result
+
+
+# ── P2-06: Story Bible Generator ─────────────────────────────────────────────
+
+async def generate_story_bible_section(
+    section: str,
+    context: str,
+) -> str:
+    """
+    Generate one section of a story bible (characters, locations, timeline,
+    world_rules, or themes) from the provided context.
+    Returns a human-readable formatted string for that section.
+    """
+    section_instructions = {
+        "characters": (
+            "Write a CHARACTER BIBLE section. For each character, create a compact "
+            "reference card: Name, Role, Physical description, Personality, Goals, "
+            "Backstory summary, and Arc status. Use '---' between characters."
+        ),
+        "locations": (
+            "Write a LOCATIONS section. For each distinct location mentioned, provide: "
+            "Name, Description, Significance to the story. Use '---' between locations."
+        ),
+        "timeline": (
+            "Write a TIMELINE section: a chronological sequence of key events with "
+            "chapter references where available. Use bullet points."
+        ),
+        "world_rules": (
+            "Write a WORLD RULES section: list the rules of the story's world — "
+            "physical, social, magical, technological, or cultural. Use bullet points."
+        ),
+        "themes": (
+            "Write a THEMES & MOTIFS section: identify the primary theme, secondary "
+            "themes, recurring motifs, and symbols. Use bullet points."
+        ),
+    }
+    instruction = section_instructions.get(
+        section, f"Write a {section.upper()} section for this story."
+    )
+    system = (
+        "You are a story bible author creating a comprehensive reference document for a manuscript. "
+        "Be thorough, specific, and ground everything in what is actually in the text. "
+        "Do not invent details not supported by the provided context."
+    )
+    user = f"{instruction}\n\nManuscript context:\n{context}"
+    return await _complete(system, user, temperature=0.2, max_tokens=1500)
+
+
+# ── P2-07: Dead-End Narrative Thread Tracker ──────────────────────────────────
+
+async def extract_narrative_threads_from_summaries(
+    chapter_summaries: list[dict],
+) -> list[dict]:
+    """
+    Scan ChapterSummary data (batched up to 5 per call) and extract
+    named narrative threads with their status.
+    Returns [{thread_name, action, description, chapter_number}].
+    """
+    # Batch up to 5 chapters per Qwen call to stay within context budget
+    all_threads = []
+    batch_size = 5
+    for i in range(0, len(chapter_summaries), batch_size):
+        batch = chapter_summaries[i:i + batch_size]
+        batch_text = "\n".join(
+            f"Chapter {s['chapter_number']} ({s.get('title','')}):\n"
+            f"  Key events: {s.get('key_events', [])}\n"
+            f"  Characters: {s.get('characters_present', [])}\n"
+            f"  Summary: {s.get('raw_summary', '')[:300]}"
+            for s in batch
+        )
+        system = (
+            "You are a narrative analyst extracting story threads from chapter summaries. "
+            "A narrative thread is a named subplot, character arc, mystery, quest, "
+            "conflict, or recurring motif that spans multiple chapters."
+        )
+        user = (
+            f"{batch_text}\n\n"
+            "For each distinct narrative thread you can identify in these chapters, "
+            "return one JSON object per action. Return a JSON array of objects with keys:\n"
+            '  "thread_name": specific name for the thread (e.g. "The missing crown", "Elena\'s revenge arc")\n'
+            '  "action": introduced | developed | resolved\n'
+            '  "description": one sentence describing what happens with this thread\n'
+            '  "chapter_number": the chapter number\n'
+            "Filter out: generic/vague threads shorter than 3 words, "
+            "threads matching ['the story', 'the journey', 'the conflict']. "
+            "Return ONLY the JSON array. If no threads found, return []."
+        )
+        raw = await _complete(system, user, temperature=0.1, max_tokens=800)
+        parsed = _extract_json(raw, fallback=[])
+        if isinstance(parsed, list):
+            for item in parsed:
+                if isinstance(item, dict) and item.get("thread_name"):
+                    all_threads.append({
+                        "thread_name":    str(item["thread_name"]),
+                        "action":         str(item.get("action", "introduced")),
+                        "description":    str(item.get("description", "")),
+                        "chapter_number": int(item.get("chapter_number", 0)),
+                    })
+    return all_threads
+
+
+# ── P2-08: Writing Style Drift Detector ──────────────────────────────────────
+
+async def describe_style_drift(sample_early: str, sample_late: str) -> str:
+    """
+    Given representative passage samples from early and late chapters,
+    ask Qwen to describe the stylistic difference in human terms.
+    """
+    system = (
+        "You are a literary editor analysing writing style consistency. "
+        "Compare two writing samples and describe any stylistic differences."
+    )
+    user = (
+        f"Early chapter sample:\n\"{sample_early}\"\n\n"
+        f"Late chapter sample:\n\"{sample_late}\"\n\n"
+        "Describe the stylistic differences between these two passages in 2–4 sentences. "
+        "Consider: sentence length, vocabulary level, narrative distance, POV feel, "
+        "use of description, and tone. Be specific about what changed and in which direction."
+    )
+    return await _complete(system, user, temperature=0.2, max_tokens=200)

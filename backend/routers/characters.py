@@ -7,7 +7,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models import Character, CharacterProfile, CharacterRelationship, Story
+from models import Character, CharacterProfile, CharacterMention, CharacterRelationship, Story
 from schemas import (
     CastConfirmRequest, CastConfirmResult, CastGenerationResult, CastSuggestion,
     CharacterArcSnapshotOut, CharacterArcTimelineResponse,
@@ -15,6 +15,7 @@ from schemas import (
     CharacterOut, CharacterProfileUpdate, CharacterUpdate,
     EnrichResult, EnrichSuggestion,
     RelationshipCreate, RelationshipOut, RelationshipUpdate,
+    VoiceCheckResponse, VoiceInconsistentPair,
 )
 from routers.auth import get_current_user, User
 
@@ -1177,3 +1178,144 @@ def delete_relationship(
     db.delete(rel)
     db.commit()
     return {"deleted": relationship_id}
+
+
+# ── P2-03: Dialogue Voice Consistency Checker ─────────────────────────────────
+
+@router.post("/{story_id}/characters/{character_id}/voice-check", response_model=VoiceCheckResponse)
+async def check_voice_consistency(
+    story_id:     str,
+    character_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Check dialogue voice consistency for a character across all chapters.
+    Retrieves CharacterMention passages containing quotation marks as dialogue.
+    Falls back to all passages if fewer than 3 dialogue passages found.
+    Requires at least 3 passages for meaningful analysis.
+    """
+    import numpy as np
+    from services.ai_service import embed_text, check_dialogue_consistency
+
+    _check_story_access(story_id, current_user.user_id, db)
+
+    character = db.query(Character).filter(
+        Character.character_id == character_id,
+        Character.story_id     == story_id,
+    ).first()
+    if not character:
+        raise HTTPException(status_code=404, detail="Character not found")
+
+    # Fetch all mentions for this character
+    mentions = (
+        db.query(CharacterMention)
+        .filter(
+            CharacterMention.character_id == character_id,
+            CharacterMention.story_id     == story_id,
+        )
+        .order_by(CharacterMention.chapter_number)
+        .all()
+    )
+
+    if not mentions:
+        return VoiceCheckResponse(
+            character_id=character_id,
+            character_name=character.name,
+            status="insufficient_data",
+            dialogue_count=0,
+            min_passages_required=3,
+            note="No character mentions found. Index chapters first.",
+        )
+
+    # Filter for passages with dialogue (contains quotation marks)
+    dialogue_marks = ('"', '“', '”', "'")
+    dialogue_mentions = [
+        m for m in mentions
+        if any(q in m.passage_text for q in dialogue_marks)
+    ]
+
+    # Fall back to all mentions if < 3 dialogue passages
+    working_mentions = dialogue_mentions if len(dialogue_mentions) >= 3 else mentions
+    fallback_used    = len(dialogue_mentions) < 3
+
+    if len(working_mentions) < 3:
+        return VoiceCheckResponse(
+            character_id=character_id,
+            character_name=character.name,
+            status="insufficient_data",
+            dialogue_count=len(working_mentions),
+            min_passages_required=3,
+            note=f"Only {len(working_mentions)} passage(s) found. At least 3 are required.",
+        )
+
+    # Embed all passages
+    texts = [m.passage_text[:400] for m in working_mentions]
+    embeddings = []
+    for t in texts:
+        emb = await embed_text(t)
+        embeddings.append(np.array(emb, dtype=np.float32))
+
+    # Compute pairwise cosine similarities
+    INCONSISTENCY_THRESHOLD = 0.72
+    MAX_PAIRS_TO_ANALYZE = 10
+    flagged: list[tuple] = []   # (passage_a, passage_b, chapter_a, chapter_b, sim)
+
+    for i in range(len(embeddings)):
+        for j in range(i + 1, len(embeddings)):
+            ei, ej = embeddings[i], embeddings[j]
+            ni, nj = np.linalg.norm(ei), np.linalg.norm(ej)
+            if ni < 1e-9 or nj < 1e-9:
+                continue
+            sim = float(np.dot(ei, ej) / (ni * nj))
+            if sim < INCONSISTENCY_THRESHOLD:
+                flagged.append((
+                    texts[i], texts[j],
+                    working_mentions[i].chapter_number,
+                    working_mentions[j].chapter_number,
+                    round(sim, 4),
+                ))
+
+    # Mean cosine as consistency score
+    all_sims = []
+    for i in range(len(embeddings)):
+        for j in range(i + 1, len(embeddings)):
+            ei, ej = embeddings[i], embeddings[j]
+            ni, nj = np.linalg.norm(ei), np.linalg.norm(ej)
+            if ni < 1e-9 or nj < 1e-9:
+                continue
+            all_sims.append(float(np.dot(ei, ej) / (ni * nj)))
+    consistency_score = round(float(np.mean(all_sims)), 4) if all_sims else 1.0
+
+    # Limit analysis to top MAX_PAIRS (lowest similarity first)
+    flagged_sorted = sorted(flagged, key=lambda x: x[4])[:MAX_PAIRS_TO_ANALYZE]
+
+    inconsistent_pairs: list[VoiceInconsistentPair] = []
+    if flagged_sorted:
+        descriptions = await check_dialogue_consistency(
+            character_name=character.name,
+            passage_pairs=flagged_sorted,
+        )
+        for (pa, pb, cha, chb, sim), desc_dict in zip(flagged_sorted, descriptions):
+            inconsistent_pairs.append(VoiceInconsistentPair(
+                passage_a=pa,
+                passage_b=pb,
+                chapter_a=cha,
+                chapter_b=chb,
+                similarity_score=sim,
+                description=desc_dict.get("description", ""),
+            ))
+
+    note = None
+    if fallback_used:
+        note = "Fewer than 3 dialogue passages found; analysis includes all character mention passages."
+
+    return VoiceCheckResponse(
+        character_id=character_id,
+        character_name=character.name,
+        status="inconsistent" if inconsistent_pairs else "ok",
+        dialogue_count=len(working_mentions),
+        consistency_score=consistency_score,
+        inconsistent_pairs=inconsistent_pairs,
+        note=note,
+    )

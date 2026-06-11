@@ -297,4 +297,100 @@ export const exportApi = {
   },
 }
 
+// ── Phase 2 — Emotional Arc (P2-01) ──────────────────────────────────────────
+export const emotionalArcApi = {
+  get: (storyId: string, withAssessment = false) =>
+    api.get(`/api/stories/${storyId}/emotional-arc`, { params: { include_assessment: withAssessment } }),
+}
+
+// ── Phase 2 — Duplicate Scenes (P2-10) ───────────────────────────────────────
+export const duplicateScenesApi = {
+  detect: (storyId: string) => api.post(`/api/stories/${storyId}/duplicate-scenes`),
+}
+
+// ── Phase 2 — Style Drift (P2-08) ────────────────────────────────────────────
+export const styleDriftApi = {
+  check: (storyId: string) => api.post(`/api/stories/${storyId}/style-drift`),
+}
+
+// ── Phase 2 — Continuity Check (P2-05) ───────────────────────────────────────
+export const continuityApi = {
+  check: (storyId: string) => api.post(`/api/stories/${storyId}/continuity-check`),
+}
+
+// ── Phase 2 — Continuation Suggestion (P2-02) ────────────────────────────────
+const CONT_LENGTH_MAP: Record<string, number> = { short: 100, medium: 200, long: 350 }
+
+export const continuationApi = {
+  suggest: (storyId: string, chapterId: string, tailText: string, continuationLength: string | number = 'medium') => {
+    const words = typeof continuationLength === 'number'
+      ? continuationLength
+      : (CONT_LENGTH_MAP[continuationLength] ?? 200)
+    return api.post(`/api/stories/${storyId}/chapters/${chapterId}/continue`, {
+      tail_text: tailText,
+      continuation_length: words,
+    })
+  },
+}
+
+// ── Phase 2 — Chapter Outline (P2-04) ────────────────────────────────────────
+export const outlineApi = {
+  generate: (storyId: string, chapterId: string, chapterGoal: string, sceneCount = 4) =>
+    api.post(`/api/stories/${storyId}/chapters/${chapterId}/outline`, {
+      chapter_goal: chapterGoal,
+      scene_count: sceneCount,
+    }),
+}
+
+// ── Phase 2 — Voice Check (P2-03) ────────────────────────────────────────────
+export const voiceCheckApi = {
+  check: (storyId: string, characterId: string) =>
+    api.post(`/api/stories/${storyId}/characters/${characterId}/voice-check`),
+}
+
+// ── Phase 2 — Story Bible (P2-06) ────────────────────────────────────────────
+export const storyBibleApi = {
+  generate: (storyId: string)   => api.post(`/api/stories/${storyId}/story-bible`),
+  get:      (storyId: string)   => api.get(`/api/stories/${storyId}/story-bible`),
+  exportUrl:(storyId: string)   => `${BASE}/api/stories/${storyId}/story-bible/export`,
+}
+
+// ── Phase 2 — Narrative Threads (P2-07) ──────────────────────────────────────
+export const narrativeThreadsApi = {
+  scan:   (storyId: string)                              => api.post(`/api/stories/${storyId}/narrative-threads/scan`),
+  list:   (storyId: string, status?: string)             => api.get(`/api/stories/${storyId}/narrative-threads`, { params: status ? { status } : {} }),
+  update: (storyId: string, threadId: string, status: string) =>
+    api.patch(`/api/stories/${storyId}/narrative-threads/${threadId}`, { status }),
+}
+
+// ── Phase 2 — Pacing (P2-09) ─────────────────────────────────────────────────
+export const pacingApi = {
+  get: (storyId: string) => api.get(`/api/stories/${storyId}/pacing-goals`),
+  set: (storyId: string, targetWordCount: number, targetChapterCount: number, targetWordsPerChapter: number) =>
+    api.post(`/api/stories/${storyId}/pacing-goals`, {
+      target_word_count: targetWordCount,
+      target_chapter_count: targetChapterCount,
+      target_words_per_chapter: targetWordsPerChapter,
+    }),
+}
+
+// ── Phase 2 — Audio (P2-11) ──────────────────────────────────────────────────
+export const audioApi = {
+  upload: (storyId: string, file: File, noteId?: string) => {
+    const form = new FormData()
+    form.append('file', file)
+    if (noteId) form.append('note_id', noteId)
+    return api.post(`/api/stories/${storyId}/audio`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
+  get:     (storyId: string, audioId: string)   => api.get(`/api/stories/${storyId}/audio/${audioId}`),
+  list:    (storyId: string)                    => api.get(`/api/stories/${storyId}/audio`),
+  confirm: (storyId: string, audioId: string, noteId: string, editedText?: string) =>
+    api.post(`/api/stories/${storyId}/audio/${audioId}/confirm`, {
+      note_id:     noteId,
+      edited_text: editedText ?? null,
+    }),
+}
+
 export default api

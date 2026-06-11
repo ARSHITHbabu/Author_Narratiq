@@ -41,6 +41,7 @@ class Settings(BaseSettings):
     llm_model_id: str = "Qwen/Qwen2.5-7B-Instruct"
     bge_model_id: str = "BAAI/bge-m3"
     got_ocr_model_id: str = "stepfun-ai/GOT-OCR2_0"
+    whisper_model_id: str = "Systran/faster-whisper-large-v3-turbo"
 
     # ── Optional direct local path overrides ──────────────────────────────────
     # If unset, paths are derived: {model_base_dir}/{model-folder-name}
@@ -67,6 +68,12 @@ class Settings(BaseSettings):
     # "cpu"  — safe default; BGE-M3 ~80–150 ms/query on CPU, acceptable.
     # "cuda" — use only when GPU has headroom above gpu_memory_utilization.
     bge_device: str = "cpu"
+
+    # ── Whisper (faster-whisper) settings ─────────────────────────────────────
+    # "cpu" is safe; set "cuda" when GPU VRAM headroom allows.
+    # compute_type: "int8" for CPU (fastest), "float16" for GPU.
+    whisper_device: str = "cpu"
+    whisper_compute_type: str = "int8"
 
     # ── FastAPI server ────────────────────────────────────────────────────────
     backend_host: str = "0.0.0.0"
@@ -100,6 +107,11 @@ class Settings(BaseSettings):
     def got_path(self) -> str:
         """Local path to GOT-OCR2.0 weights."""
         return str(Path(self.model_base_dir) / "GOT-OCR2_0")
+
+    @property
+    def resolved_whisper_path(self) -> str:
+        """Local path to faster-whisper-large-v3-turbo weights."""
+        return str(Path(self.model_base_dir) / "faster-whisper-large-v3-turbo")
 
     @property
     def qwen_path(self) -> str:

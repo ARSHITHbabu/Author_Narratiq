@@ -13,6 +13,7 @@ import models  # noqa: F401
 from routers import auth, projects, chapters, intake, plot_assistant, ai_transform, ocr, manuscript, export, characters, plot_holes, manuscript_report
 from routers import search as search_router
 from routers import story_intel
+from routers import analysis, writing_tools, pacing, narrative_threads, story_bible, audio as audio_router
 
 Base.metadata.create_all(bind=engine)
 run_db_migrations(engine)   # add new columns to existing tables
@@ -84,15 +85,64 @@ async def _cleanup_ocr_images() -> int:
     return removed
 
 
+async def _cleanup_audio_files() -> None:
+    """
+    Delete confirmed audio files older than 24 h and failed/unconfirmed ones older than 72 h.
+    The AudioUpload DB record is retained for traceability.
+    """
+    from database import SessionLocal
+    from models import AudioUpload
+    from sqlalchemy import and_, or_
+
+    now = datetime.utcnow()
+    confirmed_cutoff   = now - timedelta(hours=_OCR_CONFIRMED_TTL_HOURS)
+    unconfirmed_cutoff = now - timedelta(hours=_OCR_UNCONFIRMED_TTL_HOURS)
+
+    db = SessionLocal()
+    try:
+        stale = (
+            db.query(AudioUpload)
+            .filter(
+                AudioUpload.audio_path.isnot(None),
+                or_(
+                    and_(AudioUpload.confirmed == True,  AudioUpload.created_at < confirmed_cutoff),   # noqa: E712
+                    and_(AudioUpload.confirmed == False, AudioUpload.created_at < unconfirmed_cutoff),  # noqa: E712
+                ),
+            )
+            .all()
+        )
+        removed = 0
+        for upload in stale:
+            path = upload.audio_path
+            try:
+                if path and os.path.exists(path):
+                    os.remove(path)
+                    removed += 1
+            except OSError as exc:
+                print(f"[audio_cleanup] could not delete {path!r}: {exc}")
+            finally:
+                upload.audio_path = None
+        if stale:
+            db.commit()
+            print(f"[audio_cleanup] swept {len(stale)} record(s): {removed} file(s) deleted")
+    except Exception as exc:
+        print(f"[audio_cleanup] error: {exc}")
+        db.rollback()
+    finally:
+        db.close()
+
+
 async def _run_periodic_cleanup() -> None:
-    """Startup sweep then hourly OCR image cleanup loop."""
-    await _cleanup_ocr_images()     # clear backlog immediately at startup
+    """Startup sweep then hourly OCR + audio file cleanup loop."""
+    await _cleanup_ocr_images()
+    await _cleanup_audio_files()
     while True:
         await asyncio.sleep(_OCR_CLEANUP_INTERVAL_SECS)
         try:
             await _cleanup_ocr_images()
+            await _cleanup_audio_files()
         except Exception as exc:
-            print(f"[ocr_cleanup] periodic sweep failed: {exc}")
+            print(f"[cleanup] periodic sweep failed: {exc}")
 
 
 @asynccontextmanager
@@ -170,7 +220,7 @@ async def lifespan(app: FastAPI):
             print(f"WARNING: vLLM warmup failed ({e}).")
 
     asyncio.create_task(_run_periodic_cleanup())
-    print(f"OCR cleanup scheduler started "
+    print(f"OCR+Audio cleanup scheduler started "
           f"(confirmed>{_OCR_CONFIRMED_TTL_HOURS}h, "
           f"unconfirmed>{_OCR_UNCONFIRMED_TTL_HOURS}h, "
           f"interval={_OCR_CLEANUP_INTERVAL_SECS//3600}h).")
@@ -203,7 +253,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-os.makedirs("uploads/ocr", exist_ok=True)
+os.makedirs("uploads/ocr",   exist_ok=True)
+os.makedirs("uploads/audio", exist_ok=True)
 
 app.include_router(auth.router,           prefix="/api/auth")
 app.include_router(projects.router,       prefix="/api/projects")
@@ -219,6 +270,13 @@ app.include_router(search_router.router,  prefix="/api/search")
 app.include_router(plot_holes.router,        prefix="/api/stories")
 app.include_router(manuscript_report.router, prefix="/api/stories")
 app.include_router(story_intel.router,       prefix="/api/stories")
+# ── Phase 2 routers ───────────────────────────────────────────────────────────
+app.include_router(analysis.router,          prefix="/api/stories")
+app.include_router(writing_tools.router,     prefix="/api/stories")
+app.include_router(pacing.router,            prefix="/api/stories")
+app.include_router(narrative_threads.router, prefix="/api/stories")
+app.include_router(story_bible.router,       prefix="/api/stories")
+app.include_router(audio_router.router,      prefix="/api/stories")
 
 
 @app.get("/api/health")
