@@ -173,7 +173,17 @@ pip install \
   "reportlab>=4.0.0" \
   "faster-whisper>=1.0.3" \
   "slowapi==0.1.9" \
+  "rapidfuzz>=3.0.0" \
+  "jellyfish>=1.0.0" \
+  "websockets>=12.0" \
   >> "$LOG_DIR/pip-backend.log" 2>&1
+# Voice Agent deps:
+#   rapidfuzz + jellyfish — story-vocabulary fuzzy/phonetic correction
+#     (services/voice/vocabulary.py imports these at module load; without them the
+#      voice_agent router fails to import and the backend will not start).
+#   websockets           — FastAPI WS endpoint /api/voice/stream (streaming mic).
+#   ctranslate2 + av (PyAV, bundles ffmpeg) come transitively via faster-whisper —
+#     no system ffmpeg package is required at runtime.
 # Also ensure HF download tooling is available (needed for model downloads)
 pip install -q "huggingface-hub>=0.24.0" "hf-transfer>=0.1.8" >> "$LOG_DIR/pip-backend.log" 2>&1
 echo "  Backend packages — OK"
@@ -229,6 +239,24 @@ print("  faster-whisper-large-v3-turbo downloaded")
 PYEOF
 else
   echo "  faster-whisper-large-v3-turbo — OK"
+fi
+
+# Partial/live STT model (Voice Agent streaming). The final pass uses the
+# large-v3-turbo model above; live partial transcripts use a small/fast model
+# (settings.stt_partial_model, default "base" → Systran/faster-whisper-base, public,
+# ~140 MB). faster-whisper loads it BY NAME into the HF cache (~/.cache/huggingface),
+# not /workspace/models. Pre-stage it so a fresh pod's first voice command has no
+# download lag and works without runtime HF access. Idempotent: skipped if cached.
+STT_PARTIAL_MODEL="${STT_PARTIAL_MODEL:-base}"
+if [ ! -d "$HOME/.cache/huggingface/hub/models--Systran--faster-whisper-${STT_PARTIAL_MODEL}" ]; then
+  echo "  Missing: partial STT model (faster-whisper-${STT_PARTIAL_MODEL}) — downloading (~140 MB)..."
+  python3 - <<PYEOF
+from huggingface_hub import snapshot_download
+snapshot_download(repo_id="Systran/faster-whisper-${STT_PARTIAL_MODEL}")
+print("  partial STT model (faster-whisper-${STT_PARTIAL_MODEL}) downloaded")
+PYEOF
+else
+  echo "  partial STT model (faster-whisper-${STT_PARTIAL_MODEL}) — OK"
 fi
 
 if [ "$MODELS_MISSING" -eq 1 ]; then
