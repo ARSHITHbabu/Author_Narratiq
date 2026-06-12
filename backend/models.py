@@ -1122,3 +1122,113 @@ class AudioUpload(Base):
     updated_at        = Column(DateTime,  default=datetime.utcnow, onupdate=datetime.utcnow)
 
     story = relationship("Story", back_populates="audio_uploads")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  Real-Time Voice Agent (voice → intent → multi-step plan → action)
+# ══════════════════════════════════════════════════════════════════════════════
+
+class VoiceSession(Base):
+    """
+    A continuous voice-agent conversation. Holds session-level memory
+    (context_state) so follow-up commands like "make it darker" / "use the
+    second option" resolve without repeating context. Persisted (not in-memory
+    only) so any backend replica can rehydrate after a WS reconnect.
+    """
+    __tablename__ = "voice_sessions"
+    session_id     = Column(String,   primary_key=True, default=gen_uuid)
+    user_id        = Column(String,   ForeignKey("users.user_id"), nullable=False, index=True)
+    story_id       = Column(String,   ForeignKey("stories.story_id", ondelete="CASCADE"), nullable=True, index=True)
+    status         = Column(String,   default="active")   # active|completed|failed|cancelled
+    context_state  = Column(JSON,     default=dict)        # session memory slots (B)
+    command_count  = Column(Integer,  default=0)
+    started_at     = Column(DateTime, default=datetime.utcnow)
+    ended_at       = Column(DateTime, nullable=True)
+    error_message  = Column(Text,     default="")
+
+
+class VoiceCommand(Base):
+    """One voice turn: transcript → resolved refs → intent → capability → plan.
+    Doubles as the per-turn audit + analytics event row."""
+    __tablename__ = "voice_commands"
+    command_id          = Column(String,  primary_key=True, default=gen_uuid)
+    session_id          = Column(String,  ForeignKey("voice_sessions.session_id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id             = Column(String,  ForeignKey("users.user_id"), nullable=False, index=True)
+    story_id            = Column(String,  ForeignKey("stories.story_id", ondelete="CASCADE"), nullable=True)
+    raw_transcript      = Column(Text,    default="")
+    cleaned_transcript  = Column(Text,    default="")
+    resolved_references = Column(JSON,    default=dict)    # {"it": "...", ...} (B)
+    detected_intent     = Column(String,  default="")
+    capability          = Column(String,  default="")      # (C)
+    target_router       = Column(String,  default="")
+    action_type         = Column(String,  default="")      # read|write|generate|analyze|destructive|export
+    confidence          = Column(Float,   default=0.0)
+    requires_confirmation = Column(Boolean, default=False)
+    confirmed           = Column(Boolean, nullable=True)
+    parameters          = Column(JSON,    default=dict)
+    status              = Column(String,  default="success")  # success|needs_confirmation|needs_clarification|failed
+    result_summary      = Column(Text,    default="")
+    stt_ms              = Column(Integer, default=0)
+    llm_ms              = Column(Integer, default=0)
+    route_ms            = Column(Integer, default=0)
+    exec_ms             = Column(Integer, default=0)
+    latency_ms          = Column(Integer, default=0)
+    created_at          = Column(DateTime, default=datetime.utcnow, index=True)
+
+
+class VoiceWorkflow(Base):
+    """A multi-step execution graph planned from one command (A)."""
+    __tablename__ = "voice_workflows"
+    workflow_id   = Column(String,   primary_key=True, default=gen_uuid)
+    command_id    = Column(String,   ForeignKey("voice_commands.command_id", ondelete="CASCADE"), nullable=False, index=True)
+    session_id    = Column(String,   ForeignKey("voice_sessions.session_id", ondelete="CASCADE"), nullable=False, index=True)
+    node_count    = Column(Integer,  default=0)
+    status        = Column(String,   default="planned")  # planned|running|awaiting_confirmation|completed|failed|abandoned
+    graph_json    = Column(JSON,     default=dict)
+    created_at    = Column(DateTime, default=datetime.utcnow)
+    updated_at    = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class VoiceTask(Base):
+    """A single node of a VoiceWorkflow execution graph (A)."""
+    __tablename__ = "voice_tasks"
+    task_id              = Column(String,  primary_key=True, default=gen_uuid)
+    workflow_id          = Column(String,  ForeignKey("voice_workflows.workflow_id", ondelete="CASCADE"), nullable=False, index=True)
+    node_key             = Column(String,  nullable=False)
+    capability           = Column(String,  default="")
+    action               = Column(String,  default="")
+    action_type          = Column(String,  default="")
+    depends_on           = Column(JSON,    default=list)
+    params               = Column(JSON,    default=dict)
+    execution_locus      = Column(String,  default="server")  # server|client
+    requires_confirmation = Column(Boolean, default=False)
+    confirmed            = Column(Boolean, nullable=True)
+    status               = Column(String,  default="pending")  # pending|running|done|skipped|failed|awaiting_confirmation
+    result_summary       = Column(Text,    default="")
+    latency_ms           = Column(Integer, default=0)
+    created_at           = Column(DateTime, default=datetime.utcnow)
+
+
+class VoiceUsageDaily(Base):
+    """Daily analytics rollup, per user (null user_id = global) (D)."""
+    __tablename__ = "voice_usage_daily"
+    id                  = Column(String,  primary_key=True, default=gen_uuid)
+    day                 = Column(String,  nullable=False, index=True)  # YYYY-MM-DD (UTC)
+    user_id             = Column(String,  ForeignKey("users.user_id"), nullable=True, index=True)
+    sessions            = Column(Integer, default=0)
+    commands            = Column(Integer, default=0)
+    avg_session_seconds = Column(Float,   default=0.0)
+    intent_distribution = Column(JSON,    default=dict)
+    capability_usage    = Column(JSON,    default=dict)
+    low_confidence      = Column(Integer, default=0)
+    clarifications      = Column(Integer, default=0)
+    failed_resolutions  = Column(Integer, default=0)
+    failed_executions   = Column(Integer, default=0)
+    abandoned_workflows = Column(Integer, default=0)
+    stt_p95_ms          = Column(Integer, default=0)
+    e2e_p95_ms          = Column(Integer, default=0)
+    voice_to_applied    = Column(Integer, default=0)
+    created_at          = Column(DateTime, default=datetime.utcnow)
+    updated_at          = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    __table_args__ = (UniqueConstraint("day", "user_id", name="uq_voice_usage_day_user"),)

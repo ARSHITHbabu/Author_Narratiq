@@ -1460,3 +1460,152 @@ class AudioUploadOut(BaseModel):
     suggestions:      Optional[List[dict]] = None
     created_at:       Optional[datetime] = None
     updated_at:       Optional[datetime] = None
+
+
+# ── Real-Time Voice Agent ────────────────────────────────────────────────────
+
+class VoiceContext(BaseModel):
+    """Client-side authoring context snapshot sent with each voice command.
+    Everything is optional — the agent fills gaps from session memory + RAG,
+    and asks for clarification only when a required field is truly missing."""
+    story_id:          Optional[str] = None
+    chapter_id:        Optional[str] = None
+    chapter_number:    Optional[int] = None
+    chapter_title:     Optional[str] = None
+    selected_text:     Optional[str] = None
+    selected_text_range: Optional[List[int]] = None   # [from, to] editor positions
+    has_selection:     bool = False
+    cursor_position:   Optional[int] = None
+    full_chapter_text: Optional[str] = None       # full current chapter text (truncated)
+    active_panel:      Optional[str] = None
+    active_character_id: Optional[str] = None
+    word_count:        Optional[int] = None
+
+
+class VoiceInterpretRequest(BaseModel):
+    transcript: str
+    session_id: Optional[str] = None              # continue an existing session
+    context:    VoiceContext = VoiceContext()
+    skip_clean: bool = False                       # transcript already cleaned
+
+
+class VoiceTranscribeResponse(BaseModel):
+    transcript:         str
+    cleaned_transcript: str
+    confidence:         float = 0.0
+    language:           str = ""
+    duration_seconds:   float = 0.0
+
+
+class VoiceExecution(BaseModel):
+    """Bridge to the frontend executor — which api.ts method + args to call,
+    or a client-side navigation. Null for server-pre-run nodes."""
+    client_call: Optional[str] = None             # e.g. "emotionApi.emotion"
+    args:        dict = {}
+    navigate:    Optional[str] = None             # client route / panel action
+
+
+class WorkflowNodeOut(BaseModel):
+    node_key:    str
+    capability:  str
+    action:      str
+    action_type: str                               # read|write|generate|analyze|destructive|export
+    depends_on:  List[str] = []
+    execution_locus: str = "server"               # server|client
+    requires_confirmation: bool = False
+    status:      str = "pending"                    # pending|running|done|skipped|failed|awaiting_confirmation
+    execution:   Optional[VoiceExecution] = None
+    result:      Optional[dict] = None             # inline result for server-run safe nodes
+    user_message: str = ""
+
+
+class WorkflowOut(BaseModel):
+    workflow_id: str
+    node_count:  int
+    status:      str
+    nodes:       List[WorkflowNodeOut] = []
+
+
+class VoiceClarification(BaseModel):
+    question: str
+    missing:  List[str] = []
+    options:  Optional[List[dict]] = None          # e.g. candidate capabilities / entities
+
+
+class VoiceAgentResponse(BaseModel):
+    """The single consolidated contract returned for every voice turn."""
+    session_id:          str
+    command_id:          str
+    transcript:          str
+    cleaned_transcript:  str
+    corrected_transcript: str = ""              # story-aware "what I understood"
+    resolved_entities:   List[dict] = []        # [{name, kind}] — names, never ids
+    context_used:        str = ""               # author-facing "what context I used"
+    resolved_references: dict = {}
+    detected_intent:     str = ""
+    capability:          str = ""
+    target_router:       str = ""
+    action_type:         str = ""
+    is_multi_step:       bool = False
+    confidence:          float = 0.0
+    requires_confirmation: bool = False
+    status:              str = "success"           # success|needs_confirmation|needs_clarification|failed
+    workflow:            Optional[WorkflowOut] = None
+    result:              dict = {}
+    user_message:        str = ""
+    clarification:       Optional[VoiceClarification] = None
+    error:               Optional[str] = None
+
+
+class VoiceWorkflowConfirmRequest(BaseModel):
+    node_key:  str
+    confirmed: bool
+    edits:     Optional[dict] = None               # author edits to the node args
+    applied:   bool = False                         # frontend reports it executed the write
+
+
+class VoiceCommandOut(BaseModel):
+    model_config = {"from_attributes": True}
+    command_id:         str
+    raw_transcript:     str
+    cleaned_transcript: str
+    detected_intent:    str
+    capability:         str
+    action_type:        str
+    confidence:         float
+    status:             str
+    requires_confirmation: bool
+    confirmed:          Optional[bool] = None
+    latency_ms:         int
+    created_at:         Optional[datetime] = None
+
+
+class VoiceSessionOut(BaseModel):
+    model_config = {"from_attributes": True}
+    session_id:    str
+    story_id:      Optional[str] = None
+    status:        str
+    command_count: int
+    started_at:    Optional[datetime] = None
+    ended_at:      Optional[datetime] = None
+
+
+class VoiceSessionHistory(BaseModel):
+    session:  VoiceSessionOut
+    commands: List[VoiceCommandOut] = []
+
+
+class VoiceAnalyticsSummary(BaseModel):
+    range_days:          int
+    total_sessions:      int
+    total_commands:      int
+    active_users:        int
+    avg_commands_per_session: float
+    clarification_rate:  float
+    failure_rate:        float
+    low_confidence_rate: float
+    voice_to_applied:    int
+    intent_distribution: dict = {}
+    capability_usage:    dict = {}
+    stt_p95_ms:          int = 0
+    e2e_p95_ms:          int = 0

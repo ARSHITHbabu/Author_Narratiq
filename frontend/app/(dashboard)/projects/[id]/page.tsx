@@ -67,8 +67,8 @@ const PacingGoalPanel = dynamic(
   () => import('@/components/pacing/PacingGoalPanel'),
   { ssr: false, loading: () => <PanelSkeleton /> },
 )
-const AudioPanel = dynamic(
-  () => import('@/components/audio/AudioPanel'),
+const VoiceAgentPanel = dynamic(
+  () => import('@/components/voice/VoiceAgentPanel'),
   { ssr: false, loading: () => <PanelSkeleton /> },
 )
 const SearchPanel = dynamic(
@@ -76,7 +76,7 @@ const SearchPanel = dynamic(
   { ssr: false },
 )
 
-type RightPanel = 'ai' | 'plot' | 'ocr' | 'notes' | 'suggestions' | 'characters' | 'audit' | 'bible' | 'pacing' | 'audio'
+type RightPanel = 'ai' | 'plot' | 'ocr' | 'notes' | 'suggestions' | 'characters' | 'audit' | 'bible' | 'pacing' | 'voice'
 
 export default function EditorPage({ params }: { params: { id: string } }) {
   const { id: storyId } = params
@@ -105,6 +105,8 @@ export default function EditorPage({ params }: { params: { id: string } }) {
     getSelectedText: () => string
     getFullText: () => string
     insertText: (text: string) => void
+    getSelectionRange: () => { from: number; to: number } | null
+    replaceRange: (from: number, to: number, text: string) => void
   } | null>(null)
 
   // Search: ref to editor search functions + pending cross-chapter navigation
@@ -255,6 +257,8 @@ export default function EditorPage({ params }: { params: { id: string } }) {
     getSelectedText: () => string
     getFullText: () => string
     insertText: (text: string) => void
+    getSelectionRange: () => { from: number; to: number } | null
+    replaceRange: (from: number, to: number, text: string) => void
   }) => {
     editorMethodsRef.current = methods
   }, [])
@@ -409,7 +413,7 @@ export default function EditorPage({ params }: { params: { id: string } }) {
                   { id: 'audit'       as RightPanel, icon: AlertTriangle,label: 'Audit'  },
                   { id: 'bible'       as RightPanel, icon: BookOpen,     label: 'Bible'  },
                   { id: 'pacing'      as RightPanel, icon: Target,       label: 'Pacing' },
-                  { id: 'audio'       as RightPanel, icon: Mic,          label: 'Audio'  },
+                  { id: 'voice'       as RightPanel, icon: Mic,          label: 'Voice'  },
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -469,8 +473,22 @@ export default function EditorPage({ params }: { params: { id: string } }) {
                 {rightPanel === 'pacing' && (
                   <PacingGoalPanel storyId={storyId} />
                 )}
-                {rightPanel === 'audio' && (
-                  <AudioPanel storyId={storyId} />
+                {rightPanel === 'voice' && (
+                  <VoiceAgentPanel
+                    storyId={storyId}
+                    chapterId={activeChapter.chapter_id}
+                    chapterNumber={activeChapter.chapter_number}
+                    chapterTitle={activeChapter.title}
+                    getSelectedText={() => editorMethodsRef.current?.getSelectedText() || ''}
+                    getFullText={() => editorMethodsRef.current?.getFullText() || ''}
+                    insertText={(text) => editorMethodsRef.current?.insertText(text)}
+                    getSelectionRange={() => editorMethodsRef.current?.getSelectionRange() || null}
+                    replaceRange={(from, to, text) => editorMethodsRef.current?.replaceRange(from, to, text)}
+                    onOpenChapter={(cid) => {
+                      const t = chapters.find((c) => c.chapter_id === cid)
+                      if (t) setActiveChapter(t)
+                    }}
+                  />
                 )}
               </div>
             </>
@@ -528,6 +546,8 @@ function EditorWithMethods({
     getSelectedText: () => string
     getFullText: () => string
     insertText: (text: string) => void
+    getSelectionRange: () => { from: number; to: number } | null
+    replaceRange: (from: number, to: number, text: string) => void
   }) => void
   onSearchReady?: (fns: EditorSearchFunctions) => void
   onContentLoaded?: () => void
@@ -553,6 +573,18 @@ function EditorWithMethods({
         const ed = editorRef.current
         if (!ed) return
         ed.chain().focus().insertContent(text).run()
+      },
+      getSelectionRange: () => {
+        const ed = editorRef.current
+        if (!ed) return null
+        const { from, to } = ed.state.selection
+        return from === to ? null : { from, to }
+      },
+      replaceRange: (from: number, to: number, text: string) => {
+        const ed = editorRef.current
+        if (!ed) return
+        // Replace ONLY the given range — never the whole chapter.
+        ed.chain().focus().insertContentAt({ from, to }, text).run()
       },
     })
   }, [onMethodsReady])

@@ -34,7 +34,7 @@ async def recover_orphaned_jobs() -> dict[str, int]:
     Designed to be called once at startup; safe to call again (idempotent).
     """
     from database import SessionLocal
-    from models import AudioUpload, ManuscriptJob, StoryIntelJob
+    from models import AudioUpload, ManuscriptJob, StoryIntelJob, VoiceSession, VoiceWorkflow
 
     db = SessionLocal()
     counts: dict[str, int] = {}
@@ -75,6 +75,29 @@ async def recover_orphaned_jobs() -> dict[str, int]:
             job.error_message = _ORPHAN_MESSAGE
             job.updated_at = now
         counts["story_intel_jobs"] = len(stuck_intel)
+
+        # ── VoiceSession (active → failed) ────────────────────────────────────
+        stuck_sessions = (
+            db.query(VoiceSession)
+            .filter(VoiceSession.status == "active")
+            .all()
+        )
+        for sess in stuck_sessions:
+            sess.status        = "failed"
+            sess.ended_at      = now
+            sess.error_message = _ORPHAN_MESSAGE
+        counts["voice_sessions"] = len(stuck_sessions)
+
+        # ── VoiceWorkflow (running / awaiting_confirmation → abandoned) ────────
+        stuck_workflows = (
+            db.query(VoiceWorkflow)
+            .filter(VoiceWorkflow.status.in_(["running", "awaiting_confirmation"]))
+            .all()
+        )
+        for wf in stuck_workflows:
+            wf.status     = "abandoned"
+            wf.updated_at = now
+        counts["voice_workflows"] = len(stuck_workflows)
 
         if any(v > 0 for v in counts.values()):
             db.commit()

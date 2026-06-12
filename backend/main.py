@@ -27,6 +27,7 @@ from routers import auth, projects, chapters, intake, plot_assistant, ai_transfo
 from routers import search as search_router
 from routers import story_intel
 from routers import analysis, writing_tools, pacing, narrative_threads, story_bible, audio as audio_router
+from routers import voice_agent
 
 Base.metadata.create_all(bind=engine)
 run_db_migrations(engine)   # add new columns to existing tables
@@ -132,15 +133,28 @@ async def _cleanup_audio_files() -> None:
         db.close()
 
 
+async def _rollup_voice_analytics() -> None:
+    """Roll today's raw voice events into voice_usage_daily (D)."""
+    if not settings.voice_agent_enabled:
+        return
+    try:
+        from services.voice.analytics import rollup_daily
+        await asyncio.to_thread(rollup_daily)
+    except Exception as exc:                       # noqa: BLE001
+        logger.error("[cleanup] voice analytics rollup failed: %s", exc)
+
+
 async def _run_periodic_cleanup() -> None:
-    """Startup sweep then hourly OCR + audio file cleanup loop."""
+    """Startup sweep then hourly OCR + audio file cleanup + voice analytics rollup."""
     await _cleanup_ocr_images()
     await _cleanup_audio_files()
+    await _rollup_voice_analytics()
     while True:
         await asyncio.sleep(_OCR_CLEANUP_INTERVAL_SECS)
         try:
             await _cleanup_ocr_images()
             await _cleanup_audio_files()
+            await _rollup_voice_analytics()
         except Exception as exc:
             logger.error("[cleanup] periodic sweep failed: %s", exc)
 
@@ -174,6 +188,15 @@ async def lifespan(app: FastAPI):
     get_bge()
     app.state.embeddings_ready = True
     logger.info("[startup] BGE-M3 loaded on %s", settings.bge_device)
+
+    # ── Voice agent: build the capability shortlist index (BGE-M3) ────────────
+    if settings.voice_agent_enabled:
+        try:
+            from services.voice.catalog import build_catalog_embeddings
+            n = build_catalog_embeddings()
+            logger.info("[startup] voice capability index built: %d capabilities", n)
+        except Exception as e:                       # noqa: BLE001
+            logger.warning("[startup] voice capability index build failed: %s", e)
 
     # ── pgvector path self-check ──────────────────────────────────────────────
     logger.info("[startup] verifying pgvector query path...")
@@ -320,6 +343,8 @@ app.include_router(pacing.router,            prefix="/api/stories")
 app.include_router(narrative_threads.router, prefix="/api/stories")
 app.include_router(story_bible.router,       prefix="/api/stories")
 app.include_router(audio_router.router,      prefix="/api/stories")
+# ── Real-Time Voice Agent ───────────────────────────────────────────────────────
+app.include_router(voice_agent.router,       prefix="/api/voice")
 
 
 @app.get("/api/health")

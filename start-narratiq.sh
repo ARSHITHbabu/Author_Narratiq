@@ -212,12 +212,16 @@ done
 WHISPER_DIR="$MODEL_DIR/faster-whisper-large-v3-turbo"
 if [ ! -f "$WHISPER_DIR/model.bin" ] && [ ! -f "$WHISPER_DIR/config.json" ]; then
   echo "  Missing: faster-whisper-large-v3-turbo — downloading (~1.5 GB)..."
+  # NOTE: The original Systran/faster-whisper-large-v3-turbo repo now returns
+  # HTTP 401 (gated/removed). deepdml/faster-whisper-large-v3-turbo-ct2 is a
+  # public, byte-identical CTranslate2 mirror (config.json + model.bin +
+  # tokenizer.json + vocabulary.json + preprocessor_config.json).
   python3 - <<'PYEOF'
 import os
 from huggingface_hub import snapshot_download
 model_dir = os.environ.get("MODEL_BASE_DIR", "/workspace/models")
 snapshot_download(
-    repo_id="Systran/faster-whisper-large-v3-turbo",
+    repo_id="deepdml/faster-whisper-large-v3-turbo-ct2",
     local_dir=os.path.join(model_dir, "faster-whisper-large-v3-turbo"),
     local_dir_use_symlinks=False,
 )

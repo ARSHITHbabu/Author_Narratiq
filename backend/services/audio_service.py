@@ -1,7 +1,7 @@
 """
 Phase 2 — P2-11 Audio Notes Transcription Service
 Uses faster-whisper (CTranslate2) with lazy loading.
-Model: Systran/faster-whisper-large-v3-turbo (~1.5 GB)
+Model: faster-whisper-large-v3-turbo (~1.5 GB; deepdml CTranslate2 mirror)
 Transcription runs in asyncio.to_thread to avoid blocking the event loop.
 """
 import asyncio
@@ -39,52 +39,69 @@ def _get_whisper():
     return _whisper_model
 
 
-def _transcribe_sync(audio_path: str) -> dict:
+def _transcribe_sync(audio_path: str, language: str | None = None) -> dict:
     """
     Synchronous transcription. Called via asyncio.to_thread.
     Returns dict with keys: raw_transcript, language, avg_confidence, duration, word_count.
+
+    `language` pins the decode language (e.g. "en" for live voice commands so a
+    noisy utterance is never mis-detected). None = auto-detect (legacy upload path).
+    Noise/silence segments are filtered via no_speech_prob + avg_logprob thresholds.
     """
+    import math
     model = _get_whisper()
 
     segments, info = model.transcribe(
         audio_path,
         beam_size=5,
-        vad_filter=True,          # skip silence
+        language=language,                       # pinned for voice mode; None = auto
+        task="transcribe",
+        temperature=0.0,                         # deterministic, more stable
+        vad_filter=True,                         # skip silence
         vad_parameters={"min_silence_duration_ms": 500},
+        no_speech_threshold=settings.voice_no_speech_threshold,
+        log_prob_threshold=settings.voice_logprob_threshold,
+        condition_on_previous_text=False,        # stop runaway hallucinated text
         word_timestamps=False,
     )
 
     texts   = []
     scores  = []
     for seg in segments:
-        texts.append(seg.text.strip())
+        # Drop segments the model flags as silence/very low confidence (noise).
+        if getattr(seg, "no_speech_prob", 0.0) > settings.voice_no_speech_threshold:
+            continue
+        if seg.avg_logprob is not None and seg.avg_logprob < settings.voice_logprob_threshold:
+            continue
+        t = seg.text.strip()
+        if not t:
+            continue
+        texts.append(t)
         if seg.avg_logprob is not None:
-            # Convert log-prob to approximate confidence [0,1]
-            import math
-            conf = math.exp(max(seg.avg_logprob, -5))
-            scores.append(conf)
+            scores.append(math.exp(max(seg.avg_logprob, -5)))
 
-    raw_transcript = " ".join(t for t in texts if t)
+    raw_transcript = " ".join(texts)
     avg_confidence = sum(scores) / len(scores) if scores else 0.0
     duration       = info.duration if info else 0.0
     word_count     = len(raw_transcript.split()) if raw_transcript else 0
 
     return {
         "raw_transcript":    raw_transcript,
-        "language_detected": info.language if info else "",
+        "language_detected": (language or (info.language if info else "")),
         "duration_seconds":  round(duration, 1),
         "confidence":        round(min(avg_confidence, 1.0), 3),
         "word_count":        word_count,
     }
 
 
-async def transcribe_audio(audio_path: str) -> dict:
+async def transcribe_audio(audio_path: str, language: str | None = None) -> dict:
     """
     Async wrapper — runs faster-whisper in a thread pool so the FastAPI event
     loop stays free during the CPU-bound transcription.
+    `language` pins the decode language (voice mode); None auto-detects (upload).
     Returns the same dict as _transcribe_sync.
     """
-    return await asyncio.to_thread(_transcribe_sync, audio_path)
+    return await asyncio.to_thread(_transcribe_sync, audio_path, language)
 
 
 async def clean_transcript(raw_text: str) -> str:

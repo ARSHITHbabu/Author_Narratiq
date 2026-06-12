@@ -393,4 +393,40 @@ export const audioApi = {
     }),
 }
 
+// ── Real-Time Voice Agent ─────────────────────────────────────────────────────
+export const voiceApi = {
+  // STT-free agent core (also used to re-plan after a clarification answer)
+  interpret: (transcript: string, context: object, sessionId?: string | null) =>
+    api.post('/api/voice/interpret', {
+      transcript,
+      context,
+      session_id: sessionId ?? null,
+    }),
+  // One-shot transcription fallback (non-WS path)
+  transcribe: (file: Blob) => {
+    const form = new FormData()
+    form.append('file', file, 'voice.webm')
+    return api.post('/api/voice/transcribe', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
+  // Push a client-executed result into session memory ("use the second option")
+  remember: (sessionId: string, resultKind: string, output: unknown) =>
+    api.post(`/api/voice/sessions/${sessionId}/remember`, { result_kind: resultKind, output }),
+  // Record confirmation / applied conversion for a proposed mutating action
+  confirm: (commandId: string, nodeKey: string, confirmed: boolean, applied: boolean) =>
+    api.post(`/api/voice/commands/${commandId}/confirm`, {
+      node_key: nodeKey, confirmed, applied,
+    }),
+  session: (sessionId: string) => api.get(`/api/voice/sessions/${sessionId}`),
+  analyticsSummary: (days = 7) => api.get('/api/voice/analytics/summary', { params: { days } }),
+}
+
+// WebSocket URL for the streaming mic endpoint (token in query param).
+export function voiceWsUrl(token: string): string {
+  const httpBase = BASE.replace(/\/$/, '')
+  const wsBase = httpBase.replace(/^http/, 'ws')
+  return `${wsBase}/api/voice/stream?token=${encodeURIComponent(token)}`
+}
+
 export default api

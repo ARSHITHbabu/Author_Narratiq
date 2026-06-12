@@ -605,3 +605,85 @@ export interface AudioTranscribeResponse {
   status:           string
   duration_seconds: number | null
 }
+
+// ── Real-Time Voice Agent ─────────────────────────────────────────────────────
+export type VoiceActionType =
+  | 'read' | 'write' | 'generate' | 'analyze' | 'destructive' | 'export'
+
+export type VoiceStatus =
+  | 'success' | 'needs_confirmation' | 'needs_clarification' | 'failed'
+
+export interface VoiceExecution {
+  client_call: string | null     // logical key dispatched by lib/voiceActions.ts
+  args:        Record<string, unknown>
+  navigate:    string | null
+}
+
+export interface WorkflowNode {
+  node_key:    string
+  capability:  string
+  action:      string
+  action_type: VoiceActionType
+  depends_on:  string[]
+  execution_locus: 'server' | 'client'
+  requires_confirmation: boolean
+  status:      string
+  execution:   VoiceExecution | null
+  result:      Record<string, unknown> | null
+  user_message: string
+}
+
+export interface VoiceWorkflow {
+  workflow_id: string
+  node_count:  number
+  status:      string
+  nodes:       WorkflowNode[]
+}
+
+export interface VoiceClarification {
+  question: string
+  missing:  string[]
+  // author-facing choices: {label} for names, or {capability,description} for features
+  options?: Array<Record<string, unknown>> | null
+}
+
+export interface VoiceResolvedEntity { name: string; kind: string }
+
+export interface VoiceAgentResponse {
+  session_id:           string
+  command_id:           string
+  transcript:           string
+  cleaned_transcript:   string
+  corrected_transcript: string
+  resolved_entities:    VoiceResolvedEntity[]
+  context_used:         string
+  resolved_references:  Record<string, unknown>
+  detected_intent:      string
+  capability:           string
+  target_router:        string
+  action_type:          VoiceActionType | ''
+  is_multi_step:        boolean
+  confidence:           number
+  requires_confirmation: boolean
+  status:               VoiceStatus
+  workflow:             VoiceWorkflow | null
+  result:               Record<string, unknown>
+  user_message:         string
+  clarification:        VoiceClarification | null
+  error:                string | null
+}
+
+export interface VoiceContextSnapshot {
+  story_id?:            string | null
+  chapter_id?:          string | null
+  chapter_number?:      number | null
+  chapter_title?:       string | null
+  selected_text?:       string | null
+  selected_text_range?: number[] | null
+  has_selection?:       boolean
+  cursor_position?:     number | null
+  full_chapter_text?:   string | null
+  active_panel?:        string | null
+  active_character_id?: string | null
+  word_count?:          number | null
+}

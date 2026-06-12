@@ -41,7 +41,9 @@ class Settings(BaseSettings):
     llm_model_id: str = "Qwen/Qwen2.5-7B-Instruct"
     bge_model_id: str = "BAAI/bge-m3"
     got_ocr_model_id: str = "stepfun-ai/GOT-OCR2_0"
-    whisper_model_id: str = "Systran/faster-whisper-large-v3-turbo"
+    # Systran/faster-whisper-large-v3-turbo now 401s (gated/removed); use the
+    # public byte-identical CTranslate2 mirror as the HF auto-download fallback.
+    whisper_model_id: str = "deepdml/faster-whisper-large-v3-turbo-ct2"
 
     # ── Optional direct local path overrides ──────────────────────────────────
     # If unset, paths are derived: {model_base_dir}/{model-folder-name}
@@ -87,6 +89,7 @@ class Settings(BaseSettings):
     rate_limit_heavy_ai:      str = "5/minute"    # per user — continuity, plot-holes
     rate_limit_background_ai: str = "3/minute"    # per user — bible, threads scan
     rate_limit_upload:        str = "10/minute"   # per user — audio, OCR, manuscript
+    rate_limit_voice:         str = "30/minute"   # per user — voice interpret / transcribe
 
     # ── Upload size limits ────────────────────────────────────────────────────
     max_audio_upload_mb:      int = 100   # audio files (mp3, wav, m4a, …)
@@ -106,6 +109,46 @@ class Settings(BaseSettings):
     # Celery migration: replace semaphore with worker concurrency setting.
     bg_ai_concurrency:     int = 3   # Qwen background tasks
     embedding_concurrency: int = 2   # BGE-M3 background embedding tasks
+
+    # ── Real-Time Voice Agent ─────────────────────────────────────────────────
+    # Master feature flag. When False the WS/REST voice endpoints return 404-style
+    # disabled responses and the frontend hides the panel (safe rollout / rollback).
+    voice_agent_enabled: bool = True
+
+    # Streaming STT runs faster-whisper on CPU behind a bounded worker pool so it
+    # never contends with vLLM/BGE-M3 on the GPU. Scale out via CPU replicas.
+    #   stt_concurrency       — max simultaneous transcription jobs (partial+final)
+    #   stt_partial_model     — small/fast model for live partial passes
+    #   stt_partial_compute   — compute_type for the partial model
+    # The authoritative FINAL pass reuses the existing large-v3-turbo model
+    # (settings.resolved_whisper_path) via services/audio_service.py.
+    stt_concurrency:       int = 2
+    stt_partial_model:     str = "base"      # faster-whisper size: tiny|base|small
+    stt_partial_compute:   str = "int8"
+
+    # Live voice-command STT is forced to one language (English by default) so a
+    # noisy/accented utterance is never auto-detected as a random other language.
+    # Set voice_stt_auto_language=True to re-enable Whisper auto-detection later.
+    # (The legacy upload→note path is unaffected — it still auto-detects.)
+    voice_stt_language:        str   = "en"
+    voice_stt_auto_language:   bool  = False
+    # Stability / noise filtering thresholds (passed to faster-whisper)
+    voice_no_speech_threshold: float = 0.6    # drop segments the model thinks are silence
+    voice_logprob_threshold:   float = -1.0   # drop low-confidence segments
+    voice_min_partial_chars:   int   = 2      # ignore tiny/garbage partial transcripts
+    voice_min_final_confidence: float = 0.0   # below → treat final as unclear (clarify)
+    # Story-aware transcript correction (fuzzy + phonetic), built per story
+    voice_vocab_fuzzy_min:     int   = 84     # rapidfuzz ratio 0-100 to accept a fix
+    voice_vocab_enabled:       bool  = True
+
+    # Voice agent behaviour limits
+    max_voice_audio_mb:            int   = 25     # per streamed utterance / blob
+    voice_session_idle_minutes:    int   = 30     # idle session → swept to failed
+    voice_max_graph_nodes:         int   = 8      # hard cap on multi-step plan size
+    voice_intent_shortlist_k:      int   = 8      # BGE-M3 candidate capabilities
+    voice_confidence_threshold:    float = 0.55   # below → force confirmation
+    voice_low_confidence_floor:    float = 0.35   # below → needs_clarification
+    voice_admin_emails: list[str] = []            # may read /api/voice/analytics/*
 
     # ── JWT settings ──────────────────────────────────────────────────────────
     # All token values are now configurable without a code deployment.
