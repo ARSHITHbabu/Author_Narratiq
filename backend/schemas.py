@@ -1595,6 +1595,31 @@ class VoiceSessionHistory(BaseModel):
     commands: List[VoiceCommandOut] = []
 
 
+class ActivityEventCreate(BaseModel):
+    category: str                       # ai|analysis|project|voice|export
+    type:     str
+    title:    str = ""
+    summary:  str = ""
+    ref_type: str = ""
+    ref_id:   str = ""
+    metadata: dict = {}
+
+
+class ActivityEventOut(BaseModel):
+    model_config = {"from_attributes": True}
+    event_id:   str
+    story_id:   str
+    user_id:    str
+    category:   str
+    type:       str
+    title:      str
+    summary:    str
+    ref_type:   str
+    ref_id:     str
+    metadata_json: Optional[dict] = None
+    created_at: Optional[datetime] = None
+
+
 class VoiceAnalyticsSummary(BaseModel):
     range_days:          int
     total_sessions:      int

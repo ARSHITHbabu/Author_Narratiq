@@ -1232,3 +1232,25 @@ class VoiceUsageDaily(Base):
     updated_at          = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     __table_args__ = (UniqueConstraint("day", "user_id", name="uq_voice_usage_day_user"),)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  Global Activity Timeline (project-wide history of meaningful actions)
+# ══════════════════════════════════════════════════════════════════════════════
+
+class ActivityEvent(Base):
+    """An append-only record of a meaningful action in a story. Powers the Studio
+    Activity Timeline. Not a version-history system — an extensible, queryable log.
+    `metadata_json` + `ref_*` keep it future-ready for audit/recovery/collaboration."""
+    __tablename__ = "activity_events"
+    event_id      = Column(String,   primary_key=True, default=gen_uuid)
+    story_id      = Column(String,   ForeignKey("stories.story_id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id       = Column(String,   ForeignKey("users.user_id"), nullable=False, index=True)
+    category      = Column(String,   nullable=False)   # ai|analysis|project|voice|export
+    type          = Column(String,   nullable=False)   # e.g. tone_transform, continuity_check, chapter_create
+    title         = Column(String,   default="")
+    summary       = Column(Text,     default="")
+    ref_type      = Column(String,   default="")        # chapter|character|note|bible|export|…
+    ref_id        = Column(String,   default="")
+    metadata_json = Column(JSON,     default=dict)
+    created_at    = Column(DateTime, default=datetime.utcnow, index=True)

@@ -422,6 +422,17 @@ export const voiceApi = {
   analyticsSummary: (days = 7) => api.get('/api/voice/analytics/summary', { params: { days } }),
 }
 
+// ── Global Activity Timeline ──────────────────────────────────────────────────
+export const activityApi = {
+  record: (storyId: string, event: {
+    category: 'ai' | 'analysis' | 'project' | 'voice' | 'export'
+    type: string; title?: string; summary?: string
+    ref_type?: string; ref_id?: string; metadata?: Record<string, unknown>
+  }) => api.post(`/api/stories/${storyId}/activity`, event),
+  list: (storyId: string, params?: { category?: string; q?: string; limit?: number }) =>
+    api.get(`/api/stories/${storyId}/activity`, { params: params ?? {} }),
+}
+
 // WebSocket URL for the streaming mic endpoint (token in query param).
 export function voiceWsUrl(token: string): string {
   const httpBase = BASE.replace(/\/$/, '')

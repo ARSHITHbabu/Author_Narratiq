@@ -3,6 +3,7 @@ import './globals.css'
 import { AuthProvider } from '@/lib/auth'
 import { Toaster } from 'sonner'
 import ChunkErrorRecovery from '@/components/chunk-error-recovery'
+import QueryProvider from '@/components/providers/QueryProvider'
 
 // ── Disable static prerendering of HTML shells ───────────────────────────────
 // By default Next.js prerenders these client shells as STATIC and serves them
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <ChunkErrorRecovery />
+        <QueryProvider>
         <AuthProvider>
           {children}
           <Toaster
@@ -43,6 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             }}
           />
         </AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   )
