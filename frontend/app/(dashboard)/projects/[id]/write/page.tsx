@@ -6,7 +6,7 @@
 // selection. Reuses ChapterSidebar + StoryEditor + AIToolsSidebar; the editor bridge
 // is published into the Story Context Engine (single source of truth).
 
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 import { PenLine, Sparkles, Focus, Maximize2, AlignVerticalSpaceAround, PanelRightOpen } from 'lucide-react'
 import ChapterSidebar from '@/components/editor/ChapterSidebar'
@@ -22,11 +22,28 @@ export default function WriteWorkspace() {
   const [wordCount, setWordCount] = useState(activeChapter?.word_count ?? 0)
   const [selection, setSelection] = useState<LiveSelection | null>(null)
   const methodsRef = useRef<EditorMethods | null>(null)
+  const editorAreaRef = useRef<HTMLDivElement | null>(null)
 
   const onMethodsReady = useCallback((m: EditorMethods) => {
     methodsRef.current = m
     registerEditor(m)
   }, [registerEditor])
+
+  // Selection lifecycle: the toolbar must reflect the LIVE editor selection only.
+  // EditorWithMethods clears `selection` when the ProseMirror selection collapses
+  // (in-editor clicks). Here we also clear it on clicks OUTSIDE the editor area and
+  // whenever the chapter changes — so no stale selection keeps the toolbar open.
+  useEffect(() => {
+    const onDown = (e: MouseEvent) => {
+      if (editorAreaRef.current && !editorAreaRef.current.contains(e.target as Node)) {
+        setSelection(null)
+      }
+    }
+    document.addEventListener('mousedown', onDown, true)
+    return () => document.removeEventListener('mousedown', onDown, true)
+  }, [])
+
+  useEffect(() => { setSelection(null) }, [activeChapterId])
 
   const showBinder = !store.binderCollapsed && !store.focusMode && !store.zenMode
   const showSidecar = store.sidecarOpen && !store.focusMode && !store.zenMode
@@ -68,7 +85,7 @@ export default function WriteWorkspace() {
           )}
 
           <Panel id="editor" order={2} className="min-w-0 relative">
-            <div className={`h-full overflow-y-auto ${store.typewriter ? 'pb-[40vh]' : ''}`}>
+            <div ref={editorAreaRef} className={`h-full overflow-y-auto relative ${store.typewriter ? 'pb-[40vh]' : ''}`}>
               <SelectionToolbar selection={selection} />
               <EditorWithMethods
                 storyId={storyId}

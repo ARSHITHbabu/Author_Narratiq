@@ -9,6 +9,9 @@ import {
 import { aiApi, continuationApi, outlineApi } from '@/lib/api'
 import { TransformResponse, ContinuationSuggestion, OutlineBeat } from '@/lib/types'
 import { toast } from 'sonner'
+// Shared transform option config — single source of truth (also powers the
+// Selection Toolbar). No duplicated option lists across components.
+import { TONES, EMOTIONS, STYLES, LANGUAGES, REFINE_MODES, AUDIENCES } from '@/lib/transforms'
 
 interface Props {
   storyId: string
@@ -29,43 +32,6 @@ const TABS = [
   { id: 'translate' as TabId, label: 'Translate', icon: Globe    },
   { id: 'continue'  as TabId, label: 'Continue',  icon: Play     },
   { id: 'outline'   as TabId, label: 'Outline',   icon: List     },
-]
-
-const TONES = [
-  { id: 'Dark', emoji: '🌑' },
-  { id: 'Suspenseful', emoji: '⚡' },
-  { id: 'Romantic', emoji: '🌹' },
-  { id: 'Humorous', emoji: '😄' },
-  { id: 'Epic', emoji: '⚔️' },
-  { id: 'Melancholic', emoji: '🌧️' },
-  { id: 'Hopeful', emoji: '🌤️' },
-  { id: 'Tense', emoji: '🔥' },
-  { id: 'Lyrical', emoji: '🎵' },
-]
-
-const EMOTIONS = [
-  { id: 'Joy', emoji: '✨' },
-  { id: 'Sadness', emoji: '💧' },
-  { id: 'Fear', emoji: '😰' },
-  { id: 'Anger', emoji: '💢' },
-  { id: 'Surprise', emoji: '⚡' },
-  { id: 'Anticipation', emoji: '🎯' },
-]
-
-const STYLES = [
-  { id: 'Gothic', desc: 'Dark, ornate, brooding' },
-  { id: 'Noir', desc: 'Hard-boiled, cynical' },
-  { id: 'Contemporary', desc: 'Modern, accessible' },
-  { id: 'Minimalist', desc: 'Spare, precise' },
-  { id: 'Lyrical', desc: 'Musical, poetic' },
-  { id: 'Pulp', desc: 'Fast, visceral' },
-  { id: 'Literary', desc: 'Layered, introspective' },
-  { id: 'Thriller', desc: 'Taut, relentless' },
-]
-
-const LANGUAGES = [
-  'French', 'Spanish', 'German', 'Italian', 'Portuguese', 'Japanese', 'Korean',
-  'Chinese (Simplified)', 'Russian', 'Arabic', 'Hindi', 'Tamil', 'Dutch', 'Polish',
 ]
 
 function ResultPanel({
@@ -281,12 +247,7 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
           <div className="space-y-3">
             <p className="text-xs text-[#5c6391]">Fix grammar, elevate prose, or polish dialogue — pick the mode that fits.</p>
             <div className="grid grid-cols-2 gap-2">
-              {[
-                { id: 'standard', label: 'Standard', desc: 'Grammar + clarity' },
-                { id: 'literary', label: 'Literary', desc: 'Elevated prose' },
-                { id: 'grammar', label: 'Grammar', desc: 'Errors only' },
-                { id: 'dialogue', label: 'Dialogue', desc: 'Speech patterns' },
-              ].map((m) => (
+              {REFINE_MODES.map((m) => (
                 <button
                   key={m.id}
                   onClick={() => setRefineMode(m.id)}
@@ -370,11 +331,7 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
         {activeTab === 'age' && (
           <div className="space-y-2">
             <p className="text-xs text-[#5c6391] mb-3">Adapt your prose for a specific reader age group.</p>
-            {[
-              { id: 'children', label: 'Children', age: '5–10', desc: 'Simple words, short sentences' },
-              { id: 'ya', label: 'Young Adult', age: '10–18', desc: 'Age-appropriate complexity' },
-              { id: 'adult', label: 'Adult', age: '18+', desc: 'Full literary complexity' },
-            ].map((a) => (
+            {AUDIENCES.map((a) => (
               <button
                 key={a.id}
                 onClick={() => setSelectedAge(a.id)}

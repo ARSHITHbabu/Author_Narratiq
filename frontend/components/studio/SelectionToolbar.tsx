@@ -1,83 +1,107 @@
 'use client'
 
-// Selection Toolbar — appears when prose is selected in the Write editor. Runs the
-// ai_transform FEATURE on the EXACT selection (never RAG), shows a preview, and on
-// Apply replaces only the selected range via the editor bridge. Mirrors the voice
-// transform preview→apply flow; uses existing aiApi endpoints.
+// Selection Toolbar — compact, expandable AI transforms on the EXACT selected text.
+// Driven entirely by the shared transform config (lib/transforms) so it exposes the
+// full real option set (refine modes, tones, emotions+intensity, audiences, styles,
+// languages) without duplicating definitions. Every option calls the correct
+// ai_transform endpoint with the selected text only (never RAG/plot/Q&A). Shows a
+// preview; Apply replaces only the originally-captured range.
 
-import { useState } from 'react'
-import { Sparkles, Loader2, Check, X } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Sparkles, Loader2, Check, X, ChevronDown } from 'lucide-react'
 import { toast } from 'sonner'
-import { aiApi } from '@/lib/api'
+import { TRANSFORM_GROUPS, INTENSITIES, runTransform, type GroupId } from '@/lib/transforms'
 import { useStoryContext } from './StoryContextEngine'
 import type { LiveSelection } from '@/components/editor/EditorWithMethods'
 
-type Action = 'refine' | 'emotion' | 'tone' | 'shorten' | 'age_adapt'
-
-const QUICK: { id: Action; label: string }[] = [
-  { id: 'refine', label: 'Refine' },
-  { id: 'emotion', label: 'More emotion' },
-  { id: 'tone', label: 'Darker' },
-  { id: 'shorten', label: 'Tighten' },
-  { id: 'age_adapt', label: 'For YA' },
-]
-
-async function runTransform(action: Action, text: string, storyId: string): Promise<string> {
-  switch (action) {
-    case 'refine':   return (await aiApi.refine(text, 'standard', storyId)).data.transformed
-    case 'emotion':  return (await aiApi.emotion(text, 'tension', 'medium')).data.transformed
-    case 'tone':     return (await aiApi.tone(text, 'darker', storyId)).data.transformed
-    case 'shorten':  return (await aiApi.refine(text, 'standard', storyId)).data.transformed
-    case 'age_adapt': return (await aiApi.ageAdapt(text, 'ya', storyId)).data.transformed
-  }
-}
-
 export default function SelectionToolbar({ selection }: { selection: LiveSelection | null }) {
-  const { storyId, editor, logActivity } = useStoryContext()
-  const [busy, setBusy] = useState<Action | null>(null)
-  const [preview, setPreview] = useState<{ text: string; from: number; to: number } | null>(null)
+  const { storyId, activeChapterId, editor, logActivity } = useStoryContext()
+  const [openGroup, setOpenGroup] = useState<GroupId | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [intensity, setIntensity] = useState<string>('medium')
+  const [preview, setPreview] = useState<{ text: string; from: number; to: number; group: GroupId; value: string } | null>(null)
 
+  // Selection lifecycle: when the live selection changes (new range, or cleared),
+  // close any open dropdown and drop a stale preview — never keep stale UI.
+  const selKey = selection ? `${selection.from}:${selection.to}` : null
+  const prevKeyRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (selKey !== prevKeyRef.current) {
+      prevKeyRef.current = selKey
+      setOpenGroup(null)
+      if (selKey) setPreview(null)        // a fresh selection invalidates an old preview
+    }
+  }, [selKey])
+
+  // Hide entirely when there is neither a live selection nor a preview to review.
   if (!selection && !preview) return null
 
-  const run = async (action: Action) => {
-    if (!selection) return
+  const run = async (group: GroupId, value: string) => {
+    if (!selection) { toast.error('Select the text again to transform it.'); return }
     const { from, to, text } = selection
-    setBusy(action)
+    setBusy(true); setOpenGroup(null)
     try {
-      const out = await runTransform(action, text, storyId)
-      setPreview({ text: out, from, to })
-      logActivity({ category: 'ai', type: `${action}_transform`, title: `AI ${action} on selection`, summary: out.slice(0, 160), ref_type: 'selection' })
+      const out = await runTransform(group, value, text, { storyId, chapterId: activeChapterId ?? undefined, intensity })
+      setPreview({ text: out, from, to, group, value })
+      logActivity({ category: 'ai', type: `${group}_transform`, title: `AI ${group} on selection`, summary: out.slice(0, 160), ref_type: 'selection', metadata: { value } })
     } catch {
       toast.error('Transform failed')
     } finally {
-      setBusy(null)
+      setBusy(false)
     }
   }
 
   const apply = () => {
-    if (preview && editor) {
-      editor.replaceRange(preview.from, preview.to, preview.text)
-      toast.success('Applied to your selection')
-    }
+    if (!preview) return
+    if (!editor) { toast.error('Editor not ready — please reselect.'); setPreview(null); return }
+    editor.replaceRange(preview.from, preview.to, preview.text)
+    toast.success('Applied to your selected text')
     setPreview(null)
   }
 
   return (
-    <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20 max-w-2xl w-[min(92%,42rem)]">
+    <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20 w-[min(94%,46rem)]"
+      onMouseDown={(e) => e.stopPropagation()}>
       {!preview ? (
-        <div className="flex items-center gap-1 rounded-full border border-[#2e3454] bg-[#13162a] shadow-xl px-2 py-1">
-          <Sparkles className="w-3.5 h-3.5 text-amber-400 ml-1" />
-          {QUICK.map((q) => (
-            <button key={q.id} disabled={!!busy} onClick={() => run(q.id)}
-              className="text-[11px] px-2 py-1 rounded-full text-[#cdd2f0] hover:bg-[#1f2440] disabled:opacity-50 flex items-center gap-1">
-              {busy === q.id && <Loader2 className="w-3 h-3 animate-spin" />}{q.label}
-            </button>
+        <div className="relative flex items-center gap-0.5 rounded-full border border-[#2e3454] bg-[#13162a] shadow-xl px-2 py-1">
+          <Sparkles className="w-3.5 h-3.5 text-amber-400 mx-1 flex-shrink-0" />
+          {busy && <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />}
+          {TRANSFORM_GROUPS.map((g) => (
+            <div key={g.id} className="relative">
+              <button disabled={busy} onClick={() => setOpenGroup((o) => (o === g.id ? null : g.id))}
+                className={`flex items-center gap-1 text-[11px] px-2 py-1 rounded-full ${openGroup === g.id ? 'bg-[#1f2440] text-amber-300' : 'text-[#cdd2f0] hover:bg-[#1f2440]'} disabled:opacity-50`}>
+                <g.icon className="w-3 h-3" /> {g.label} <ChevronDown className="w-2.5 h-2.5 opacity-60" />
+              </button>
+              {openGroup === g.id && (
+                <div className="absolute top-full mt-1 left-0 z-30 w-56 rounded-lg border border-[#2e3454] bg-[#13162a] shadow-2xl py-1 max-h-72 overflow-y-auto">
+                  {g.id === 'emotion' && (
+                    <div className="flex items-center gap-1 px-2 py-1.5 border-b border-[#1f2440]">
+                      <span className="text-[10px] text-[#5c6391] mr-1">Intensity</span>
+                      {INTENSITIES.map((i) => (
+                        <button key={i} onClick={() => setIntensity(i)}
+                          className={`text-[10px] px-1.5 py-0.5 rounded ${intensity === i ? 'bg-amber-500/20 text-amber-300' : 'text-[#9da3c8] hover:bg-[#1f2440]'}`}>{i}</button>
+                      ))}
+                    </div>
+                  )}
+                  {g.options.map((o) => (
+                    <button key={o.id} onClick={() => run(g.id, o.id)}
+                      className="w-full text-left px-3 py-1.5 hover:bg-[#1f2440] flex items-center gap-2">
+                      {o.emoji && <span>{o.emoji}</span>}
+                      <span className="text-xs text-[#e8eaf6]">{o.label}</span>
+                      {o.desc && <span className="text-[10px] text-[#5c6391] ml-auto">{o.desc}</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
         </div>
       ) : (
-        <div className="rounded-lg border border-amber-500/30 bg-[#13162a] shadow-xl p-3 space-y-2">
-          <p className="text-[10px] uppercase tracking-wide text-amber-300/80">Preview (selected text)</p>
-          <p className="text-xs text-[#cdd2f0] leading-relaxed max-h-40 overflow-y-auto whitespace-pre-wrap">{preview.text}</p>
+        <div className="rounded-lg border border-amber-500/30 bg-[#13162a] shadow-2xl p-3 space-y-2">
+          <p className="text-[10px] uppercase tracking-wide text-amber-300/80">
+            Preview · {preview.group.replace('_', ' ')} {preview.value} (selected text)
+          </p>
+          <p className="text-xs text-[#cdd2f0] leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap font-serif">{preview.text}</p>
           <div className="flex gap-2">
             <button onClick={apply} className="flex-1 text-xs py-1.5 rounded bg-amber-500 hover:bg-amber-400 text-black font-medium flex items-center justify-center gap-1">
               <Check className="w-3.5 h-3.5" /> Apply to selection
