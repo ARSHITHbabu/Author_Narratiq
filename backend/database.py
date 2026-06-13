@@ -74,6 +74,13 @@ def run_db_migrations(eng) -> None:
     _add_col("character_profiles", "goals",  "TEXT DEFAULT ''")
     _add_col("character_profiles", "traits", "TEXT DEFAULT '[]'")
 
+    # story_intakes — full Story-Intelligence snapshot (rich genre context).
+    # JSON on PostgreSQL; SQLite stores JSON as TEXT transparently.
+    _add_col("story_intakes", "analysis", "JSON" if is_postgres else "TEXT DEFAULT NULL")
+
+    # story_bibles — generation lifecycle status (running|completed|failed)
+    _add_col("story_bibles", "status", "VARCHAR DEFAULT 'completed'")
+
     # chapter_chunks / chapter_summaries — character UUID index
     _add_col("chapter_chunks",     "character_ids", "TEXT DEFAULT '[]'")
     _add_col("chapter_summaries",  "character_ids", "TEXT DEFAULT '[]'")

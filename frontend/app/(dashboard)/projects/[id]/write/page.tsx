@@ -17,9 +17,17 @@ import { useStoryContext } from '@/components/studio/StoryContextEngine'
 import { useStudioStore } from '@/lib/studioStore'
 
 export default function WriteWorkspace() {
-  const { storyId, story, chapters, activeChapter, activeChapterId, setActiveChapter, reloadChapters, registerEditor } = useStoryContext()
+  const { storyId, story, chapters, activeChapter, activeChapterId, setActiveChapter, reloadChapters, registerEditor, updateChapterWordCount } = useStoryContext()
   const store = useStudioStore()
   const [wordCount, setWordCount] = useState(activeChapter?.word_count ?? 0)
+
+  // Live word count: update both the status-bar number AND the binder/sidebar +
+  // story total (via the shared chapters cache) on every keystroke, so counts
+  // stay in sync without waiting for autosave or a page refresh.
+  const handleWordCountChange = useCallback((count: number) => {
+    setWordCount(count)
+    if (activeChapterId) updateChapterWordCount(activeChapterId, count)
+  }, [activeChapterId, updateChapterWordCount])
   const [selection, setSelection] = useState<LiveSelection | null>(null)
   const methodsRef = useRef<EditorMethods | null>(null)
   const editorAreaRef = useRef<HTMLDivElement | null>(null)
@@ -90,7 +98,7 @@ export default function WriteWorkspace() {
               <EditorWithMethods
                 storyId={storyId}
                 chapter={activeChapter}
-                onWordCountChange={setWordCount}
+                onWordCountChange={handleWordCountChange}
                 onMethodsReady={onMethodsReady}
                 onSelectionChange={setSelection}
               />

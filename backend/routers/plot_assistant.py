@@ -21,6 +21,7 @@ from services.ai_service import (
     retrieve_character_context,     # character profiles — for both modes
     retrieve_note_context,          # story notes + note cards — for both modes
 )
+from services.genre_context import build_genre_context
 
 router = APIRouter(tags=["plot-assistant"])
 
@@ -56,6 +57,10 @@ async def plot_assistant(
         logger.info(f"[plot_assistant] Genre: {genre_profile.genre} / {genre_profile.sub_genre}")
     else:
         logger.info("[plot_assistant] No genre profile.")
+
+    # Rich, shared genre/story-intelligence context (concise) — reused by every
+    # AI tool. "" when intake was skipped, so it's always safe to pass through.
+    genre_ctx = build_genre_context(data.story_id, db)
     # ── Fallback summary list (used if no embeddings available) ───────────────
     _fallback_q = db.query(ChapterSummary).filter(
         ChapterSummary.story_id == data.story_id
@@ -177,6 +182,7 @@ async def plot_assistant(
                 question          = data.question,
                 text_chunks       = text_chunks,
                 genre_profile     = genre_dict,
+                genre_context     = genre_ctx,
                 current_chapter   = cur_chapter,
                 character_context = character_context or None,
                 note_context      = note_context or None,
@@ -188,6 +194,7 @@ async def plot_assistant(
                 current_chapter    = cur_chapter,
                 summaries          = summary_list,
                 genre_profile      = genre_dict,
+                genre_context      = genre_ctx,
                 retrieved_chunks   = retrieved_chunks,
                 character_profiles = character_context or None,
                 note_context       = note_context or None,
@@ -203,6 +210,7 @@ async def plot_assistant(
                 question          = data.question,
                 text_chunks       = text_chunks,
                 genre_profile     = genre_dict,
+                genre_context     = genre_ctx,
                 current_chapter   = cur_chapter,
                 character_context = character_context or None,
                 note_context      = note_context or None,
@@ -212,6 +220,7 @@ async def plot_assistant(
                 current_chapter    = cur_chapter,
                 summaries          = summary_list,
                 genre_profile      = genre_dict,
+                genre_context      = genre_ctx,
                 retrieved_chunks   = retrieved_chunks,
                 character_profiles = character_context or None,
                 note_context       = note_context or None,

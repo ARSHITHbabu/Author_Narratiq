@@ -1,17 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Wand2, Palette, Heart, Users, Type, Globe,
   Copy, Check, Loader2, X, ArrowDownToLine,
-  Play, List,
+  Play, List, Sparkles,
 } from 'lucide-react'
 import { aiApi, continuationApi, outlineApi } from '@/lib/api'
-import { TransformResponse, ContinuationSuggestion, OutlineBeat } from '@/lib/types'
+import { TransformResponse, ContinuationSuggestion, OutlineBeat, GenreProfile } from '@/lib/types'
 import { toast } from 'sonner'
 // Shared transform option config — single source of truth (also powers the
 // Selection Toolbar). No duplicated option lists across components.
 import { TONES, EMOTIONS, STYLES, LANGUAGES, REFINE_MODES, AUDIENCES } from '@/lib/transforms'
+import { deriveToolDefaults, NEUTRAL_DEFAULTS, hasGenreProfile } from '@/lib/genreDefaults'
 
 interface Props {
   storyId: string
@@ -19,6 +20,8 @@ interface Props {
   getSelectedText: () => string
   getFullText: () => string
   insertText?: (text: string) => void
+  // Genre profile from Story Intake — drives genre-aware default tool selections.
+  genreProfile?: Partial<GenreProfile> | null
 }
 
 type TabId = 'refine' | 'tone' | 'emotion' | 'age' | 'style' | 'translate' | 'continue' | 'outline'
@@ -97,18 +100,50 @@ function ResultPanel({
   )
 }
 
-export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, getFullText, insertText }: Props) {
+export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, getFullText, insertText, genreProfile }: Props) {
   const [activeTab, setActiveTab] = useState<TabId>('refine')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<TransformResponse | null>(null)
-  const [selectedTone, setSelectedTone] = useState('Dark')
-  const [selectedEmotion, setSelectedEmotion] = useState('Fear')
+
+  // Genre-aware defaults: start from the story's detected genre profile so the
+  // tools open on sensible, genre-matched selections. With no profile these are
+  // truly neutral (NOT Horror/Gothic).
+  const profilePresent = hasGenreProfile(genreProfile)
+  const defaults = useMemo(() => deriveToolDefaults(genreProfile), [genreProfile])
+
+  const [selectedTone, setSelectedTone] = useState(NEUTRAL_DEFAULTS.tone)
+  const [selectedEmotion, setSelectedEmotion] = useState(NEUTRAL_DEFAULTS.emotion)
   const [intensity, setIntensity] = useState('medium')
-  const [selectedAge, setSelectedAge] = useState('adult')
-  const [selectedStyle, setSelectedStyle] = useState('Gothic')
+  const [selectedAge, setSelectedAge] = useState(NEUTRAL_DEFAULTS.age)
+  const [selectedStyle, setSelectedStyle] = useState(NEUTRAL_DEFAULTS.style)
   const [selectedLang, setSelectedLang] = useState('French')
   const [refineMode, setRefineMode] = useState('standard')
   const [hadSelection, setHadSelection] = useState(false)
+
+  // Apply genre-derived defaults once the profile resolves — but never clobber a
+  // choice the user has already made this session (tracked per field).
+  const touched = useRef({ tone: false, emotion: false, style: false, age: false })
+  useEffect(() => {
+    if (!profilePresent) return
+    if (!touched.current.tone)    setSelectedTone(defaults.tone)
+    if (!touched.current.emotion) setSelectedEmotion(defaults.emotion)
+    if (!touched.current.style)   setSelectedStyle(defaults.style)
+    if (!touched.current.age)     setSelectedAge(defaults.age)
+  }, [profilePresent, defaults])
+
+  const pickTone    = (v: string) => { touched.current.tone = true;    setSelectedTone(v) }
+  const pickEmotion = (v: string) => { touched.current.emotion = true; setSelectedEmotion(v) }
+  const pickStyle   = (v: string) => { touched.current.style = true;   setSelectedStyle(v) }
+  const pickAge     = (v: string) => { touched.current.age = true;     setSelectedAge(v) }
+
+  const genreLabel = genreProfile?.genre?.trim() || null
+  // Genre-recommended option id per tab (only when a profile exists).
+  const rec = profilePresent
+    ? { tone: defaults.tone, emotion: defaults.emotion, style: defaults.style, age: defaults.age }
+    : null
+  const RecBadge = () => (
+    <span className="ml-1 text-[9px] px-1 py-px rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">★ genre pick</span>
+  )
 
   // Continue tab
   const [continuations, setContinuations] = useState<ContinuationSuggestion[]>([])
@@ -169,9 +204,9 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
       switch (activeTab) {
         case 'refine': res = await aiApi.refine(text, refineMode, storyId, chapterId); break
         case 'tone': res = await aiApi.tone(text, selectedTone.toLowerCase(), storyId); break
-        case 'emotion': res = await aiApi.emotion(text, selectedEmotion.toLowerCase(), intensity); break
+        case 'emotion': res = await aiApi.emotion(text, selectedEmotion.toLowerCase(), intensity, storyId); break
         case 'age': res = await aiApi.ageAdapt(text, selectedAge, storyId); break
-        case 'style': res = await aiApi.style(text, selectedStyle.toLowerCase()); break
+        case 'style': res = await aiApi.style(text, selectedStyle.toLowerCase(), storyId); break
         case 'translate': res = await aiApi.translate(text, selectedLang, storyId); break
       }
       setResult(res?.data || null)
@@ -206,6 +241,22 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
         <div className="flex items-center gap-2 mb-2">
           <Wand2 className="w-4 h-4 text-amber-500" />
           <span className="text-xs font-medium text-[#9da3c8] uppercase tracking-wider">AI Tools</span>
+          {genreLabel ? (
+            <span
+              title="AI tools are tuned to this story's genre profile"
+              className="ml-auto flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-[10px] text-amber-400"
+            >
+              <Sparkles className="w-2.5 h-2.5" />
+              {genreLabel}
+            </span>
+          ) : (
+            <span
+              title="No genre profile — defaults are neutral. Complete Story Intake to make tools genre-aware."
+              className="ml-auto px-2 py-0.5 rounded-full bg-[#1a1e36] border border-[#2e3454] text-[10px] text-[#5c6391]"
+            >
+              No genre profile
+            </span>
+          )}
         </div>
         {selText.trim() ? (
           <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-lg">
@@ -271,7 +322,7 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
             {TONES.map((tone) => (
               <button
                 key={tone.id}
-                onClick={() => setSelectedTone(tone.id)}
+                onClick={() => pickTone(tone.id)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition-all ${
                   selectedTone === tone.id
                     ? 'border-amber-500/50 bg-amber-500/10 text-amber-400'
@@ -280,6 +331,7 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
               >
                 <span className="text-base leading-none">{tone.emoji}</span>
                 <span className="text-sm">{tone.id}</span>
+                {rec && tone.id.toLowerCase() === rec.tone.toLowerCase() && <RecBadge />}
               </button>
             ))}
           </div>
@@ -294,7 +346,7 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
                 {EMOTIONS.map((em) => (
                   <button
                     key={em.id}
-                    onClick={() => setSelectedEmotion(em.id)}
+                    onClick={() => pickEmotion(em.id)}
                     className={`py-2.5 px-3 rounded-xl border text-xs flex items-center gap-2 transition-all ${
                       selectedEmotion === em.id
                         ? 'border-amber-500/50 bg-amber-500/10 text-amber-400'
@@ -303,6 +355,7 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
                   >
                     <span>{em.emoji}</span>
                     {em.id}
+                    {rec && em.id.toLowerCase() === rec.emotion.toLowerCase() && <RecBadge />}
                   </button>
                 ))}
               </div>
@@ -334,7 +387,7 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
             {AUDIENCES.map((a) => (
               <button
                 key={a.id}
-                onClick={() => setSelectedAge(a.id)}
+                onClick={() => pickAge(a.id)}
                 className={`w-full p-3.5 rounded-xl border text-left transition-all ${
                   selectedAge === a.id
                     ? 'border-amber-500/50 bg-amber-500/10'
@@ -342,7 +395,10 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className={`text-sm font-medium ${selectedAge === a.id ? 'text-amber-400' : 'text-[#e8eaf6]'}`}>{a.label}</span>
+                  <span className={`text-sm font-medium ${selectedAge === a.id ? 'text-amber-400' : 'text-[#e8eaf6]'}`}>
+                    {a.label}
+                    {rec && a.id.toLowerCase() === rec.age.toLowerCase() && <RecBadge />}
+                  </span>
                   <span className="text-xs text-[#3d4466]">{a.age}</span>
                 </div>
                 <div className="text-xs text-[#5c6391] mt-0.5">{a.desc}</div>
@@ -357,14 +413,17 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
             {STYLES.map((s) => (
               <button
                 key={s.id}
-                onClick={() => setSelectedStyle(s.id)}
+                onClick={() => pickStyle(s.id)}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl border text-left transition-all ${
                   selectedStyle === s.id
                     ? 'border-amber-500/50 bg-amber-500/10 text-amber-400'
                     : 'border-[#1f2440] text-[#9da3c8] hover:border-[#2e3454] hover:bg-[#1a1e36]'
                 }`}
               >
-                <span className="text-sm font-medium">{s.id}</span>
+                <span className="text-sm font-medium">
+                  {s.id}
+                  {rec && s.id.toLowerCase() === rec.style.toLowerCase() && <RecBadge />}
+                </span>
                 <span className={`text-xs ${selectedStyle === s.id ? 'text-amber-400/70' : 'text-[#3d4466]'}`}>{s.desc}</span>
               </button>
             ))}

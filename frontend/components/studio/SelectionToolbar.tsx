@@ -12,14 +12,26 @@ import { Sparkles, Loader2, Check, X, ChevronDown } from 'lucide-react'
 import { toast } from 'sonner'
 import { TRANSFORM_GROUPS, INTENSITIES, runTransform, type GroupId } from '@/lib/transforms'
 import { useStoryContext } from './StoryContextEngine'
+import { deriveToolDefaults, hasGenreProfile } from '@/lib/genreDefaults'
 import type { LiveSelection } from '@/components/editor/EditorWithMethods'
 
 export default function SelectionToolbar({ selection }: { selection: LiveSelection | null }) {
-  const { storyId, activeChapterId, editor, logActivity } = useStoryContext()
+  const { storyId, activeChapterId, editor, logActivity, genreProfile } = useStoryContext()
   const [openGroup, setOpenGroup] = useState<GroupId | null>(null)
   const [busy, setBusy] = useState(false)
   const [intensity, setIntensity] = useState<string>('medium')
   const [preview, setPreview] = useState<{ text: string; from: number; to: number; group: GroupId; value: string } | null>(null)
+
+  // Genre-recommended option per group (only when the story has a genre profile).
+  // Drives a "recommended" highlight + a dot on the group button, so the toolbar
+  // visually guides toward genre-appropriate choices without blocking any option.
+  const profilePresent = hasGenreProfile(genreProfile)
+  const d = deriveToolDefaults(genreProfile)
+  const recByGroup: Partial<Record<GroupId, string>> = profilePresent
+    ? { tone: d.tone, emotion: d.emotion, style: d.style, age_adapt: d.age }
+    : {}
+  const isRecommended = (g: GroupId, optId: string) =>
+    (recByGroup[g] ?? '').toLowerCase() === optId.toLowerCase()
 
   // Selection lifecycle: when the live selection changes (new range, or cleared),
   // close any open dropdown and drop a stale preview — never keep stale UI.
@@ -69,8 +81,12 @@ export default function SelectionToolbar({ selection }: { selection: LiveSelecti
           {TRANSFORM_GROUPS.map((g) => (
             <div key={g.id} className="relative">
               <button disabled={busy} onClick={() => setOpenGroup((o) => (o === g.id ? null : g.id))}
-                className={`flex items-center gap-1 text-[11px] px-2 py-1 rounded-full ${openGroup === g.id ? 'bg-[#1f2440] text-amber-300' : 'text-[#cdd2f0] hover:bg-[#1f2440]'} disabled:opacity-50`}>
+                title={recByGroup[g.id] ? `Genre recommends: ${recByGroup[g.id]}` : undefined}
+                className={`relative flex items-center gap-1 text-[11px] px-2 py-1 rounded-full ${openGroup === g.id ? 'bg-[#1f2440] text-amber-300' : 'text-[#cdd2f0] hover:bg-[#1f2440]'} disabled:opacity-50`}>
                 <g.icon className="w-3 h-3" /> {g.label} <ChevronDown className="w-2.5 h-2.5 opacity-60" />
+                {recByGroup[g.id] && (
+                  <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-amber-400" aria-hidden />
+                )}
               </button>
               {openGroup === g.id && (
                 <div className="absolute top-full mt-1 left-0 z-30 w-56 rounded-lg border border-[#2e3454] bg-[#13162a] shadow-2xl py-1 max-h-72 overflow-y-auto">
@@ -83,14 +99,23 @@ export default function SelectionToolbar({ selection }: { selection: LiveSelecti
                       ))}
                     </div>
                   )}
-                  {g.options.map((o) => (
-                    <button key={o.id} onClick={() => run(g.id, o.id)}
-                      className="w-full text-left px-3 py-1.5 hover:bg-[#1f2440] flex items-center gap-2">
-                      {o.emoji && <span>{o.emoji}</span>}
-                      <span className="text-xs text-[#e8eaf6]">{o.label}</span>
-                      {o.desc && <span className="text-[10px] text-[#5c6391] ml-auto">{o.desc}</span>}
-                    </button>
-                  ))}
+                  {recByGroup[g.id] && (
+                    <div className="px-3 py-1 text-[10px] text-amber-300/80 border-b border-[#1f2440]">
+                      ★ Recommended for {genreProfile?.genre || 'this genre'}
+                    </div>
+                  )}
+                  {g.options.map((o) => {
+                    const recommended = isRecommended(g.id, o.id)
+                    return (
+                      <button key={o.id} onClick={() => run(g.id, o.id)}
+                        className={`w-full text-left px-3 py-1.5 flex items-center gap-2 ${recommended ? 'bg-amber-500/10 hover:bg-amber-500/20' : 'hover:bg-[#1f2440]'}`}>
+                        {o.emoji && <span>{o.emoji}</span>}
+                        <span className={`text-xs ${recommended ? 'text-amber-300' : 'text-[#e8eaf6]'}`}>{o.label}</span>
+                        {recommended && <span className="text-[10px] text-amber-400">★</span>}
+                        {o.desc && <span className="text-[10px] text-[#5c6391] ml-auto">{o.desc}</span>}
+                      </button>
+                    )
+                  })}
                 </div>
               )}
             </div>

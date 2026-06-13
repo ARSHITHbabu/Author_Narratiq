@@ -19,6 +19,7 @@ import type { Story } from '@/lib/types'
 import { useAuth } from '@/lib/auth'
 import CommandPalette from './CommandPalette'
 import ActivityTimeline from './ActivityTimeline'
+import { StoryBibleWatcher } from '@/lib/useStoryBible'
 
 function currentWorkspace(pathname: string, storyId: string): WorkspaceId {
   const seg = pathname.split(`/projects/${storyId}/`)[1]?.split('/')[0]
@@ -162,6 +163,8 @@ export default function StudioShell({ children }: { children: React.ReactNode })
 
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
       <ActivityTimeline open={activityOpen} onClose={() => setActivityOpen(false)} />
+      {/* App-wide Story Bible completion watcher (notifies after navigation). */}
+      {storyId && <StoryBibleWatcher storyId={storyId} />}
     </div>
   )
 }

@@ -59,6 +59,7 @@ function initials(name: string): string {
 export default function CharacterRelationshipGraph({ storyId, onBack, onSelect }: Props) {
   const [graph,    setGraph]    = useState<CharacterGraph | null>(null)
   const [loading,  setLoading]  = useState(true)
+  const [error,    setError]    = useState(false)
   const [positions, setPositions] = useState<NodePos[]>([])
 
   const svgRef  = useRef<SVGSVGElement>(null)
@@ -76,20 +77,18 @@ export default function CharacterRelationshipGraph({ storyId, onBack, onSelect }
 
   const loadGraph = useCallback(async () => {
     setLoading(true)
+    setError(false)
     setSelectedEdge(null)
     try {
       const res = await charactersApi.graph(storyId)
-      const data = res.data as CharacterGraph
-      setGraph(data)
-      if (svgRef.current) {
-        const rect = svgRef.current.getBoundingClientRect()
-        const w = rect.width  || 288
-        const h = rect.height || 400
-        setSvgSize({ w, h })
-        const r = Math.min(w, h) / 2 - LABEL_OFFSET - NODE_RADIUS - 16
-        setPositions(initCircleLayout(data.nodes, w / 2, h / 2, Math.max(r, 60)))
+      // Defensive: tolerate a missing/!==array nodes/edges shape from the API.
+      const data: CharacterGraph = {
+        nodes: Array.isArray(res.data?.nodes) ? res.data.nodes : [],
+        edges: Array.isArray(res.data?.edges) ? res.data.edges : [],
       }
+      setGraph(data)
     } catch {
+      setError(true)
       toast.error('Failed to load character graph')
     } finally {
       setLoading(false)
@@ -98,19 +97,42 @@ export default function CharacterRelationshipGraph({ storyId, onBack, onSelect }
 
   useEffect(() => { loadGraph() }, [loadGraph])
 
+  // ── Layout ───────────────────────────────────────────────────────────────
+  // Positions are computed here (NOT inside loadGraph) so they are recomputed
+  // once the SVG is actually mounted and measured. The previous code set
+  // positions only when svgRef.current existed during the fetch — but the SVG
+  // is unmounted while `loading` is true, so positions stayed empty and every
+  // node/edge rendered null (the "empty graph" bug). Existing positions are
+  // preserved so dragged nodes don't jump when the graph refreshes.
+  useEffect(() => {
+    if (!graph) return
+    const { w, h } = svgSize
+    const r = Math.max(Math.min(w, h) / 2 - LABEL_OFFSET - NODE_RADIUS - 16, 60)
+    const layout = initCircleLayout(graph.nodes, w / 2, h / 2, r)
+    setPositions(prev => {
+      const byId = new Map(prev.map(p => [p.characterId, p]))
+      return layout.map(l => byId.get(l.characterId) ?? l)
+    })
+  }, [graph, svgSize])
+
   // ── Resize observer ────────────────────────────────────────────────────────
+  // Re-attach whenever the SVG (un)mounts — it is only rendered once loading is
+  // false, so an empty-dep effect would attach to a null ref and never measure.
 
   useEffect(() => {
     if (!svgRef.current) return
+    // Seed from the real measured size immediately on mount.
+    const rect = svgRef.current.getBoundingClientRect()
+    if (rect.width && rect.height) setSvgSize({ w: rect.width, h: rect.height })
     const obs = new ResizeObserver(entries => {
       for (const entry of entries) {
         const { width, height } = entry.contentRect
-        setSvgSize({ w: width, h: height })
+        if (width && height) setSvgSize({ w: width, h: height })
       }
     })
     obs.observe(svgRef.current)
     return () => obs.disconnect()
-  }, [])
+  }, [loading, error])
 
   // ── Drag handlers ──────────────────────────────────────────────────────────
 
@@ -192,6 +214,16 @@ export default function CharacterRelationshipGraph({ storyId, onBack, onSelect }
         {loading ? (
           <div className="absolute inset-0 flex items-center justify-center">
             <Loader2 className="w-5 h-5 text-[#3d4466] animate-spin" />
+          </div>
+        ) : error ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-4">
+            <p className="text-xs text-red-300 text-center">Couldn’t load the relationship graph.</p>
+            <button
+              onClick={loadGraph}
+              className="text-[11px] px-3 py-1 rounded border border-[#2e3454] text-[#9da3c8] hover:text-white hover:border-[#3d4466]"
+            >
+              Retry
+            </button>
           </div>
         ) : chars.length === 0 ? (
           <div className="absolute inset-0 flex items-center justify-center">
@@ -362,6 +394,15 @@ export default function CharacterRelationshipGraph({ storyId, onBack, onSelect }
               )
             })}
           </svg>
+        )}
+
+        {/* Characters exist but no edges — show nodes + a non-blocking hint. */}
+        {!loading && !error && chars.length > 0 && edges.length === 0 && (
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 pointer-events-none">
+            <span className="text-[10px] text-[#5c6391] bg-[#0d0f1a]/85 border border-[#1f2440] px-2 py-1 rounded">
+              No relationships detected yet.
+            </span>
+          </div>
         )}
       </div>
 

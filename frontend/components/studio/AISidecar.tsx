@@ -16,7 +16,7 @@ const AIToolsSidebar = dynamic(() => import('@/components/ai-tools/AIToolsSideba
 export default function AISidecar() {
   const router = useRouter()
   const store = useStudioStore()
-  const { storyId, activeChapterId, editor } = useStoryContext()
+  const { storyId, activeChapterId, editor, genreProfile } = useStoryContext()
 
   return (
     <div className="h-full flex flex-col bg-[#0f1220] border-l border-[#1f2440]">
@@ -41,6 +41,7 @@ export default function AISidecar() {
             getSelectedText={() => editor?.getSelectedText() || ''}
             getFullText={() => editor?.getFullText() || ''}
             insertText={(text: string) => editor?.insertText(text)}
+            genreProfile={genreProfile}
           />
         )}
       </div>

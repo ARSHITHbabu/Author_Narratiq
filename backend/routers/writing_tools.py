@@ -17,6 +17,7 @@ from schemas import (
     OutlineRequest, OutlineBeat, OutlineResponse,
 )
 from routers.auth import get_current_user, User
+from services.genre_context import build_genre_context
 from services.ai_service import (
     generate_continuations,
     generate_chapter_outline,
@@ -43,18 +44,9 @@ def _get_owned_story(story_id: str, user_id: str, db: Session) -> Story:
 
 
 def _get_genre_context(story_id: str, db: Session) -> str:
-    profile = db.query(GenreProfile).filter(GenreProfile.story_id == story_id).first()
-    if not profile:
-        return ""
-    parts = [f"Genre: {profile.genre or ''}"]
-    if profile.sub_genre:
-        parts.append(f"Sub-genre: {profile.sub_genre}")
-    if profile.tone:
-        tones = profile.tone if isinstance(profile.tone, list) else [profile.tone]
-        parts.append(f"Tone: {', '.join(tones)}")
-    if profile.writing_direction:
-        parts.append(f"Writing direction: {profile.writing_direction}")
-    return "\n".join(parts)
+    # Delegates to the shared, reusable genre-context builder so every AI tool
+    # injects the genre profile identically (see services/genre_context.py).
+    return build_genre_context(story_id, db)
 
 
 def _trim_to_words(text: str, max_words: int) -> str:

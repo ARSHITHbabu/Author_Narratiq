@@ -243,6 +243,8 @@ class ToneRequest(BaseModel):
 
 
 class EmotionRequest(BaseModel):
+    story_id: Optional[str] = None
+    chapter_id: Optional[str] = None
     text: str
     emotion: str  # joy, sadness, fear, anger, surprise, disgust, anticipation
     intensity: Optional[str] = "medium"  # low, medium, high
@@ -255,6 +257,7 @@ class AgeAdaptRequest(BaseModel):
 
 
 class StyleRequest(BaseModel):
+    story_id: Optional[str] = None
     text: str
     style: str  # gothic, noir, contemporary, etc.
 
@@ -1327,6 +1330,7 @@ class StoryBibleOut(BaseModel):
     title:        str
     content_json: str   # raw JSON string — frontend parses as needed
     version:      int
+    status:       str = "completed"   # running | completed | failed
     created_at:   Optional[datetime] = None
     updated_at:   Optional[datetime] = None
 

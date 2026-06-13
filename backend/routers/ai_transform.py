@@ -1,10 +1,13 @@
 import json
 import logging
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
+from sqlalchemy.orm import Session
 
 from config import settings
+from database import get_db
 from middleware.rate_limit import limiter, get_user_id
 from schemas import (
     TransformRequest, ToneRequest, EmotionRequest, AgeAdaptRequest,
@@ -12,10 +15,21 @@ from schemas import (
 )
 from routers.auth import get_current_user, User
 from services import ai_service
+from services.genre_context import build_genre_context
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["ai-transform"])
+
+
+def _genre_ctx(story_id: Optional[str], db: Session) -> str:
+    """Resolve the genre-profile context for a story (or "" when none/absent)."""
+    if not story_id:
+        return ""
+    try:
+        return build_genre_context(story_id, db)
+    except Exception:  # never let context lookup break a transform
+        return ""
 
 
 def _sse_stream(async_gen):
@@ -40,80 +54,80 @@ def _sse_stream(async_gen):
 
 @router.post("/refine", response_model=TransformResponse)
 @limiter.limit(settings.rate_limit_realtime_ai, key_func=get_user_id)
-async def refine(request: Request, data: TransformRequest, current_user: User = Depends(get_current_user)):
-    result = await ai_service.refine_text(data.text, data.mode or "standard")
+async def refine(request: Request, data: TransformRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    result = await ai_service.refine_text(data.text, data.mode or "standard", genre_context=_genre_ctx(data.story_id, db))
     return TransformResponse(original=data.text, transformed=result,
                              mode=data.mode or "standard", tokens_used=len(data.text.split()) * 2)
 
 
 @router.post("/refine/stream")
 @limiter.limit(settings.rate_limit_realtime_ai, key_func=get_user_id)
-async def refine_stream(request: Request, data: TransformRequest, current_user: User = Depends(get_current_user)):
-    return _sse_stream(ai_service.stream_refine(data.text, data.mode or "standard"))
+async def refine_stream(request: Request, data: TransformRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    return _sse_stream(ai_service.stream_refine(data.text, data.mode or "standard", genre_context=_genre_ctx(data.story_id, db)))
 
 
 # ── Tone ──────────────────────────────────────────────────────────────────────
 
 @router.post("/tone", response_model=TransformResponse)
 @limiter.limit(settings.rate_limit_realtime_ai, key_func=get_user_id)
-async def tone_transform(request: Request, data: ToneRequest, current_user: User = Depends(get_current_user)):
-    result = await ai_service.transform_tone(data.text, data.tone)
+async def tone_transform(request: Request, data: ToneRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    result = await ai_service.transform_tone(data.text, data.tone, genre_context=_genre_ctx(data.story_id, db))
     return TransformResponse(original=data.text, transformed=result,
                              mode=f"tone:{data.tone}", tokens_used=len(data.text.split()) * 2)
 
 
 @router.post("/tone/stream")
 @limiter.limit(settings.rate_limit_realtime_ai, key_func=get_user_id)
-async def tone_stream(request: Request, data: ToneRequest, current_user: User = Depends(get_current_user)):
-    return _sse_stream(ai_service.stream_tone(data.text, data.tone))
+async def tone_stream(request: Request, data: ToneRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    return _sse_stream(ai_service.stream_tone(data.text, data.tone, genre_context=_genre_ctx(data.story_id, db)))
 
 
 # ── Emotion ───────────────────────────────────────────────────────────────────
 
 @router.post("/emotion", response_model=TransformResponse)
 @limiter.limit(settings.rate_limit_realtime_ai, key_func=get_user_id)
-async def emotion_rewrite(request: Request, data: EmotionRequest, current_user: User = Depends(get_current_user)):
-    result = await ai_service.rewrite_emotion(data.text, data.emotion, data.intensity or "medium")
+async def emotion_rewrite(request: Request, data: EmotionRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    result = await ai_service.rewrite_emotion(data.text, data.emotion, data.intensity or "medium", genre_context=_genre_ctx(data.story_id, db))
     return TransformResponse(original=data.text, transformed=result,
                              mode=f"emotion:{data.emotion}", tokens_used=len(data.text.split()) * 2)
 
 
 @router.post("/emotion/stream")
 @limiter.limit(settings.rate_limit_realtime_ai, key_func=get_user_id)
-async def emotion_stream(request: Request, data: EmotionRequest, current_user: User = Depends(get_current_user)):
-    return _sse_stream(ai_service.stream_emotion(data.text, data.emotion, data.intensity or "medium"))
+async def emotion_stream(request: Request, data: EmotionRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    return _sse_stream(ai_service.stream_emotion(data.text, data.emotion, data.intensity or "medium", genre_context=_genre_ctx(data.story_id, db)))
 
 
 # ── Age adapt ─────────────────────────────────────────────────────────────────
 
 @router.post("/age-adapt", response_model=TransformResponse)
 @limiter.limit(settings.rate_limit_realtime_ai, key_func=get_user_id)
-async def age_adapt(request: Request, data: AgeAdaptRequest, current_user: User = Depends(get_current_user)):
-    result = await ai_service.adapt_for_age(data.text, data.target_age)
+async def age_adapt(request: Request, data: AgeAdaptRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    result = await ai_service.adapt_for_age(data.text, data.target_age, genre_context=_genre_ctx(data.story_id, db))
     return TransformResponse(original=data.text, transformed=result,
                              mode=f"age:{data.target_age}", tokens_used=len(data.text.split()) * 2)
 
 
 @router.post("/age-adapt/stream")
 @limiter.limit(settings.rate_limit_realtime_ai, key_func=get_user_id)
-async def age_adapt_stream(request: Request, data: AgeAdaptRequest, current_user: User = Depends(get_current_user)):
-    return _sse_stream(ai_service.stream_age_adapt(data.text, data.target_age))
+async def age_adapt_stream(request: Request, data: AgeAdaptRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    return _sse_stream(ai_service.stream_age_adapt(data.text, data.target_age, genre_context=_genre_ctx(data.story_id, db)))
 
 
 # ── Style ─────────────────────────────────────────────────────────────────────
 
 @router.post("/style", response_model=TransformResponse)
 @limiter.limit(settings.rate_limit_realtime_ai, key_func=get_user_id)
-async def style_transform(request: Request, data: StyleRequest, current_user: User = Depends(get_current_user)):
-    result = await ai_service.transform_style(data.text, data.style)
+async def style_transform(request: Request, data: StyleRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    result = await ai_service.transform_style(data.text, data.style, genre_context=_genre_ctx(data.story_id, db))
     return TransformResponse(original=data.text, transformed=result,
                              mode=f"style:{data.style}", tokens_used=len(data.text.split()) * 2)
 
 
 @router.post("/style/stream")
 @limiter.limit(settings.rate_limit_realtime_ai, key_func=get_user_id)
-async def style_stream(request: Request, data: StyleRequest, current_user: User = Depends(get_current_user)):
-    return _sse_stream(ai_service.stream_style(data.text, data.style))
+async def style_stream(request: Request, data: StyleRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    return _sse_stream(ai_service.stream_style(data.text, data.style, genre_context=_genre_ctx(data.story_id, db)))
 
 
 # ── Translate ─────────────────────────────────────────────────────────────────

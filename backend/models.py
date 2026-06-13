@@ -127,6 +127,13 @@ class StoryIntake(Base):
     detected_structure = Column(Text)
     detected_conflict = Column(Text)
     theme_hints = Column(JSON, default=list)
+    # Full Story-Intelligence snapshot from detect_genre at analyze time:
+    # the richer fields (emotional_arc, pacing, narrative_pov, comparable_titles,
+    # marketing_category, secondary_genres, content_warnings, intelligence_notes,
+    # writing_direction, structure, conflict, themes...) that have no dedicated
+    # column. Read by the shared genre-context builder so AI tools get rich
+    # project context without per-field column churn.
+    analysis = Column(JSON, default=dict)
     author_confirmed = Column(Boolean, default=False)
     author_overrides = Column(JSON, default=dict)
     model_version = Column(String, default=_current_model_version)
@@ -1062,6 +1069,11 @@ class StoryBible(Base):
     title        = Column(String,   default="Story Bible")
     content_json = Column(Text,     nullable=False, default="{}")
     version      = Column(Integer,  default=1)
+    # Generation lifecycle so the UI can show in-progress/failed/completed and
+    # survive reloads & navigation: running | completed | failed.
+    # Default 'completed' so pre-existing rows (already-generated bibles) read
+    # correctly without backfill.
+    status       = Column(String,   default="completed")
     created_at   = Column(DateTime, default=datetime.utcnow)
     updated_at   = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

@@ -12,9 +12,9 @@
 
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { projectsApi, chaptersApi, charactersApi, activityApi } from '@/lib/api'
+import { projectsApi, chaptersApi, charactersApi, activityApi, intakeApi } from '@/lib/api'
 import { useStudioStore } from '@/lib/studioStore'
-import type { Story, Chapter, Character } from '@/lib/types'
+import type { Story, Chapter, Character, GenreProfile } from '@/lib/types'
 import { useAuth } from '@/lib/auth'
 
 export interface EditorBridge {
@@ -33,10 +33,18 @@ export interface StoryContextValue {
   story: Story | undefined
   chapters: Chapter[]
   characters: Character[]
+  // Genre profile (from Story Intake) — makes every AI tool genre-aware.
+  // null while loading or if the author never completed/skipped intake.
+  genreProfile: Partial<GenreProfile> | null
   loading: boolean
   reloadChapters: () => void
   reloadCharacters: () => void
   reloadStory: () => void
+  reloadGenreProfile: () => void
+  // Live, optimistic word-count update for a chapter — keeps the binder sidebar
+  // and the story total in sync with the editor as the user types, without
+  // waiting for a save round-trip or page refresh.
+  updateChapterWordCount: (chapterId: string, wordCount: number) => void
 
   // active selections (memory-backed)
   activeChapterId: string | null
@@ -89,8 +97,48 @@ export default function StoryContextEngine({ storyId, children }: { storyId: str
   const chaptersQ = useQuery({ queryKey: ['chapters', storyId], queryFn: async () => (await chaptersApi.list(storyId)).data as Chapter[] })
   const charactersQ = useQuery({ queryKey: ['characters', storyId], queryFn: async () => (await charactersApi.list(storyId)).data as Character[] })
 
+  // Genre profile — the GET endpoint returns a subset (genre, sub_genre, tone,
+  // target_audience, writing_direction) or null. Normalise `target_audience` →
+  // `audience` so consumers (genre-aware tool defaults) read one shape.
+  const genreQ = useQuery({
+    queryKey: ['genre-profile', storyId],
+    queryFn: async (): Promise<Partial<GenreProfile> | null> => {
+      const { data } = await intakeApi.getGenreProfile(storyId)
+      if (!data) return null
+      return {
+        genre: data.genre ?? '',
+        sub_genre: data.sub_genre ?? '',
+        tone: Array.isArray(data.tone) ? data.tone : (data.tone ? [data.tone] : []),
+        audience: data.target_audience ?? '',
+        writing_direction: data.writing_direction ?? undefined,
+      }
+    },
+    staleTime: 60_000,
+  })
+
   const chapters = chaptersQ.data ?? []
   const characters = charactersQ.data ?? []
+
+  // ── Optimistic chapter word-count sync (binder + story total) ─────────────
+  const updateChapterWordCount = useCallback((chapterId: string, wordCount: number) => {
+    qc.setQueryData<Chapter[]>(['chapters', storyId], (old) => {
+      if (!old) return old
+      let changed = false
+      const next = old.map((c) => {
+        if (c.chapter_id === chapterId && c.word_count !== wordCount) {
+          changed = true
+          return { ...c, word_count: wordCount }
+        }
+        return c
+      })
+      if (!changed) return old
+      // Keep the story-level total live too (sum of chapter counts).
+      qc.setQueryData<Story>(['story', storyId], (s) =>
+        s ? { ...s, word_count: next.reduce((sum, c) => sum + (c.word_count || 0), 0) } : s,
+      )
+      return next
+    })
+  }, [qc, storyId])
 
   // ── Active selections (persisted via Workspace Memory) ────────────────────
   const activeChapterId = mem.lastChapterId && chapters.some((c) => c.chapter_id === mem.lastChapterId)
@@ -137,10 +185,13 @@ export default function StoryContextEngine({ storyId, children }: { storyId: str
     story: storyQ.data,
     chapters,
     characters,
+    genreProfile: genreQ.data ?? null,
     loading: storyQ.isLoading || chaptersQ.isLoading,
     reloadChapters: () => qc.invalidateQueries({ queryKey: ['chapters', storyId] }),
     reloadCharacters: () => qc.invalidateQueries({ queryKey: ['characters', storyId] }),
     reloadStory: () => qc.invalidateQueries({ queryKey: ['story', storyId] }),
+    reloadGenreProfile: () => qc.invalidateQueries({ queryKey: ['genre-profile', storyId] }),
+    updateChapterWordCount,
     activeChapterId, activeChapter, setActiveChapter,
     activeCharacterId: mem.lastCharacterId, setActiveCharacter,
     activeAnalysis: mem.lastAnalysis, setActiveAnalysis,

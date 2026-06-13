@@ -114,10 +114,11 @@ def _build_full_context(story_id: str, db: Session) -> str:
     return "\n".join(lines)
 
 
-async def _generate_bible_pipeline(story_id: str, user_id: str, existing_bible_id: str | None) -> None:
+async def _generate_bible_pipeline(story_id: str, bible_id: str, bump_version: bool) -> None:
     """
-    Background task: generate all 5 sections of the story bible, store result.
-    If existing_bible_id is provided, the existing row is updated (regeneration).
+    Background task: generate all 5 sections into the pre-created ``bible_id`` row
+    (created with status='running' by the POST handler), then mark it completed.
+    On unexpected failure the row is marked 'failed' so the UI can offer a retry.
     Runs under bg_ai_semaphore to prevent vLLM queue flooding.
     """
     from database import SessionLocal
@@ -134,32 +135,31 @@ async def _generate_bible_pipeline(story_id: str, user_id: str, existing_bible_i
                     content[section] = text
                 except AIServiceUnavailableError as exc:
                     logger.warning("[story_bible] AI unavailable for section %s (story=%s): %s", section, story_id[:8], exc)
-                    content[section] = f"[AI temporarily unavailable — please regenerate]"
+                    content[section] = "[AI temporarily unavailable — please regenerate]"
                 except Exception as exc:
                     content[section] = f"[Error generating {section}: {exc}]"
 
         content_json = json.dumps(content, ensure_ascii=False)
 
-        if existing_bible_id:
-            bible = db.query(StoryBible).filter(StoryBible.bible_id == existing_bible_id).first()
-            if bible:
-                bible.content_json = content_json
-                bible.version      = (bible.version or 1) + 1
-                bible.updated_at   = datetime.utcnow()
-                db.commit()
-                logger.info("[story_bible] regenerated v%d for %s", bible.version, story_id[:8])
-                return
-
-        bible = StoryBible(
-            story_id=story_id,
-            user_id=user_id,
-            content_json=content_json,
-        )
-        db.add(bible)
-        db.commit()
-        logger.info("[story_bible] generated v1 for %s", story_id[:8])
+        bible = db.query(StoryBible).filter(StoryBible.bible_id == bible_id).first()
+        if bible:
+            bible.content_json = content_json
+            bible.status       = "completed"
+            if bump_version:
+                bible.version  = (bible.version or 1) + 1
+            bible.updated_at   = datetime.utcnow()
+            db.commit()
+            logger.info("[story_bible] completed v%d for %s", bible.version, story_id[:8])
     except Exception as exc:
         logger.error("[story_bible] generation failed for %s: %s", story_id[:8], exc)
+        try:
+            bible = db.query(StoryBible).filter(StoryBible.bible_id == bible_id).first()
+            if bible:
+                bible.status     = "failed"
+                bible.updated_at = datetime.utcnow()
+                db.commit()
+        except Exception:
+            db.rollback()
     finally:
         _generating.discard(story_id)
         db.close()
@@ -180,13 +180,18 @@ async def create_or_regenerate_bible(
     """
     _get_owned_story(story_id, current_user.user_id, db)
 
-    if story_id in _generating:
-        existing = (
-            db.query(StoryBible)
-            .filter(StoryBible.story_id == story_id)
-            .order_by(StoryBible.version.desc())
-            .first()
-        )
+    existing = (
+        db.query(StoryBible)
+        .filter(StoryBible.story_id == story_id)
+        .order_by(StoryBible.version.desc())
+        .first()
+    )
+
+    # ── Duplicate prevention (persisted + in-memory) ──────────────────────────
+    # A row in 'running' state OR the in-memory guard means a generation is
+    # already underway — return it instead of starting a second one. This
+    # survives the page reload/navigation that the previous flow could not.
+    if (existing and existing.status == "running") or story_id in _generating:
         return StoryBibleJobResponse(
             job_id="in-progress",
             status="already_generating",
@@ -204,24 +209,35 @@ async def create_or_regenerate_bible(
             detail="No indexed chapters found. Index at least one chapter first.",
         )
 
-    # Check for existing bible (for regeneration tracking)
-    existing = (
-        db.query(StoryBible)
-        .filter(StoryBible.story_id == story_id)
-        .order_by(StoryBible.version.desc())
-        .first()
-    )
-    existing_id = existing.bible_id if existing else None
+    # Persist the 'running' state immediately so GET reflects in-progress even
+    # before the first section is produced (and across reloads/navigation).
+    bump_version = bool(existing and existing.status == "completed")
+    if existing:
+        existing.status     = "running"
+        existing.updated_at = datetime.utcnow()
+        db.commit()
+        bible_id = existing.bible_id
+    else:
+        bible = StoryBible(
+            story_id=story_id,
+            user_id=current_user.user_id,
+            content_json="{}",
+            status="running",
+        )
+        db.add(bible)
+        db.commit()
+        db.refresh(bible)
+        bible_id = bible.bible_id
 
     job_id = str(uuid.uuid4())
     asyncio.create_task(
-        _generate_bible_pipeline(story_id, current_user.user_id, existing_id)
+        _generate_bible_pipeline(story_id, bible_id, bump_version)
     )
 
     return StoryBibleJobResponse(
         job_id=job_id,
         status="processing",
-        bible_id=existing_id,
+        bible_id=bible_id,
     )
 
 

@@ -63,6 +63,15 @@ export interface IntakeResponse {
   model: string
 }
 
+// Saved Story Intake / Genre Detection report (GET /api/intake/:id/report).
+export interface IntakeReport {
+  exists: boolean
+  confirmed: boolean
+  intake_id?: string | null
+  raw_description?: string
+  genre_profile: GenreProfile | null
+}
+
 export interface PlotSuggestion {
   id: number
   text: string
@@ -503,6 +512,7 @@ export interface StoryBibleOut {
   story_id:     string
   content_json: string   // JSON string: {characters, locations, timeline, world_rules, themes}
   version:      number
+  status:       'running' | 'completed' | 'failed'
   created_at:   string
   updated_at:   string
 }

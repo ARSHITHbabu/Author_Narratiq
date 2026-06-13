@@ -67,6 +67,8 @@ export const intakeApi = {
   confirm: (storyId: string, intakeId: string, overrides?: object) =>
     api.post(`/api/intake/${storyId}/confirm`, { intake_id: intakeId, overrides }),
   getGenreProfile: (storyId: string) => api.get(`/api/intake/${storyId}/genre-profile`),
+  // Saved Story Intake / Genre Detection report (previous result) for this story.
+  getReport: (storyId: string) => api.get(`/api/intake/${storyId}/report`),
 }
 
 // ── Plot Assistant ─────────────────────────────────────────────────────────────
@@ -95,12 +97,12 @@ export const aiApi = {
     api.post('/api/ai/refine', { text, mode, story_id: storyId, chapter_id: chapterId }),
   tone: (text: string, tone: string, storyId?: string) =>
     api.post('/api/ai/tone', { text, tone, story_id: storyId }),
-  emotion: (text: string, emotion: string, intensity = 'medium') =>
-    api.post('/api/ai/emotion', { text, emotion, intensity }),
+  emotion: (text: string, emotion: string, intensity = 'medium', storyId?: string) =>
+    api.post('/api/ai/emotion', { text, emotion, intensity, story_id: storyId }),
   ageAdapt: (text: string, targetAge: string, storyId?: string) =>
     api.post('/api/ai/age-adapt', { text, target_age: targetAge, story_id: storyId }),
-  style: (text: string, style: string) =>
-    api.post('/api/ai/style', { text, style }),
+  style: (text: string, style: string, storyId?: string) =>
+    api.post('/api/ai/style', { text, style, story_id: storyId }),
   translate: (text: string, targetLanguage: string, storyId?: string) =>
     api.post('/api/ai/translate', { text, target_language: targetLanguage, story_id: storyId }),
   suggestions: (storyId: string, chapterId: string, text: string) =>

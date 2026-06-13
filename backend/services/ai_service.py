@@ -439,21 +439,23 @@ _REFINE_MODE = {
 }
 
 
-async def refine_text(text: str, mode: str = "standard", context: str = "") -> str:
+async def refine_text(text: str, mode: str = "standard", context: str = "", genre_context: str = "") -> str:
     desc = _REFINE_MODE.get(mode, "general prose quality")
-    system = (
+    system = _with_genre(
         f"You are a professional fiction editor specialising in {desc}. "
-        "Improve the text while preserving the author's voice. Return ONLY the improved text."
+        "Improve the text while preserving the author's voice. Return ONLY the improved text.",
+        genre_context,
     )
     ctx = f"\n\nManuscript context:\n{context}" if context else ""
     return await _complete(system, text + ctx, temperature=0.3, max_tokens=len(text.split()) * 2 + 150)
 
 
-async def stream_refine(text: str, mode: str = "standard", context: str = "") -> AsyncGenerator[str, None]:
+async def stream_refine(text: str, mode: str = "standard", context: str = "", genre_context: str = "") -> AsyncGenerator[str, None]:
     desc = _REFINE_MODE.get(mode, "general prose quality")
-    system = (
+    system = _with_genre(
         f"You are a professional fiction editor specialising in {desc}. "
-        "Improve the text while preserving the author's voice. Return ONLY the improved text."
+        "Improve the text while preserving the author's voice. Return ONLY the improved text.",
+        genre_context,
     )
     ctx = f"\n\nManuscript context:\n{context}" if context else ""
     async for token in _stream_generate(system, text + ctx, temperature=0.3, max_tokens=len(text.split()) * 2 + 150):
@@ -462,21 +464,28 @@ async def stream_refine(text: str, mode: str = "standard", context: str = "") ->
 
 # ── Tone Transformation ────────────────────────────────────────────────────────
 
-async def transform_tone(text: str, tone: str, context: str = "") -> str:
-    system = (
+def _with_genre(system: str, genre_context: str) -> str:
+    """Prepend the story's genre profile to a system prompt when available."""
+    return f"{genre_context}\n\n{system}" if genre_context else system
+
+
+async def transform_tone(text: str, tone: str, context: str = "", genre_context: str = "") -> str:
+    system = _with_genre(
         f"You are a literary writing coach. Rewrite the passage in a {tone} tone. "
         "Keep all events and characters identical — only change style, word choice, and mood. "
-        "Return ONLY the rewritten passage."
+        "Return ONLY the rewritten passage.",
+        genre_context,
     )
     ctx = f"\n\nStory context:\n{context}" if context else ""
     return await _complete(system, text + ctx, temperature=0.5, max_tokens=len(text.split()) * 2 + 150)
 
 
-async def stream_tone(text: str, tone: str, context: str = "") -> AsyncGenerator[str, None]:
-    system = (
+async def stream_tone(text: str, tone: str, context: str = "", genre_context: str = "") -> AsyncGenerator[str, None]:
+    system = _with_genre(
         f"You are a literary writing coach. Rewrite the passage in a {tone} tone. "
         "Keep all events and characters identical — only change style, word choice, and mood. "
-        "Return ONLY the rewritten passage."
+        "Return ONLY the rewritten passage.",
+        genre_context,
     )
     ctx = f"\n\nStory context:\n{context}" if context else ""
     async for token in _stream_generate(system, text + ctx, temperature=0.5, max_tokens=len(text.split()) * 2 + 150):
@@ -485,20 +494,22 @@ async def stream_tone(text: str, tone: str, context: str = "") -> AsyncGenerator
 
 # ── Emotion Rewriting ─────────────────────────────────────────────────────────
 
-async def rewrite_emotion(text: str, emotion: str, intensity: str = "medium") -> str:
-    system = (
+async def rewrite_emotion(text: str, emotion: str, intensity: str = "medium", genre_context: str = "") -> str:
+    system = _with_genre(
         f"You are a fiction editor. Rewrite the passage so it deeply conveys {emotion} at "
         f"{intensity} intensity using sensory detail and interiority — not emotional labels. "
-        "Return ONLY the rewritten passage."
+        "Return ONLY the rewritten passage.",
+        genre_context,
     )
     return await _complete(system, text, temperature=0.6, max_tokens=len(text.split()) * 2 + 150)
 
 
-async def stream_emotion(text: str, emotion: str, intensity: str = "medium") -> AsyncGenerator[str, None]:
-    system = (
+async def stream_emotion(text: str, emotion: str, intensity: str = "medium", genre_context: str = "") -> AsyncGenerator[str, None]:
+    system = _with_genre(
         f"You are a fiction editor. Rewrite the passage so it deeply conveys {emotion} at "
         f"{intensity} intensity using sensory detail and interiority — not emotional labels. "
-        "Return ONLY the rewritten passage."
+        "Return ONLY the rewritten passage.",
+        genre_context,
     )
     async for token in _stream_generate(system, text, temperature=0.6, max_tokens=len(text.split()) * 2 + 150):
         yield token
@@ -513,21 +524,23 @@ _AGE_GUIDE = {
 }
 
 
-async def adapt_for_age(text: str, target_age: str, context: str = "") -> str:
+async def adapt_for_age(text: str, target_age: str, context: str = "", genre_context: str = "") -> str:
     guide = _AGE_GUIDE.get(target_age, _AGE_GUIDE["adult"])
-    system = (
+    system = _with_genre(
         f"You are an editor. Adapt the text for {guide}. "
-        "Preserve the story meaning. Return ONLY the adapted text."
+        "Preserve the story meaning. Return ONLY the adapted text.",
+        genre_context,
     )
     ctx = f"\n\nContext:\n{context}" if context else ""
     return await _complete(system, text + ctx, temperature=0.3, max_tokens=len(text.split()) * 2 + 150)
 
 
-async def stream_age_adapt(text: str, target_age: str, context: str = "") -> AsyncGenerator[str, None]:
+async def stream_age_adapt(text: str, target_age: str, context: str = "", genre_context: str = "") -> AsyncGenerator[str, None]:
     guide = _AGE_GUIDE.get(target_age, _AGE_GUIDE["adult"])
-    system = (
+    system = _with_genre(
         f"You are an editor. Adapt the text for {guide}. "
-        "Preserve the story meaning. Return ONLY the adapted text."
+        "Preserve the story meaning. Return ONLY the adapted text.",
+        genre_context,
     )
     ctx = f"\n\nContext:\n{context}" if context else ""
     async for token in _stream_generate(system, text + ctx, temperature=0.3, max_tokens=len(text.split()) * 2 + 150):
@@ -536,18 +549,20 @@ async def stream_age_adapt(text: str, target_age: str, context: str = "") -> Asy
 
 # ── Style Transformation ───────────────────────────────────────────────────────
 
-async def transform_style(text: str, style: str) -> str:
-    system = (
+async def transform_style(text: str, style: str, genre_context: str = "") -> str:
+    system = _with_genre(
         f"Rewrite the passage in the literary style of {style} — capturing their characteristic "
-        "sentence structure, diction, rhythm, and voice. Return ONLY the rewritten passage."
+        "sentence structure, diction, rhythm, and voice. Return ONLY the rewritten passage.",
+        genre_context,
     )
     return await _complete(system, text, temperature=0.6, max_tokens=len(text.split()) * 2 + 150)
 
 
-async def stream_style(text: str, style: str) -> AsyncGenerator[str, None]:
-    system = (
+async def stream_style(text: str, style: str, genre_context: str = "") -> AsyncGenerator[str, None]:
+    system = _with_genre(
         f"Rewrite the passage in the literary style of {style} — capturing their characteristic "
-        "sentence structure, diction, rhythm, and voice. Return ONLY the rewritten passage."
+        "sentence structure, diction, rhythm, and voice. Return ONLY the rewritten passage.",
+        genre_context,
     )
     async for token in _stream_generate(system, text, temperature=0.6, max_tokens=len(text.split()) * 2 + 150):
         yield token
@@ -1148,6 +1163,7 @@ async def answer_story_question(
     current_chapter: str = "",
     character_context: list[str] = None,
     note_context: list[str] = None,
+    genre_context: str = "",
 ) -> str:
     """
     Answer a factual question about the story using top-k semantically retrieved
@@ -1171,7 +1187,10 @@ async def answer_story_question(
 
     parts = [f"Question: {question}"]
 
-    if genre_profile:
+    # Prefer the rich shared genre-context block; fall back to a one-line genre.
+    if genre_context:
+        parts.append(genre_context)
+    elif genre_profile:
         g = genre_profile.get("genre", "")
         sg = genre_profile.get("sub_genre", "")
         if g:
@@ -1235,6 +1254,7 @@ async def generate_plot_suggestions(
     retrieved_chunks: list = None,
     note_context: list[str] = None,
     intel_context: dict = None,
+    genre_context: str = "",
 ) -> list:
     """
     Generate 4 plot suggestions grounded in story context.
@@ -1252,7 +1272,10 @@ async def generate_plot_suggestions(
     )
     parts = [f"Plot question: {question}"]
 
-    if genre_profile:
+    # Prefer the rich shared genre-context block; fall back to a one-line genre.
+    if genre_context:
+        parts.append(genre_context)
+    elif genre_profile:
         parts.append(
             f"Genre: {genre_profile.get('genre', '')} — "
             f"{genre_profile.get('sub_genre', '')} | "

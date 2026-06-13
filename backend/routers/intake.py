@@ -54,6 +54,11 @@ async def analyze_story(
     conflict = result["conflict"]
     intake.detected_conflict   = json.dumps(conflict) if isinstance(conflict, list) else conflict
     intake.theme_hints         = result["themes"]
+    # Persist the full Story-Intelligence snapshot so the richer fields
+    # (emotional_arc, pacing, narrative_pov, comparable_titles, market category,
+    # writing_direction, etc.) survive past intake and feed the shared genre
+    # context builder. Without this they were returned to the UI then discarded.
+    intake.analysis            = result
     intake.author_confirmed    = False
     db.commit()
     db.refresh(intake)
@@ -100,16 +105,26 @@ def confirm_intake(
     intake.author_confirmed = True
     intake.author_overrides = data.overrides or {}
 
-    genre     = data.overrides.get("genre",             intake.detected_genre)
-    sub_genre = data.overrides.get("sub_genre",         intake.detected_sub_genre)
-    tone      = data.overrides.get("tone",              intake.detected_tone)
-    audience  = data.overrides.get("audience",          intake.detected_audience)
-    direction = data.overrides.get("writing_direction", "")
+    overrides = data.overrides or {}
+    genre     = overrides.get("genre",     intake.detected_genre)
+    sub_genre = overrides.get("sub_genre", intake.detected_sub_genre)
+    tone      = overrides.get("tone",      intake.detected_tone)
+    audience  = overrides.get("audience",  intake.detected_audience)
 
     gp = db.query(GenreProfile).filter(GenreProfile.story_id == story_id).first()
     if not gp:
         gp = GenreProfile(story_id=story_id)
         db.add(gp)
+
+    # writing_direction precedence: explicit author override → existing manual
+    # value (never silently overwritten) → AI-detected direction from the intake
+    # analysis snapshot → empty. This auto-persists the detected direction on
+    # first confirm while preserving any edit the author made later.
+    analysis = intake.analysis if isinstance(intake.analysis, dict) else {}
+    override_dir = (overrides.get("writing_direction") or "").strip()
+    existing_dir = (gp.writing_direction or "").strip()
+    detected_dir = (analysis.get("writing_direction") or "").strip()
+    direction = override_dir or existing_dir or detected_dir
 
     gp.genre             = genre
     gp.sub_genre         = sub_genre
@@ -154,4 +169,81 @@ def get_genre_profile(
         "tone":              gp.tone,
         "target_audience":   gp.target_audience,
         "writing_direction": gp.writing_direction,
+    }
+
+
+@router.get("/{story_id}/report")
+def get_intake_report(
+    story_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Return the saved Story Intake / Genre Detection report so the intake page
+    can display the previous result instead of behaving like a blank first run.
+
+    Merges the author-confirmed core (genre_profiles) over the full detection
+    snapshot (story_intakes.analysis). ``exists`` is False only when neither a
+    genre profile nor an intake record is present.
+    """
+    story = db.query(Story).filter(
+        Story.story_id == story_id, Story.user_id == current_user.user_id,
+    ).first()
+    if not story:
+        raise HTTPException(status_code=404, detail="Story not found")
+
+    gp = db.query(GenreProfile).filter(GenreProfile.story_id == story_id).first()
+    intake = db.query(StoryIntake).filter(StoryIntake.story_id == story_id).first()
+
+    if not gp and not intake:
+        return {"exists": False, "confirmed": False, "genre_profile": None}
+
+    analysis = (intake.analysis if (intake and isinstance(intake.analysis, dict)) else {}) or {}
+
+    # Base on the detection snapshot, then fall back to the StoryIntake columns
+    # for older records saved before the snapshot column existed.
+    def _detected_conflict():
+        c = intake.detected_conflict if intake else None
+        if not c:
+            return ""
+        try:
+            parsed = json.loads(c)
+            return ", ".join(parsed) if isinstance(parsed, list) else str(parsed)
+        except (json.JSONDecodeError, TypeError):
+            return str(c)
+
+    profile = {
+        "genre":              analysis.get("genre")              or (intake.detected_genre if intake else "") or "",
+        "sub_genre":          analysis.get("sub_genre")          or (intake.detected_sub_genre if intake else "") or "",
+        "tone":               analysis.get("tone")               or (intake.detected_tone if intake else []) or [],
+        "audience":           analysis.get("audience")           or (intake.detected_audience if intake else "") or "",
+        "structure":          analysis.get("structure")          or (intake.detected_structure if intake else "") or "",
+        "conflict":           analysis.get("conflict")           or _detected_conflict(),
+        "themes":             analysis.get("themes")             or (intake.theme_hints if intake else []) or [],
+        "writing_direction":  analysis.get("writing_direction")  or "",
+        "confidence":         analysis.get("confidence", 0.85),
+        "secondary_genres":   analysis.get("secondary_genres", []),
+        "comparable_titles":  analysis.get("comparable_titles", []),
+        "marketing_category": analysis.get("marketing_category") or None,
+        "emotional_arc":      analysis.get("emotional_arc") or None,
+        "narrative_pov":      analysis.get("narrative_pov") or None,
+        "pacing":             analysis.get("pacing") or None,
+        "content_warnings":   analysis.get("content_warnings", []),
+        "intelligence_notes": analysis.get("intelligence_notes") or None,
+    }
+
+    # Overlay the author-confirmed core so the report matches what the AI tools use.
+    if gp:
+        profile["genre"]             = gp.genre or profile["genre"]
+        profile["sub_genre"]         = gp.sub_genre or profile["sub_genre"]
+        if gp.tone:
+            profile["tone"]          = gp.tone
+        profile["audience"]          = gp.target_audience or profile["audience"]
+        profile["writing_direction"] = gp.writing_direction or profile["writing_direction"]
+
+    return {
+        "exists": True,
+        "confirmed": bool(intake.author_confirmed) if intake else bool(gp),
+        "intake_id": intake.intake_id if intake else None,
+        "raw_description": intake.raw_description if intake else "",
+        "genre_profile": profile,
     }

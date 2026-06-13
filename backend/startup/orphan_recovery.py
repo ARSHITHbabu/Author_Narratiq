@@ -10,12 +10,11 @@ What is swept:
   AudioUpload:   status='processing'           → status='failed'
   ManuscriptJob: status='processing'           → status='error'
   StoryIntelJob: status in ('pending','running') → status='error'
+  StoryBible:    status='running'              → status='failed'
 
 What is NOT done:
   - No content is deleted
   - No retries are attempted (that belongs in Celery — Phase B)
-  - story_bibles._generating is an in-memory set; it is empty on fresh process start,
-    so no sweep needed — the guard resets automatically
   - narrative_thread scans have no persistent job record — authors re-trigger via UI
 """
 
@@ -34,7 +33,7 @@ async def recover_orphaned_jobs() -> dict[str, int]:
     Designed to be called once at startup; safe to call again (idempotent).
     """
     from database import SessionLocal
-    from models import AudioUpload, ManuscriptJob, StoryIntelJob, VoiceSession, VoiceWorkflow
+    from models import AudioUpload, ManuscriptJob, StoryIntelJob, VoiceSession, VoiceWorkflow, StoryBible
 
     db = SessionLocal()
     counts: dict[str, int] = {}
@@ -75,6 +74,17 @@ async def recover_orphaned_jobs() -> dict[str, int]:
             job.error_message = _ORPHAN_MESSAGE
             job.updated_at = now
         counts["story_intel_jobs"] = len(stuck_intel)
+
+        # ── StoryBible (running → failed) ─────────────────────────────────────
+        stuck_bibles = (
+            db.query(StoryBible)
+            .filter(StoryBible.status == "running")
+            .all()
+        )
+        for bible in stuck_bibles:
+            bible.status     = "failed"
+            bible.updated_at = now
+        counts["story_bibles"] = len(stuck_bibles)
 
         # ── VoiceSession (active → failed) ────────────────────────────────────
         stuck_sessions = (

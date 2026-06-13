@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import re
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -14,8 +15,22 @@ from routers.auth import get_current_user, User
 router = APIRouter(tags=["chapters"])
 
 
+_TAG_RE = re.compile(r"<[^>]+>")
+
+
 def _word_count(text: str) -> int:
-    return len(text.split()) if text else 0
+    """Count words in chapter content.
+
+    Chapters are stored as TipTap/ProseMirror *HTML*, so the raw string contains
+    markup tokens (e.g. ``<p>``, ``<strong>``). Counting those as words both
+    inflates the total and makes the persisted count disagree with the editor's
+    live count (which is computed from plain text). Strip tags first so the
+    backend count matches the frontend's ``editor.getText()`` word count exactly.
+    """
+    if not text:
+        return 0
+    plain = _TAG_RE.sub(" ", text)
+    return len(plain.split())
 
 
 def _check_story_access(story_id: str, user_id: str, db: Session) -> Story:

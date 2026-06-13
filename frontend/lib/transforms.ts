@@ -91,9 +91,9 @@ export function buildTransformCall(group: GroupId, value: string, text: string, 
   switch (group) {
     case 'refine':    return { path: '/api/ai/refine', body: { text, mode: value, story_id: storyId, chapter_id: chapterId } }
     case 'tone':      return { path: '/api/ai/tone', body: { text, tone: value.toLowerCase(), story_id: storyId } }
-    case 'emotion':   return { path: '/api/ai/emotion', body: { text, emotion: value.toLowerCase(), intensity } }
+    case 'emotion':   return { path: '/api/ai/emotion', body: { text, emotion: value.toLowerCase(), intensity, story_id: storyId } }
     case 'age_adapt': return { path: '/api/ai/age-adapt', body: { text, target_age: value, story_id: storyId } }
-    case 'style':     return { path: '/api/ai/style', body: { text, style: value.toLowerCase() } }
+    case 'style':     return { path: '/api/ai/style', body: { text, style: value.toLowerCase(), story_id: storyId } }
     case 'translate': return { path: '/api/ai/translate', body: { text, target_language: value, story_id: storyId } }
   }
 }
