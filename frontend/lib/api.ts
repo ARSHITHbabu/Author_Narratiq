@@ -103,6 +103,9 @@ export const aiApi = {
     api.post('/api/ai/age-adapt', { text, target_age: targetAge, story_id: storyId }),
   style: (text: string, style: string, storyId?: string) =>
     api.post('/api/ai/style', { text, style, story_id: storyId }),
+  authorStyle: (text: string, author: string, storyId?: string, chapterId?: string) =>
+    api.post('/api/ai/author-style', { text, author, story_id: storyId, chapter_id: chapterId }),
+  authorStyles: () => api.get('/api/ai/author-styles'),
   translate: (text: string, targetLanguage: string, storyId?: string) =>
     api.post('/api/ai/translate', { text, target_language: targetLanguage, story_id: storyId }),
   suggestions: (storyId: string, chapterId: string, text: string) =>
@@ -285,6 +288,19 @@ export const analysisApi = {
     api.post(`/api/stories/${storyId}/plot-holes`),
   getManuscriptReport: (storyId: string) =>
     api.post(`/api/stories/${storyId}/manuscript-report`),
+}
+
+// ── Copyright / Plagiarism Risk Detection ─────────────────────────────────────
+export const copyrightRiskApi = {
+  analyze: (
+    storyId: string,
+    opts: { scope: 'selection' | 'chapter' | 'project'; text?: string; chapterId?: string },
+  ) =>
+    api.post(`/api/stories/${storyId}/copyright-risk`, {
+      scope: opts.scope,
+      text: opts.text ?? null,
+      chapter_id: opts.chapterId ?? null,
+    }),
 }
 
 // ── Export ────────────────────────────────────────────────────────────────────

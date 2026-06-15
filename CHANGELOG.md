@@ -4,6 +4,39 @@ All production changes are documented here in reverse chronological order.
 
 ---
 
+## Unreleased — Author-Inspired Style Rewrite & Copyright/Plagiarism Risk Detection
+
+Design + implementation reference: `docs/additional_features_author_style_and_copyright_analysis.md`
+
+### Feature 1 — Author-Inspired Style Rewrite (selection transform)
+- New `/api/ai/author-style` (+ `/stream`) and read-only `/api/ai/author-styles`
+  catalog endpoint in `routers/ai_transform.py`.
+- `ai_service._AUTHOR_STYLES` registry is the safety authority: public-domain
+  named authors only; living/in-copyright authors (Hemingway/Woolf/Christie) are
+  redirected to safe generic descriptors; unknown strings fall back to generic
+  literary. Prompts enforce "inspired-by, never copy" and preserve meaning.
+- Frontend: new "Author" group in `lib/transforms.ts` (auto-wires the Selection
+  Toolbar), `aiApi.authorStyle`, and an "Author" tab in `AIToolsSidebar` with
+  public-domain vs generic separation and a safety caption.
+
+### Feature 2 — Copyright / Plagiarism Risk Detection (on-demand analysis)
+- New `POST /api/stories/{story_id}/copyright-risk` (`routers/copyright_risk.py`)
+  at three scopes: selection / chapter / whole-story (chapter-summary digest).
+- `ai_service.analyze_copyright_risk` returns risk score (low/med/high), 7-type
+  taxonomy, explanation, implicated excerpt, generic-trope flag, and rewrite
+  suggestions — framed as risk guidance, NOT legal advice (disclaimer always
+  attached).
+- Frontend: `CopyrightRiskPanel` registered in the Analyze workspace via
+  `lib/registries/panels.tsx`; `copyrightRiskApi` client + risk types.
+
+### Tests
+- Backend: `tests/test_author_style_and_copyright.py` (10 unit tests, Qwen stubbed).
+- Frontend: extended `tests/transforms.spec.ts` for author-style routing + catalog.
+
+No DB migrations required. No new required env vars.
+
+---
+
 ## v3.0.0 — June 2026
 
 **Production architecture completion. All 14 roadmap tasks implemented. Zero remaining placeholders.**

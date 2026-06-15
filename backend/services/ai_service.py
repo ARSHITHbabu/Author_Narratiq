@@ -101,11 +101,21 @@ async def _complete(
     user: str,
     temperature: float = 0.0,
     max_tokens: int = 512,
+    response_format: Optional[dict] = None,
 ) -> str:
     """
     Non-streaming completion. Use for structured JSON outputs.
+
+    response_format — optional OpenAI-style hint passed straight to vLLM, e.g.
+    ``{"type": "json_object"}`` to enable guided JSON decoding so the model is
+    constrained to emit syntactically valid JSON. This is the robust way to get
+    parseable JSON instead of relying solely on best-effort text repair.
+
     Raises AIServiceUnavailableError on connection errors or vLLM 5xx responses.
     """
+    kwargs: dict = {}
+    if response_format is not None:
+        kwargs["response_format"] = response_format
     try:
         resp = await get_vllm_client().chat.completions.create(
             model=settings.vllm_model_name,
@@ -116,6 +126,7 @@ async def _complete(
             temperature=temperature,
             max_tokens=max_tokens,
             stream=False,
+            **kwargs,
         )
         return resp.choices[0].message.content.strip()
     except APIConnectionError as exc:
@@ -126,6 +137,47 @@ async def _complete(
             logger.warning("[ai_service] vLLM status %d: %s", exc.status_code, exc)
             raise AIServiceUnavailableError() from exc
         raise
+
+
+async def _complete_json(
+    system: str,
+    user: str,
+    fallback,
+    temperature: float = 0.0,
+    max_tokens: int = 800,
+):
+    """
+    Completion that must return JSON, hardened in two layers:
+
+      1. Ask vLLM for guided JSON output (``response_format={"type":"json_object"}``)
+         so the model is constrained to emit syntactically valid JSON. This alone
+         eliminates the most common malformations (e.g. partially-quoted array
+         items like ``"Title" by Author`` that balance braces but fail to parse).
+      2. Parse with the tolerant ``_extract_json`` repair pass as defence-in-depth.
+
+    If the running vLLM build rejects ``response_format`` (older builds), we fall
+    back to a plain completion + ``_extract_json`` so the feature never hard-fails
+    purely because of the structured-output hint.
+
+    Returns the parsed object, or ``fallback`` when every layer fails. Never
+    raises for malformed content (only AIServiceUnavailableError propagates).
+    """
+    try:
+        raw = await _complete(system, user, temperature=temperature,
+                              max_tokens=max_tokens,
+                              response_format={"type": "json_object"})
+    except APIStatusError as exc:
+        # response_format unsupported on this build → retry without it.
+        if exc.status_code == 400:
+            logger.info("[ai_service] guided JSON unsupported (400) — retrying plain")
+            raw = await _complete(system, user, temperature=temperature, max_tokens=max_tokens)
+        else:
+            raise
+    except TypeError:
+        # Very old openai client without response_format kwarg.
+        raw = await _complete(system, user, temperature=temperature, max_tokens=max_tokens)
+
+    return _extract_json(raw, fallback), raw
 
 
 async def _stream_generate(
@@ -375,14 +427,17 @@ async def detect_genre(description: str, audience_hint: Optional[str] = None) ->
         "Rules:\n"
         "- Base every field on the description. Do NOT fabricate comp titles or warnings; "
         'use [] or "" when genuinely unsure.\n'
+        "- Every array element MUST be exactly ONE complete double-quoted JSON string "
+        'with no unquoted text. For comparable_titles, write each as a single string '
+        'like "Title by Author" — never put the author outside the quotes.\n'
         "- Output ONLY the JSON object — no markdown fences, no prose."
     )
-    raw = await _complete(
+    result, raw = await _complete_json(
         system,
         f"Description: {description}\nAudience: {audience}",
+        fallback=None,
         max_tokens=800,
     )
-    result = _extract_json(raw, None)
     if result is None or not isinstance(result, dict):
         logger.warning("[ai_service] detect_genre invalid JSON. Raw head: %r", raw[:300])
         raise ValueError(
@@ -564,6 +619,106 @@ async def stream_style(text: str, style: str, genre_context: str = "") -> AsyncG
         "sentence structure, diction, rhythm, and voice. Return ONLY the rewritten passage.",
         genre_context,
     )
+    async for token in _stream_generate(system, text, temperature=0.6, max_tokens=len(text.split()) * 2 + 150):
+        yield token
+
+
+# ── Author-Inspired Style Rewrite ──────────────────────────────────────────────
+#
+# This module is the SAFETY AUTHORITY for the author-style feature. The frontend
+# list is convenience only; what is actually allowed is decided here.
+#
+#   * Named authors are offered ONLY when their work is firmly public domain.
+#   * Generic style categories are always safe.
+#   * Authors whose work is NOT uniformly public domain (or who are/were modern)
+#     are mapped to a SAFE GENERIC DESCRIPTOR rather than to "imitate <author>",
+#     so users get the stylistic intent without copyright/style-infringement risk.
+#   * Unknown / arbitrary author strings degrade to a generic literary influence —
+#     they are NEVER passed verbatim into an "imitate X" instruction.
+
+# key -> (label, descriptor used in the prompt, public_domain, group)
+_AUTHOR_STYLES: dict[str, dict] = {
+    # ── Public-domain authors (named influence permitted) ──────────────────────
+    "shakespeare":   {"label": "William Shakespeare", "descriptor": "William Shakespeare — Elizabethan dramatic cadence, rich metaphor, blank-verse rhythm and heightened poetic diction", "public_domain": True,  "group": "public_domain"},
+    "austen":        {"label": "Jane Austen",          "descriptor": "Jane Austen — witty free-indirect discourse, balanced ironic sentences and drawing-room social observation", "public_domain": True,  "group": "public_domain"},
+    "dickens":       {"label": "Charles Dickens",      "descriptor": "Charles Dickens — vivid characterful description, long cumulative sentences, social texture and warm comic detail", "public_domain": True,  "group": "public_domain"},
+    "poe":           {"label": "Edgar Allan Poe",      "descriptor": "Edgar Allan Poe — gothic dread, first-person psychological intensity, ornate vocabulary and mounting unease", "public_domain": True,  "group": "public_domain"},
+    "bronte":        {"label": "The Brontës",          "descriptor": "the Brontës — passionate Romantic interiority, moody landscape imagery and intense emotional sincerity", "public_domain": True,  "group": "public_domain"},
+    "twain":         {"label": "Mark Twain",           "descriptor": "Mark Twain — plain-spoken vernacular voice, dry humor and shrewd colloquial rhythm", "public_domain": True,  "group": "public_domain"},
+    # ── Generic style categories (always safe) ─────────────────────────────────
+    "generic_poetic":    {"label": "Generic poetic",    "descriptor": "a lyrical poetic style — musical rhythm, vivid imagery and figurative language", "public_domain": True, "group": "generic"},
+    "generic_cinematic": {"label": "Generic cinematic", "descriptor": "a cinematic style — present, visual scene-setting, sharp sensory beats and momentum", "public_domain": True, "group": "generic"},
+    "generic_literary":  {"label": "Generic literary",  "descriptor": "an elevated literary-fiction style — layered introspection, precise diction and controlled rhythm", "public_domain": True, "group": "generic"},
+    "generic_minimalist":{"label": "Spare / minimalist","descriptor": "a spare, understated minimalist style — short declarative sentences, restraint and subtext (in the tradition of plain modern prose)", "public_domain": True, "group": "generic"},
+    "generic_stream":    {"label": "Stream of consciousness", "descriptor": "a stream-of-consciousness literary style — fluid interior monologue, associative rhythm and shifting perception", "public_domain": True, "group": "generic"},
+    "generic_mystery":   {"label": "Classic mystery",   "descriptor": "a classic whodunit mystery style — measured clue-laying, controlled suspense and crisp deductive narration", "public_domain": True, "group": "generic"},
+}
+
+# Modern / living or not-uniformly-public-domain authors requested by users are
+# redirected to a SAFE generic descriptor (no named imitation of in-copyright work).
+_AUTHOR_ALIASES: dict[str, str] = {
+    "hemingway":         "generic_minimalist",
+    "ernest hemingway":  "generic_minimalist",
+    "woolf":             "generic_stream",
+    "virginia woolf":    "generic_stream",
+    "christie":          "generic_mystery",
+    "agatha christie":   "generic_mystery",
+}
+
+_GENERIC_FALLBACK_KEY = "generic_literary"
+
+_AUTHOR_SAFETY_CLAUSE = (
+    "Produce ORIGINAL prose that is merely INSPIRED BY this style. "
+    "Preserve the original meaning, plot, characters, dialogue intent and events exactly. "
+    "Do NOT reproduce, quote, or closely imitate any copyrighted text or any specific "
+    "published passage; influence the rhythm, diction and mood only. "
+    "Return ONLY the rewritten passage."
+)
+
+
+def _resolve_author_style(author: str) -> dict:
+    """Resolve a requested author into a safe {key, label, descriptor, public_domain}.
+
+    Order: exact catalog key → alias redirect → generic literary fallback.
+    Guarantees the descriptor is always copyright-safe.
+    """
+    key = (author or "").strip().lower().replace(" ", "_")
+    if key in _AUTHOR_STYLES:
+        entry = _AUTHOR_STYLES[key]
+        return {"key": key, **entry}
+    raw = (author or "").strip().lower()
+    if raw in _AUTHOR_ALIASES:
+        alias_key = _AUTHOR_ALIASES[raw]
+        return {"key": alias_key, **_AUTHOR_STYLES[alias_key]}
+    fb = _AUTHOR_STYLES[_GENERIC_FALLBACK_KEY]
+    return {"key": _GENERIC_FALLBACK_KEY, **fb}
+
+
+def author_style_catalog() -> list[dict]:
+    """Return the public catalog of selectable author/style options (server-authoritative)."""
+    return [
+        {"id": key, "label": e["label"], "description": e["descriptor"],
+         "public_domain": e["public_domain"], "group": e["group"]}
+        for key, e in _AUTHOR_STYLES.items()
+    ]
+
+
+def _author_style_system(author: str, genre_context: str) -> str:
+    resolved = _resolve_author_style(author)
+    return _with_genre(
+        "You are a literary writing coach. Rewrite the passage so it is influenced by "
+        f"the style of {resolved['descriptor']}. {_AUTHOR_SAFETY_CLAUSE}",
+        genre_context,
+    )
+
+
+async def rewrite_in_author_style(text: str, author: str, genre_context: str = "") -> str:
+    system = _author_style_system(author, genre_context)
+    return await _complete(system, text, temperature=0.6, max_tokens=len(text.split()) * 2 + 150)
+
+
+async def stream_author_style(text: str, author: str, genre_context: str = "") -> AsyncGenerator[str, None]:
+    system = _author_style_system(author, genre_context)
     async for token in _stream_generate(system, text, temperature=0.6, max_tokens=len(text.split()) * 2 + 150):
         yield token
 
@@ -1486,6 +1641,118 @@ async def detect_plot_holes(
         f"{result['chapters_analyzed']} analyzed, "
         f"{len(result['issues'])} issue(s) found")
     return result
+
+
+# ── Copyright / Plagiarism Risk Detection ──────────────────────────────────────
+#
+# Heuristic risk guidance — NOT legal advice. The model reasons from training
+# knowledge, not a database of copyrighted works, so it cannot guarantee detection.
+# We always attach a non-legal-advice disclaimer and score low/medium/high (never
+# numeric certainty).
+
+_RISK_LEVELS = ("low", "medium", "high")
+
+COPYRIGHT_DISCLAIMER = (
+    "This is automated copyright/plagiarism RISK guidance to help you make your "
+    "writing more original — not legal advice, and not a guarantee. It cannot "
+    "detect every similarity and may flag generic tropes. Consult a qualified "
+    "professional for legal questions."
+)
+
+_COPYRIGHT_SYSTEM = (
+    "You are a copyright and originality risk analyst for fiction writers. "
+    "Assess whether the author's text appears too similar to existing, well-known "
+    "stories, books, characters, plots, worlds, or famous scenes.\n\n"
+    "Classify each finding's risk_type as ONE of:\n"
+    "  direct_text       — wording/phrasing close to a known published passage\n"
+    "  plot              — plot/structure close to a specific known work\n"
+    "  character         — a character closely resembling a known copyrighted one\n"
+    "  world_building     — setting/world closely resembling a known franchise\n"
+    "  scene             — a specific famous scene closely reproduced\n"
+    "  style_imitation    — imitation of a specific living/in-copyright author's style\n"
+    "  trope_overuse      — heavy reliance on generic, overused tropes\n\n"
+    "CRITICAL RULES:\n"
+    "- Do NOT claim legal certainty. This is risk guidance, not legal advice.\n"
+    "- Clearly distinguish a GENERIC, unprotectable trope (is_generic_trope=true) "
+    "from a SERIOUS, specific similarity to a particular work (is_generic_trope=false).\n"
+    "- Only report findings you can justify from the text provided.\n"
+    "- For every finding give a concrete rewrite_suggestion that increases originality.\n\n"
+    "Score risk_score and overall_risk as one of: low | medium | high.\n"
+    'Return ONLY valid JSON:\n'
+    '{"overall_risk": "low|medium|high", '
+    '"findings": [{"risk_type": str, "risk_score": "low|medium|high", '
+    '"description": str, "problematic_excerpt": str, "is_generic_trope": bool, '
+    '"rewrite_suggestion": str}], '
+    '"note": "one-sentence summary"}'
+)
+
+_COPYRIGHT_MAX_CHARS = 12000  # keep the prompt well within context
+
+
+def _normalize_risk(value, default: str = "low") -> str:
+    v = str(value or "").strip().lower()
+    return v if v in _RISK_LEVELS else default
+
+
+async def analyze_copyright_risk(
+    scope: str,
+    text: str,
+    genre_context: str = "",
+) -> dict:
+    """Analyze text for copyright/plagiarism risk.
+
+    scope  — "selection" | "chapter" | "project" (informational; the router
+             assembles `text` for project scope from chapter summaries).
+    text   — the prose (or structured digest) to assess. Trimmed to a safe cap.
+
+    Returns: {overall_risk, findings[], note, disclaimer}. `findings` is always a
+    list of dicts with normalized risk levels. Raises AIServiceUnavailableError
+    (via _complete) when vLLM is down; raises ValueError on unparseable output.
+    """
+    clipped = (text or "").strip()[:_COPYRIGHT_MAX_CHARS]
+    system = _with_genre(_COPYRIGHT_SYSTEM, genre_context)
+    user = f"Scope: {scope}\n\nText to analyze:\n\n{clipped}"
+
+    raw = await _complete(system, user, temperature=0.0, max_tokens=1600)
+    result = _extract_json(raw, None)
+
+    if not isinstance(result, dict) or "findings" not in result:
+        logger.warning("[copyright_risk] invalid JSON. Raw head: %r", raw[:300])
+        raise ValueError(
+            "Copyright risk analysis failed: AI model returned invalid output. Please try again."
+        )
+
+    findings = []
+    for i, f in enumerate(result.get("findings", []) or []):
+        if not isinstance(f, dict):
+            continue
+        findings.append({
+            "finding_id":          i + 1,
+            "risk_type":           str(f.get("risk_type", "trope_overuse")),
+            "risk_score":          _normalize_risk(f.get("risk_score")),
+            "description":         str(f.get("description", "")),
+            "problematic_excerpt": str(f.get("problematic_excerpt", "") or ""),
+            "is_generic_trope":    bool(f.get("is_generic_trope", False)),
+            "rewrite_suggestion":  str(f.get("rewrite_suggestion", "")),
+        })
+
+    # Derive overall risk: trust the model unless it omitted it — then take the max
+    # finding level so the headline never under-reports.
+    overall = _normalize_risk(result.get("overall_risk"), default="")
+    if not overall:
+        overall = "low"
+        for f in findings:
+            if f["risk_score"] == "high":
+                overall = "high"; break
+            if f["risk_score"] == "medium":
+                overall = "medium"
+
+    return {
+        "overall_risk": overall,
+        "findings":     findings,
+        "note":         str(result.get("note", "") or ""),
+        "disclaimer":   COPYRIGHT_DISCLAIMER,
+    }
 
 
 # ── Full Manuscript Analysis ──────────────────────────────────────────────────

@@ -11,7 +11,8 @@ from database import get_db
 from middleware.rate_limit import limiter, get_user_id
 from schemas import (
     TransformRequest, ToneRequest, EmotionRequest, AgeAdaptRequest,
-    StyleRequest, TranslationRequest, TransformResponse, SuggestionRequest, SuggestionsResponse
+    StyleRequest, TranslationRequest, TransformResponse, SuggestionRequest, SuggestionsResponse,
+    AuthorStyleRequest, AuthorStyleOption, AuthorStyleCatalog,
 )
 from routers.auth import get_current_user, User
 from services import ai_service
@@ -128,6 +129,48 @@ async def style_transform(request: Request, data: StyleRequest, current_user: Us
 @limiter.limit(settings.rate_limit_realtime_ai, key_func=get_user_id)
 async def style_stream(request: Request, data: StyleRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     return _sse_stream(ai_service.stream_style(data.text, data.style, genre_context=_genre_ctx(data.story_id, db)))
+
+
+# ── Author-Inspired Style ───────────────────────────────────────────────────────
+
+def _validate_transform_text(text: str) -> str:
+    """Shared guard for selection transforms — non-empty, length-capped."""
+    cleaned = (text or "").strip()
+    if not cleaned:
+        raise HTTPException(status_code=422, detail="No text provided to transform.")
+    if len(cleaned) > 8000:
+        raise HTTPException(status_code=422, detail="Selection too long (max 8000 characters). Select a smaller passage.")
+    return cleaned
+
+
+@router.get("/author-styles", response_model=AuthorStyleCatalog)
+async def author_styles(current_user: User = Depends(get_current_user)):
+    """Server-authoritative catalog of selectable author/style influences."""
+    options = [AuthorStyleOption(**o) for o in ai_service.author_style_catalog()]
+    return AuthorStyleCatalog(
+        options=options,
+        note=(
+            "Named authors are public-domain only. Living or in-copyright author "
+            "requests are mapped to safe generic styles. Output is inspired-by, "
+            "never a copy."
+        ),
+    )
+
+
+@router.post("/author-style", response_model=TransformResponse)
+@limiter.limit(settings.rate_limit_realtime_ai, key_func=get_user_id)
+async def author_style_transform(request: Request, data: AuthorStyleRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    text = _validate_transform_text(data.text)
+    result = await ai_service.rewrite_in_author_style(text, data.author, genre_context=_genre_ctx(data.story_id, db))
+    return TransformResponse(original=data.text, transformed=result,
+                             mode=f"author:{data.author}", tokens_used=len(text.split()) * 2)
+
+
+@router.post("/author-style/stream")
+@limiter.limit(settings.rate_limit_realtime_ai, key_func=get_user_id)
+async def author_style_stream(request: Request, data: AuthorStyleRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    text = _validate_transform_text(data.text)
+    return _sse_stream(ai_service.stream_author_style(text, data.author, genre_context=_genre_ctx(data.story_id, db)))
 
 
 # ── Translate ─────────────────────────────────────────────────────────────────

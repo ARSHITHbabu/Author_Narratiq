@@ -126,6 +126,19 @@ if [ -f "$OVIS_PY" ] && grep -q "AutoConfig.register" "$OVIS_PY"; then
   sed -i '/AutoConfig\.register/{ /exist_ok/!s/)$/, exist_ok=True)/; }' "$OVIS_PY" 2>/dev/null || true
 fi
 
+# ── 1e2. Patch prometheus_fastapi_instrumentator routing — _get_route_name ─
+# Newer Starlette (1.3+) puts router objects (e.g. _IncludedRouter) in app.routes
+# that lack a `.path` attribute. vLLM 0.9.2's metrics instrumentation then 500s on
+# EVERY request (AttributeError: '_IncludedRouter' object has no attribute 'path').
+# Guard the attribute access with getattr so instrumentation degrades gracefully.
+# Idempotent: only patches the unguarded `route.path` lines.
+PFI_ROUTING=$(python3 -c "import prometheus_fastapi_instrumentator as p, os; print(os.path.join(os.path.dirname(p.__file__), 'routing.py'))" 2>/dev/null)
+if [ -f "$PFI_ROUTING" ] && grep -q "route_name = route.path" "$PFI_ROUTING"; then
+  sed -i 's/route_name = route\.path/route_name = getattr(route, "path", route_name)/g' "$PFI_ROUTING" 2>/dev/null || true
+  rm -f "$(dirname "$PFI_ROUTING")/__pycache__/routing."*.pyc 2>/dev/null || true
+  echo "  [setup] Patched prometheus_fastapi_instrumentator routing.py (getattr guard)"
+fi
+
 # ── 1f. NumPy — pin ≤2.2 (numba requires <=2.2; torch cu128 pulls 2.4) ─
 NUMPY_VER=$(python3 -c "import numpy; print(numpy.__version__)" 2>/dev/null)
 NUMPY_MINOR=$(echo "$NUMPY_VER" | cut -d. -f2)

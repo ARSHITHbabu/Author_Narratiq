@@ -154,6 +154,30 @@ export interface TransformResponse {
   tokens_used: number
 }
 
+// ── Copyright / Plagiarism Risk Detection ──────────────────────────────────────
+export type RiskLevel = 'low' | 'medium' | 'high'
+
+export interface CopyrightRiskFinding {
+  finding_id:          number
+  risk_type:           string   // direct_text | plot | character | world_building | scene | style_imitation | trope_overuse
+  risk_score:          RiskLevel
+  description:         string
+  problematic_excerpt: string
+  is_generic_trope:    boolean
+  rewrite_suggestion:  string
+}
+
+export interface CopyrightRiskResponse {
+  story_id:       string
+  scope:          'selection' | 'chapter' | 'project'
+  units_analyzed: number
+  overall_risk:   RiskLevel
+  findings_count: number
+  findings:       CopyrightRiskFinding[]
+  note:           string
+  disclaimer:     string
+}
+
 export interface AISuggestion {
   id: number
   category: string

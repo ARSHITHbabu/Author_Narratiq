@@ -269,11 +269,67 @@ class TranslationRequest(BaseModel):
     source_language: Optional[str] = "en"
 
 
+class AuthorStyleRequest(BaseModel):
+    """Rewrite the selected text in an author-/style-inspired voice.
+
+    `author` is a catalog key (see ai_service._AUTHOR_STYLES). The backend is the
+    safety authority: unknown or non-public-domain keys degrade to a generic,
+    copyright-safe literary influence — never a verbatim "imitate X" instruction.
+    """
+    story_id: Optional[str] = None
+    chapter_id: Optional[str] = None
+    text: str
+    author: str
+
+
+class AuthorStyleOption(BaseModel):
+    id: str
+    label: str
+    description: str
+    public_domain: bool
+    group: str  # "public_domain" | "generic"
+
+
+class AuthorStyleCatalog(BaseModel):
+    options: List[AuthorStyleOption]
+    note: str
+
+
 class TransformResponse(BaseModel):
     original: str
     transformed: str
     mode: str
     tokens_used: int
+
+
+# ── Copyright / Plagiarism Risk Detection ──────────────────────────────────────
+
+class CopyrightRiskRequest(BaseModel):
+    scope:      str = "selection"   # selection | chapter | project
+    text:       Optional[str] = None  # required for selection/chapter scope
+    chapter_id: Optional[str] = None  # informational
+
+
+class CopyrightRiskFinding(BaseModel):
+    finding_id:          int
+    risk_type:           str    # direct_text | plot | character | world_building |
+                                # scene | style_imitation | trope_overuse
+    risk_score:          str    # "high" | "medium" | "low"
+    description:         str    # why this may be risky
+    problematic_excerpt: str    # which part of the text is implicated ("" if N/A)
+    is_generic_trope:    bool   # True = generic trope, False = serious similarity
+    rewrite_suggestion:  str    # how to make it more original / reduce risk
+
+
+class CopyrightRiskResponse(BaseModel):
+    story_id:        str
+    scope:           str    # selection | chapter | project
+    units_analyzed:  int
+    overall_risk:    str    # "high" | "medium" | "low"
+    findings_count:  int
+    findings:        List[CopyrightRiskFinding]
+    note:            str
+    disclaimer:      str    # non-legal-advice framing, always present
 
 
 # ── OCR ───────────────────────────────────────────────────────────────────────

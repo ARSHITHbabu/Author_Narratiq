@@ -13,6 +13,7 @@ from models import Story, StoryIntake, GenreProfile
 from schemas import IntakeRequest, IntakeResponse, IntakeConfirm, GenreProfile as GenreProfileSchema
 from routers.auth import get_current_user, User
 from services.ai_service import detect_genre
+from exceptions import AIServiceUnavailableError
 
 logger = logging.getLogger(__name__)
 
@@ -32,13 +33,31 @@ async def analyze_story(
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
 
-    if len(data.description.strip()) < 20:
-        raise HTTPException(status_code=400, detail="Description must be at least 20 characters")
+    # ── Request validation (runs before any AI call) ──────────────────────────
+    description = (data.description or "").strip()
+    if len(description) < 20:
+        raise HTTPException(status_code=400, detail="Description must be at least 20 characters.")
+    if len(description) > 20000:
+        raise HTTPException(status_code=400, detail="Description is too long (max 20000 characters).")
 
     try:
-        result = await detect_genre(data.description, data.audience_hint)
+        result = await detect_genre(description, data.audience_hint)
+    except AIServiceUnavailableError:
+        # vLLM down / overloaded — distinct, actionable message (503).
+        raise HTTPException(
+            status_code=503,
+            detail="The AI model is temporarily unavailable. Please wait a moment and try again.",
+        )
     except ValueError as exc:
+        # Model produced unusable output even after guided-JSON + repair (503).
         raise HTTPException(status_code=503, detail=str(exc))
+    except Exception:
+        # Never leak an uncaught 500 / generic failure to the client.
+        logger.exception("[intake] unexpected error during genre detection for story=%s", story_id[:8])
+        raise HTTPException(
+            status_code=503,
+            detail="Genre detection could not be completed right now. Please try again.",
+        )
 
     intake = db.query(StoryIntake).filter(StoryIntake.story_id == story_id).first()
     if not intake:

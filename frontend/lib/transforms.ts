@@ -5,10 +5,30 @@
 // translate). Selection transforms go ONLY through these endpoints — never RAG,
 // plot assistant, story Q&A, or chapter summaries.
 
-import { Wand2, Palette, Heart, Users, Type, Globe, type LucideIcon } from 'lucide-react'
+import { Wand2, Palette, Heart, Users, Type, Globe, BookOpen, type LucideIcon } from 'lucide-react'
 import api from './api'
 
 export interface Opt { id: string; label: string; emoji?: string; desc?: string; age?: string }
+
+// Author/style influences. `group` separates public-domain named authors from
+// always-safe generic styles. The backend (ai_service._AUTHOR_STYLES) is the
+// safety authority — these ids must match its catalog keys. Living/in-copyright
+// authors are intentionally NOT offered as named imitation targets.
+export interface AuthorOpt extends Opt { publicDomain: boolean; group: 'public_domain' | 'generic' }
+export const AUTHOR_STYLES: AuthorOpt[] = [
+  { id: 'shakespeare', label: 'William Shakespeare', desc: 'Elizabethan, dramatic, poetic', publicDomain: true, group: 'public_domain' },
+  { id: 'austen',      label: 'Jane Austen',         desc: 'Witty, ironic, social',         publicDomain: true, group: 'public_domain' },
+  { id: 'dickens',     label: 'Charles Dickens',     desc: 'Vivid, characterful, warm',     publicDomain: true, group: 'public_domain' },
+  { id: 'poe',         label: 'Edgar Allan Poe',     desc: 'Gothic, intense, ornate',       publicDomain: true, group: 'public_domain' },
+  { id: 'bronte',      label: 'The Brontës',         desc: 'Passionate, moody, Romantic',   publicDomain: true, group: 'public_domain' },
+  { id: 'twain',       label: 'Mark Twain',          desc: 'Vernacular, dry, colloquial',   publicDomain: true, group: 'public_domain' },
+  { id: 'generic_poetic',     label: 'Poetic',         desc: 'Lyrical, musical, imagery',   publicDomain: true, group: 'generic' },
+  { id: 'generic_cinematic',  label: 'Cinematic',      desc: 'Visual, vivid, momentum',     publicDomain: true, group: 'generic' },
+  { id: 'generic_literary',   label: 'Literary',       desc: 'Layered, introspective',      publicDomain: true, group: 'generic' },
+  { id: 'generic_minimalist', label: 'Minimalist',     desc: 'Spare, understated',          publicDomain: true, group: 'generic' },
+  { id: 'generic_stream',     label: 'Stream of consciousness', desc: 'Fluid interior voice', publicDomain: true, group: 'generic' },
+  { id: 'generic_mystery',    label: 'Classic mystery', desc: 'Suspenseful, deductive',     publicDomain: true, group: 'generic' },
+]
 
 // Refine modes (TransformRequest.mode) — value sent verbatim.
 export const REFINE_MODES: Opt[] = [
@@ -68,7 +88,7 @@ export const LANGUAGES: string[] = [
   'Chinese (Simplified)', 'Russian', 'Arabic', 'Hindi', 'Tamil', 'Dutch', 'Polish',
 ]
 
-export type GroupId = 'refine' | 'tone' | 'emotion' | 'age_adapt' | 'style' | 'translate'
+export type GroupId = 'refine' | 'tone' | 'emotion' | 'age_adapt' | 'style' | 'translate' | 'author_style'
 
 export interface TransformGroup { id: GroupId; label: string; icon: LucideIcon; options: Opt[] }
 
@@ -79,6 +99,7 @@ export const TRANSFORM_GROUPS: TransformGroup[] = [
   { id: 'emotion', label: 'Emotion', icon: Heart, options: EMOTIONS },
   { id: 'age_adapt', label: 'Audience', icon: Users, options: AUDIENCES },
   { id: 'style', label: 'Style', icon: Type, options: STYLES },
+  { id: 'author_style', label: 'Author', icon: BookOpen, options: AUTHOR_STYLES },
   { id: 'translate', label: 'Translate', icon: Globe, options: LANGUAGES.map((l) => ({ id: l, label: l })) },
 ]
 
@@ -94,6 +115,7 @@ export function buildTransformCall(group: GroupId, value: string, text: string, 
     case 'emotion':   return { path: '/api/ai/emotion', body: { text, emotion: value.toLowerCase(), intensity, story_id: storyId } }
     case 'age_adapt': return { path: '/api/ai/age-adapt', body: { text, target_age: value, story_id: storyId } }
     case 'style':     return { path: '/api/ai/style', body: { text, style: value.toLowerCase(), story_id: storyId } }
+    case 'author_style': return { path: '/api/ai/author-style', body: { text, author: value, story_id: storyId, chapter_id: chapterId } }
     case 'translate': return { path: '/api/ai/translate', body: { text, target_language: value, story_id: storyId } }
   }
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  Wand2, Palette, Heart, Users, Type, Globe,
+  Wand2, Palette, Heart, Users, Type, Globe, BookOpen,
   Copy, Check, Loader2, X, ArrowDownToLine,
   Play, List, Sparkles,
 } from 'lucide-react'
@@ -11,7 +11,7 @@ import { TransformResponse, ContinuationSuggestion, OutlineBeat, GenreProfile } 
 import { toast } from 'sonner'
 // Shared transform option config — single source of truth (also powers the
 // Selection Toolbar). No duplicated option lists across components.
-import { TONES, EMOTIONS, STYLES, LANGUAGES, REFINE_MODES, AUDIENCES } from '@/lib/transforms'
+import { TONES, EMOTIONS, STYLES, LANGUAGES, REFINE_MODES, AUDIENCES, AUTHOR_STYLES } from '@/lib/transforms'
 import { deriveToolDefaults, NEUTRAL_DEFAULTS, hasGenreProfile } from '@/lib/genreDefaults'
 
 interface Props {
@@ -24,7 +24,7 @@ interface Props {
   genreProfile?: Partial<GenreProfile> | null
 }
 
-type TabId = 'refine' | 'tone' | 'emotion' | 'age' | 'style' | 'translate' | 'continue' | 'outline'
+type TabId = 'refine' | 'tone' | 'emotion' | 'age' | 'style' | 'author' | 'translate' | 'continue' | 'outline'
 
 const TABS = [
   { id: 'refine'    as TabId, label: 'Refine',    icon: Wand2    },
@@ -32,6 +32,7 @@ const TABS = [
   { id: 'emotion'   as TabId, label: 'Emotion',   icon: Heart    },
   { id: 'age'       as TabId, label: 'Audience',  icon: Users    },
   { id: 'style'     as TabId, label: 'Style',     icon: Type     },
+  { id: 'author'    as TabId, label: 'Author',    icon: BookOpen },
   { id: 'translate' as TabId, label: 'Translate', icon: Globe    },
   { id: 'continue'  as TabId, label: 'Continue',  icon: Play     },
   { id: 'outline'   as TabId, label: 'Outline',   icon: List     },
@@ -116,6 +117,7 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
   const [intensity, setIntensity] = useState('medium')
   const [selectedAge, setSelectedAge] = useState(NEUTRAL_DEFAULTS.age)
   const [selectedStyle, setSelectedStyle] = useState(NEUTRAL_DEFAULTS.style)
+  const [selectedAuthor, setSelectedAuthor] = useState(AUTHOR_STYLES[0].id)
   const [selectedLang, setSelectedLang] = useState('French')
   const [refineMode, setRefineMode] = useState('standard')
   const [hadSelection, setHadSelection] = useState(false)
@@ -207,6 +209,7 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
         case 'emotion': res = await aiApi.emotion(text, selectedEmotion.toLowerCase(), intensity, storyId); break
         case 'age': res = await aiApi.ageAdapt(text, selectedAge, storyId); break
         case 'style': res = await aiApi.style(text, selectedStyle.toLowerCase(), storyId); break
+        case 'author': res = await aiApi.authorStyle(text, selectedAuthor, storyId, chapterId); break
         case 'translate': res = await aiApi.translate(text, selectedLang, storyId); break
       }
       setResult(res?.data || null)
@@ -227,6 +230,7 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
       emotion:   `Apply ${selectedEmotion}`,
       age:       `Adapt for ${selectedAge === 'ya' ? 'YA' : selectedAge.charAt(0).toUpperCase() + selectedAge.slice(1)}`,
       style:     `Apply ${selectedStyle} Style`,
+      author:    `Rewrite in ${AUTHOR_STYLES.find(a => a.id === selectedAuthor)?.label ?? 'Author'} Style`,
       translate: `Translate to ${selectedLang}`,
       continue:  'Generate Continuations',
       outline:   'Generate Outline',
@@ -427,6 +431,52 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
                 <span className={`text-xs ${selectedStyle === s.id ? 'text-amber-400/70' : 'text-[#3d4466]'}`}>{s.desc}</span>
               </button>
             ))}
+          </div>
+        )}
+
+        {activeTab === 'author' && (
+          <div className="space-y-2">
+            <p className="text-xs text-[#5c6391]">Rewrite in a style <span className="text-amber-400/90">inspired by</span> an author — meaning, plot and characters preserved.</p>
+            <div className="flex items-start gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#1a1e36] border border-[#2e3454]">
+              <Sparkles className="w-3 h-3 text-amber-400 mt-0.5 flex-shrink-0" />
+              <p className="text-[10px] text-[#9da3c8] leading-relaxed">
+                Public-domain authors only. Modern styles use safe generic influences — never a copy.
+              </p>
+            </div>
+
+            <label className="text-[10px] text-[#5c6391] block pt-1">Public-domain authors</label>
+            {AUTHOR_STYLES.filter(a => a.group === 'public_domain').map((a) => (
+              <button
+                key={a.id}
+                onClick={() => setSelectedAuthor(a.id)}
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl border text-left transition-all ${
+                  selectedAuthor === a.id
+                    ? 'border-amber-500/50 bg-amber-500/10 text-amber-400'
+                    : 'border-[#1f2440] text-[#9da3c8] hover:border-[#2e3454] hover:bg-[#1a1e36]'
+                }`}
+              >
+                <span className="text-sm font-medium">{a.label}</span>
+                <span className={`text-[10px] ${selectedAuthor === a.id ? 'text-amber-400/70' : 'text-[#3d4466]'}`}>{a.desc}</span>
+              </button>
+            ))}
+
+            <label className="text-[10px] text-[#5c6391] block pt-2">Generic styles (always safe)</label>
+            <div className="grid grid-cols-2 gap-1.5">
+              {AUTHOR_STYLES.filter(a => a.group === 'generic').map((a) => (
+                <button
+                  key={a.id}
+                  onClick={() => setSelectedAuthor(a.id)}
+                  className={`px-3 py-2 rounded-xl border text-left transition-all ${
+                    selectedAuthor === a.id
+                      ? 'border-amber-500/50 bg-amber-500/10 text-amber-400'
+                      : 'border-[#1f2440] text-[#9da3c8] hover:border-[#2e3454] hover:bg-[#1a1e36]'
+                  }`}
+                >
+                  <div className="text-xs font-medium">{a.label}</div>
+                  <div className="text-[10px] text-[#3d4466] mt-0.5">{a.desc}</div>
+                </button>
+              ))}
+            </div>
           </div>
         )}
 

@@ -29,6 +29,7 @@ from routers import story_intel
 from routers import analysis, writing_tools, pacing, narrative_threads, story_bible, audio as audio_router
 from routers import voice_agent
 from routers import activity
+from routers import copyright_risk
 
 Base.metadata.create_all(bind=engine)
 run_db_migrations(engine)   # add new columns to existing tables
@@ -348,6 +349,8 @@ app.include_router(audio_router.router,      prefix="/api/stories")
 app.include_router(voice_agent.router,       prefix="/api/voice")
 # ── Global Activity Timeline ────────────────────────────────────────────────────
 app.include_router(activity.router,          prefix="/api/stories")
+# ── Copyright / Plagiarism Risk Detection ───────────────────────────────────────
+app.include_router(copyright_risk.router,    prefix="/api/stories")
 
 
 @app.get("/api/health")

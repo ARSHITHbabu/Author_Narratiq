@@ -6,7 +6,7 @@
 
 import dynamic from 'next/dynamic'
 import {
-  Activity, AlertTriangle, GitBranch, Palette, Copy, Heart, FileText, Sparkles,
+  Activity, AlertTriangle, GitBranch, Palette, Copy, Heart, FileText, Sparkles, ShieldAlert,
   type LucideIcon,
 } from 'lucide-react'
 import type { ComponentType } from 'react'
@@ -34,6 +34,7 @@ const DuplicateScenes = dynamic(() => import('@/components/analysis/DuplicateSce
 const NarrativeThreads = dynamic(() => import('@/components/analysis/NarrativeThreadsPanel'), { ssr: false })
 const PlotHoles = dynamic(() => import('@/components/plot-holes/PlotHolesPanel'), { ssr: false })
 const ManuscriptReport = dynamic(() => import('@/components/plot-holes/ManuscriptReportPanel'), { ssr: false })
+const CopyrightRisk = dynamic(() => import('@/components/analysis/CopyrightRiskPanel'), { ssr: false })
 
 // ── Analyze workspace panels (the 7 previously-buried analyses + report) ──────
 export const PANELS: PanelDef[] = [
@@ -58,6 +59,9 @@ export const PANELS: PanelDef[] = [
   { id: 'manuscript_report', title: 'Manuscript Report', icon: FileText, workspace: 'analyze', surface: 'page',
     category: 'analysis', needs: ['storyId'], component: ManuscriptReport,
     blurb: 'Full editorial report: arcs, pacing, threads, strengths, fixes.' },
+  { id: 'copyright_risk', title: 'Copyright Risk', icon: ShieldAlert, workspace: 'analyze', surface: 'page',
+    category: 'analysis', needs: ['storyId'], component: CopyrightRisk,
+    blurb: 'Plagiarism / copyright risk — text, plot, character, world and trope similarity.' },
 ]
 
 export function panelsForWorkspace(ws: WorkspaceId): PanelDef[] {

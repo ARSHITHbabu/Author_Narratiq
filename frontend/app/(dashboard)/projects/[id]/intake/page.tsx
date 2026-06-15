@@ -167,8 +167,18 @@ export default function StoryIntakePage({ params }: { params: { id: string } }) 
       const res = await intakeApi.analyze(storyId, description, audienceHint || undefined)
       setResult(res.data)
       setOverrides({})
-    } catch {
-      toast.error('Analysis failed. Please try again.')
+    } catch (err: any) {
+      // Surface the backend's meaningful message (validation 400 / AI 503).
+      // `detail` is a string for our HTTPExceptions; tolerate FastAPI's array
+      // shape too, and fall back only when nothing useful is available.
+      const detail = err?.response?.data?.detail
+      const message =
+        typeof detail === 'string'
+          ? detail
+          : Array.isArray(detail)
+            ? (detail[0]?.msg ?? 'Analysis failed. Please try again.')
+            : 'Analysis failed. Please try again.'
+      toast.error(message)
     } finally {
       setAnalyzing(false)
     }
