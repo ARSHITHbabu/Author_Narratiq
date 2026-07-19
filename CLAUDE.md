@@ -22,9 +22,12 @@ cd backend && python3 -m uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1
 # Frontend
 cd frontend && npm run dev
 
-# Frontend environment (RunPod proxy URL)
+# Frontend environment (RunPod proxy URL) — written automatically by start-narratiq.sh.
+# NEXT_PUBLIC_API_URL is inlined at BUILD time; changing it requires `npm run build`.
 echo 'NEXT_PUBLIC_API_URL=https://{POD_ID}-8000.proxy.runpod.net' > frontend/.env.local
 ```
+
+**Environment variables:** `start-narratiq.sh` generates everything mandatory. At most two are worth setting in the RunPod UI (`SECRET_KEY`, `HF_TOKEN`), and several stale ones actively break the app. Full analysis — precedence, generated values, obsolete variables, recovery workflow — in [`docs/RUNPOD_ENVIRONMENT_VARIABLE_RECOVERY.md`](docs/RUNPOD_ENVIRONMENT_VARIABLE_RECOVERY.md).
 
 ## Health & Logs
 
@@ -43,7 +46,9 @@ curl -X POST http://localhost:8000/api/stories/{id}/chapters/sync-summaries \
 
 **Three-service stack:** vLLM (port 9001) → FastAPI backend (port 8000) → Next.js 14 frontend (port 3000).
 
-**Backend startup sequence:** BGE-M3 loaded synchronously via `get_bge()` → vLLM health check → warmup request → ready. Backend will refuse to start if vLLM is unreachable.
+**Backend startup sequence** (`main.py` `lifespan`): orphan-job recovery → upload dirs → model paths validated → BGE-M3 loaded synchronously via `get_bge()` → voice capability index → pgvector self-check → vLLM health check → warmup request → ready.
+
+Only two conditions are hard failures (`RuntimeError`): **missing model weights** (`main.py:178-186`) and a **broken pgvector query path** (`main.py:221-226`). If vLLM is unreachable the backend logs a warning, sets `app.state.llm_ready = False` and **continues in degraded mode** (`main.py:235-241`) — `/api/health` reports `"vllm": "unavailable"` and AI endpoints return 503.
 
 **AI text generation:** All LLM calls go through `_complete()` / `_stream_generate()` in `backend/services/ai_service.py` via the OpenAI-compatible vLLM endpoint. Model: `Qwen2.5-7B-Instruct`.
 
@@ -72,17 +77,16 @@ The pod has 2× NVIDIA RTX PRO 4500 Blackwell (sm_120) GPUs. These require:
 |------|---------|
 | `backend/services/ai_service.py` | All LLM + BGE-M3 calls; `_complete()`, `_stream_generate()`, `get_bge()` |
 | `backend/services/audio_service.py` | faster-whisper transcription + Qwen transcript cleanup |
-| `backend/routers/characters.py` | Character CRUD + relationship graph endpoints |
 | `backend/routers/audio.py` | Phase 2: audio upload → faster-whisper → Qwen cleanup → note append |
 | `backend/routers/story_bible.py` | Phase 2: 5-section story bible generation via Qwen; DOCX export |
 | `backend/routers/analysis.py` | Phase 2: emotional arc, duplicate scenes, style drift, continuity |
-| `backend/routers/voice.py` | Phase 2: character voice consistency check via BGE-M3 cosine |
-| `backend/routers/continuation.py` | Phase 2: chapter continuation suggestions (3 options) |
-| `backend/routers/outline.py` | Phase 2: chapter outline / beat sheet generation |
+| `backend/routers/writing_tools.py` | Phase 2: chapter continuation (`:61`) **and** outline / beat sheet (`:145`) — there is no `continuation.py` or `outline.py` |
+| `backend/routers/characters.py` | Character CRUD, relationships, **and** voice consistency via `check_dialogue_consistency` (`:1197,:1293`) — there is no `voice.py` |
+| `backend/routers/voice_agent.py` | Real-time voice agent (WS + REST). **Different feature** from the P2-05 dialogue checker above — do not confuse the two |
 | `backend/routers/pacing.py` | Phase 2: pacing goal setting + chapter progress tracking |
 | `backend/models.py` | SQLAlchemy ORM models (full schema) |
 | `backend/schemas.py` | Pydantic request/response schemas |
-| `backend/config.py` | Settings loaded from `.env` via pydantic-settings; `vllm_base_url` defaults to port 8001 but the running instance uses **9001** |
+| `backend/config.py` | Settings loaded from `.env` via pydantic-settings (56 fields). `vllm_base_url` defaults to **9001**, matching `start-narratiq.sh`. `secret_key` is the only field with no default |
 | `frontend/lib/api.ts` | Typed API client wrappers; JWT interceptor |
 | `frontend/lib/types.ts` | TypeScript interfaces for all domain objects |
 | `frontend/app/(dashboard)/projects/[id]/page.tsx` | 3-column editor layout; all 10 right panels lazy-loaded via `next/dynamic` |
@@ -114,11 +118,18 @@ The pod has 2× NVIDIA RTX PRO 4500 Blackwell (sm_120) GPUs. These require:
 
 ## Phase 2 Migrations (Alembic)
 
-Migration chain: `0001 → 0002 → 0007 → 0008 → 0009 → 0010 → 0011`
-- `0008` — adds `story_bibles` table
-- `0009` — adds `audio_uploads` table  
-- `0010` — adds `pacing_goals` table
-- `0011` — any subsequent Phase 2 schema additions
+Current chain (15 migrations): `0001 → 0002 → 0007 → 0008 → 0009 → 0010 → 0011 → 0012 → 0013 → 0014 → 0015`
+
+Revisions `0003`–`0006` were never created. The chain is unbroken — `0007` sets `down_revision = "0002"` — but the numbering gap looks like missing files when auditing.
+
+- `0008` — `story_bibles`
+- `0009` — `narrative_threads`
+- `0010` — `pacing_goals`
+- `0011` — `audio_uploads`
+- `0012` — voice agent tables
+- `0013` — `activity_events`
+- `0014` — story intake analysis
+- `0015` — story bible status
 
 All migrations are idempotent and reversible. Always use `alembic revision --autogenerate` for new schema changes — never raw `ALTER TABLE`.
 
@@ -197,7 +208,7 @@ Bundle sizes after lazy loading:
 
 ### Rate Limiting Architecture
 
-- **slowapi** wraps `limits` library — in-memory by default, Redis-upgradeable via `SLOWAPI_STORAGE_URI`
+- **slowapi** wraps the `limits` library. **Storage is unconditionally in-memory** — `middleware/rate_limit.py:67` constructs `Limiter(key_func=get_remote_address)` with no `storage_uri`. `SLOWAPI_STORAGE_URI` is named in comments but **read by nothing**; setting it has no effect. In-memory storage is also per-process, so limits are not shared across uvicorn workers
 - Auth endpoints: per-IP (no JWT required at login time)
 - All AI and upload endpoints: per-user JWT `sub` claim, falls back to IP if token absent/invalid
 - Global handler: `RateLimitExceeded` → HTTP 429 with `Retry-After` header
@@ -233,12 +244,20 @@ Phase B (future): HttpOnly cookie migration requires frontend auth flow changes.
 
 ### Migration Notes
 
-- **Redis**: Set `SLOWAPI_STORAGE_URI=redis://...` to move rate limits from in-memory to Redis with zero code changes
+- **Redis**: moving rate limits to Redis **requires a code change** — pass `storage_uri=` to the `Limiter` at `middleware/rate_limit.py:67`. Earlier revisions of this file claimed `SLOWAPI_STORAGE_URI` did this with zero code changes; that was never true
 - **Celery**: Replace `asyncio.create_task()` calls with Celery `.delay()` — semaphore guards can be replaced with Celery worker concurrency limits
 - **S3/R2**: Change `UPLOAD_DIR_AUDIO` and `UPLOAD_DIR_OCR` env vars to bucket prefixes; swap `open()` calls for boto3 client
 
 ## Config Gotchas
 
-`config.py` `vllm_base_url` defaults to `http://127.0.0.1:8001/v1` but the actual vLLM process listens on **9001**. The `.env` file must set `VLLM_BASE_URL=http://127.0.0.1:9001/v1` or the backend will target the wrong port.
+**vLLM port.** `config.py:59` defaults to `http://127.0.0.1:9001/v1`, matching `start-narratiq.sh:17`. The default moved from 8001 to 9001 in commit `b0f64be`; earlier revisions of this file said otherwise. **You do not need to set `VLLM_BASE_URL`.**
+
+Two legacy files still reference the old port and are superseded: `start.sh:25` and `scripts/verify_runpod_setup.sh:14` (the latter reports a false failure against a working 9001 stack — override with `VLLM_PORT=9001`). This contradiction is documented, not fixed; see `docs/RUNPOD_ENVIRONMENT_VARIABLE_RECOVERY.md` §10.
+
+**Environment precedence.** `pydantic-settings` resolves `OS env vars > backend/.env > field defaults`. `start-narratiq.sh` force-overwrites `DATABASE_URL`, `VLLM_BASE_URL`, `VLLM_MODEL_NAME` and `CORS_ORIGINS` in `backend/.env` on every run, but **a value left in the RunPod UI silently overrides all of them** for any manually started backend. A stale `VLLM_BASE_URL=…:8001/v1` is the classic cause of "healthy backend, every AI call 503".
+
+**`.env` path is relative.** `config.py:238` sets `env_file: ".env"`, resolved against the current working directory — always start the backend from `backend/`.
+
+**`extra="forbid"`.** `Settings` rejects any `.env` key that is not a declared field, with a non-empty value, at import time. Adding a key to `backend/.env` without adding the field to `config.py` will prevent the backend from starting.
 
 `SECRET_KEY` is a **required** env var with no default. The backend refuses to start without it (validator rejects keys shorter than 32 chars). `start-narratiq.sh` auto-generates one into `backend/.env` on first run if absent. To generate manually: `python3 -c "import secrets; print(secrets.token_hex(32))"`. JWT tokens are signed with this key — changing it invalidates all active sessions.

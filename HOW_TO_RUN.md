@@ -1,72 +1,89 @@
-# NarratIQ AI v3.0 — How to Run the Project
+# NarratIQ AI v3.0 — How to Run
 
-Every time you start the RunPod pod, follow these steps in order.
-Open **3 separate terminals** on RunPod (use Jupyter → Terminal, or the RunPod terminal tab).
+**Short version:** one command, `bash start-narratiq.sh`. Everything below is detail.
 
----
-
-## Before You Start — Get Your RunPod Public URL
-
-When you open RunPod, you will see a **Connect** button on your pod.
-Click it and note your pod's public proxy URL. It looks like:
-
-```
-https://abc123xyz-8000.proxy.runpod.net     ← Backend URL
-https://abc123xyz-3000.proxy.runpod.net     ← Frontend URL
-```
-
-The `abc123xyz` part is your **Pod ID** — it changes each time you create a new pod
-but stays the same if you stop/start the same pod.
+For RunPod environment variables, see
+**[`docs/RUNPOD_ENVIRONMENT_VARIABLE_RECOVERY.md`](docs/RUNPOD_ENVIRONMENT_VARIABLE_RECOVERY.md)**.
+For pod creation and troubleshooting, see [`RUNPOD_DEPLOYMENT.md`](RUNPOD_DEPLOYMENT.md).
 
 ---
 
-## OPTION A — One Command (Easiest)
+## Before you start
 
-Open **1 terminal** on RunPod and run:
+### Repository path is fixed
+
+`start-narratiq.sh:14-15` hardcodes `/workspace/narratiq-ai`. Clone there, or symlink:
 
 ```bash
-bash /workspace/narratiq-ai/start-narratiq.sh
+ln -s /workspace/Author_Narratiq /workspace/narratiq-ai
+ls /workspace/narratiq-ai/start-narratiq.sh   # must exist
 ```
 
-This does everything automatically:
-- Starts vLLM (waits 1–3 min for model to load)
-- Starts FastAPI backend
-- Builds and starts the Next.js frontend
+### Environment variables
 
-Then open in your browser:
-```
-https://{YOUR_POD_ID}-3000.proxy.runpod.net
+You need **none**. The script generates everything mandatory. Two are worth setting in the RunPod UI:
+
+```env
+SECRET_KEY=replace_with_64_hex_chars    # keeps logins working across a re-clone
+HF_TOKEN=hf_your_token_here             # raises HF download rate limits
 ```
 
-Done. Skip to the **Verify Everything is Working** section below.
+> **Returning to an old pod?** Delete any `VLLM_BASE_URL` still set in the RunPod UI. An older guide
+> told you to set port 8001; vLLM now runs on **9001**, and the stale value silently overrides the
+> correct one whenever the backend is started manually.
+
+### Your RunPod URLs
+
+Click **Connect** on the pod. Your URLs are:
+
+```
+https://{POD_ID}-3000.proxy.runpod.net     ← Frontend (open this)
+https://{POD_ID}-8000.proxy.runpod.net     ← Backend API
+```
+
+`{POD_ID}` changes when you create a new pod, but is stable across stop/start of the same pod.
+The startup script reads `RUNPOD_POD_ID` and wires both URLs automatically.
 
 ---
 
-## OPTION B — Manual Step-by-Step (3 Terminals)
+## Option A — One command (recommended)
 
-Use this if you want to see each service's logs separately,
-or if the startup script fails for any reason.
+```bash
+cd /workspace/narratiq-ai
+bash start-narratiq.sh
+```
+
+| | |
+|---|---|
+| First run | 20–40 min (dependencies + ~17 GB of models) |
+| Later runs | 3–5 min |
+
+Safe to rerun — every step is idempotent. It installs dependencies, downloads missing models,
+configures PostgreSQL + pgvector, runs migrations, and starts all three services.
+
+When it finishes it prints your frontend URL. Skip to
+[Verify everything is working](#verify-everything-is-working).
 
 ---
 
-### TERMINAL 1 — Start vLLM (the AI brain)
+## Option B — Manual, three terminals
 
-Open Terminal 1 on RunPod and run:
+Use this to see each service's logs separately, or when the script fails at a specific step.
+Run Option A at least once first — it installs PostgreSQL, the Python packages and the models,
+none of which the steps below do.
+
+### Terminal 1 — vLLM
 
 ```bash
 cd /workspace/narratiq-ai/backend
-```
 
-Then run this to start vLLM (this takes **1–3 minutes** to load the model):
-
-```bash
 python3 -m vllm.entrypoints.openai.api_server \
   --model /workspace/models/Qwen2.5-7B-Instruct \
   --served-model-name "Qwen/Qwen2.5-7B-Instruct" \
   --dtype auto \
-  --gpu-memory-utilization 0.90 \
-  --tensor-parallel-size 2 \
-  --max-model-len 16384 \
+  --gpu-memory-utilization 0.88 \
+  --tensor-parallel-size 1 \
+  --max-model-len 8192 \
   --max-num-seqs 256 \
   --enable-chunked-prefill \
   --enable-prefix-caching \
@@ -75,209 +92,218 @@ python3 -m vllm.entrypoints.openai.api_server \
   --disable-log-requests
 ```
 
-**Wait until you see this line in Terminal 1:**
+Wait for:
 ```
 INFO:     Uvicorn running on http://0.0.0.0:9001
 ```
 
-> **Note:** If you only have 1 GPU (not 2), change `--tensor-parallel-size 2` to `--tensor-parallel-size 1`
-> and `--max-model-len 16384` to `--max-model-len 8192`
+Loading takes 2–4 minutes. Adjust for your GPU count — Qwen2.5-7B has 4 KV heads, so
+`--tensor-parallel-size` must be **1, 2 or 4** (never 3):
 
----
+| GPUs | `--tensor-parallel-size` | `--max-model-len` | `--gpu-memory-utilization` |
+|---|---|---|---|
+| 1 | 1 | 8192 | 0.88 |
+| 2–3 | 2 | 16384 | 0.90 |
+| 4+ | 4 | 32768 | 0.90 |
 
-### TERMINAL 2 — Start the Backend (FastAPI)
+### Terminal 2 — PostgreSQL and the backend
 
-Open a **new** Terminal 2 on RunPod (keep Terminal 1 running).
+PostgreSQL must be running with the `narratiq` database and the `vector` extension.
+`start-narratiq.sh` sets this up; to start it manually:
 
 ```bash
-cd /workspace/narratiq-ai/backend
+pg_ctlcluster 16 main start || service postgresql start
+pg_isready -h localhost -U postgres     # expect "accepting connections"
 ```
 
+Then:
+
 ```bash
+cd /workspace/narratiq-ai/backend      # ← REQUIRED, see note below
+python3 -m alembic upgrade head
 python3 -m uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1 --no-access-log
 ```
 
-**Wait until you see:**
+Wait for:
 ```
-NarratIQ ready.
+[startup] NarratIQ ready
 INFO:     Uvicorn running on http://0.0.0.0:8000
 ```
 
-> The backend loads BGE-M3 embeddings model at startup — takes about 5–10 seconds.
+> **You must `cd backend` first.** `config.py` reads `./.env` relative to the current working
+> directory. Started from anywhere else, `backend/.env` is silently ignored, `SECRET_KEY` is unset,
+> and startup fails with `ValidationError: SECRET_KEY must be at least 32 characters`.
 
----
+Startup takes 30–60 s — BGE-M3 loads into memory, then a pgvector self-check runs, then vLLM is
+probed. Two of those are hard failures:
 
-### TERMINAL 3 — Start the Frontend (Next.js)
+| Condition | Behaviour |
+|---|---|
+| Model weights missing | **Hard fail** — `RuntimeError` |
+| pgvector query path broken | **Hard fail** — `RuntimeError` |
+| vLLM unreachable | **Warning only** — backend starts, all AI returns 503 |
 
-Open a **new** Terminal 3 on RunPod (keep Terminals 1 and 2 running).
+### Terminal 3 — Frontend
 
-**Step 1 — Go to the frontend folder:**
 ```bash
 cd /workspace/narratiq-ai/frontend
-```
 
-**Step 2 — Set the backend URL** (replace `abc123xyz` with YOUR actual Pod ID):
-```bash
+# On RunPod (substitute your pod ID):
 echo 'NEXT_PUBLIC_API_URL=https://abc123xyz-8000.proxy.runpod.net' > .env.local
-```
+# Locally:
+# echo 'NEXT_PUBLIC_API_URL=http://localhost:8000' > .env.local
 
-> **Important:** Do this step every time if your Pod ID changes.
-> To find your Pod ID: look at the RunPod dashboard URL or the proxy URL in Connect tab.
-
-**Step 3 — Start the frontend:**
-```bash
 npm run dev
 ```
 
-**Wait until you see:**
+Wait for:
 ```
-▲ Next.js 13.x.x
+▲ Next.js 14.2.3
 - Local:   http://localhost:3000
 Ready in Xs
 ```
 
-**Step 4 — Open in your browser:**
-```
-https://{YOUR_POD_ID}-3000.proxy.runpod.net
-```
+Then open `https://{POD_ID}-3000.proxy.runpod.net`.
+
+> `NEXT_PUBLIC_API_URL` is inlined into the JS bundle at **build** time. After changing it, run
+> `npm run build` again — a restart alone will not pick it up. If the variable is also set in the
+> RunPod UI it overrides `.env.local` entirely; delete it there.
 
 ---
 
-## OPTION C — Run Frontend on Your Local Machine
-
-If you prefer to run the frontend on your laptop (not on RunPod):
-
-**On your local machine**, go to the frontend folder you already have:
+## Option C — Frontend on your local machine
 
 ```bash
 cd path/to/narratiq-ai/frontend
-```
-
-Open the file `.env.local` in a text editor and make sure it has:
-```
-NEXT_PUBLIC_API_URL=https://{YOUR_POD_ID}-8000.proxy.runpod.net
-```
-
-Replace `{YOUR_POD_ID}` with your actual RunPod pod ID.
-
-Then run:
-```bash
+echo 'NEXT_PUBLIC_API_URL=https://{POD_ID}-8000.proxy.runpod.net' > .env.local
 npm run dev
 ```
 
-Open in browser: `http://localhost:3000`
+Open `http://localhost:3000`. CORS already permits any `https://*.proxy.runpod.net` origin, and
+`http://localhost:3000` is in the default allow-list.
 
 ---
 
-## Verify Everything is Working
-
-After all three services are up, open a new terminal and run:
+## Verify everything is working
 
 ```bash
-curl http://localhost:8000/api/health
+curl -s http://localhost:8000/api/health | python3 -m json.tool
 ```
 
-You should see:
+Expected:
 ```json
 {
   "status": "ok",
   "vllm": "ready",
-  "bge_m3": "ready"
+  "bge_m3": "ready",
+  "got_ocr": "lazy"
 }
 ```
 
-If `vllm` shows `"unavailable"`, vLLM is still loading — wait another minute and try again.
+- `"vllm": "unavailable"` — vLLM is still loading, or the backend is pointed at the wrong port.
+  Check `curl http://localhost:9001/health`, then confirm what the backend resolved:
+  ```bash
+  cd /workspace/narratiq-ai/backend
+  python3 -c "from config import settings; print(settings.vllm_base_url)"
+  ```
+  Anything other than `http://127.0.0.1:9001/v1` means a stale `VLLM_BASE_URL` is overriding
+  `backend/.env` — almost always a leftover in the RunPod UI.
+- `"bge_m3": "loading"` — still initialising; wait a few seconds.
 
 ---
 
-## First Time Using a New Story
+## Indexing existing chapters
 
-When you write chapters in the editor, they are **automatically indexed** in the background
-(summary + embeddings are generated 1.5 seconds after you stop typing).
+Chapters you write are indexed automatically 1.5 s after you stop typing (summary + embeddings).
 
-If you have existing chapters from before and Plot Assistant shows "no prior context",
-run this once to index them. Open a terminal and run:
+If Plot Assistant reports "no prior context" for chapters that predate indexing, backfill once:
 
 ```bash
-cd /workspace/narratiq-ai/backend
-
-# Get a login token first (replace with your actual email and password):
 TOKEN=$(curl -s -X POST http://localhost:8000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"your@email.com","password":"yourpassword"}' \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
 
-# Replace YOUR_STORY_ID with the story ID from the URL when you open a story:
 curl -s -X POST "http://localhost:8000/api/stories/YOUR_STORY_ID/chapters/sync-summaries" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-Wait about 15–30 seconds per chapter, then Plot Assistant will have full context.
+Allow 15–30 s per chapter. The story ID is in the URL when you open a story.
 
 ---
 
-## Quick Reference — Service Ports
+## Reference
 
-| Service | Port | URL |
-|---------|------|-----|
-| vLLM (Qwen) | 9001 | `http://localhost:9001/v1` |
-| FastAPI Backend | 8000 | `http://localhost:8000` |
-| Next.js Frontend | 3000 | `http://localhost:3000` |
+### Service ports
 
-## Quick Reference — Log Files (when using startup script)
+| Service | Port | URL | Exposed on RunPod? |
+|---|---|---|---|
+| vLLM (Qwen2.5-7B) | 9001 | `http://localhost:9001/v1` | No — internal |
+| FastAPI backend | 8000 | `http://localhost:8000` | Yes |
+| Next.js frontend | 3000 | `http://localhost:3000` | Yes |
+| PostgreSQL | 5432 | `localhost:5432` | No — internal |
 
-| Service | Log file |
-|---------|----------|
+> The legacy `start.sh` and `scripts/verify_runpod_setup.sh` still default vLLM to **8001**.
+> They are superseded by `start-narratiq.sh`. See `RUNPOD_DEPLOYMENT.md` → Port contradiction.
+
+### Log files
+
+| Service | Log |
+|---|---|
 | vLLM | `tail -f /tmp/narratiq-logs/vllm.log` |
 | Backend | `tail -f /tmp/narratiq-logs/backend.log` |
 | Frontend | `tail -f /tmp/narratiq-logs/frontend.log` |
+| Installs | `/tmp/narratiq-logs/pip-*.log`, `npm-install.log`, `pg-install.log` |
 
 ---
 
-## Common Problems & Fixes
+## Common problems
 
-**Problem: vLLM takes too long or fails to start**
+**vLLM will not start**
 ```bash
-# Check what GPU you have:
-nvidia-smi
+nvidia-smi                                    # confirm the GPU is visible
+tail -50 /tmp/narratiq-logs/vllm.log
+rm -rf ~/.cache/vllm/torch_compile_cache      # clear after a failed run on different hardware
+```
+With one GPU use `--tensor-parallel-size 1 --max-model-len 8192`.
 
-# If only 1 GPU, use tensor-parallel-size 1:
---tensor-parallel-size 1 --max-model-len 8192
+**`SECRET_KEY must be at least 32 characters`**
+You started the backend from the wrong directory, or `backend/.env` is missing. `cd backend` first.
+The script regenerates the file if absent.
+
+**`Extra inputs are not permitted`**
+`backend/.env` contains a key that is not a `Settings` field — `pydantic-settings` uses
+`extra="forbid"`. The error names the key; delete that line. Historically caused by copying an old
+`.env.example` containing `TROCR_MODEL_ID`.
+
+**`pgvector query path self-check FAILED`**
+PostgreSQL is not running, or `DATABASE_URL` points at SQLite, or the `vector` extension is missing:
+```bash
+runuser -u postgres -- psql -d narratiq -c "CREATE EXTENSION IF NOT EXISTS vector;"
 ```
 
-**Problem: Frontend shows "Plot assistant failed"**
+**Frontend cannot reach the backend**
+Rebuild after any `NEXT_PUBLIC_API_URL` change, and make sure it is not also set in the RunPod UI:
 ```bash
-# Check if backend is running:
-curl http://localhost:8000/api/health
-
-# If vllm shows "unavailable", vLLM is still loading. Wait and retry.
-```
-
-**Problem: "NEXT_PUBLIC_API_URL" wrong / API calls failing from browser**
-```bash
-# Re-set the backend URL with your current pod ID and rebuild:
 cd /workspace/narratiq-ai/frontend
-echo 'NEXT_PUBLIC_API_URL=https://YOUR_POD_ID-8000.proxy.runpod.net' > .env.local
-npm run build
-npm start -- --port 3000
+echo "NEXT_PUBLIC_API_URL=https://${RUNPOD_POD_ID}-8000.proxy.runpod.net" > .env.local
+npm run build && npm start -- --port 3000
 ```
 
-**Problem: Port 9001 or 8000 already in use**
+**Port already in use**
 ```bash
-# Kill old processes:
 pkill -f "vllm.entrypoints.openai.api_server"
 pkill -f "uvicorn main:app"
-# Then start them again
+fuser -k 3000/tcp
 ```
 
 ---
 
-## Summary — Fastest Way to Start
+## Fastest path
 
 ```
-1. Open RunPod → open 1 terminal
-2. Run: bash /workspace/narratiq-ai/start-narratiq.sh
-3. Wait 2-3 minutes for model to load
-4. Open browser: https://{YOUR_POD_ID}-3000.proxy.runpod.net
-5. Done ✓
+1. Open the RunPod terminal
+2. bash /workspace/narratiq-ai/start-narratiq.sh
+3. Wait (first run 20-40 min; later runs 3-5 min)
+4. Open https://{POD_ID}-3000.proxy.runpod.net
 ```
