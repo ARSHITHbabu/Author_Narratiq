@@ -2,7 +2,7 @@
 
 **Authoritative startup path:** `bash start-narratiq.sh`.
 For which environment variables to enter in the RunPod UI, see
-**[`docs/RUNPOD_ENVIRONMENT_VARIABLE_RECOVERY.md`](docs/RUNPOD_ENVIRONMENT_VARIABLE_RECOVERY.md)**.
+**[`docs/operations/runpod-environment-variables.md`](runpod-environment-variables.md)**.
 
 ---
 
@@ -104,7 +104,7 @@ Both are **optional**. A pod with no environment variables at all will start cor
 > Earlier versions of this guide told you to set `http://127.0.0.1:8001/v1`. Because OS environment
 > variables take precedence over `backend/.env`, that stale value silently overrides the correct one
 > whenever the backend is started by hand — the app appears healthy while every AI call returns 503.
-> Full explanation: [`docs/RUNPOD_ENVIRONMENT_VARIABLE_RECOVERY.md`](docs/RUNPOD_ENVIRONMENT_VARIABLE_RECOVERY.md) §1.2.
+> Full explanation: [`docs/operations/runpod-environment-variables.md`](runpod-environment-variables.md) §1.2.
 
 ### 3. Open the Workspace and Clone
 
@@ -346,4 +346,4 @@ curl -X POST http://localhost:8000/api/stories/{id}/chapters/sync-summaries \
 
 *This guide describes the repository at commit `9827587`. It has not been validated against a running
 pod; see the uncertainties section of
-[`docs/RUNPOD_ENVIRONMENT_VARIABLE_RECOVERY.md`](docs/RUNPOD_ENVIRONMENT_VARIABLE_RECOVERY.md).*
+[`docs/operations/runpod-environment-variables.md`](runpod-environment-variables.md).*

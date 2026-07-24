@@ -3,8 +3,8 @@
 **Short version:** one command, `bash start-narratiq.sh`. Everything below is detail.
 
 For RunPod environment variables, see
-**[`docs/RUNPOD_ENVIRONMENT_VARIABLE_RECOVERY.md`](docs/RUNPOD_ENVIRONMENT_VARIABLE_RECOVERY.md)**.
-For pod creation and troubleshooting, see [`RUNPOD_DEPLOYMENT.md`](RUNPOD_DEPLOYMENT.md).
+**[`docs/operations/runpod-environment-variables.md`](runpod-environment-variables.md)**.
+For pod creation and troubleshooting, see [`docs/operations/runpod-deployment.md`](runpod-deployment.md).
 
 ---
 
@@ -244,7 +244,7 @@ Allow 15–30 s per chapter. The story ID is in the URL when you open a story.
 | PostgreSQL | 5432 | `localhost:5432` | No — internal |
 
 > The legacy `start.sh` and `scripts/verify_runpod_setup.sh` still default vLLM to **8001**.
-> They are superseded by `start-narratiq.sh`. See `RUNPOD_DEPLOYMENT.md` → Port contradiction.
+> They are superseded by `start-narratiq.sh`. See `docs/operations/runpod-deployment.md` → Port contradiction.
 
 ### Log files
 

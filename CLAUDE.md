@@ -27,7 +27,7 @@ cd frontend && npm run dev
 echo 'NEXT_PUBLIC_API_URL=https://{POD_ID}-8000.proxy.runpod.net' > frontend/.env.local
 ```
 
-**Environment variables:** `start-narratiq.sh` generates everything mandatory. At most two are worth setting in the RunPod UI (`SECRET_KEY`, `HF_TOKEN`), and several stale ones actively break the app. Full analysis — precedence, generated values, obsolete variables, recovery workflow — in [`docs/RUNPOD_ENVIRONMENT_VARIABLE_RECOVERY.md`](docs/RUNPOD_ENVIRONMENT_VARIABLE_RECOVERY.md).
+**Environment variables:** `start-narratiq.sh` generates everything mandatory. At most two are worth setting in the RunPod UI (`SECRET_KEY`, `HF_TOKEN`), and several stale ones actively break the app. Full analysis — precedence, generated values, obsolete variables, recovery workflow — in [`docs/operations/runpod-environment-variables.md`](docs/operations/runpod-environment-variables.md).
 
 ## Health & Logs
 
@@ -252,7 +252,7 @@ Phase B (future): HttpOnly cookie migration requires frontend auth flow changes.
 
 **vLLM port.** `config.py:59` defaults to `http://127.0.0.1:9001/v1`, matching `start-narratiq.sh:17`. The default moved from 8001 to 9001 in commit `b0f64be`; earlier revisions of this file said otherwise. **You do not need to set `VLLM_BASE_URL`.**
 
-Two legacy files still reference the old port and are superseded: `start.sh:25` and `scripts/verify_runpod_setup.sh:14` (the latter reports a false failure against a working 9001 stack — override with `VLLM_PORT=9001`). This contradiction is documented, not fixed; see `docs/RUNPOD_ENVIRONMENT_VARIABLE_RECOVERY.md` §10.
+Two legacy files still reference the old port and are superseded: `start.sh:25` and `scripts/verify_runpod_setup.sh:14` (the latter reports a false failure against a working 9001 stack — override with `VLLM_PORT=9001`). This contradiction is documented, not fixed; see `docs/operations/runpod-environment-variables.md` §10.
 
 **Environment precedence.** `pydantic-settings` resolves `OS env vars > backend/.env > field defaults`. `start-narratiq.sh` force-overwrites `DATABASE_URL`, `VLLM_BASE_URL`, `VLLM_MODEL_NAME` and `CORS_ORIGINS` in `backend/.env` on every run, but **a value left in the RunPod UI silently overrides all of them** for any manually started backend. A stale `VLLM_BASE_URL=…:8001/v1` is the classic cause of "healthy backend, every AI call 503".
 

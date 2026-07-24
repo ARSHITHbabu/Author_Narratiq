@@ -6,7 +6,7 @@ All production changes are documented here in reverse chronological order.
 
 ## Unreleased — Author-Inspired Style Rewrite & Copyright/Plagiarism Risk Detection
 
-Design + implementation reference: `docs/additional_features_author_style_and_copyright_analysis.md`
+Design + implementation reference: `docs/specifications/author-style-and-copyright-risk-features.md`
 
 ### Feature 1 — Author-Inspired Style Rewrite (selection transform)
 - New `/api/ai/author-style` (+ `/stream`) and read-only `/api/ai/author-styles`
@@ -42,7 +42,7 @@ No DB migrations required. No new required env vars.
 **Production architecture completion. All 14 roadmap tasks implemented. Zero remaining placeholders.**
 
 The authoritative architecture reference for this release is:
-`NarratIQ_AI_Production_Implementation_Report.docx`
+`docs/phases/phase-1-completed/phase-1-production-implementation-report.docx`
 
 ---
 
@@ -279,6 +279,6 @@ The authoritative architecture reference for this release is:
 
 The single authoritative architecture document for this release:
 
-**`NarratIQ_AI_Production_Implementation_Report.docx`** (project root)
+**`docs/phases/phase-1-completed/phase-1-production-implementation-report.docx`**
 
 Covers: full architecture, all 19 database tables, all 17 completed features, API summary (15 routers), security architecture, background job architecture, production readiness assessment, remaining limitations, and future roadmap.

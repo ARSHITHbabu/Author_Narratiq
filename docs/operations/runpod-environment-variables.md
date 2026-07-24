@@ -36,7 +36,7 @@ So a value left in the RunPod UI **wins over** the value `start-narratiq.sh` wri
 `backend/.env`. This is not theoretical:
 
 > If `VLLM_BASE_URL=http://127.0.0.1:8001/v1` is still set in your RunPod pod — and
-> `RUNPOD_DEPLOYMENT.md` Step 5 told you to set exactly that — then the backend will target port
+> `docs/operations/runpod-deployment.md` Step 5 told you to set exactly that — then the backend will target port
 > **8001** while vLLM actually listens on **9001**. The script will report success, `/api/health`
 > will return `"status": "ok"`, and every AI feature will fail with a 503.
 
@@ -48,7 +48,7 @@ let the script and the code default supply it.
 
 ### 1.3 Copying `.env.example` to `backend/.env` currently crashes the backend
 
-`RUNPOD_DEPLOYMENT.md` Step 5 Option B instructs `cp .env.example backend/.env`. That produces a
+`docs/operations/runpod-deployment.md` Step 5 Option B instructs `cp .env.example backend/.env`. That produces a
 backend that will not start. `.env.example:31` contains `TROCR_MODEL_ID=...`, a key left over from the
 TrOCR → GOT-OCR2.0 migration that is no longer a field on the `Settings` class. `pydantic-settings`
 `BaseSettings` defaults to `extra='forbid'` and `config.py:238` does not override it, so an
@@ -78,7 +78,7 @@ So `HF_TOKEN` set in the RunPod UI is harmless even though `Settings` has no suc
 |---|---|
 | Variables that are strictly **required** in RunPod | **None.** The script generates everything mandatory. |
 | Variables **worth** setting | **1–3**, depending on your situation (see §3). |
-| Variables you likely set originally | **5–6 of the 10** in `RUNPOD_DEPLOYMENT.md` Step 5 (see §4). |
+| Variables you likely set originally | **5–6 of the 10** in `docs/operations/runpod-deployment.md` Step 5 (see §4). |
 | Variables that are now **harmful** if still set | `VLLM_BASE_URL` (and any stale `CORS_ORIGINS`, `NEXT_PUBLIC_API_URL`). |
 
 ---
@@ -129,7 +129,7 @@ Two consequences worth internalising:
 - **Via `start-narratiq.sh`,** the script's own `export` at `:499-502` runs *after* it inherits the
   RunPod values, so for `VLLM_BASE_URL`, `VLLM_MODEL_NAME`, `MODEL_BASE_DIR` and `CORS_ORIGINS` the
   script's value wins for the backend it launches. A stale RunPod value is masked in this path.
-- **Running `uvicorn main:app` by hand** (as `HOW_TO_RUN.md` Terminal 2 describes) does *not* get
+- **Running `uvicorn main:app` by hand** (as `docs/operations/how-to-run.md` Terminal 2 describes) does *not* get
   those exports. The RunPod value is inherited directly and beats `backend/.env`. **This is where a
   stale `VLLM_BASE_URL=…:8001/v1` bites.**
 
@@ -234,7 +234,7 @@ convenience, not a requirement. It matters most on first boot, when ~17 GB is pu
 ## 4. Most Likely Original RunPod Variables
 
 You recall entering roughly five or six variables. The only artefact that ever told you what to paste
-is **`RUNPOD_DEPLOYMENT.md` Step 5 → "Option A — Set as RunPod pod environment variables
+is **`docs/operations/runpod-deployment.md` Step 5 → "Option A — Set as RunPod pod environment variables
 (recommended)"** (lines 96–107), which lists **ten**. Git history shows that block is byte-identical
 across every revision and has not been touched since `3496e0c` (5 June 2026) — it predates the
 self-bootstrapping script entirely.
@@ -333,7 +333,7 @@ Format notes: list-typed fields (`CORS_ORIGINS`, `VOICE_ADMIN_EMAILS`) must be *
 | `TROCR_MODEL_ID` | **Obsolete and harmful in `.env`** | Project migrated to GOT-OCR2.0 (`config.py:43`). Not a `Settings` field → `extra_forbidden` crash. Removed from `.env.example` by this task |
 | `TROCR_MODEL_PATH` | **Obsolete** | Same migration. Harmless only because its value is empty |
 | `SLOWAPI_STORAGE_URI` | **Never read by any code** | Appears only in prose: `config.py:86`, `middleware/rate_limit.py:6`, `CLAUDE.md:200,236`. The limiter is built with no storage argument at `middleware/rate_limit.py:67` (`Limiter(key_func=get_remote_address)`). Rate limiting is unconditionally in-memory; CLAUDE.md's "zero code changes" Redis claim is false |
-| `HF_HUB_ENABLE_HF_TRANSFER` | **Never read in this repo** | Only in comments (`requirements.setup.txt:13`, `RUNPOD_DEPLOYMENT.md:131`). Would be honoured by the `huggingface_hub` library if exported, but nothing here sets it |
+| `HF_HUB_ENABLE_HF_TRANSFER` | **Never read in this repo** | Only in comments (`requirements.setup.txt:13`, `docs/operations/runpod-deployment.md:131`). Would be honoured by the `huggingface_hub` library if exported, but nothing here sets it |
 | `HUGGING_FACE_HUB_TOKEN`, `HF_HOME`, `TRANSFORMERS_CACHE` | **Zero occurrences** | Note `start-narratiq.sh:264` hardcodes `$HOME/.cache/huggingface/hub/…` rather than honouring `HF_HOME` |
 | `VLLM_PORT` | **Shell-only; no `Settings` field** | `start.sh:25` (default 8001), `verify_runpod_setup.sh:14` (default 8001). `start-narratiq.sh:17` hardcodes 9001 and does not read the variable |
 | `GOT_OCR_MODEL_PATH` | **Shell-only; no `Settings` field** | `verify_runpod_setup.sh:13` only |
@@ -469,7 +469,7 @@ here and must be resolved separately.
 | `start.sh:25` | 8001 | **Legacy** — superseded, last touched 5 June 2026 |
 | `scripts/verify_runpod_setup.sh:14` | 8001 | Legacy — will report a **false failure** against a working 9001 stack |
 | `.env.example:34-35` | 8001 | **Corrected by this task** (documentation file) |
-| `RUNPOD_DEPLOYMENT.md` | 8001 | **Corrected by this task** (documentation file) |
+| `docs/operations/runpod-deployment.md` | 8001 | **Corrected by this task** (documentation file) |
 | `CLAUDE.md:242` | claims `config.py` defaults to 8001 | **Corrected by this task** — the default became 9001 at commit `b0f64be` |
 
 **Which path is authoritative:** `start-narratiq.sh` (port 9001). `start.sh` is abandoned; its last
@@ -479,7 +479,7 @@ mandatory, and before the port changed.
 **Recommended follow-up (separate task, requires code changes — not performed here):**
 1. Align `start.sh:25` and `scripts/verify_runpod_setup.sh:14` to 9001, or delete `start.sh`.
 2. Decide whether `start-narratiq.sh:16` should honour `MODEL_BASE_DIR` instead of hardcoding
-   `/workspace/models`, so Network Volumes work as `RUNPOD_DEPLOYMENT.md` promises.
+   `/workspace/models`, so Network Volumes work as `docs/operations/runpod-deployment.md` promises.
 3. Either implement `SLOWAPI_STORAGE_URI` in `middleware/rate_limit.py:67` or remove the claim from
    `CLAUDE.md`.
 

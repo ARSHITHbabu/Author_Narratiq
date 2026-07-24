@@ -3,8 +3,8 @@
 Status: **Design specification — approved for implementation planning**
 Author: Engineering (Product Architecture / AI Systems / Backend / Database / UX)
 Scope: NarratIQ AI (FastAPI backend + Next.js 14 frontend + vLLM/Qwen2.5-7B-Instruct + BGE-M3 + PostgreSQL 16/pgvector)
-Baseline: `NarratIQ_AI_Documentation_v3_Phase1_Status_Update.docx` (Phase 1) and `NarratIQ_AI_Phase2_Intelligence_Expansion_Roadmap.docx` (Phase 2)
-Companion design doc style reference: `docs/additional_features_author_style_and_copyright_analysis.md`
+Baseline: `docs/phases/phase-1-completed/phase-1-status-update.docx` (Phase 1) and `docs/phases/phase-2-completed/phase-2-intelligence-expansion-roadmap.docx` (Phase 2)
+Companion design doc style reference: `docs/specifications/author-style-and-copyright-risk-features.md`
 
 ---
 
@@ -125,7 +125,7 @@ Every one of these failures requires *repetition* to become visible. A demo gene
 applies. A novelist generates fifteen times on one paragraph, across four hundred paragraphs, over
 nine months. The cost of a lossy loop compounds; the cost of a single lossy call is invisible.
 This is why none of these problems appear in the Phase 1 or Phase 2 documents, and why they
-dominate the Phase 2 production QA report (`issues_i_found_phase2.docx`).
+dominate the Phase 2 production QA report (`docs/issues-and-bugs/open/phase-2-production-testing-issues.docx`).
 
 ---
 
@@ -3915,7 +3915,7 @@ frontend/tests/pins-ui.spec.ts
 
 ### Documentation (4)
 ```
-docs/phase_3_author_centric_ai_workflow_and_generation_management.md   (this file)
+docs/phases/phase-3-planned/phase-3-author-centric-ai-workflow.md   (this file)
 CHANGELOG.md    Phase 3 entry
 CLAUDE.md       new tables, settings, router, cleanup sweep, Phase 3 feature table
 .env.example    29 new keys with comments (mandatory — extra="forbid")

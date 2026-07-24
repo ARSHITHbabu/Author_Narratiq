@@ -18,9 +18,9 @@ bash start-narratiq.sh
 One command. It installs every dependency, downloads models, configures PostgreSQL + pgvector, runs
 migrations, and starts all three services. Safe to rerun.
 
-- **Environment variables:** [`docs/RUNPOD_ENVIRONMENT_VARIABLE_RECOVERY.md`](docs/RUNPOD_ENVIRONMENT_VARIABLE_RECOVERY.md)
-- **Pod setup and troubleshooting:** [`RUNPOD_DEPLOYMENT.md`](RUNPOD_DEPLOYMENT.md)
-- **Manual / per-service startup:** [`HOW_TO_RUN.md`](HOW_TO_RUN.md)
+- **Environment variables:** [`docs/operations/runpod-environment-variables.md`](docs/operations/runpod-environment-variables.md)
+- **Pod setup and troubleshooting:** [`docs/operations/runpod-deployment.md`](docs/operations/runpod-deployment.md)
+- **Manual / per-service startup:** [`docs/operations/how-to-run.md`](docs/operations/how-to-run.md)
 
 ### Manual
 
@@ -222,11 +222,15 @@ Full interactive documentation at `/docs`.
 
 ## Known Issues
 
-Tracked in `issues_i_found_phase1.docx` and `issues_i_found_phase2.docx`, with a code-level audit in
-`NarratIQ_Project_Recovery_Report.docx`. Highest priority:
+Tracked in [`docs/issues-and-bugs/open/`](docs/issues-and-bugs/) — see
+[Phase 1 QA issues](docs/issues-and-bugs/open/phase-1-ai-writing-tools-qa-issues.docx) and
+[Phase 2 production testing issues](docs/issues-and-bugs/open/phase-2-production-testing-issues.docx).
+(A code-level audit, `NarratIQ_Project_Recovery_Report.docx`, is referenced by older documents but is
+not present in this repository.) Highest priority:
 
 1. **vLLM port contradiction** — `start-narratiq.sh` and `config.py` use 9001; the legacy `start.sh`
-   and `scripts/verify_runpod_setup.sh` still use 8001. See `RUNPOD_DEPLOYMENT.md`.
+   and `scripts/verify_runpod_setup.sh` still use 8001. See
+   [`docs/operations/runpod-deployment.md`](docs/operations/runpod-deployment.md).
 2. **Story Bible can persist placeholder text** while marking the job `completed`
    (`routers/story_bible.py:138-147`).
 3. **Outline / continuation / continuity / plot-hole failures** share one root cause — invalid AI
@@ -239,11 +243,16 @@ Tracked in `issues_i_found_phase1.docx` and `issues_i_found_phase2.docx`, with a
 
 ## Documentation
 
+**Start here: [`docs/README.md`](docs/README.md)** — the full documentation index, organised by
+purpose (phases, open issues, testing, incidents, operations, archive).
+
 | File | Purpose |
 |---|---|
-| [`HOW_TO_RUN.md`](HOW_TO_RUN.md) | Starting each service, verification, common problems |
-| [`RUNPOD_DEPLOYMENT.md`](RUNPOD_DEPLOYMENT.md) | Pod creation, storage, deployment, troubleshooting |
-| [`docs/RUNPOD_ENVIRONMENT_VARIABLE_RECOVERY.md`](docs/RUNPOD_ENVIRONMENT_VARIABLE_RECOVERY.md) | Which env vars to set, precedence, generated values |
+| [`docs/README.md`](docs/README.md) | Documentation index and recommended reading order |
+| [`docs/operations/how-to-run.md`](docs/operations/how-to-run.md) | Starting each service, verification, common problems |
+| [`docs/operations/runpod-deployment.md`](docs/operations/runpod-deployment.md) | Pod creation, storage, deployment, troubleshooting |
+| [`docs/operations/runpod-environment-variables.md`](docs/operations/runpod-environment-variables.md) | Which env vars to set, precedence, generated values |
+| [`docs/phases/phase-3-planned/phase-3-author-centric-ai-workflow.md`](docs/phases/phase-3-planned/phase-3-author-centric-ai-workflow.md) | Next phase to be built (design specification) |
 | [`CLAUDE.md`](CLAUDE.md) | Architecture reference for contributors and AI assistants |
 | [`CHANGELOG.md`](CHANGELOG.md) | Release history |
 | [`.env.example`](.env.example) | Annotated configuration template |

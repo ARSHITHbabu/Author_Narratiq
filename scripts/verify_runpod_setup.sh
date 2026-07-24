@@ -173,7 +173,7 @@ echo "======================================================"
 if [ "${FAIL}" -gt 0 ]; then
     echo ""
     echo " Fix the FAILED items above, then re-run this script."
-    echo " See RUNPOD_DEPLOYMENT.md for step-by-step instructions."
+    echo " See docs/operations/runpod-deployment.md for step-by-step instructions."
     exit 1
 else
     echo ""
