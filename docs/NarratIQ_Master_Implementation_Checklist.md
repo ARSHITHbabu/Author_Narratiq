@@ -40,7 +40,7 @@ Repository verification during checklist construction changed three things. Each
 | Stage | Total Tasks | Completed | Remaining | Blocked | Status |
 |---|---:|---:|---:|---:|---|
 | 0 — Decisions and Triage | 10 | 0 | 10 | 0 | Not Started |
-| 1 — Backup and RunPod Infrastructure | 9 | 0 | 9 | 0 | Not Started |
+| 1 — Backup and RunPod Infrastructure | 9 | 0 | 9 | 0 | In Progress |
 | 2 — Environment and Service Verification | 6 | 0 | 6 | 1 | Not Started |
 | 3 — Phase 2 Production Defect Resolution | 13 | 0 | 13 | 0 | Not Started |
 | 4 — Phase 1 Retrieval and Data Correctness | 15 | 0 | 15 | 6 | Not Started |
@@ -52,11 +52,14 @@ Repository verification during checklist construction changed three things. Each
 | 10 — Production Readiness | 9 | 0 | 9 | 1 | Not Started |
 | 11 — Documentation Reconciliation | 9 | 0 | 9 | 1 | Not Started |
 | 12 — Release Validation | 3 | 0 | 3 | 1 | Not Started |
-| **Total** | **130** | **0** | **130** | **26** | **Not Started** |
+| **Total** | **130** | **0** | **130** | **26** | **In Progress** |
+
+> The stage table counts **main tasks**. Stage 1 shows 0 completed because task 1.1 is still open — one of its seven subtasks is done. The counts below track actionable checkboxes and are the authoritative progress measure.
 
 **Total actionable checkboxes:** 1125
-**Currently completed:** 0
-**Overall project completion:** 0%
+**Currently completed:** 6
+**Remaining:** 1119
+**Overall project completion:** 0.5% (6 ÷ 1125)
 
 > This checklist contains **only remaining work**. Already-delivered systems (PostgreSQL 16 + pgvector, the 15-migration chain, 24 routers, the production-hardening pass) are verified complete and are deliberately absent — they are recorded in the Master Execution Plan §6.1. A 0% reading measures remaining work, not the product.
 
@@ -66,7 +69,10 @@ Repository verification during checklist construction changed three things. Each
 
 > ### ☞ Stage 1, Task 1.1 — Take a verified database backup and confirm network-volume persistence
 >
-> **Why this is next.** Every downstream task requires a reachable application, and reachability requires exposing pod ports 3000 and 8000 — which on RunPod requires a **stop → edit → start** cycle. That cycle is the single highest-consequence action in the whole plan: no backup exists anywhere in the repository (production gap PG-02), and `/workspace` persistence across a pod stop has never been verified in writing. Taking the backup first converts an irreversible risk into a reversible one.
+> **Next actionable subtask:** *Copy the dump off-pod (not to `/workspace` alone).*
+> The `pg_dump` subtask is complete (2026-07-24). A verified, readable archive now exists at `/workspace/backups/` — but it is still **on the pod**, so it does not yet protect against the stop/start. Inspection during that subtask confirmed the PostgreSQL data directory sits on the **ephemeral** container overlay, not the network volume; the database will very likely not survive the stop, making the off-pod copy and the restore test the two items that actually reduce risk.
+>
+> **Why this is next.** Every downstream task requires a reachable application, and reachability requires exposing pod ports 3000 and 8000 — which on RunPod requires a **stop → edit → start** cycle. That cycle is the single highest-consequence action in the whole plan: no backup existed anywhere in the repository (production gap PG-02), and `/workspace` persistence across a pod stop has never been verified in writing. Taking the backup first converts an irreversible risk into a reversible one.
 >
 > Stage 0 decisions are formally first in the document order, but only **D-2** touches Stage 1–2 work, and it does not block the backup. Run Stage 0 in parallel — the decision session should be scheduled the same day.
 >
@@ -292,17 +298,27 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None
   - **Can run in parallel:** No — blocks 1.3
   - **Implementation checklist:**
-    - [ ] `pg_dump` the live `narratiq` database
-    - [ ] Copy the dump **off-pod** (not to `/workspace` alone)
-    - [ ] Record the dump size, timestamp and checksum
-    - [ ] Test-restore the dump into a scratch database and confirm row counts on `stories`, `chapters`, `characters`
-    - [ ] Identify and document the network volume mount point
-    - [ ] Document which paths survive a pod stop and which do not
+    - [x] `pg_dump` the live `narratiq` database — *2026-07-24*
+    - [ ] Copy the dump **off-pod** (not to `/workspace` alone) — ⏸ **DEFERRED by user decision, 2026-07-24.** Requires a manual receive step on the user's machine and a destination choice. The user will complete it **before any operation that could endanger the backup**. See the blocking note under task 1.3.
+    - [x] Record the dump size, timestamp and checksum — *2026-07-24, recorded in `/workspace/backups/BACKUP-RECORD.txt`*
+    - [x] Test-restore the dump into a scratch database and confirm row counts on `stories`, `chapters`, `characters` — *2026-07-24*
+    - [x] Identify and document the network volume mount point — *2026-07-24, [`docs/operations/storage-and-persistence.md`](./operations/storage-and-persistence.md)*
+    - [x] Document which paths survive a pod stop and which do not — *2026-07-24, [`docs/operations/storage-and-persistence.md`](./operations/storage-and-persistence.md) §8. All entries **Predicted (unobserved)** until task 1.5 confirms or corrects them.*
     - [ ] Back up `backend/.env` and `frontend/.env.local` separately (they hold `SECRET_KEY`)
   - **Verification:**
-    - [ ] Test restore completes without error and row counts match the source
-    - [ ] Backup file is retrievable from outside the pod
+    - [x] Test restore completes without error and row counts match the source — *2026-07-24*
+    - [ ] Backup file is retrievable from outside the pod — ⏸ blocked by the deferred off-pod copy
   - **Definition of done:** The database can be fully restored from an off-pod artifact, proven by an actual restore, not by the dump existing.
+  - **Progress notes:**
+    - *2026-07-24 — `pg_dump` subtask complete.* `scripts/backup_database.sh` added; archive at `/workspace/backups/narratiq-20260724T103824Z.dump` (474,438 bytes, SHA-256 `f1b07d30…c233ac5`), verified readable by `pg_restore --list` with 52 `TABLE DATA` entries reconciling to the 52 public tables, plus `alembic_version` and `EXTENSION vector`. Companion `narratiq-globals-*.sql` carries role definitions with `--no-role-passwords`. Source row counts unchanged (`stories`=1, `chapters`=4, `characters`=8, `users`=1, `chapter_chunks`=21); no downtime. **The backup is still on-pod** — the two verification items below remain open.
+    - *Finding — PostgreSQL data directory is on ephemeral storage.* `postgres -D /var/lib/postgresql/16/main` is on the container overlay, not the `/workspace` network volume. The restore path in task 1.5 should be treated as the **expected** outcome of the stop/start, not a contingency.
+    - *Finding — `chmod` is not enforced on `/workspace`.* The RunPod FUSE mount (`mfs#eu-se-1.runpod.net:9421`) forces group/other bits to mirror owner bits, so `700`/`600` return success but read back as `777`/`666`. Systemic to the volume — `backend/.env` is already mode `666`. The backup script attempts the `chmod` and warns when it does not take. Confidentiality therefore depends on off-pod storage; encryption-at-rest is a candidate for Stage 10.
+    - *2026-07-24 — backup metadata recorded.* `/workspace/backups/BACKUP-RECORD.txt` holds filename, UTC timestamp, byte size and SHA-256 for both dumps and both globals files, plus the source database state they capture. Values independently re-derived from the filesystem and cross-checked against the `.sha256` sidecars; backup artifacts unmodified.
+    - *2026-07-24 — test restore passed; the backup is proven restorable.* `narratiq-20260724T103824Z.dump` restored into scratch database `narratiq_restore_test` with `pg_restore --exit-on-error`: exit 0, zero errors or warnings. All comparisons against the live database were exact — `stories`=1, `chapters`=4, `characters`=8, `users`=1, `chapter_chunks`=21, `alembic_version`=0015, 52 tables, 124 indexes including 6 HNSW. Byte-level md5 over chapter/story/character content matched (`a9cd379f…`), as did md5 over all `vector(1024)` embeddings (`1414ed11…`); a pgvector `<=>` cosine query ran correctly on the restored data. Live database unmodified, services healthy throughout, scratch database dropped. **Caveat:** restored with `--no-owner`, so the `ALTER … OWNER TO narratiq` path is untested — a real recovery should create the role from `narratiq-globals-*.sql` first and restore without that flag. Only the first of the two archives was restore-tested. `sudo` is absent on this pod; `su postgres -c` was used instead, and no PostgreSQL configuration was changed.
+    - *2026-07-24 — network volume identified and documented.* New reference: `docs/operations/storage-and-persistence.md`. `/workspace` is a MooseFS FUSE mount, `mfs#eu-se-1.runpod.net:9421[/podvolumes/d12dtfg81gbe/2e5wiiphzhzf14]`, region `eu-se-1`, options `rw,nosuid,nodev,relatime,user_id=0,group_id=0,allow_other`. Exactly two data-bearing filesystems exist: `/workspace` (network volume) and `/` (overlay, 100 G). Repository, models, backups and uploads are on the volume; **PostgreSQL data directory, logs and `/root` are on the container layer**. Persistence across a pod stop is labelled **Expected, not Verified** — no stop has been observed. Per-path survival analysis is subtask 6; task 1.5 supplies the observation that upgrades the label.
+    - *2026-07-24 — pod-stop survival documented as prediction.* `storage-and-persistence.md` §8 covers 14 paths. Filesystem assignments are measured; the survival column is **Predicted (unobserved)** on every row — no pod stop has been performed. Predicted to survive: repository, models, backups, uploads, `node_modules`, `.next`, `backend/.env`. Predicted lost: **the PostgreSQL data directory**, all Python packages (`/usr/local/lib/python3.11/dist-packages` — system Python, no virtualenv), PostgreSQL and Node apt binaries, the `ovis.py` patch, `/tmp/narratiq-logs`, `/root`. Verified directly: every `start-narratiq.sh` re-install guard is a presence check (`:21,:53,:63,:97,:124,:205`) so all re-trigger on a rebuilt container — **but `:472,:479` create schema only and `grep pg_restore` returns nothing in either startup script, so the stack comes back reporting healthy with zero manuscripts and the data restore is a manual step nothing automates.**
+    - *2026-07-24 — off-pod copy deferred by user decision.* The transfer needs a manual receive step on the user's machine and a destination choice, so it is being scheduled separately. No transfer was attempted. On-pod backups are intact and untouched. **Task 1.3 (stop the pod) must not proceed until this is done** — see the hard stop recorded there. Remaining subtasks of 1.1 that do not depend on the off-pod copy continue in document order.
+    - *Finding — weak database credential.* The `narratiq` role's password is identical to its username and database name. PostgreSQL binds to `127.0.0.1` only, which bounds exposure. Pre-existing; not changed. Triage alongside Stage 10.
 
 - [ ] **1.2 — Record the pre-restart baseline**
   - **Source:** incident report §2
@@ -332,6 +348,10 @@ Repository verification during checklist construction changed three things. Each
     - [ ] Confirm task 1.1 is ticked
     - [ ] Stop PostgreSQL cleanly before the pod stop
     - [ ] Stop the pod via the RunPod console
+  - > ### ⛔ HARD STOP — do not start this task yet
+    > The off-pod copy (task 1.1, subtask 2) is **deferred** as of 2026-07-24. The only backup is on the pod, and inspection confirmed PostgreSQL's data directory sits on the **ephemeral container overlay** (`/var/lib/postgresql/16/main`), not the network volume. Stopping the pod now would very likely destroy the live database while its only backup shares the same failure domain.
+    >
+    > **Precondition for starting 1.3:** subtask 2 of task 1.1 is ticked and a checksum has been verified on the destination machine.
   - **Verification:**
     - [ ] Pod shows stopped state; no write was in flight at shutdown
   - **Definition of done:** Pod stopped with a verified backup in hand.
@@ -369,6 +389,12 @@ Repository verification during checklist construction changed three things. Each
     - [ ] All three services report started
     - [ ] `curl localhost:8000/api/health` reports vLLM available, not `"unavailable"`
   - **Definition of done:** Full stack running on the restarted pod with data intact.
+  - > ### ☞ Run the persistence confirmation **before** anything else writes
+    > [`docs/operations/storage-and-persistence.md`](./operations/storage-and-persistence.md) **§8.5** contains a ready-to-run command block for this exact moment — the first start after a stop. It checks whether the volume returned with its contents, whether the database survived or came back as a fresh empty cluster, and whether the container layer reset as predicted.
+    >
+    > §8 currently records **predictions**, every row labelled *Predicted (unobserved)*. This start is the only opportunity to convert them into observations. After running the block, update §8.2's Evidence column to **Verified 〈date〉** for each confirmed row, and **correct** any row the results contradict rather than leaving the prediction standing.
+    >
+    > **Expect the database to be gone.** §8.3 and §8.4: `start-narratiq.sh:472,479` create the schema only, and no `pg_restore` exists in any startup script — so a healthy-looking stack with zero manuscripts is the predicted outcome, not a surprise. The restore from task 1.1 is a manual step.
 
 - [ ] **1.6 — Verify actual GPU configuration and model context length**
   - **Source:** incident report §11 — contradicts `CLAUDE.md`
@@ -440,6 +466,10 @@ Repository verification during checklist construction changed three things. Each
   - **Verification:**
     - [ ] A new operator following the deployment doc exposes both ports at creation
   - **Definition of done:** This incident cannot recur through the documented procedure.
+  - **Also found in this document — recorded 2026-07-24 during task 1.1, not yet fixed:**
+    - `runpod-deployment.md:55` instructs `ln -s /runpod-volume/models /workspace/models`. **`/runpod-volume` does not exist on this pod** — `/workspace` *is* the network volume mount, and `/workspace/models` is a real directory, not a symlink. Following the document as written produces a broken symlink and a stack that cannot find its model weights.
+    - `runpod-deployment.md:48` states a ~17 GB model footprint; measured size is **22 G**.
+    - Evidence and the correct layout: [`docs/operations/storage-and-persistence.md`](./operations/storage-and-persistence.md) §6.
 
 ### Stage 1 Completion Gate
 
