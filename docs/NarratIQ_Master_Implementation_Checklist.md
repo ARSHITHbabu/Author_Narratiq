@@ -42,7 +42,7 @@ Repository verification during checklist construction changed three things. Each
 | 0 — Decisions and Triage | 10 | 0 | 10 | 0 | Not Started |
 | 1 — Backup and RunPod Infrastructure | 9 | 0 | 9 | 0 | In Progress |
 | 2 — Environment and Service Verification | 6 | 0 | 6 | 1 | Not Started |
-| 3 — Phase 2 Production Defect Resolution | 13 | 0 | 13 | 0 | Not Started |
+| 3 — Phase 2 Production Defect Resolution | 13 | 1 | 12 | 0 | In Progress |
 | 4 — Phase 1 Retrieval and Data Correctness | 15 | 0 | 15 | 6 | Not Started |
 | 5 — Phase 1 AI Generation Quality | 16 | 0 | 16 | 2 | Not Started |
 | 6 — Test Automation and CI | 7 | 0 | 7 | 0 | Not Started |
@@ -54,12 +54,12 @@ Repository verification during checklist construction changed three things. Each
 | 12 — Release Validation | 3 | 0 | 3 | 1 | Not Started |
 | **Total** | **130** | **0** | **130** | **26** | **In Progress** |
 
-> The stage table counts **main tasks**. Stage 1 shows 0 completed because task 1.1 is still open — one of its seven subtasks is done. The counts below track actionable checkboxes and are the authoritative progress measure.
+> The stage table counts **main tasks**. Stage 1 shows 0 completed because task 1.1 is still open — six of its seven subtasks are done; the seventh, the off-pod copy, is deferred. The counts below track actionable checkboxes and are the authoritative progress measure.
 
 **Total actionable checkboxes:** 1125
-**Currently completed:** 6
-**Remaining:** 1119
-**Overall project completion:** 0.5% (6 ÷ 1125)
+**Currently completed:** 40
+**Remaining:** 1085
+**Overall project completion:** 3.6% (40 ÷ 1125)
 
 > This checklist contains **only remaining work**. Already-delivered systems (PostgreSQL 16 + pgvector, the 15-migration chain, 24 routers, the production-hardening pass) are verified complete and are deliberately absent — they are recorded in the Master Execution Plan §6.1. A 0% reading measures remaining work, not the product.
 
@@ -67,10 +67,25 @@ Repository verification during checklist construction changed three things. Each
 
 ## Next Task to Execute
 
+> ### ☞ Next actionable task — Stage 3, Task 3.2 — Story Bible status integrity
+>
+> **Task 3.1 (PRE-1) closed 2026-07-24.** Chapter continuation and outline generation both work; Phase 2 Issues 12 and 13 are resolved. Four defects were fixed under it, three of which were not in the original task description — see its progress notes.
+>
+> Stage 1 remains open on the deferred off-pod backup copy, and Stage 2 on deferred environment hygiene. Neither gates Stage 3 feature work.
+>
+> ### ⚑ 2026-07-24 — Recovery complete. The application is running again.
+>
+> The container was destroyed and rebuilt at 15:17 UTC, taking PostgreSQL with it. The stack has been fully recovered: ports 3000 and 8000 exposed, runtime reinstalled, **database restored from the 10:38 backup with all 1 story / 4 chapters / 8 characters / 21 embedded chunks intact**, backend and frontend reachable on both proxy hosts. Details under tasks 1.4–1.8. **Feature development can resume.**
+>
+> **Deferred by user direction, recorded not abandoned:** the off-pod backup transfer (task 1.1), the Git history rewrite and contributor cleanup, task 1.2's rewrite, task 1.9 and all documentation reconciliation, and the `storage-and-persistence.md` §8 evidence pass. None is complete; none blocks feature work.
+>
 > ### ☞ Stage 1, Task 1.1 — Take a verified database backup and confirm network-volume persistence
 >
-> **Next actionable subtask:** *Copy the dump off-pod (not to `/workspace` alone).*
-> The `pg_dump` subtask is complete (2026-07-24). A verified, readable archive now exists at `/workspace/backups/` — but it is still **on the pod**, so it does not yet protect against the stop/start. Inspection during that subtask confirmed the PostgreSQL data directory sits on the **ephemeral** container overlay, not the network volume; the database will very likely not survive the stop, making the off-pod copy and the restore test the two items that actually reduce risk.
+> **Next actionable subtask:** *Copy the dump off-pod (not to `/workspace` alone)* — ⏸ **deferred by user decision, 2026-07-24.** It is the only subtask of 1.1 still open, and until it is done task 1.1 cannot be ticked and task 1.3 must not start.
+>
+> Six of the seven subtasks are complete (2026-07-24): the `pg_dump`, its metadata record, a proven test restore, the volume mount-point identification, the pod-stop survival analysis, and the encrypted environment-file backup. Every artifact is still **on the pod**, so none of it yet protects against the stop/start. Inspection confirmed the PostgreSQL data directory sits on the **ephemeral** container overlay, not the network volume; the database will very likely not survive the stop, which is what makes the off-pod copy the one remaining item that actually reduces risk.
+>
+> **While the off-pod copy is deferred,** work continues in document order on items that do not depend on it — the established policy for this task. Nothing downstream of the pod stop may proceed.
 >
 > **Why this is next.** Every downstream task requires a reachable application, and reachability requires exposing pod ports 3000 and 8000 — which on RunPod requires a **stop → edit → start** cycle. That cycle is the single highest-consequence action in the whole plan: no backup existed anywhere in the repository (production gap PG-02), and `/workspace` persistence across a pod stop has never been verified in writing. Taking the backup first converts an irreversible risk into a reversible one.
 >
@@ -304,7 +319,7 @@ Repository verification during checklist construction changed three things. Each
     - [x] Test-restore the dump into a scratch database and confirm row counts on `stories`, `chapters`, `characters` — *2026-07-24*
     - [x] Identify and document the network volume mount point — *2026-07-24, [`docs/operations/storage-and-persistence.md`](./operations/storage-and-persistence.md)*
     - [x] Document which paths survive a pod stop and which do not — *2026-07-24, [`docs/operations/storage-and-persistence.md`](./operations/storage-and-persistence.md) §8. All entries **Predicted (unobserved)** until task 1.5 confirms or corrects them.*
-    - [ ] Back up `backend/.env` and `frontend/.env.local` separately (they hold `SECRET_KEY`)
+    - [x] Back up `backend/.env` and `frontend/.env.local` separately (they hold `SECRET_KEY`) — *2026-07-24, encrypted archive `/workspace/backups/env-backup-20260724T114018Z.tar.gz.gpg`, decrypt verified by the user*
   - **Verification:**
     - [x] Test restore completes without error and row counts match the source — *2026-07-24*
     - [ ] Backup file is retrievable from outside the pod — ⏸ blocked by the deferred off-pod copy
@@ -318,9 +333,15 @@ Repository verification during checklist construction changed three things. Each
     - *2026-07-24 — network volume identified and documented.* New reference: `docs/operations/storage-and-persistence.md`. `/workspace` is a MooseFS FUSE mount, `mfs#eu-se-1.runpod.net:9421[/podvolumes/d12dtfg81gbe/2e5wiiphzhzf14]`, region `eu-se-1`, options `rw,nosuid,nodev,relatime,user_id=0,group_id=0,allow_other`. Exactly two data-bearing filesystems exist: `/workspace` (network volume) and `/` (overlay, 100 G). Repository, models, backups and uploads are on the volume; **PostgreSQL data directory, logs and `/root` are on the container layer**. Persistence across a pod stop is labelled **Expected, not Verified** — no stop has been observed. Per-path survival analysis is subtask 6; task 1.5 supplies the observation that upgrades the label.
     - *2026-07-24 — pod-stop survival documented as prediction.* `storage-and-persistence.md` §8 covers 14 paths. Filesystem assignments are measured; the survival column is **Predicted (unobserved)** on every row — no pod stop has been performed. Predicted to survive: repository, models, backups, uploads, `node_modules`, `.next`, `backend/.env`. Predicted lost: **the PostgreSQL data directory**, all Python packages (`/usr/local/lib/python3.11/dist-packages` — system Python, no virtualenv), PostgreSQL and Node apt binaries, the `ovis.py` patch, `/tmp/narratiq-logs`, `/root`. Verified directly: every `start-narratiq.sh` re-install guard is a presence check (`:21,:53,:63,:97,:124,:205`) so all re-trigger on a rebuilt container — **but `:472,:479` create schema only and `grep pg_restore` returns nothing in either startup script, so the stack comes back reporting healthy with zero manuscripts and the data restore is a manual step nothing automates.**
     - *2026-07-24 — off-pod copy deferred by user decision.* The transfer needs a manual receive step on the user's machine and a destination choice, so it is being scheduled separately. No transfer was attempted. On-pod backups are intact and untouched. **Task 1.3 (stop the pod) must not proceed until this is done** — see the hard stop recorded there. Remaining subtasks of 1.1 that do not depend on the off-pod copy continue in document order.
+    - *2026-07-24 — environment files backed up and the archive proven decryptable.* `backend/.env` and `frontend/.env.local` are captured in a single GPG symmetric archive, `/workspace/backups/env-backup-20260724T114018Z.tar.gz.gpg` (514 bytes, SHA-256 `3e4964ca…52a5c83`, AES256.CFB cipher 9, S2K mode 3 iterated+salted, MDC present). Integrity confirmed against its `.sha256` sidecar; captured contents confirmed byte-identical to the live files (`backend/.env` 343 bytes `e1432583…f958c98`, `frontend/.env.local` 65 bytes `7beaf628…44a56b28`), so the archive is current. Scope covers `SECRET_KEY`, `DATABASE_URL`, `VLLM_BASE_URL`, `VLLM_MODEL_NAME`, `CORS_ORIGINS`, `NEXT_PUBLIC_API_URL` — verified by reading key names only; no secret value was read, printed or logged. **Recoverability proven by the user on 2026-07-24** via a decrypt-and-extract round trip into a scratch directory, both extracted hashes matching, plaintext destroyed afterwards. Metadata recorded in `/workspace/backups/BACKUP-RECORD.txt`. The passphrase is held only by the user, off-pod and outside any password manager on this machine.
+    - *Discovery during this subtask — the archive was created ahead of its report.* The artifact was written 2026-07-24 11:40–11:46 UTC, after the previous checklist edit (11:32) and before commit `6c50522` (11:49), and was neither reported nor validated at the time. All evidence above was independently re-derived from the filesystem in a later session before this box was ticked; nothing was inherited on trust.
+    - *Limitation — this artifact is on-pod.* It sits in `/workspace/backups` alongside the database dumps and shares their failure domain. `/workspace` is the network volume and is *predicted* to survive a pod stop, but that prediction is still unobserved. **Ticking this subtask does not relax the hard stop on task 1.3.**
+    - *Limitation — passphrase loss is unrecoverable and has a user-visible cost.* There is no escrow and no second copy. If the passphrase is lost, `start-narratiq.sh` regenerates `SECRET_KEY` and every active author session is invalidated — recoverable, but a forced logout for every author.
+    - *Deferred improvement — no reproducible script.* The database backup has `scripts/backup_database.sh`; this environment-file backup was performed ad hoc and exists nowhere in the repository. Recorded here as a candidate improvement, **not** a condition of this subtask, by user decision on 2026-07-24. Natural home: an extension to `scripts/backup_database.sh`, or Stage 10.
     - *Finding — weak database credential.* The `narratiq` role's password is identical to its username and database name. PostgreSQL binds to `127.0.0.1` only, which bounds exposure. Pre-existing; not changed. Triage alongside Stage 10.
 
-- [ ] **1.2 — Record the pre-restart baseline**
+- [ ] **1.2 — Record the pre-restart baseline** ⏸ **DEFERRED — original intent no longer achievable**
+  - > *2026-07-24.* The container was recreated at 15:17 UTC outside this workflow, before any baseline was captured. There is no pre-restart state left to record, so this task cannot be completed as written. **Not started, not complete — deferred for rewrite or retirement** once feature work allows. It does not block application recovery and did not block it. Task 1.3's dependency on it is void for the same reason.
   - **Source:** incident report §2
   - **Area:** Infrastructure
   - **Priority:** High
@@ -348,6 +369,8 @@ Repository verification during checklist construction changed three things. Each
     - [ ] Confirm task 1.1 is ticked
     - [ ] Stop PostgreSQL cleanly before the pod stop
     - [ ] Stop the pod via the RunPod console
+  - > ### ⓘ Superseded by events — 2026-07-24, not performed
+    > **This task was never executed and is no longer required.** Two things happened outside the workflow: (a) the container was recreated at 15:17 UTC with no controlled stop, destroying the database — the exact loss this task's hard stop existed to prevent; (b) the port change in task 1.4 was subsequently applied by RunPod **without recreating the container** (`PID 1` start time unchanged at 15:17 across the whole port edit), so no second stop was needed. No further pod stop is pending. Recovery was completed on the running container instead. Leave unticked — the work described here did not occur.
   - > ### ⛔ HARD STOP — do not start this task yet
     > The off-pod copy (task 1.1, subtask 2) is **deferred** as of 2026-07-24. The only backup is on the pod, and inspection confirmed PostgreSQL's data directory sits on the **ephemeral container overlay** (`/var/lib/postgresql/16/main`), not the network volume. Stopping the pod now would very likely destroy the live database while its only backup shares the same failure domain.
     >
@@ -365,11 +388,11 @@ Repository verification during checklist construction changed three things. Each
   - **Can run in parallel:** No
   - **Context:** The pod exposes only TCP 22, HTTP 8888, HTTP 19123. Both 3000 (frontend) and 8000 (API) are unexposed — exposing only 3000 yields a UI that loads and then fails every API call.
   - **Implementation checklist:**
-    - [ ] Add HTTP port **3000** to the pod configuration
-    - [ ] Add HTTP port **8000** to the pod configuration
-    - [ ] Confirm both appear in the saved configuration before starting
+    - [x] Add HTTP port **3000** to the pod configuration — *2026-07-24, by the user via the RunPod console*
+    - [x] Add HTTP port **8000** to the pod configuration — *2026-07-24, by the user via the RunPod console*
+    - [x] Confirm both appear in the saved configuration before starting — *2026-07-24, confirmed functionally*
   - **Verification:**
-    - [ ] RunPod GraphQL API `pod.runtime.ports` lists both privatePorts
+    - [x] ~~RunPod GraphQL API `pod.runtime.ports` lists both privatePorts~~ — *2026-07-24. **The GraphQL check was not run** (no API key on the pod). Substituted with stronger end-to-end evidence: both `https://cvbzi22qmdehpk-3000.proxy.runpod.net/` and `…-8000.proxy.runpod.net/api/health` return **HTTP 200** with correct bodies. Before the change both returned the documented unexposed-port signature (empty-body 404, `server: cloudflare`); immediately after, with the app still down, both returned **502** — proving the proxy route existed and was forwarding. A live 200 supersedes a config listing.*
   - **Definition of done:** Both ports are present in the pod's authoritative port list.
 
 - [ ] **1.5 — Restart the pod and bring up the stack**
@@ -380,15 +403,18 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None
   - **Can run in parallel:** No
   - **Implementation checklist:**
-    - [ ] Start the pod
-    - [ ] Confirm `/workspace/narratiq-ai` and `/workspace/models` survived the stop
-    - [ ] Confirm the database survived; if not, restore from task 1.1
-    - [ ] Run `bash start-narratiq.sh`
-    - [ ] Watch `/tmp/narratiq-logs/vllm.log`, `backend.log`, `frontend.log` to completion
+    - [ ] Start the pod — *not performed by this workflow; the container came up on its own at 15:17 UTC on 2026-07-24. Left unticked deliberately.*
+    - [x] Confirm `/workspace/narratiq-ai` and `/workspace/models` survived — *2026-07-24, both intact; all 4 model directories present, `node_modules` and `.next` too*
+    - [x] Confirm the database survived; if not, restore from task 1.1 — *2026-07-24. **It did not survive.** Restored from `/workspace/backups/narratiq-20260724T103824Z.dump`.*
+    - [x] Run `bash start-narratiq.sh` — *2026-07-24, completed; reinstalled Node 20, PostgreSQL 16 + pgvector, the pip stack and vLLM onto the wiped container layer*
+    - [x] Watch `/tmp/narratiq-logs/vllm.log`, `backend.log`, `frontend.log` to completion — *2026-07-24*
   - **Verification:**
-    - [ ] All three services report started
-    - [ ] `curl localhost:8000/api/health` reports vLLM available, not `"unavailable"`
+    - [x] All three services report started — *2026-07-24; vLLM pid 11423, backend pid 14686 (restarted after the restore), frontend pid 14487, PostgreSQL 16 pid 12522*
+    - [x] `curl localhost:8000/api/health` reports vLLM available, not `"unavailable"` — *2026-07-24, `"vllm":"ready"`, `"bge_m3":"ready"`, `"backend":"ready"`*
   - **Definition of done:** Full stack running on the restarted pod with data intact.
+  - **Progress notes:**
+    - *2026-07-24 — persistence predictions confirmed by observation.* The container reset at 15:17 UTC settled `storage-and-persistence.md` §8 empirically. **Survived** (`/workspace` network volume): repository, all 4 models, `node_modules`, `.next`, `backend/.env` with its `SECRET_KEY`, and every backup artifact — all three checksums re-verified `OK` after the reset. **Lost** (container overlay): the entire PostgreSQL installation — *binaries as well as the data directory* — plus Node, the full pip stack, and `/tmp/narratiq-logs`. The §8 prediction was correct on every point. Full §8.2 Evidence-column rewrite is deferred; this note is the record.
+    - *2026-07-24 — database restored and verified.* `narratiq-20260724T103824Z.dump` restored with `pg_restore --exit-on-error`: **exit 0, zero errors or warnings.** Guarded by a zero-application-rows precheck run twice, immediately before the `DROP DATABASE` (start-narratiq.sh had created an empty 52-table schema that would otherwise collide). Roles first re-applied from `narratiq-globals-20260724T103824Z.sql`; both roles already existed so the `CREATE ROLE` statements errored harmlessly while the `ALTER ROLE` attribute statements applied. **Restored with ownership, not `--no-owner`** — all 52 tables report `tableowner=narratiq`, closing the caveat recorded under task 1.1. Verified after restore: `stories`=1, `chapters`=4, `characters`=8, `users`=1, `chapter_chunks`=21 — every count an exact match to the pre-loss source; 52 tables, 124 indexes, 6 HNSW, `alembic_version`=0015, pgvector 0.8.5; all 21 chunks carry 1024-dim embeddings and a `<=>` cosine query returns correctly ordered neighbours (self 0.000000, next 0.102494). **The 2026-07-24 backup performed its purpose in a real recovery, not a drill.**
   - > ### ☞ Run the persistence confirmation **before** anything else writes
     > [`docs/operations/storage-and-persistence.md`](./operations/storage-and-persistence.md) **§8.5** contains a ready-to-run command block for this exact moment — the first start after a stop. It checks whether the volume returned with its contents, whether the database survived or came back as a fresh empty cluster, and whether the container layer reset as predicted.
     >
@@ -405,15 +431,17 @@ Repository verification during checklist construction changed three things. Each
   - **Can run in parallel:** Yes
   - **Context:** The incident found **1× NVIDIA A40** with effective `max-model-len` **8192**, while `CLAUDE.md` documents 2× RTX PRO 4500 Blackwell (sm_120) with `--tensor-parallel-size 2` and 16384. The Blackwell NCCL flags and sm_120 requirements may not apply.
   - **Implementation checklist:**
-    - [ ] Record `nvidia-smi` output — GPU model and count
-    - [ ] Record `RUNPOD_GPU_COUNT`
-    - [ ] Record the actual `tensor_parallel` value from `/api/health`
-    - [ ] Record the effective `max-model-len` from the vLLM startup log
-    - [ ] Determine whether `NCCL_P2P_DISABLE` / `NCCL_SHM_DISABLE` are required on this hardware
-    - [ ] Feed all findings into task 11.4
+    - [x] Record `nvidia-smi` output — GPU model and count — *2026-07-24, **1× NVIDIA A40, 46068 MiB***
+    - [x] Record `RUNPOD_GPU_COUNT` — *2026-07-24, **1***
+    - [x] Record the actual `tensor_parallel` value from `/api/health` — *2026-07-24, **1***
+    - [x] Record the effective `max-model-len` from the vLLM startup log — *2026-07-24, **8192**, confirmed independently at `/v1/models`*
+    - [ ] Determine whether `NCCL_P2P_DISABLE` / `NCCL_SHM_DISABLE` are required on this hardware — deferred; inert at `TP=1` (no cross-GPU communication), so it does not affect current runtime
+    - [ ] Feed all findings into task 11.4 — deferred with the documentation work
   - **Verification:**
     - [ ] Recorded values match what vLLM actually started with
   - **Definition of done:** The real hardware and context window are known and documented facts.
+  - > ### ⚠ Constraint that affects feature work — recorded 2026-07-24
+    > **The usable context window is 8192 tokens, not the 16384 stated in `CLAUDE.md`.** `start-narratiq.sh:303-311` sizes vLLM from the detected GPU count; at 1 GPU it selects `TP=1, max-model-len=8192, gpu-memory-utilization=0.88`, so **no configuration change is needed — the script adapts itself.** But every prompt-assembly and context-budget task in Stages 4, 5 and 7 must be designed against **8192**. Correcting `CLAUDE.md` is deferred with the rest of the documentation work; this note is the operative record until then.
 
 - [ ] **1.7 — Rebuild the frontend with the correct public API URL**
   - **Source:** `CLAUDE.md`; `docs/operations/how-to-run.md`
@@ -424,13 +452,13 @@ Repository verification during checklist construction changed three things. Each
   - **Can run in parallel:** No
   - **Context:** `NEXT_PUBLIC_API_URL` is inlined at **build** time. A pod ID change without a rebuild produces a UI that loads and calls the wrong host.
   - **Implementation checklist:**
-    - [ ] Confirm the pod ID after restart
-    - [ ] Write `frontend/.env.local` with `NEXT_PUBLIC_API_URL=https://{POD_ID}-8000.proxy.runpod.net`
-    - [ ] Run `npm run build` in `frontend/`
-    - [ ] Restart the frontend service
+    - [x] Confirm the pod ID after restart — *2026-07-24. **The pod ID changed** from `2e5wiiphzhzf14` to `cvbzi22qmdehpk`; the stale value in `frontend/.env.local` would have produced a UI that loads and then calls a dead host.*
+    - [x] Write `frontend/.env.local` with `NEXT_PUBLIC_API_URL=https://{POD_ID}-8000.proxy.runpod.net` — *2026-07-24, written automatically by `start-narratiq.sh:577-580` from `RUNPOD_POD_ID`; no manual edit was needed*
+    - [x] Run `npm run build` in `frontend/` — *2026-07-24, clean rebuild after stale-artifact removal, `BUILD_ID=VMkSDhuLq-skpLjWE9QZs`*
+    - [x] Restart the frontend service — *2026-07-24, pid 14487, `next-server v14.2.3`, exactly 1 process*
   - **Verification:**
-    - [ ] Browser network tab shows API calls going to the `-8000` proxy host
-    - [ ] No call targets `localhost` from the browser
+    - [ ] Browser network tab shows API calls going to the `-8000` proxy host — needs a real browser; **build-level equivalent passed**: the new host is inlined in `.next/static/chunks/6264-*.js`
+    - [x] No call targets `localhost` from the browser — *2026-07-24, verified against the compiled bundle: **0 occurrences** of `localhost:8000` and **0 occurrences** of the old pod ID across `.next/static/chunks/*.js`; the only inlined API host is `cvbzi22qmdehpk-8000`*
   - **Definition of done:** The built frontend targets the correct external API host.
 
 - [ ] **1.8 — Verify external reachability end to end**
@@ -441,14 +469,14 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None
   - **Can run in parallel:** No
   - **Implementation checklist:**
-    - [ ] `https://{POD_ID}-3000.proxy.runpod.net` returns HTTP 200 from an external browser
-    - [ ] `https://{POD_ID}-8000.proxy.runpod.net/api/health` returns healthy
-    - [ ] Log in through the external URL
-    - [ ] Open a project and load a chapter
-    - [ ] Run one real AI generation through the proxy
+    - [x] `https://{POD_ID}-3000.proxy.runpod.net` returns HTTP 200 — *2026-07-24, serves `<title>NarratIQ AI — AI-Powered Long-Form Storytelling</title>`. Requested from the pod; a true external-browser check is still the user's step below.*
+    - [x] `https://{POD_ID}-8000.proxy.runpod.net/api/health` returns healthy — *2026-07-24, HTTP 200, `"vllm":"ready"`*
+    - [ ] Log in through the external URL — **needs the author's own credentials; user step**
+    - [ ] Open a project and load a chapter — **user step**
+    - [ ] Run one real AI generation through the proxy — **user step.** Inference itself is proven: a direct vLLM call returned the exact requested output (4 completion tokens, model `Qwen/Qwen2.5-7B-Instruct`). What remains untested is the authenticated path through the proxy.
   - **Verification:**
-    - [ ] A 404 with `server: cloudflare` and an empty body no longer occurs
-    - [ ] Full round trip works from outside the pod
+    - [x] A 404 with `server: cloudflare` and an empty body no longer occurs — *2026-07-24, both hosts return 200*
+    - [ ] Full round trip works from outside the pod — awaiting the user's browser login
   - **Definition of done:** An external user can log in, open a manuscript and get an AI response.
 
 - [ ] **1.9 — Add the port contract to deployment documentation**
@@ -611,27 +639,35 @@ Repository verification during checklist construction changed three things. Each
 
 ---
 
-- [ ] **3.1 — PRE-1: fix the retrieval call signatures in `writing_tools.py`**
+- [x] **3.1 — PRE-1: fix the retrieval call signatures in `writing_tools.py`** — *completed 2026-07-24*
   - **Source:** Phase 3 spec §7.4 (PRE-1); Phase 2 issues **12** (outline) and **13** (continuation)
   - **Area:** Backend
   - **Priority:** Critical
-  - **Depends on:** Stage 2
+  - **Depends on:** Stage 2 — *satisfied in substance on 2026-07-24: the recovery proved all three services healthy on the correct vLLM port (task 2.3's Definition of done). The remaining Stage 2 items are environment and documentation hygiene, deferred by user direction, and none gates this work.*
   - **Blocked by:** None
   - **Can run in parallel:** Yes
   - **Context — verified in code:** `writing_tools.py:94, 106, 180, 191` pass `query=`. `retrieve_relevant_chunks()` takes `question` first (`ai_service.py:3305`); `retrieve_character_context()` takes `(story_id, question, db, …)` (`ai_service.py:1113`). Both raise `TypeError: unexpected keyword argument 'query'` at runtime. This is the whole reason outline and continuation fail — **not** an AI-output problem. Additionally `retrieve_character_context` returns `list[str]` but is passed to `generate_continuations(character_context=…)` as if it were a string.
   - **Implementation checklist:**
-    - [ ] Fix `writing_tools.py:94` — `query=` → `question=`
-    - [ ] Fix `writing_tools.py:106` — correct keyword and argument order
-    - [ ] Fix `writing_tools.py:180` — `query=` → `question=`
-    - [ ] Fix `writing_tools.py:191` — correct keyword and argument order
-    - [ ] Join the character context: `"\n\n".join(...)` before passing to `generate_continuations` and `generate_chapter_outline`
-    - [ ] Grep the whole backend for any other `retrieve_*(query=` call site
+    - [x] Fix `writing_tools.py:94` — `query=` → `question=` — *2026-07-24, now line 97*
+    - [x] Fix `writing_tools.py:106` — correct keyword and argument order — *2026-07-24, now lines 112-113, keyword form*
+    - [x] Fix `writing_tools.py:180` — `query=` → `question=` — *2026-07-24, now line 188*
+    - [x] Fix `writing_tools.py:191` — correct keyword and argument order — *2026-07-24, now lines 199-200*
+    - [x] Join the character context: `"\n\n".join(...)` before passing to `generate_continuations` and `generate_chapter_outline` — *2026-07-24, both call sites*
+    - [x] Grep the whole backend for any other `retrieve_*(query=` call site — *2026-07-24, zero hits; `plot_assistant.py` and `voice/adapters.py` were already correct*
   - **Verification:**
-    - [ ] Add `backend/tests/test_retrieval_signatures.py` asserting the call signatures (named in Phase 3 spec §3579 as the PRE-1 regression guard)
-    - [ ] Manually run chapter continuation — 3 options returned
-    - [ ] Manually run scene outline — beat sheet returned
-    - [ ] Confirm character context reaches the prompt as text, not as a list repr
+    - [x] Add `backend/tests/test_retrieval_signatures.py` asserting the call signatures (named in Phase 3 spec §3579 as the PRE-1 regression guard) — *2026-07-24, 18 tests, all passing*
+    - [x] Manually run chapter continuation — 3 options returned — *2026-07-24, user-tested. Short and Medium passed on the first attempt; Long failed and required two further fixes (see notes), then passed.*
+    - [x] Manually run scene outline — beat sheet returned — *2026-07-24, user-tested; failed initially on a response-contract mismatch, fixed, then passed*
+    - [x] Confirm character context reaches the prompt as text, not as a list repr — *2026-07-24, verified against the live prompt: 5128 chars of plain text, zero list-repr artefacts*
   - **Definition of done:** Phase 2 Issues 12 and 13 are closed, with a regression test that makes this class of error impossible to reintroduce silently.
+  - **Progress notes:**
+    - *2026-07-24 — PRE-1 fixed, plus a third defect the checklist did not record.* The four `query=` call sites and the `list[str]`→`str` mismatch were fixed as approved. **A third defect was found while reading the code:** `writing_tools.py` read the retrieved dicts with the keys `chapter_number` and `text`, which `retrieve_relevant_chunks()` does not produce — it returns `chapter` and `raw_summary`. `.get()` defaults swallowed both misses, so the assembled story context was `"[Ch] \n\n[Ch] …"` — no manuscript content and no exception. Fixing only the signatures would have shipped confident, fluent, entirely **ungrounded** prose, which is worse than an honest `TypeError`. Mandatory fields now use direct indexing so a future interface change raises `KeyError` instead of silently degrading. Evidence: live capture against the restored manuscript showed 2169 chars of real chapter summaries and 5128 chars of character context reaching the prompt.
+    - *2026-07-24 — manual testing found two further defects; both fixed under this task.* **(a) Long continuation** returned three "Could not generate this suggestion" cards. Root cause: `max_tokens=1600` was fixed regardless of requested length, while 3 × 350 words needs ≈1600 — measured truncation on 1 run in 4, `finish_reason="length"`. Now sized dynamically, `max(1600, int(3 × continuation_length × 1.9) + 400)` → 2395 at Long; **Short and Medium remain exactly 1600, byte-identical to previous behaviour**. **(b) Outline** rendered nothing at all. Root cause: the backend returns `OutlineResponse.outline` while the frontend read `res.data.beats` and its TypeScript interface declared `beats` — so a correct 4-beat response was discarded by `undefined ?? []`, silently, with no error. Backend was never at fault. Frontend interface, read site and the client-side word minimum (3 → 10, matching the backend) all corrected.
+    - *2026-07-24 — truncation no longer reports success.* New `AIResponseTruncatedError` → **HTTP 422** with an actionable message, raised only when the budget was exhausted **and** nothing parseable survived. New `_complete_ex()` exposes vLLM's `finish_reason`; `_complete()` delegates to it, so all existing call sites are unaffected. The handler emits `detail` alongside `message` because the frontend reads `e.response.data.detail`.
+    - *2026-07-24 — residual reliability defect found and closed.* After the budget fix, Long still failed ~11% of the time with `finish_reason="stop"` — Qwen intermittently ends a **complete** suggestion array without its closing `]`, ~1000 tokens below the cap. Fixed with a narrowly gated structural completion (payload must start `[`, not end `]`, end `}`, and parse after appending exactly one `]`; the only mutation is the terminator) followed by **exactly one** retry when that cannot help. No retry on `finish_reason="length"`. Two attempts is a structural maximum, not a policy. **Live verification: 15 of 15 Long continuations succeeded, 0 failures, 2 retries** (was ~89%).
+    - *Known limitation — retry latency.* The two retried runs took **87.4 s and 92.4 s**. If the RunPod proxy enforces Cloudflare's default 100 s origin timeout, a slightly slower retry would surface to the author as a network error. The configured value could not be confirmed from inside the pod. Unmitigated; candidate remedies (shorter retry, streaming, background job) are new scope.
+    - *Known limitation — structural completion is unexercised in production conditions.* `structural_recoveries=0` across the 15-run live sample; both failures in that sample had a shape the narrow gate correctly refused, and the retry recovered them. The path is proven by unit tests and against the originally captured payload, but **the retry is the load-bearing fix**.
+    - *Test coverage added:* `tests/test_retrieval_signatures.py` (18) and `tests/test_generation_limits.py` (24) — **42 tests**, no DB, no LLM, no GPU. Both run under `pytest` and via a plain `python3` harness, so no new dependency was introduced. `pytest` is still not installed on this pod.
 
 - [ ] **3.2 — Story Bible status integrity**
   - **Source:** Phase 2 Issue 8 (partial); `README.md` known issue 2; `backend/routers/story_bible.py:136–147`

@@ -20,6 +20,36 @@ class AIServiceUnavailableError(Exception):
         self.retry_after = retry_after
 
 
+class AIResponseTruncatedError(Exception):
+    """
+    Raised when vLLM stops generating because it hit max_tokens
+    (finish_reason == "length") and the partial output could not be parsed.
+
+    Caught by the global handler in main.py → returns HTTP 422.
+
+    Exists so a truncated generation cannot masquerade as a successful one.
+    Before this, chapter continuation silently padded the empty result with
+    three "Could not generate this suggestion — please retry" cards and returned
+    HTTP 200, which made a hard generation-budget failure look like a flaky
+    model. Truncation is deterministic and actionable — the author needs to be
+    told what happened and what to change.
+    """
+
+    def __init__(
+        self,
+        message: str = (
+            "The AI response was cut off before it finished. "
+            "Try again with a shorter continuation length."
+        ),
+        completion_tokens: int | None = None,
+        max_tokens: int | None = None,
+    ):
+        super().__init__(message)
+        self.message = message
+        self.completion_tokens = completion_tokens
+        self.max_tokens = max_tokens
+
+
 class UploadTooLargeError(Exception):
     """
     Raised when an uploaded file exceeds the configured size limit.

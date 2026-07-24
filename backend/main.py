@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 from database import engine, Base, run_db_migrations
 import models  # noqa: F401
 
-from exceptions import AIServiceUnavailableError, UploadTooLargeError
+from exceptions import AIResponseTruncatedError, AIServiceUnavailableError, UploadTooLargeError
 from middleware.rate_limit import limiter
 
 from routers import auth, projects, chapters, intake, plot_assistant, ai_transform, ocr, manuscript, export, characters, plot_holes, manuscript_report
@@ -301,6 +301,22 @@ async def ai_unavailable_handler(request: Request, exc: AIServiceUnavailableErro
             "retry_after": exc.retry_after,
         },
         headers={"Retry-After": str(exc.retry_after)},
+    )
+
+
+@app.exception_handler(AIResponseTruncatedError)
+async def ai_truncated_handler(request: Request, exc: AIResponseTruncatedError) -> JSONResponse:
+    # "detail" is included alongside "message" because the frontend error
+    # handlers read `e.response.data.detail` (see AIToolsSidebar.tsx); without
+    # it the author would see a generic "Failed to generate" toast instead of
+    # the actionable reason.
+    return JSONResponse(
+        status_code=422,
+        content={
+            "error":   "ai_response_truncated",
+            "message": exc.message,
+            "detail":  exc.message,
+        },
     )
 
 

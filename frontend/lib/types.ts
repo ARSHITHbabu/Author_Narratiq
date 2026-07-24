@@ -507,10 +507,13 @@ export interface OutlineBeat {
   pacing_note:        string
 }
 
+// Field names mirror backend schemas.py OutlineResponse exactly. It returns
+// `outline` (not `beats`) and no story_id — an earlier mismatch here meant the
+// UI read res.data.beats, got undefined, and silently rendered nothing while
+// the backend was returning a correct beat sheet.
 export interface OutlineResponse {
-  story_id:   string
   chapter_id: string
-  beats:      OutlineBeat[]
+  outline:    OutlineBeat[]
 }
 
 // P2-05 Continuity Check

@@ -174,14 +174,17 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
   }
 
   const generateOutline = async () => {
-    if (chapterGoal.trim().split(/\s+/).length < 3) {
-      return toast.error('Chapter goal must be at least 3 words')
+    // Must match the backend's minimum (writing_tools.py) — a lower threshold
+    // here just produces a round trip that comes back as a 400.
+    if (chapterGoal.trim().split(/\s+/).length < 10) {
+      return toast.error('Chapter goal must be at least 10 words — describe what should happen')
     }
     setOutlineLoading(true)
     setBeats([])
     try {
       const res = await outlineApi.generate(storyId, chapterId, chapterGoal, sceneCount)
-      setBeats(res.data.beats ?? [])
+      // Backend field is `outline` (schemas.py OutlineResponse), not `beats`.
+      setBeats(res.data.outline ?? [])
     } catch (e: any) {
       toast.error(e?.response?.data?.detail ?? 'Failed to generate outline')
     } finally {

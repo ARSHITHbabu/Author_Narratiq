@@ -22,7 +22,7 @@ from openai import AsyncOpenAI, APIConnectionError, APIStatusError
 from sentence_transformers import SentenceTransformer
 
 from config import settings
-from exceptions import AIServiceUnavailableError
+from exceptions import AIResponseTruncatedError, AIServiceUnavailableError
 
 logger = logging.getLogger(__name__)
 
@@ -113,6 +113,31 @@ async def _complete(
 
     Raises AIServiceUnavailableError on connection errors or vLLM 5xx responses.
     """
+    text, _finish_reason = await _complete_ex(
+        system, user, temperature=temperature, max_tokens=max_tokens,
+        response_format=response_format,
+    )
+    return text
+
+
+async def _complete_ex(
+    system: str,
+    user: str,
+    temperature: float = 0.0,
+    max_tokens: int = 512,
+    response_format: Optional[dict] = None,
+) -> tuple[str, Optional[str]]:
+    """
+    Same as _complete(), but also returns vLLM's ``finish_reason``.
+
+    ``finish_reason == "length"`` means generation stopped because it hit
+    max_tokens — the output is truncated and any JSON in it is incomplete.
+    Callers that parse structured output need this to tell a truncated
+    generation apart from a model that simply produced malformed JSON: the
+    first is a budget problem with a clear remedy, the second is not.
+
+    _complete() delegates here, so every existing call site is unaffected.
+    """
     kwargs: dict = {}
     if response_format is not None:
         kwargs["response_format"] = response_format
@@ -128,7 +153,7 @@ async def _complete(
             stream=False,
             **kwargs,
         )
-        return resp.choices[0].message.content.strip()
+        return resp.choices[0].message.content.strip(), resp.choices[0].finish_reason
     except APIConnectionError as exc:
         logger.warning("[ai_service] vLLM connection error: %s", exc)
         raise AIServiceUnavailableError() from exc
@@ -308,6 +333,42 @@ def _extract_json(text: str, fallback):
 
     logger.warning("[ai_service] failed to parse model output as JSON. Raw head: %r", text[:300])
     return fallback
+
+
+def _close_unterminated_json_array(text: str) -> Optional[list]:
+    """
+    Recover the ONE observed malformation: a complete JSON array whose final
+    ``]`` is missing.
+
+    Deliberately not a JSON repair engine. Every condition below must hold or
+    this returns None and the caller falls through to a regeneration:
+
+      * the payload starts with ``[``           — it is an array, not prose
+      * it does NOT already end with ``]``      — otherwise there is nothing to fix
+      * it ends with ``}``                      — the last element is complete;
+                                                  a payload cut mid-object is a
+                                                  different failure and is not
+                                                  guessed at here
+      * appending exactly one ``]`` makes it parse, and yields a list
+
+    The only mutation is appending the missing terminator. No content is
+    altered, no quotes balanced, no commas inserted, nothing truncated.
+
+    Why this exists: Qwen intermittently ends a well-formed suggestion array
+    without its closing bracket while reporting finish_reason="stop", roughly
+    1000 tokens below the cap — measured at ~11% of long continuations. The
+    alternative recovery is a full regeneration costing ~50s, which on this
+    single-GPU deployment pushes a request close to the proxy timeout. This
+    check costs microseconds and handles the case exactly.
+    """
+    stripped = _strip_code_fences(text).strip()
+    if not stripped.startswith("[") or stripped.endswith("]") or not stripped.endswith("}"):
+        return None
+    try:
+        parsed = json.loads(stripped + "]")
+    except json.JSONDecodeError:
+        return None
+    return parsed if isinstance(parsed, list) else None
 
 
 def _strip_html(html: str) -> str:
@@ -3407,6 +3468,30 @@ async def get_arc_assessment(arc_entries: list[dict]) -> str:
 
 # ── P2-02: Chapter Continuation Suggestion ───────────────────────────────────
 
+def _parse_suggestions(raw: str) -> list[dict]:
+    """
+    Parse a continuation payload into [{direction, text, rationale}].
+
+    Tries the tolerant extractor first, then the narrow unterminated-array
+    completion. Returns [] when neither yields a list, which is the caller's
+    signal to retry or to report truncation.
+    """
+    parsed = _extract_json(raw, fallback=None)
+    if parsed is None:
+        parsed = _close_unterminated_json_array(raw)
+    if not isinstance(parsed, list):
+        return []
+    return [
+        {
+            "direction": str(item.get("direction", "")),
+            "text":      str(item.get("text", "")),
+            "rationale": str(item.get("rationale", "")),
+        }
+        for item in parsed[:3]
+        if isinstance(item, dict)
+    ]
+
+
 async def generate_continuations(
     tail_text: str,
     story_context: str,
@@ -3437,18 +3522,49 @@ async def generate_continuations(
         '  "rationale": one sentence explaining why this direction fits the manuscript\n'
         "Return ONLY the JSON array. No explanation outside it."
     )
-    raw = await _complete(system, user, temperature=0.8, max_tokens=1600)
-    parsed = _extract_json(raw, fallback=[])
-    if not isinstance(parsed, list):
-        parsed = []
-    result = []
-    for item in parsed[:3]:
-        if isinstance(item, dict):
-            result.append({
-                "direction": str(item.get("direction", "")),
-                "text":      str(item.get("text", "")),
-                "rationale": str(item.get("rationale", "")),
-            })
+    # Generation budget must scale with the request. A fixed 1600 was enough for
+    # short (100 w) and medium (200 w) but sat exactly on the requirement for
+    # long (350 w): 3 × 350 words ≈ 1420 tokens of prose plus ~175 for the
+    # direction/rationale strings and JSON scaffolding. Long therefore truncated
+    # intermittently — measured at 1 run in 4 — and a truncated JSON array parsed
+    # to [], which was silently padded into three "please retry" cards.
+    # 1.9 tokens/word is a measured upper bound for this model on English prose.
+    # The 1600 floor keeps short and medium byte-identical to previous behaviour.
+    max_tokens = max(1600, int(3 * continuation_length * 1.9) + 400)
+
+    raw, finish_reason = await _complete_ex(
+        system, user, temperature=0.8, max_tokens=max_tokens,
+    )
+    result = _parse_suggestions(raw)
+
+    # Exactly one retry, and only for output that finished normally yet could not
+    # be parsed or structurally recovered — that is sampling variance, which a
+    # fresh sample clears. Never retry finish_reason="length": the budget is
+    # already exhausted, so a second attempt would truncate again and cost ~50s
+    # for nothing. Straight-line code, no loop: two attempts is a structural
+    # maximum, not a policy.
+    if not result and finish_reason == "stop":
+        logger.warning(
+            "[ai_service] continuation output unparseable at finish_reason=stop "
+            "(%d chars, max_tokens=%d) — retrying once",
+            len(raw), max_tokens,
+        )
+        raw, finish_reason = await _complete_ex(
+            system, user, temperature=0.8, max_tokens=max_tokens,
+        )
+        result = _parse_suggestions(raw)
+
+    # Truncation must not be reported as success. Only raise when the budget was
+    # actually exhausted AND nothing usable survived — a response that hit the
+    # cap but still yielded three complete suggestions is fine to return.
+    if not result and finish_reason == "length":
+        logger.warning(
+            "[ai_service] continuation truncated at max_tokens=%d "
+            "(continuation_length=%d) — no parseable suggestions",
+            max_tokens, continuation_length,
+        )
+        raise AIResponseTruncatedError(max_tokens=max_tokens)
+
     return result
 
 

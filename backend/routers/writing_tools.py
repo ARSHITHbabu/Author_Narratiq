@@ -89,24 +89,31 @@ async def generate_chapter_continuation(
     # Trim tail_text to avoid context overflow
     tail_trimmed = _trim_to_words(body.tail_text.strip(), _MAX_TAIL_WORDS)
 
-    # Retrieve story context
-    story_context_chunks = await retrieve_relevant_chunks(
-        query=tail_trimmed,
+    # Retrieve story context.
+    # retrieve_relevant_chunks() searches chapter_summaries (not chapter_chunks,
+    # despite the name) and returns dicts keyed chapter / raw_summary / score.
+    # Results arrive ordered by ascending cosine distance — most relevant first.
+    story_summaries = await retrieve_relevant_chunks(
+        question=tail_trimmed,
         story_id=story_id,
         db=db,
         max_chapter_number=chapter.chapter_number,
     )
+    # Index mandatory fields directly: a KeyError here must surface loudly rather
+    # than silently degrade into an empty, ungrounded prompt.
     story_context = "\n\n".join(
-        f"[Ch{c.get('chapter_number', '')}] {c.get('text', '')}"
-        for c in story_context_chunks[:4]
+        f"[Ch{c['chapter']}] {c['raw_summary']}"
+        for c in story_summaries[:4]
     )
 
-    # Retrieve character context if names detected
-    char_context_str = await retrieve_character_context(
-        query=tail_trimmed,
+    # Retrieve character context if names detected.
+    # Returns list[str] of pre-formatted blocks — join before prompt assembly.
+    char_context_blocks = await retrieve_character_context(
         story_id=story_id,
+        question=tail_trimmed,
         db=db,
     )
+    char_context_str = "\n\n".join(char_context_blocks)
 
     genre_ctx = _get_genre_context(story_id, db)
 
@@ -175,23 +182,25 @@ async def generate_outline(
     goal_trimmed = _trim_to_words(goal, _MAX_GOAL_WORDS)
     scene_count  = max(1, min(body.scene_count or 4, 8))
 
-    # Retrieve context
-    story_context_chunks = await retrieve_relevant_chunks(
-        query=goal_trimmed,
+    # Retrieve context — see the notes in generate_chapter_continuation above for
+    # the chapter_summaries source, the returned key names and the result order.
+    story_summaries = await retrieve_relevant_chunks(
+        question=goal_trimmed,
         story_id=story_id,
         db=db,
         max_chapter_number=chapter.chapter_number,
     )
     story_context = "\n\n".join(
-        f"[Ch{c.get('chapter_number', '')}] {c.get('text', '')}"
-        for c in story_context_chunks[:4]
+        f"[Ch{c['chapter']}] {c['raw_summary']}"
+        for c in story_summaries[:4]
     )
 
-    char_context_str = await retrieve_character_context(
-        query=goal_trimmed,
+    char_context_blocks = await retrieve_character_context(
         story_id=story_id,
+        question=goal_trimmed,
         db=db,
     )
+    char_context_str = "\n\n".join(char_context_blocks)
 
     genre_ctx = _get_genre_context(story_id, db)
 
