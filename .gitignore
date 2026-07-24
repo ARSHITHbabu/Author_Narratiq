@@ -25,6 +25,55 @@ frontend/.env.local
 frontend/.env*.local
 .env
 .env.local
+.env.*
+!.env.example
+!*.env.example
+
+# Secrets / credentials — never commit
+*.pem
+*.p12
+*.pfx
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+*_rsa
+*.keystore
+secrets.yml
+secrets.yaml
+credentials.json
+*credentials*.json
+service-account*.json
+.netrc
+.npmrc
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Test / lint / tool caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+*.tmp
+*.temp
+*.swp
+*~
+
+# Model weights & large datasets (use Git LFS or external storage)
+models/
+*.safetensors
+*.gguf
+*.ckpt
+*.pt
+*.pth
+*.onnx
+*.bin
+*.npy
+*.npz
 
 # IDE
 .claude/
@@ -42,6 +91,44 @@ frontend/.next/
 frontend/out/
 frontend/tsconfig.tsbuildinfo
 
-# Word documents / binary assets — ignore by default, except project documentation
+# Binary archives
 *.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+
+# ---------------------------------------------------------------------------
+# Project documentation — ALWAYS tracked.
+#
+# History: commit bdc3c0a added a blanket `*.docx` rule with three per-file
+# `!` exceptions, so every other Word document was silently invisible to git.
+# Commit ad4ad87 dropped `*.docx`, but the previously-hidden files were never
+# staged. The explicit negations below keep documentation tracked even if a
+# broad binary-extension rule is reintroduced later.
+#
+# NOTE: these negations cannot rescue files inside an excluded directory
+# (node_modules/, .next/, venv/, .ipynb_checkpoints/ ...) — that is intended.
+# ---------------------------------------------------------------------------
+!*.md
+!*.docx
+!*.doc
+!*.pdf
+!*.txt
+!*.rtf
+!*.csv
+!*.xlsx
+!*.xls
+!*.pptx
+!*.odt
+!docs/
+!docs/**
+
+# Re-assert junk exclusions that the broad `!docs/**` negation would otherwise
+# resurrect (a negated directory is descended into again by git).
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+docs/**/__pycache__/
+docs/**/*.pyc
 
