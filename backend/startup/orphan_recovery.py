@@ -98,16 +98,34 @@ async def recover_orphaned_jobs() -> dict[str, int]:
             sess.error_message = _ORPHAN_MESSAGE
         counts["voice_sessions"] = len(stuck_sessions)
 
-        # ── VoiceWorkflow (running / awaiting_confirmation → abandoned) ────────
+        # ── VoiceWorkflow (running / executing / awaiting_confirmation → abandoned) ──
         stuck_workflows = (
             db.query(VoiceWorkflow)
-            .filter(VoiceWorkflow.status.in_(["running", "awaiting_confirmation"]))
+            .filter(VoiceWorkflow.status.in_(["running", "executing", "awaiting_confirmation"]))
             .all()
         )
         for wf in stuck_workflows:
             wf.status     = "abandoned"
             wf.updated_at = now
         counts["voice_workflows"] = len(stuck_workflows)
+
+        # ── VoiceTask (executing → failed) ────────────────────────────────────
+        # A client-side step whose browser never reported back. It must not
+        # survive a restart still claiming to be in progress, and it must never
+        # be resolved as success on the author's behalf (task 3.7).
+        from models import VoiceTask
+        from services.voice import lifecycle
+
+        stuck_tasks = (
+            db.query(VoiceTask)
+            .filter(VoiceTask.status == lifecycle.EXECUTING)
+            .all()
+        )
+        for task in stuck_tasks:
+            lifecycle.transition(task, lifecycle.FAILED, source="orphan_recovery",
+                                 reason="server restarted before the step reported", strict=False)
+            task.result_summary = lifecycle.TIMEOUT_REASON
+        counts["voice_tasks"] = len(stuck_tasks)
 
         if any(v > 0 for v in counts.values()):
             db.commit()

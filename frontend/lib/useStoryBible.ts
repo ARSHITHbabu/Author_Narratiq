@@ -46,6 +46,16 @@ export function StoryBibleWatcher({ storyId }: { storyId: string }) {
     if (prev.current === 'running' && status === 'completed') {
       toast.success('Story Bible is ready.')
       qc.invalidateQueries({ queryKey: storyBibleKey(storyId) })
+    } else if (prev.current === 'running' && status === 'partial') {
+      // Honest middle state: usable, but say so plainly rather than claiming
+      // it is ready or that it failed.
+      const n = data?.failed_sections?.length ?? 0
+      toast.warning(
+        n === 1
+          ? 'Story Bible is ready, but one section needs another attempt.'
+          : `Story Bible is ready, but ${n} sections need another attempt.`,
+      )
+      qc.invalidateQueries({ queryKey: storyBibleKey(storyId) })
     } else if (prev.current === 'running' && status === 'failed') {
       toast.error('Story Bible generation failed. You can retry from the Story Bible panel.')
     }

@@ -15,6 +15,7 @@ from datetime import datetime
 
 from . import (analytics, catalog, clarify, normalize, orchestrator, planner,
                reference, safety, vocabulary)
+from . import lifecycle
 from .capabilities import CAPABILITY_REGISTRY, get_action
 from .context import summarize_context
 from .session_memory import VoiceSessionContextManager
@@ -162,10 +163,13 @@ async def interpret(db, user, transcript: str, context, session_id: str | None =
         )
     elif requires_confirmation:
         status = "needs_confirmation"
-    elif any(n.status == "failed" for n in graph.nodes):
-        status = "failed"
     else:
-        status = "success"
+        # Derived from what the nodes actually did — never from "the plan was
+        # built". Client-locus nodes are READY here: dispatched, outcome
+        # unknown, so the command reports EXECUTING until their results are
+        # reported back. This assignment is the whole of Phase 2 Issue 5: it
+        # used to read `status = "success"` while nothing had run.
+        status = lifecycle.derive_command_status(n.status for n in graph.nodes)
 
     return _finalize(
         db, session, memory, command_id, transcript, cleaned, refs, graph,
@@ -179,6 +183,8 @@ async def interpret(db, user, transcript: str, context, session_id: str | None =
 
 
 def _consolidate_message(graph, status: str) -> str:
+    """Author-facing summary. Says what has happened so far — nothing about a
+    client action is claimed until its executor reports back."""
     # Skip nodes whose answer is rendered by the AnswerCard (server_sync Q&A) so
     # the natural-language answer isn't duplicated in the header line.
     parts = [

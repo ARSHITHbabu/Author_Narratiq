@@ -22,6 +22,7 @@ import time
 from typing import Any
 
 from . import context as ctx_mod
+from . import lifecycle
 from .adapters import SERVER_ADAPTERS, run_server_adapter
 
 logger = logging.getLogger(__name__)
@@ -82,7 +83,8 @@ async def execute(graph, context, refs, memory, db, user=None) -> dict:
             for d in node.depends_on
         )
         if upstream_blocked:
-            node.status = "skipped"
+            lifecycle.transition(node, lifecycle.BLOCKED, source="orchestrator",
+                                 reason="upstream node did not produce", strict=False)
             continue
 
         deps = _pipe_dependencies(node, graph)
@@ -90,7 +92,8 @@ async def execute(graph, context, refs, memory, db, user=None) -> dict:
 
         missing = ctx_mod.resolve_node_params(node, context, refs, memory, db)
         if missing:
-            node.status = "needs_input"
+            lifecycle.transition(node, lifecycle.NEEDS_INPUT, source="orchestrator",
+                                 reason="required params missing", strict=False)
             node.user_message = f"I need: {', '.join(missing)}."
             all_missing.extend(missing)
             any_needs_input = True
@@ -102,24 +105,49 @@ async def execute(graph, context, refs, memory, db, user=None) -> dict:
 
         if is_server:
             # FEATURE call — adapter invokes the feature's services (model-owning).
-            node.status = "running"
+            # This is the ONE path that may reach a terminal status in-process,
+            # because the result is in hand when it does.
+            lifecycle.transition(node, lifecycle.EXECUTING, source="orchestrator",
+                                 reason="server adapter dispatched", strict=False)
             try:
                 result = await run_server_adapter(node, bundle, db, user)
-                node.result = result or {}
-                node.status = "done"
-                node.user_message = (result or {}).get("answer", "Done.")
-                if (result or {}).get("context_used"):
-                    context_used = result["context_used"]
+                answer = (result or {}).get("answer") if isinstance(result, dict) else None
+                if not result or not str(answer or "").strip():
+                    # An adapter that returns None or an empty payload has not
+                    # done the thing. Reporting "Done." here is precisely the
+                    # false success in Phase 2 Issue 5.
+                    logger.warning("[voice.orchestrator] feature %s.%s returned no result",
+                                   node.capability, node.action)
+                    node.result = None
+                    lifecycle.transition(node, lifecycle.FAILED, source="orchestrator",
+                                         reason="adapter returned no result", strict=False)
+                    node.user_message = ("I couldn't get an answer for that — "
+                                         "please try again.")
+                else:
+                    node.result = result
+                    lifecycle.transition(node, lifecycle.SUCCEEDED, source="orchestrator",
+                                         reason="adapter returned a result", strict=False)
+                    node.user_message = answer
+                    if result.get("context_used"):
+                        context_used = result["context_used"]
             except Exception as exc:                       # noqa: BLE001
                 logger.warning("[voice.orchestrator] feature %s.%s failed: %s",
                                node.capability, node.action, exc)
-                node.status = "failed"
+                node.result = None
+                lifecycle.transition(node, lifecycle.FAILED, source="orchestrator",
+                                     reason="adapter raised", strict=False)
                 node.user_message = "I couldn't complete that just now — please try again."
         else:
-            # Proposed client action — frontend executes via api.ts (real feature).
+            # Proposed client action — the frontend executes it via api.ts. It is
+            # NOT done yet, and must not be described as if it were: the terminal
+            # status arrives later, from the executor's own report.
             node.execution_locus = "client"
             node.result = None
-            node.status = "awaiting_confirmation" if node.requires_confirmation else "ready"
+            lifecycle.transition(
+                node,
+                lifecycle.AWAITING_CONFIRMATION if node.requires_confirmation else lifecycle.READY,
+                source="orchestrator", reason="handed to client executor", strict=False,
+            )
             node.user_message = node.user_message or _describe_client_action(node)
             # Transforms ALWAYS act on the selection only — never RAG/story passages.
             if node.capability == "text_transform":
@@ -131,10 +159,10 @@ async def execute(graph, context, refs, memory, db, user=None) -> dict:
             "exec_ms": exec_ms, "context_used": context_used or bundle.used_label}
 
 
-def _summarize_result(node, result: dict) -> str:
-    if node.capability == "text_transform":
-        return "Rewrite ready for review."
-    return "Done."
+# _summarize_result() was removed here (task 3.7). It returned "Done." for any
+# result and was called from nowhere — a dead function that could only ever have
+# reported success. The guarantee it was supposed to provide now lives where the
+# message is actually produced, above.
 
 
 def _describe_client_action(node) -> str:

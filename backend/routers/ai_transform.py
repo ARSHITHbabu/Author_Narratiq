@@ -197,7 +197,14 @@ async def suggestions(request: Request, data: SuggestionRequest, current_user: U
     try:
         raw = await ai_service.generate_suggestions(data.text)
     except ValueError as exc:
-        raise HTTPException(status_code=503, detail=str(exc))
+        # Fixed author-facing text; the detail goes to the log. Same rule as
+        # plot_holes.py — str(exc) is safe only until one internal error reaches
+        # this handler.
+        logger.warning("[ai_transform] suggestions failed: %s", exc)
+        raise HTTPException(
+            status_code=503,
+            detail="Writing suggestions could not be generated. Please try again.",
+        )
     from schemas import Suggestion
     result = [Suggestion(**s) for s in raw]
     return SuggestionsResponse(suggestions=result, tokens_used=len(data.text.split()) * 2)

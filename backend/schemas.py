@@ -181,6 +181,11 @@ class PlotHoleResponse(BaseModel):
     issues_found:      int
     issues:            List[PlotHoleIssue]
     analysis_note:     str    # e.g. "No issues detected." or cap/stale warning
+    # Degraded-output contract (task 3.4): true when some of the AI's response
+    # could not be read, so these findings are incomplete. An empty issues list
+    # with degraded=false means the analysis genuinely found nothing.
+    degraded:          bool = False
+    degraded_reason:   Optional[str] = None
 
 
 # ── Manuscript Report ──────────────────────────────────────────────────────────
@@ -1375,6 +1380,11 @@ class ContinuityCheckResponse(BaseModel):
     issues:           List[ContinuityIssue]
     chapters_scanned: int
     note:             str
+    # Degraded-output contract (task 3.4). Critical here: an empty issues list
+    # used to mean either "consistent" or "unreadable AI response", and the
+    # author was shown the reassuring one either way.
+    degraded:         bool = False
+    degraded_reason:  Optional[str] = None
 
 
 # ── P2-06: Story Bible Generator ─────────────────────────────────────────────
@@ -1386,9 +1396,19 @@ class StoryBibleOut(BaseModel):
     title:        str
     content_json: str   # raw JSON string — frontend parses as needed
     version:      int
-    status:       str = "completed"   # running | completed | failed
+    status:       str = "completed"   # running | completed | partial | failed
+    # Sections that did not produce genuine content on the last run:
+    # [{"section", "failure", "reason"}]. Empty on a fully successful bible —
+    # never null, so the client can iterate it unconditionally.
+    failed_sections: List[dict] = []
     created_at:   Optional[datetime] = None
     updated_at:   Optional[datetime] = None
+
+    @field_validator("failed_sections", mode="before")
+    @classmethod
+    def _coerce_failed_sections(cls, v):
+        """Legacy rows predate the column and read as NULL."""
+        return v or []
 
 
 class StoryBibleJobResponse(BaseModel):
@@ -1622,6 +1642,27 @@ class VoiceWorkflowConfirmRequest(BaseModel):
     confirmed: bool
     edits:     Optional[dict] = None               # author edits to the node args
     applied:   bool = False                         # frontend reports it executed the write
+
+
+class VoiceNodeResultRequest(BaseModel):
+    """
+    The executor's report of what actually happened (task 3.7).
+
+    This is the channel that did not exist: non-mutating client actions ran in
+    the browser and never told the backend anything, so the command's status was
+    whatever the backend had optimistically assumed. `ok` is the outcome —
+    separate from `confirmed`, which is only whether the author approved.
+    """
+    ok:         bool
+    message:    str = ""                            # author-safe; internals stay in logs
+    error_code: Optional[str] = None
+
+
+class VoiceNodeResultResponse(BaseModel):
+    node_key:       str
+    node_status:    str
+    command_status: str
+    recorded:       bool                            # False when already terminal (duplicate/late)
 
 
 class VoiceCommandOut(BaseModel):

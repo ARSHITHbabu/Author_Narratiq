@@ -155,13 +155,31 @@ export default function PlotHolesPanel({ storyId }: Props) {
               )}
             </div>
 
-            {/* No issues found */}
-            {result.issues_found === 0 && (
+            {/* Incomplete results — say so rather than presenting them as the
+                whole picture. */}
+            {result.degraded && (
+              <div className="px-2.5 py-2 rounded-lg bg-amber-500/5 border border-amber-500/20">
+                <p className="text-[11px] text-amber-300/90 leading-relaxed">
+                  {result.degraded_reason ?? 'These results are incomplete — some of the analysis could not be read.'}
+                </p>
+                <p className="text-[10px] text-[#5c6391] mt-0.5">
+                  What is shown below is real. Run the scan again for the rest.
+                </p>
+              </div>
+            )}
+
+            {/* No issues found — but only claim a clean result if it IS one. */}
+            {result.issues_found === 0 && !result.degraded && (
               <div className="flex flex-col items-center gap-2 py-4 text-center">
                 <CheckCircle className="w-7 h-7 text-green-500/60" />
                 <p className="text-xs text-[#9da3c8] font-medium">No issues detected</p>
                 <p className="text-xs text-[#5c6391]">Your story is consistent across analyzed chapters.</p>
               </div>
+            )}
+            {result.issues_found === 0 && result.degraded && (
+              <p className="text-xs text-[#5c6391] text-center py-2">
+                No issues could be read from this scan.
+              </p>
             )}
 
             {/* Issue cards */}

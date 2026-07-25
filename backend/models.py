@@ -1069,11 +1069,18 @@ class StoryBible(Base):
     title        = Column(String,   default="Story Bible")
     content_json = Column(Text,     nullable=False, default="{}")
     version      = Column(Integer,  default=1)
-    # Generation lifecycle so the UI can show in-progress/failed/completed and
-    # survive reloads & navigation: running | completed | failed.
+    # Generation lifecycle so the UI can show in-progress/partial/failed/completed
+    # and survive reloads & navigation: running | completed | partial | failed.
+    # 'partial' means some sections produced genuine content and some did not;
+    # it is derived from the per-section outcomes, never from the loop finishing.
     # Default 'completed' so pre-existing rows (already-generated bibles) read
     # correctly without backfill.
     status       = Column(String,   default="completed")
+    # Which sections did not produce genuine content on the last run, so the UI
+    # can offer targeted regeneration instead of rebuilding the whole bible:
+    # [{"section": ..., "failure": ..., "reason": ...}]. Author-facing fields
+    # only — exception details stay in the logs. Cleared on every run.
+    failed_sections = Column(JSON, default=list)
     created_at   = Column(DateTime, default=datetime.utcnow)
     updated_at   = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -1178,7 +1185,12 @@ class VoiceCommand(Base):
     requires_confirmation = Column(Boolean, default=False)
     confirmed           = Column(Boolean, nullable=True)
     parameters          = Column(JSON,    default=dict)
-    status              = Column(String,  default="success")  # success|needs_confirmation|needs_clarification|failed
+    # Derived from the workflow's tasks, never assumed. The default used to be
+    # "success", so a row was optimistic from the moment it was created —
+    # before anything had run (task 3.7).
+    status              = Column(String,  default="planned")
+    # planned|executing|awaiting_confirmation|needs_input|needs_clarification|
+    # succeeded|failed|skipped
     result_summary      = Column(Text,    default="")
     stt_ms              = Column(Integer, default=0)
     llm_ms              = Column(Integer, default=0)

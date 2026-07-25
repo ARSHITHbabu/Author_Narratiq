@@ -28,10 +28,12 @@ from middleware.rate_limit import limiter, get_user_id
 from models import User, VoiceSession, VoiceCommand, VoiceWorkflow, VoiceTask
 from schemas import (VoiceInterpretRequest, VoiceAgentResponse, VoiceTranscribeResponse,
                      VoiceContext, VoiceWorkflowConfirmRequest, VoiceSessionHistory,
-                     VoiceSessionOut, VoiceCommandOut, VoiceAnalyticsSummary)
+                     VoiceSessionOut, VoiceCommandOut, VoiceAnalyticsSummary,
+                     VoiceNodeResultRequest, VoiceNodeResultResponse)
 from routers.auth import get_current_user, decode_token
 from services.voice import agent as voice_agent
 from services.voice import analytics as voice_analytics
+from services.voice import lifecycle
 
 logger = logging.getLogger(__name__)
 
@@ -162,7 +164,11 @@ def confirm_command(
                    VoiceCommand.user_id == current_user.user_id).first())
     if not cmd:
         raise HTTPException(status_code=404, detail="Command not found")
-    cmd.confirmed = bool(body.confirmed and body.applied)
+    # `confirmed` means the author approved it — nothing more. Whether it then
+    # WORKED arrives separately, via the result endpoint below. Conflating the
+    # two is what let an approval be recorded as a completed data change
+    # (task 3.7).
+    cmd.confirmed = bool(body.confirmed)
 
     wf = db.query(VoiceWorkflow).filter(VoiceWorkflow.command_id == command_id).first()
     if wf:
@@ -171,13 +177,107 @@ def confirm_command(
                         VoiceTask.node_key == body.node_key).first())
         if task:
             task.confirmed = bool(body.confirmed)
-            task.status = "done" if body.applied else ("skipped" if not body.confirmed else "awaiting_confirmation")
-        if body.applied:
-            wf.status = "completed"
-        elif not body.confirmed:
-            wf.status = "abandoned"
+            if not body.confirmed:
+                lifecycle.transition(task, lifecycle.SKIPPED, source="confirm_endpoint",
+                                     reason="author declined", strict=False)
+            else:
+                # Approved → it is being run, not done. `applied` is the
+                # executor's claim that it ran; the outcome still comes from the
+                # result report.
+                lifecycle.transition(task, lifecycle.EXECUTING, source="confirm_endpoint",
+                                     reason="author approved", strict=False)
+        _resync_workflow(db, wf)
     db.commit()
     return {"ok": True, "confirmed": cmd.confirmed}
+
+
+def _resync_workflow(db: Session, wf: VoiceWorkflow) -> str:
+    """Recompute a workflow's status from its tasks. Derived, never assigned."""
+    tasks = db.query(VoiceTask).filter(VoiceTask.workflow_id == wf.workflow_id).all()
+    lifecycle.expire_stale_nodes(tasks, settings.voice_execution_timeout_seconds)
+    derived = lifecycle.derive_command_status([t.status for t in tasks])
+    wf.status = derived
+    wf.updated_at = datetime.utcnow()
+    return derived
+
+
+@router.post("/commands/{command_id}/nodes/{node_key}/result",
+             response_model=VoiceNodeResultResponse)
+def report_node_result(
+    command_id: str,
+    node_key: str,
+    body: VoiceNodeResultRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Record what actually happened when an action ran.
+
+    The missing half of the loop: client-side actions execute in the browser, so
+    the backend cannot know their outcome unless the browser says so. Without
+    this, a command's status was whatever the backend assumed at planning time —
+    which is how the agent came to confirm chapter creations that never
+    happened (Phase 2 Issue 5).
+
+    Idempotent per (command, node). A report for a node that has already reached
+    a terminal status is recorded as `recorded=false` and changes nothing: a
+    late or duplicated message must never resurrect a finished node, least of
+    all turn a recorded failure into a success.
+    """
+    _require_enabled()
+
+    # 1 + 2 — authenticated user owns this command.
+    cmd = (db.query(VoiceCommand)
+           .filter(VoiceCommand.command_id == command_id,
+                   VoiceCommand.user_id == current_user.user_id).first())
+    if not cmd:
+        raise HTTPException(status_code=404, detail="Command not found")
+
+    wf = db.query(VoiceWorkflow).filter(VoiceWorkflow.command_id == command_id).first()
+    if not wf:
+        raise HTTPException(status_code=404, detail="No workflow for this command")
+
+    # 3 — the node belongs to this command's workflow.
+    task = (db.query(VoiceTask)
+            .filter(VoiceTask.workflow_id == wf.workflow_id,
+                    VoiceTask.node_key == node_key).first())
+    if not task:
+        raise HTTPException(status_code=404, detail="Step not found for this command")
+
+    # 4 — still active. Terminal nodes are closed; say so rather than pretend.
+    if task.status in lifecycle.TERMINAL:
+        logger.info("[voice] duplicate result for %s/%s ignored (already %s)",
+                    command_id[:8], node_key, task.status)
+        return VoiceNodeResultResponse(
+            node_key=node_key, node_status=task.status,
+            command_status=_resync_workflow(db, wf) or wf.status, recorded=False,
+        )
+
+    # A node still sitting in a pre-dispatch status is moved through EXECUTING,
+    # so SUCCEEDED is never reached from anywhere else.
+    if task.status not in (lifecycle.EXECUTING,):
+        lifecycle.transition(task, lifecycle.EXECUTING, source="result_endpoint",
+                             reason="executor reported", strict=False)
+
+    lifecycle.transition(
+        task, lifecycle.SUCCEEDED if body.ok else lifecycle.FAILED,
+        source="result_endpoint",
+        reason=body.error_code or ("executor reported success" if body.ok else "executor reported failure"),
+        strict=False,
+    )
+    if body.message:
+        task.result_summary = body.message[:1000]
+
+    command_status = _resync_workflow(db, wf)
+    cmd.status = command_status
+    tasks = db.query(VoiceTask).filter(VoiceTask.workflow_id == wf.workflow_id).all()
+    cmd.result_summary = lifecycle.summarize_outcome([t.status for t in tasks])[:1000]
+    db.commit()
+
+    return VoiceNodeResultResponse(
+        node_key=node_key, node_status=task.status,
+        command_status=command_status, recorded=True,
+    )
 
 
 # ══════════════════════════════════════════════════════════════════════════════

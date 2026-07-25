@@ -4,6 +4,12 @@ Adds a generation-lifecycle column (running | completed | failed) so the UI can
 show in-progress / failed / completed states and survive reloads & navigation.
 Existing rows default to 'completed' (they are already-generated bibles).
 
+Later addition (2026-07-25, task 3.2): a fourth value, 'partial', is now written
+when some sections produced genuine content and some did not. The column is an
+unconstrained VARCHAR, so no schema change was needed and this migration is
+unaffected — recorded here only so the value set above is not read as complete.
+See 0016 for the companion failed_sections column.
+
 Revision ID: 0015
 Revises: 0014
 Create Date: 2026-06-13

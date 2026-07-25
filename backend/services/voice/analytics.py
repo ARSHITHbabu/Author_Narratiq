@@ -17,6 +17,8 @@ from __future__ import annotations
 import logging
 from datetime import datetime, timedelta
 
+from . import lifecycle
+
 logger = logging.getLogger(__name__)
 
 
@@ -61,7 +63,10 @@ def record_turn(db, *, session, command_id, graph, timings, status, confidence,
             command_id=command_id,
             session_id=session.session_id,
             node_count=len(graph.nodes),
-            status="awaiting_confirmation" if requires_confirmation else "completed",
+            # NOT "completed": at this point client-locus nodes have only been
+            # dispatched. The workflow reaches a terminal status when its nodes
+            # report their outcomes (task 3.7).
+            status=lifecycle.derive_command_status([n.status for n in graph.nodes]),
             graph_json={"is_multi_step": graph.is_multi_step,
                         "nodes": [n.node_key for n in graph.nodes]},
             created_at=datetime.utcnow(),

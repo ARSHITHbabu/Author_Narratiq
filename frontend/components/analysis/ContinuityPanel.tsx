@@ -87,7 +87,8 @@ export default function ContinuityPanel({ storyId }: Props) {
     )
   }
 
-  const issues = data!.issues
+  const issues   = data!.issues
+  const degraded = !!data!.degraded
   const high   = issues.filter(i => i.severity === 'high')
   const medium = issues.filter(i => i.severity === 'medium')
   const low    = issues.filter(i => i.severity === 'low')
@@ -105,7 +106,26 @@ export default function ContinuityPanel({ storyId }: Props) {
         </button>
       </div>
 
-      {issues.length === 0 ? (
+      {/* An incomplete check must never read as a clean bill of health — that
+          false all-clear is the defect this panel used to show. */}
+      {degraded && (
+        <div className="mx-3 mb-2 px-2.5 py-2 rounded-lg bg-amber-500/5 border border-amber-500/20 flex-shrink-0">
+          <p className="text-[11px] text-amber-300/90 leading-relaxed">
+            {data!.degraded_reason ?? 'This check is incomplete — part of the AI response could not be read.'}
+          </p>
+          <p className="text-[10px] text-[#5c6391] mt-0.5">
+            Anything listed below is real, but this is not a full check. Please run it again.
+          </p>
+        </div>
+      )}
+
+      {issues.length === 0 && degraded ? (
+        <div className="flex flex-col items-center justify-center gap-3 p-6">
+          <p className="text-xs text-[#5c6391] text-center">
+            No issues could be read from this check.
+          </p>
+        </div>
+      ) : issues.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-3 p-6">
           <CheckCircle2 className="w-8 h-8 text-emerald-500/60" />
           <p className="text-xs text-[#5c6391] text-center">No continuity issues detected. Great consistency!</p>

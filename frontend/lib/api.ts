@@ -370,6 +370,9 @@ export const voiceCheckApi = {
 export const storyBibleApi = {
   generate: (storyId: string)   => api.post(`/api/stories/${storyId}/story-bible`),
   get:      (storyId: string)   => api.get(`/api/stories/${storyId}/story-bible`),
+  // Repair one section of a partial bible instead of regenerating all five.
+  regenerateSection: (storyId: string, section: string) =>
+    api.post(`/api/stories/${storyId}/story-bible/sections/${section}`),
   exportUrl:(storyId: string)   => `${BASE}/api/stories/${storyId}/story-bible/export`,
 }
 
@@ -431,10 +434,19 @@ export const voiceApi = {
   // Push a client-executed result into session memory ("use the second option")
   remember: (sessionId: string, resultKind: string, output: unknown) =>
     api.post(`/api/voice/sessions/${sessionId}/remember`, { result_kind: resultKind, output }),
-  // Record confirmation / applied conversion for a proposed mutating action
+  // Record whether the author APPROVED a proposed mutating action. Approval is
+  // not completion — the outcome is reported separately by reportResult below.
   confirm: (commandId: string, nodeKey: string, confirmed: boolean, applied: boolean) =>
     api.post(`/api/voice/commands/${commandId}/confirm`, {
       node_key: nodeKey, confirmed, applied,
+    }),
+  // Report what actually happened when a step ran. Client-side actions execute
+  // in the browser, so this is the only way the backend can know the outcome —
+  // without it, a command's status is whatever the backend assumed at planning
+  // time, which is how the agent used to confirm work it had never done.
+  reportResult: (commandId: string, nodeKey: string, ok: boolean, message?: string) =>
+    api.post(`/api/voice/commands/${commandId}/nodes/${nodeKey}/result`, {
+      ok, message: message ?? '', error_code: null,
     }),
   session: (sessionId: string) => api.get(`/api/voice/sessions/${sessionId}`),
   analyticsSummary: (days = 7) => api.get('/api/voice/analytics/summary', { params: { days } }),

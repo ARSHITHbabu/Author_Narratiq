@@ -71,6 +71,13 @@ export function useVoiceAgent({ enabled, getContext, actionCtx }: UseVoiceAgentO
       if (node.requires_confirmation) { holds.push(node); continue }   // wait for the user
       const r = await executeVoiceAction(node, ctx)
       results[node.node_key] = { node_key: node.node_key, ...r }
+      // Report the real outcome. Without this the backend never learns what
+      // happened to a client-side step and its command stays at whatever was
+      // assumed when the plan was built — the false-success defect.
+      if (resp.command_id) {
+        try { await voiceApi.reportResult(resp.command_id, node.node_key, r.ok, r.message) }
+        catch { /* best effort — the backend's timeout sweep is the backstop */ }
+      }
       // feed generate/analyze results into session memory for follow-ups
       const kind = resultKindFor(node)
       if (kind && r.ok && resp.session_id) {
@@ -91,9 +98,15 @@ export function useVoiceAgent({ enabled, getContext, actionCtx }: UseVoiceAgentO
       return
     }
     const ctx = { ...actionCtxRef.current, storyId: getContextRef.current().story_id || actionCtxRef.current.storyId }
+    // Approval and outcome are two different facts, reported separately: the
+    // author approving a change is not the same as the change having worked.
+    if (resp.command_id) { try { await voiceApi.confirm(resp.command_id, node.node_key, true, false) } catch { /* noop */ } }
     const r = await executeVoiceAction(node, ctx)
     setNodeResults((prev) => ({ ...prev, [node.node_key]: { node_key: node.node_key, ...r } }))
-    if (resp.command_id) { try { await voiceApi.confirm(resp.command_id, node.node_key, true, r.ok) } catch { /* noop */ } }
+    if (resp.command_id) {
+      try { await voiceApi.reportResult(resp.command_id, node.node_key, r.ok, r.message) }
+      catch { /* best effort — the backend's timeout sweep is the backstop */ }
+    }
     setPendingConfirm((p) => p.filter((n) => n.node_key !== node.node_key))
   }, [response])
 

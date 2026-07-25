@@ -144,6 +144,9 @@ class Settings(BaseSettings):
     # Voice agent behaviour limits
     max_voice_audio_mb:            int   = 25     # per streamed utterance / blob
     voice_session_idle_minutes:    int   = 30     # idle session → swept to failed
+    # Task 3.7: a client-side action handed to the browser must not sit in
+    # 'executing' for ever. Silence is not consent to claim success.
+    voice_execution_timeout_seconds: int = 180
     voice_max_graph_nodes:         int   = 8      # hard cap on multi-step plan size
     voice_intent_shortlist_k:      int   = 8      # BGE-M3 candidate capabilities
     voice_confidence_threshold:    float = 0.55   # below → force confirmation

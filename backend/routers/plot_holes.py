@@ -86,7 +86,15 @@ async def analyze_plot_holes(
             ),
         )
     except ValueError as exc:
-        raise HTTPException(status_code=503, detail=str(exc))
+        # Fixed author-facing text. str(exc) previously went straight to the
+        # client, which is safe only while every ValueError on this path happens
+        # to carry a hand-written message — one internal error and the author
+        # reads our internals. Detail belongs in the log.
+        logger.warning("[plot_holes] analysis failed for %s: %s", story_id[:8], exc)
+        raise HTTPException(
+            status_code=503,
+            detail="Plot hole analysis could not be completed. Please try again.",
+        )
 
     note_parts = []
     if result["note"]:
@@ -117,4 +125,6 @@ async def analyze_plot_holes(
         issues_found      = len(issues),
         issues            = issues,
         analysis_note     = analysis_note,
+        degraded          = bool(result.get("degraded")),
+        degraded_reason   = result.get("degraded_reason"),
     )

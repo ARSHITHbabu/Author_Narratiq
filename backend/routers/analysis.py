@@ -184,8 +184,12 @@ async def run_continuity_check(
     chunk_size = 10
     all_issues: list[dict] = []
 
+    degraded = False
+    degraded_reason: str | None = None
+
     if len(summary_dicts) <= chunk_size:
-        all_issues = await check_continuity(char_profiles, summary_dicts, notes, cards)
+        all_issues, meta = await check_continuity(char_profiles, summary_dicts, notes, cards)
+        degraded, degraded_reason = meta.degraded, meta.reason
     else:
         tasks = []
         for i in range(0, len(summary_dicts), chunk_size):
@@ -193,12 +197,23 @@ async def run_continuity_check(
             tasks.append(check_continuity(char_profiles, chunk, notes, cards))
         results = await asyncio.gather(*tasks)
         seen_descs: set[str] = set()
-        for chunk_issues in results:
+        degraded_chunks = 0
+        for chunk_issues, meta in results:
+            if meta.degraded:
+                degraded_chunks += 1
             for issue in chunk_issues:
                 key = issue.get("description", "")[:80]
                 if key not in seen_descs:
                     seen_descs.add(key)
                     all_issues.append(issue)
+        # A failed chunk is a hole in the analysis. Saying "no issues found"
+        # while three of four chunks were read is the defect this closes.
+        if degraded_chunks:
+            degraded = True
+            degraded_reason = (
+                f"{degraded_chunks} of {len(results)} sections of the manuscript "
+                "could not be fully checked. Please run the check again."
+            )
 
     issues = [
         ContinuityIssue(
@@ -220,6 +235,8 @@ async def run_continuity_check(
             "These are potential inconsistencies for author review — "
             "verify each before revising."
         ),
+        degraded=degraded,
+        degraded_reason=degraded_reason,
     )
 
 

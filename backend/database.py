@@ -78,8 +78,12 @@ def run_db_migrations(eng) -> None:
     # JSON on PostgreSQL; SQLite stores JSON as TEXT transparently.
     _add_col("story_intakes", "analysis", "JSON" if is_postgres else "TEXT DEFAULT NULL")
 
-    # story_bibles — generation lifecycle status (running|completed|failed)
+    # story_bibles — generation lifecycle status (running|completed|partial|failed)
     _add_col("story_bibles", "status", "VARCHAR DEFAULT 'completed'")
+    # story_bibles — which sections failed on the last run, for targeted regeneration.
+    # Alembic 0016 adds this too; both paths are kept so a table provisioned by
+    # create_all() (as the live one was) gets the column either way.
+    _add_col("story_bibles", "failed_sections", "JSON" if is_postgres else "TEXT DEFAULT NULL")
 
     # chapter_chunks / chapter_summaries — character UUID index
     _add_col("chapter_chunks",     "character_ids", "TEXT DEFAULT '[]'")

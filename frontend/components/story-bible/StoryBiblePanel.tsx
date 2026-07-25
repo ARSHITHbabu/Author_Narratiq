@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Loader2, BookOpen, RefreshCw, Download, Users, MapPin, Clock, Globe, Palette, AlertCircle } from 'lucide-react'
 import { storyBibleApi } from '@/lib/api'
 import { useStoryBible, storyBibleKey } from '@/lib/useStoryBible'
+import type { FailedSection } from '@/lib/types'
 import { toast } from 'sonner'
 
 interface Props { storyId: string }
@@ -24,13 +25,44 @@ function SectionContent({ text }: { text: string }) {
   return <div className="text-xs text-[#9da3c8] leading-relaxed whitespace-pre-wrap">{text}</div>
 }
 
+/** A section that did not produce usable content: what happened, and a way to
+ *  fix just this one rather than rebuilding the whole bible. */
+function SectionFailure({
+  failure, onRetry, busy,
+}: { failure: FailedSection; onRetry: () => void; busy: boolean }) {
+  return (
+    <div className="flex flex-col items-start gap-3 py-4">
+      <div className="flex items-start gap-2">
+        <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+        <p className="text-xs text-[#9da3c8] leading-relaxed">{failure.reason}</p>
+      </div>
+      <button
+        onClick={onRetry}
+        disabled={busy}
+        className="px-3 py-1.5 rounded-lg text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-all disabled:opacity-50"
+      >
+        {busy
+          ? <><Loader2 className="w-3 h-3 animate-spin inline mr-1" />Writing this section…</>
+          : 'Regenerate this section'}
+      </button>
+      <p className="text-[10px] text-[#3d4466]">Only this section is rewritten — the rest of your bible is kept.</p>
+    </div>
+  )
+}
+
 export default function StoryBiblePanel({ storyId }: Props) {
   const qc = useQueryClient()
   const { data: bible, isLoading, isError, refetch } = useStoryBible(storyId)
   const [activeSection, setActiveSection] = useState<BibleSection>('characters')
 
-  const status = bible?.status            // 'running' | 'completed' | 'failed' | undefined
+  const status = bible?.status            // 'running' | 'completed' | 'partial' | 'failed' | undefined
   const isRunning = status === 'running'
+  const failedSections = bible?.failed_sections ?? []
+  const failureFor = (key: BibleSection) => failedSections.find(f => f.section === key)
+  // Which section the author just asked us to repair. Local state, so we can
+  // keep the bible on screen during a targeted retry instead of replacing it
+  // with the whole-bible spinner.
+  const [regenerating, setRegenerating] = useState<BibleSection | null>(null)
 
   // Generate / regenerate. Duplicate requests are blocked while running (button
   // disabled + backend persisted guard). On success we refetch so the panel
@@ -41,6 +73,25 @@ export default function StoryBiblePanel({ storyId }: Props) {
     onError: (e: any) => toast.error(e?.response?.data?.detail ?? 'Generation failed'),
   })
   const triggerGenerate = () => { if (!isRunning && !genMutation.isPending) genMutation.mutate() }
+
+  // Repair one section. The bible stays on screen while it runs.
+  const sectionMutation = useMutation({
+    mutationFn: (key: BibleSection) => storyBibleApi.regenerateSection(storyId, key),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: storyBibleKey(storyId) }) },
+    onError: (e: any) => {
+      setRegenerating(null)
+      toast.error(e?.response?.data?.detail ?? 'Could not regenerate that section')
+    },
+  })
+  const triggerSection = (key: BibleSection) => {
+    if (isRunning || sectionMutation.isPending) return
+    setRegenerating(key)
+    sectionMutation.mutate(key)
+  }
+  // Clear the local marker once the backend reaches a terminal state again.
+  useEffect(() => {
+    if (regenerating && status && status !== 'running') setRegenerating(null)
+  }, [status, regenerating])
 
   let content: Record<string, string> = {}
   if (bible?.content_json) {
@@ -82,7 +133,9 @@ export default function StoryBiblePanel({ storyId }: Props) {
   }
 
   // ── In-progress ─────────────────────────────────────────────────────────────
-  if (isRunning) {
+  // A targeted section repair keeps the bible on screen (see `regenerating`);
+  // only a whole-bible run replaces the panel with the spinner.
+  if (isRunning && !regenerating) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 p-6 h-full text-center">
         <Loader2 className="w-9 h-9 text-amber-400 animate-spin" />
@@ -134,7 +187,8 @@ export default function StoryBiblePanel({ storyId }: Props) {
     )
   }
 
-  // ── Completed — show the bible ──────────────────────────────────────────────
+  // ── Completed or partial — show the bible ───────────────────────────────────
+  const activeFailure = failureFor(activeSection)
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <div className="px-3 pt-3 pb-2 flex items-center justify-between flex-shrink-0">
@@ -156,25 +210,53 @@ export default function StoryBiblePanel({ storyId }: Props) {
         </div>
       </div>
 
+      {/* Partial — say plainly what is missing rather than presenting the
+          bible as finished. */}
+      {status === 'partial' && (
+        <div className="mx-3 mb-2 px-2.5 py-2 rounded-lg bg-amber-500/5 border border-amber-500/20 flex-shrink-0">
+          <p className="text-[11px] text-amber-300/90 leading-relaxed">
+            {failedSections.length === 1
+              ? 'One section couldn’t be written. Everything else is ready.'
+              : `${failedSections.length} sections couldn’t be written. Everything else is ready.`}
+          </p>
+          <p className="text-[10px] text-[#5c6391] mt-0.5">
+            Open {failedSections.length === 1 ? 'it' : 'them'} below to see what happened and try again.
+          </p>
+        </div>
+      )}
+
       <div className="px-3 pb-2 flex gap-1 flex-wrap flex-shrink-0">
-        {SECTIONS.map(({ key, label, icon: Icon }) => (
-          <button
-            key={key}
-            onClick={() => setActiveSection(key)}
-            className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded border transition-colors ${
-              activeSection === key
-                ? 'text-amber-400 bg-amber-500/10 border-amber-500/20'
-                : 'text-[#5c6391] border-[#2e3454] hover:text-[#9da3c8]'
-            }`}
-          >
-            <Icon className="w-2.5 h-2.5" />
-            {label}
-          </button>
-        ))}
+        {SECTIONS.map(({ key, label, icon: Icon }) => {
+          const failed = !!failureFor(key)
+          return (
+            <button
+              key={key}
+              onClick={() => setActiveSection(key)}
+              title={failed ? 'This section needs another attempt' : undefined}
+              className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded border transition-colors ${
+                activeSection === key
+                  ? 'text-amber-400 bg-amber-500/10 border-amber-500/20'
+                  : failed
+                    ? 'text-amber-300/70 border-amber-500/20 hover:text-amber-300'
+                    : 'text-[#5c6391] border-[#2e3454] hover:text-[#9da3c8]'
+              }`}
+            >
+              <Icon className="w-2.5 h-2.5" />
+              {label}
+              {failed && <AlertCircle className="w-2.5 h-2.5" />}
+            </button>
+          )
+        })}
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 pb-4">
-        <SectionContent text={content[activeSection] ?? ''} />
+        {activeFailure
+          ? <SectionFailure
+              failure={activeFailure}
+              onRetry={() => triggerSection(activeSection)}
+              busy={regenerating === activeSection || sectionMutation.isPending}
+            />
+          : <SectionContent text={content[activeSection] ?? ''} />}
       </div>
     </div>
   )

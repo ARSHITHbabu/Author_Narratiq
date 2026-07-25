@@ -102,6 +102,10 @@ export interface PlotHoleResponse {
   issues_found:      number
   issues:            PlotHoleIssue[]
   analysis_note:     string
+  // Degraded-output contract: some of the AI's response could not be read, so
+  // these findings are incomplete. Empty + degraded=false means nothing found.
+  degraded?:         boolean
+  degraded_reason?:  string | null
 }
 
 // ── Manuscript Report ─────────────────────────────────────────────────────────
@@ -531,6 +535,8 @@ export interface ContinuityCheckResponse {
   issues:           ContinuityIssue[]
   chapters_scanned: number
   note:             string
+  degraded?:        boolean
+  degraded_reason?: string | null
 }
 
 // P2-06 Story Bible
@@ -539,9 +545,19 @@ export interface StoryBibleOut {
   story_id:     string
   content_json: string   // JSON string: {characters, locations, timeline, world_rules, themes}
   version:      number
-  status:       'running' | 'completed' | 'failed'
+  // 'partial' — some sections produced usable content and some did not.
+  status:       'running' | 'completed' | 'partial' | 'failed'
+  // Sections that did not produce usable content on the last run. Empty on a
+  // fully successful bible; never null (the backend coerces it).
+  failed_sections: FailedSection[]
   created_at:   string
   updated_at:   string
+}
+
+export interface FailedSection {
+  section: string
+  failure: 'unavailable' | 'error' | 'empty' | 'truncated' | string
+  reason:  string
 }
 
 export interface StoryBibleJobResponse {

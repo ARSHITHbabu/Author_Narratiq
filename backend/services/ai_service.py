@@ -15,6 +15,7 @@ import json
 import logging
 import re
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, AsyncGenerator, Callable, Optional
 
@@ -162,6 +163,157 @@ async def _complete_ex(
             logger.warning("[ai_service] vLLM status %d: %s", exc.status_code, exc)
             raise AIServiceUnavailableError() from exc
         raise
+
+
+# ── Degraded-output contract (task 3.4) ───────────────────────────────────────
+#
+# Structured AI features used to do one of two things when the model returned a
+# shape they did not expect, and both lied to the author:
+#
+#   hard-fail      — raise, discarding findings that DID parse (plot holes)
+#   silent-fallback— return [] as if the manuscript were clean (continuity)
+#
+# The contract replaces both: coerce what came back, salvage the entries that
+# are usable, reprompt ONCE if nothing survived, and hand the caller the result
+# plus an honest account of how degraded it is. Raising is reserved for the case
+# where there is genuinely nothing to show.
+#
+# One implementation, reused by every structured call site, so task 3.5's audit
+# has a single thing to point every remaining hard-fail at.
+
+_STRICTER_JSON_RETRY = (
+    "\n\nIMPORTANT: your previous response could not be parsed. "
+    "Return ONLY the JSON structure described above — no prose, no explanation, "
+    "no markdown fences, nothing before or after the JSON."
+)
+
+
+@dataclass(frozen=True)
+class DegradedMeta:
+    """How much to trust a structured result. ``reason`` is author-facing."""
+    degraded:  bool
+    reason:    Optional[str] = None
+    attempts:  int = 1
+    discarded: int = 0
+
+
+# ── Parser observability (task 3.5) ───────────────────────────────────────────
+#
+# Counters per feature, so degradation is measurable in production rather than
+# inferred from complaints: how often output parses cleanly, how often entries
+# have to be salvaged, how often a reprompt is needed, how often both attempts
+# fail. A rising salvage rate on one feature is the early warning that its
+# prompt or its model has drifted.
+#
+# METADATA ONLY. Model output is never counted, quoted or logged here — it is
+# derived from the author's manuscript, and a log line is the easiest place for
+# manuscript text to leak out of the system. Lengths and outcomes only.
+
+PARSE_CLEAN      = "clean"        # parsed first time, nothing discarded
+PARSE_SALVAGED   = "salvaged"     # usable result, some entries unreadable
+PARSE_TRUNCATED  = "truncated"    # usable result, generation cut off
+PARSE_REPROMPTED = "reprompted"   # needed the second attempt
+PARSE_FAILED     = "failed"       # nothing usable after both attempts
+
+_parse_metrics: dict[str, dict[str, int]] = {}
+
+
+def _record_parse_metric(feature: str, outcome: str, *, attempts: int, discarded: int) -> None:
+    """Count one structured-parse result and emit a machine-readable log line."""
+    bucket = _parse_metrics.setdefault(
+        feature,
+        {PARSE_CLEAN: 0, PARSE_SALVAGED: 0, PARSE_TRUNCATED: 0,
+         PARSE_REPROMPTED: 0, PARSE_FAILED: 0, "calls": 0, "entries_discarded": 0},
+    )
+    bucket["calls"] += 1
+    bucket[outcome] = bucket.get(outcome, 0) + 1
+    bucket["entries_discarded"] += discarded
+
+    log = logger.warning if outcome in (PARSE_FAILED, PARSE_REPROMPTED) else logger.info
+    log("[ai_service] parse_metric feature=%s outcome=%s attempts=%d discarded=%d calls=%d",
+        feature, outcome, attempts, discarded, bucket["calls"])
+
+
+def parser_metrics() -> dict[str, dict[str, int]]:
+    """Snapshot of parse outcomes per feature. Counters only — no content."""
+    return {feature: dict(counts) for feature, counts in _parse_metrics.items()}
+
+
+async def complete_structured(
+    system: str,
+    user: str,
+    *,
+    coerce,
+    temperature: float = 0.0,
+    max_tokens: int = 800,
+    label: str = "structured",
+) -> tuple[Any, DegradedMeta]:
+    """
+    Run a structured generation under the degraded-output contract.
+
+    ``coerce(parsed) -> (value, discarded)`` accepts whatever ``_extract_json``
+    produced and returns the usable value (or ``None`` if nothing is usable)
+    plus how many entries it had to throw away. Feature-specific shape knowledge
+    lives there; this function owns only the policy.
+
+    Returns ``(value, meta)``. ``value`` is ``None`` only when both attempts
+    produced nothing usable — the caller decides whether that is an error.
+
+    Exactly one reprompt. Two attempts is a structural maximum, not a tuning
+    knob: a model that cannot produce the shape twice will not produce it on the
+    fifth try, and the author is waiting.
+    """
+    raw, finish_reason = await _complete_ex(system, user, temperature=temperature,
+                                            max_tokens=max_tokens)
+    value, discarded = coerce(_extract_json(raw, None))
+    truncated = finish_reason == "length"
+
+    if value is not None:
+        if discarded or truncated:
+            reason = _degraded_reason(discarded, truncated)
+            _record_parse_metric(label, PARSE_TRUNCATED if truncated else PARSE_SALVAGED,
+                                 attempts=1, discarded=discarded)
+            return value, DegradedMeta(True, reason, 1, discarded)
+        _record_parse_metric(label, PARSE_CLEAN, attempts=1, discarded=0)
+        return value, DegradedMeta(False, None, 1, 0)
+
+    # Nothing usable — one stricter retry before giving up.
+    # Length and finish_reason only: the response is derived from the author's
+    # manuscript and must not be written to a log.
+    logger.warning("[ai_service] %s unparseable (finish_reason=%s, chars=%d), retrying once",
+                   label, finish_reason, len(raw or ""))
+    raw2, finish_reason2 = await _complete_ex(system + _STRICTER_JSON_RETRY, user,
+                                              temperature=temperature, max_tokens=max_tokens)
+    value, discarded = coerce(_extract_json(raw2, None))
+    truncated = finish_reason2 == "length"
+
+    if value is None:
+        logger.warning("[ai_service] %s unparseable after retry (finish_reason=%s, chars=%d)",
+                       label, finish_reason2, len(raw2 or ""))
+        _record_parse_metric(label, PARSE_FAILED, attempts=2, discarded=0)
+        return None, DegradedMeta(
+            True,
+            "The AI response could not be read, even after a retry. Please try again.",
+            2, 0,
+        )
+
+    _record_parse_metric(label, PARSE_REPROMPTED, attempts=2, discarded=discarded)
+    return value, DegradedMeta(
+        True, _degraded_reason(discarded, truncated, retried=True), 2, discarded,
+    )
+
+
+def _degraded_reason(discarded: int, truncated: bool, retried: bool = False) -> str:
+    """Author-facing explanation. Plain language, no internals."""
+    parts = []
+    if truncated:
+        parts.append("the AI response was cut off before it finished")
+    if discarded:
+        parts.append(f"{discarded} result{'s' if discarded > 1 else ''} could not be read")
+    if retried and not parts:
+        parts.append("the AI needed a second attempt")
+    detail = " and ".join(parts) if parts else "some results could not be read"
+    return f"These results are incomplete — {detail}."
 
 
 async def _complete_json(
@@ -331,7 +483,9 @@ def _extract_json(text: str, fallback):
             except json.JSONDecodeError:
                 continue
 
-    logger.warning("[ai_service] failed to parse model output as JSON. Raw head: %r", text[:300])
+    # Metadata only — model output is derived from the author's manuscript and
+    # must never be written to a log (task 3.5).
+    logger.warning("[ai_service] failed to parse model output as JSON (chars=%d)", len(text or ""))
     return fallback
 
 
@@ -500,7 +654,7 @@ async def detect_genre(description: str, audience_hint: Optional[str] = None) ->
         max_tokens=800,
     )
     if result is None or not isinstance(result, dict):
-        logger.warning("[ai_service] detect_genre invalid JSON. Raw head: %r", raw[:300])
+        logger.warning("[ai_service] detect_genre invalid JSON (chars=%d)", len(raw or ""))
         raise ValueError(
             "Genre detection failed: the AI model returned invalid output. "
             "Please try again."
@@ -857,6 +1011,45 @@ def _name_tokens(name: str) -> frozenset:
     return frozenset(t for t in toks if t and t not in _NAME_TITLES)
 
 
+_qwen_tokenizer = None
+_qwen_tokenizer_unavailable = False
+
+
+def count_tokens(text: str) -> int:
+    """
+    Count tokens the way the serving model counts them.
+
+    Uses the real Qwen tokenizer, already on disk beside the weights — no new
+    dependency and no download. Exists because context budgets built on
+    character counts are guesses: prose, names and markup tokenise at very
+    different rates, and a budget that is wrong in the optimistic direction
+    shows up as a vLLM 400 (context length exceeded) mid-generation.
+
+    Falls back to a deliberately PESSIMISTIC estimate if the tokenizer cannot
+    be loaded — over-estimating costs a little unused context, under-estimating
+    costs a failed generation.
+    """
+    global _qwen_tokenizer, _qwen_tokenizer_unavailable
+    if not text:
+        return 0
+    if _qwen_tokenizer is None and not _qwen_tokenizer_unavailable:
+        try:
+            from transformers import AutoTokenizer
+            _qwen_tokenizer = AutoTokenizer.from_pretrained(
+                settings.qwen_path, local_files_only=True,
+            )
+            logger.info("[ai_service] Qwen tokenizer loaded for context measurement")
+        except Exception as exc:
+            _qwen_tokenizer_unavailable = True
+            logger.warning("[ai_service] Qwen tokenizer unavailable (%s) — "
+                           "context budgets fall back to estimation", exc)
+    if _qwen_tokenizer is not None:
+        return len(_qwen_tokenizer.encode(text))
+    # ~1.6 tokens/word is above the English average (~1.3); punctuation and
+    # newlines are counted separately so structured context is not undercounted.
+    return int(len(text.split()) * 1.6) + text.count("\n") + 8
+
+
 def _cast_window_word_budget() -> int:
     """
     Words of story text per LLM pass, derived from the model context window so
@@ -1031,8 +1224,8 @@ async def extract_cast(chapter_texts: list) -> list:
             return exc  # surfaced below so we can distinguish "all failed"
         parsed = _extract_json(raw, None)
         if not isinstance(parsed, list):
-            logger.warning("[ai_service] extract_cast window %d/%d non-array JSON. ",
-                  f"Raw head: {raw[:200]!r}")
+            logger.warning("[ai_service] extract_cast window %d/%d non-array JSON (chars=%d)",
+                           i + 1, len(windows), len(raw or ""))
             return None
         logger.debug("[ai_service] extract_cast window %d/%d → %d character(s)", i+1, len(windows), len(parsed))
         return parsed
@@ -1074,15 +1267,16 @@ async def generate_suggestions(text: str, story_context: str = "", genre: str = 
     if story_context:
         parts.append(f"Story context: {story_context}")
     parts.append(f"Excerpt:\n{text}")
-    raw = await _complete(system, "\n\n".join(parts), temperature=0.0, max_tokens=600)
-    result = _extract_json(raw, None)
-    if isinstance(result, list):
-        return result
-    logger.warning("[ai_service] generate_suggestions invalid JSON. Raw: %r", raw[:300])
-    raise ValueError(
-        "Writing suggestions failed: AI model returned invalid output. "
-        "Please try again."
+    result, meta = await complete_structured(
+        system, "\n\n".join(parts),
+        coerce=coerce_text_suggestions,
+        temperature=0.0, max_tokens=600, label="writing_suggestions",
     )
+    if result is None:
+        raise ValueError(
+            "Writing suggestions could not be generated. Please try again."
+        )
+    return result
 
 
 # ── Plot Assistant — intent detection ─────────────────────────────────────────
@@ -1562,15 +1756,16 @@ async def generate_plot_suggestions(
     )
     logger.info("[ai_service] plot_suggestions: calling Qwen — %s", context_status)
 
-    raw = await _complete(system, "\n\n".join(parts), temperature=0.0, max_tokens=800)
-    result = _extract_json(raw, None)
-    if isinstance(result, list):
-        return result
-    logger.warning("[ai_service] generate_plot_suggestions invalid JSON. Raw: %r", raw[:300])
-    raise ValueError(
-        "Plot suggestion generation failed: AI model returned invalid output. "
-        "Please try again."
+    result, meta = await complete_structured(
+        system, "\n\n".join(parts),
+        coerce=coerce_text_suggestions,
+        temperature=0.0, max_tokens=800, label="plot_suggestions",
     )
+    if result is None:
+        raise ValueError(
+            "Plot suggestions could not be generated. Please try again."
+        )
+    return result
 
 
 # ── Plot Hole Detection — strategy dispatcher ─────────────────────────────────
@@ -1592,6 +1787,219 @@ async def generate_plot_suggestions(
 #   multi_book_analysis — cross-story / book-series analysis
 
 _PLOT_HOLE_MAX_CHAPTERS = 60   # single_pass per-call limit; batched/hierarchical lift this
+
+
+def coerce_text_suggestions(parsed) -> tuple[Optional[list], int]:
+    """
+    Coerce a list of writing/plot suggestions ({id, text, rationale}-ish).
+
+    Shared by generate_suggestions and generate_plot_suggestions: both ask for a
+    bare array of objects carrying a text field. An entry with no text is
+    dropped — a suggestion with nothing to suggest is not a suggestion.
+    """
+    items = _issue_list_from(parsed, "suggestions")
+    if items is None:
+        return None, 0
+
+    kept, discarded = [], 0
+    for position, item in enumerate(items, 1):
+        if not isinstance(item, dict):
+            discarded += 1
+            continue
+        text = str(item.get("text") or item.get("suggestion") or "").strip()
+        if not text:
+            discarded += 1
+            continue
+        entry = dict(item)
+        entry["text"] = text
+        entry.setdefault("id", position)
+        # Both consumers build a Pydantic model straight from this dict — the
+        # plot assistant indexes id/text/rationale directly, and ai_transform
+        # does Suggestion(**s) where category and reason are required. A model
+        # omitting any of them used to be a 500. Presentation fields only; the
+        # text above carries the meaning and is never invented.
+        explanation = str(item.get("rationale") or item.get("reason") or "")
+        entry["rationale"] = explanation
+        entry["reason"]    = explanation
+        entry.setdefault("category", "general")
+        kept.append(entry)
+    return kept, discarded
+
+
+def coerce_copyright_findings(parsed) -> tuple[Optional[dict], int]:
+    """Coerce a copyright-risk response — {findings: [...], overall_risk: ...}."""
+    findings = _issue_list_from(parsed, "findings")
+    if findings is None:
+        return None, 0
+
+    kept, discarded = [], 0
+    for item in findings:
+        if not isinstance(item, dict):
+            discarded += 1
+            continue
+        if not str(item.get("description") or "").strip():
+            discarded += 1
+            continue
+        kept.append(item)
+
+    overall = ""
+    if isinstance(parsed, dict):
+        overall = str(parsed.get("overall_risk") or "").lower()
+    return {
+        "findings":     kept,
+        "overall_risk": overall if overall in _RISK_LEVELS else "",
+    }, discarded
+
+
+def coerce_manuscript_report(parsed) -> tuple[Optional[dict], int]:
+    """
+    Coerce a manuscript-report pass. Unlike the findings lists, this is a
+    composite object: partial is genuinely useful (character arcs without
+    pacing still tells the author something), so any recognised key survives.
+    """
+    if not isinstance(parsed, dict):
+        return None, 0
+    keys = ("character_arcs", "pacing", "unresolved_threads", "strengths", "improvements")
+    present = {k: parsed[k] for k in keys if k in parsed}
+    if not present:
+        return None, 0
+    return present, len(keys) - len(present)
+
+
+def coerce_chapter_summary(parsed) -> tuple[Optional[dict], int]:
+    """
+    Coerce a chapter summary.
+
+    This one matters more than the rest: chapter summaries are written at
+    INDEX time and are the evidence every retrieval, grounding and continuity
+    feature stands on. A summary that fails here is not one missing panel — it
+    is a chapter that is invisible to the whole system until it is re-indexed.
+
+    ``raw_summary`` is the load-bearing field and is required; the structured
+    lists are defaulted to empty when absent, and normalised to lists when the
+    model returns a bare string. Each missing field counts as a discard so the
+    caller can see how thin the summary is.
+    """
+    if not isinstance(parsed, dict):
+        return None, 0
+
+    raw_summary = str(parsed.get("raw_summary") or "").strip()
+    if not raw_summary:
+        return None, 0
+
+    def _as_list(value) -> list:
+        if isinstance(value, list):
+            return [v for v in value if v not in (None, "")]
+        if isinstance(value, str) and value.strip():
+            return [part.strip() for part in value.split(",") if part.strip()]
+        return []
+
+    list_fields = ("key_events", "characters_present", "locations", "timeline_markers")
+    discarded = sum(1 for f in list_fields if not _as_list(parsed.get(f)))
+    result = {f: _as_list(parsed.get(f)) for f in list_fields}
+    result["emotional_tone"]  = str(parsed.get("emotional_tone") or "")
+    result["chapter_purpose"] = str(parsed.get("chapter_purpose") or "")
+    result["raw_summary"]     = raw_summary
+    if not result["emotional_tone"]:
+        discarded += 1
+    if not result["chapter_purpose"]:
+        discarded += 1
+    return result, discarded
+
+
+def _issue_list_from(parsed, key: str) -> Optional[list]:
+    """
+    Find the findings array in whatever shape the model returned.
+
+    Accepts the documented ``{key: [...]}``, a bare array, or a wrapper object
+    with exactly one array in it — the three shapes a model actually produces
+    when it drifts. Anything else is unusable, and saying so is the point:
+    guessing between several arrays would be inventing structure.
+    """
+    if isinstance(parsed, list):
+        return parsed
+    if isinstance(parsed, dict):
+        if isinstance(parsed.get(key), list):
+            return parsed[key]
+        arrays = [v for v in parsed.values() if isinstance(v, list)]
+        if len(arrays) == 1:
+            return arrays[0]
+    return None
+
+
+def _chapter_numbers(value) -> list[int]:
+    """Chapter references as ints, from a list, a single number, or "3, 7"."""
+    if isinstance(value, (int, float)):
+        return [int(value)]
+    if isinstance(value, str):
+        return [int(x) for x in re.findall(r"\d+", value)]
+    if isinstance(value, list):
+        out = []
+        for v in value:
+            out.extend(_chapter_numbers(v))
+        return out
+    return []
+
+
+def coerce_plot_hole_result(parsed) -> tuple[Optional[dict], int]:
+    """
+    Coerce a plot-hole response, salvaging every usable finding.
+
+    Defaults only *presentation* fields — id, severity, suggestion. A finding
+    with no description is dropped rather than given one: inventing the meaning
+    of a finding would be worse than losing it.
+    """
+    issues_raw = _issue_list_from(parsed, "issues")
+    if issues_raw is None:
+        return None, 0
+
+    kept, discarded = [], 0
+    for position, item in enumerate(issues_raw, 1):
+        if not isinstance(item, dict):
+            discarded += 1
+            continue
+        description = str(item.get("description") or "").strip()
+        if not description:
+            discarded += 1
+            continue
+        severity = str(item.get("severity") or "").lower()
+        kept.append({
+            "issue_id":    item["issue_id"] if isinstance(item.get("issue_id"), int) else position,
+            "type":        str(item.get("type") or "continuity_break"),
+            "severity":    severity if severity in ("high", "medium", "low") else "medium",
+            "chapters":    _chapter_numbers(item.get("chapters")),
+            "description": description,
+            "suggestion":  str(item.get("suggestion") or ""),
+        })
+
+    note = parsed.get("note", "") if isinstance(parsed, dict) else ""
+    return {"issues": kept, "note": str(note or "")}, discarded
+
+
+def coerce_continuity_issues(parsed) -> tuple[Optional[list], int]:
+    """Coerce a continuity response. Same rules as plot holes; different fields."""
+    issues_raw = _issue_list_from(parsed, "issues")
+    if issues_raw is None:
+        return None, 0
+
+    kept, discarded = [], 0
+    for item in issues_raw:
+        if not isinstance(item, dict):
+            discarded += 1
+            continue
+        description = str(item.get("description") or "").strip()
+        if not description:
+            discarded += 1
+            continue
+        severity = str(item.get("severity") or "").lower()
+        kept.append({
+            "type":            str(item.get("type") or "continuity_break"),
+            "description":     description,
+            "chapter_refs":    _chapter_numbers(item.get("chapter_refs")),
+            "severity":        severity if severity in ("high", "medium", "low") else "medium",
+            "resolution_hint": str(item.get("resolution_hint") or ""),
+        })
+    return kept, discarded
 
 
 async def _strategy_single_pass(chapters: list[dict]) -> dict:
@@ -1641,24 +2049,27 @@ async def _strategy_single_pass(chapters: list[dict]) -> dict:
             f"Timeline: {timeline} | Purpose: {purpose}"
         )
 
-    raw = await _complete(
+    result, meta = await complete_structured(
         system,
         "Story chapters:\n\n" + "\n".join(lines),
+        coerce=coerce_plot_hole_result,
         temperature=0.0,
         max_tokens=1400,
+        label="plot_holes",
     )
-    result = _extract_json(raw, None)
 
-    if not isinstance(result, dict) or "issues" not in result:
-        logger.warning("[ai_service] plot_holes single_pass invalid JSON. Raw: %r", raw[:300])
+    if result is None:
+        # Nothing usable survived two attempts — the only case that still fails.
         raise ValueError(
-            "Plot hole analysis failed: AI model returned invalid output. Please try again."
+            "Plot hole analysis could not be completed. Please try again."
         )
 
     return {
-        "issues":            result.get("issues", []),
+        "issues":            result["issues"],
         "note":              cap_note or result.get("note", ""),
         "chapters_analyzed": len(capped),
+        "degraded":          meta.degraded,
+        "degraded_reason":   meta.reason,
     }
 
 
@@ -1774,13 +2185,14 @@ async def analyze_copyright_risk(
     system = _with_genre(_COPYRIGHT_SYSTEM, genre_context)
     user = f"Scope: {scope}\n\nText to analyze:\n\n{clipped}"
 
-    raw = await _complete(system, user, temperature=0.0, max_tokens=1600)
-    result = _extract_json(raw, None)
-
-    if not isinstance(result, dict) or "findings" not in result:
-        logger.warning("[copyright_risk] invalid JSON. Raw head: %r", raw[:300])
+    result, parse_meta = await complete_structured(
+        system, user,
+        coerce=coerce_copyright_findings,
+        temperature=0.0, max_tokens=1600, label="copyright_risk",
+    )
+    if result is None:
         raise ValueError(
-            "Copyright risk analysis failed: AI model returned invalid output. Please try again."
+            "Copyright risk analysis could not be completed. Please try again."
         )
 
     findings = []
@@ -1911,18 +2323,15 @@ async def _strategy_manuscript_summary_pass(chapters: list[dict]) -> dict:
         lines.append(line)
 
     separator = "\n\n" if rich else "\n"
-    raw = await _complete(
+    result, parse_meta = await complete_structured(
         system,
         "Manuscript chapters:\n\n" + separator.join(lines),
-        temperature=0.1,
-        max_tokens=1800,
+        coerce=coerce_manuscript_report,
+        temperature=0.1, max_tokens=1800, label="manuscript_report",
     )
-    result = _extract_json(raw, None)
-
-    if not isinstance(result, dict) or "character_arcs" not in result:
-        logger.warning(f"[manuscript] summary_pass: Qwen returned invalid JSON. Raw: {raw[:300]!r}")
+    if result is None:
         raise ValueError(
-            "Manuscript analysis failed: AI model returned invalid output. Please try again."
+            "Manuscript analysis could not be completed. Please try again."
         )
 
     wc_total = sum(c.get("word_count", 0) or 0 for c in capped)
@@ -2877,7 +3286,8 @@ async def enrich_character_from_story(
 
     result = _extract_json(raw, [])
     if not isinstance(result, list):
-        logger.info(f"[enrich] LLM returned non-list for {char.name}. Raw: {raw[:200]!r}")
+        logger.info("[enrich] LLM returned non-list for character %s (chars=%d)",
+                    character_id[:8], len(raw or ""))
         return []
 
     chapters_covered = list({m.chapter_number for m in selected})
@@ -3016,7 +3426,8 @@ async def build_character_arc_timeline(
     result = _extract_json(raw, [])
 
     if not isinstance(result, list):
-        logger.info(f"[arc_timeline] Qwen returned non-list for {char.name}. Raw: {raw[:200]!r}")
+        logger.info("[arc_timeline] Qwen returned non-list for character %s (chars=%d)",
+                    character_id[:8], len(raw or ""))
         return []
 
     chnum_to_id    = {s.chapter_number: s.chapter_id for s in capped}
@@ -3135,15 +3546,23 @@ async def generate_chapter_summary(chapter_text: str, chapter_number: int) -> di
         "Return ONLY the JSON object, no extra text."
     )
     excerpt = chapter_text[:8000]
-    raw = await _complete(system, f"Chapter {chapter_number}:\n\n{excerpt}", temperature=0.0, max_tokens=900)
-    result = _extract_json(raw, None)
-    if isinstance(result, dict):
-        return result
-    logger.warning(f"[generate_chapter_summary] Ch{chapter_number}: Qwen returned invalid JSON. "
-        f"Raw response: {raw[:300]!r}")
-    raise ValueError(
-        f"Chapter {chapter_number} summary generation failed: AI model returned invalid output."
+    result, meta = await complete_structured(
+        system, f"Chapter {chapter_number}:\n\n{excerpt}",
+        coerce=coerce_chapter_summary,
+        temperature=0.0, max_tokens=900, label="chapter_summary",
     )
+    if result is None:
+        # Still a hard failure, and correctly so: a chapter with no usable
+        # summary must not be indexed as if it had one. Every retrieval and
+        # grounding feature reads these rows.
+        raise ValueError(
+            f"Chapter {chapter_number} summary could not be generated. Please try again."
+        )
+    if meta.degraded:
+        logger.warning("[generate_chapter_summary] Ch%s indexed from a degraded summary "
+                       "(missing_fields=%d) — retrieval quality for this chapter is reduced",
+                       chapter_number, meta.discarded)
+    return result
 
 
 # ── Chunk embedding store ─────────────────────────────────────────────────────
@@ -3661,11 +4080,19 @@ async def check_continuity(
     chapter_summaries: list[dict],
     story_notes: list[str],
     note_cards: list[str],
-) -> list[dict]:
+) -> tuple[list[dict], DegradedMeta]:
     """
     Synthesise all manuscript data and identify contradictions.
-    For large manuscripts, the caller passes pre-chunked data and
-    merges results. Returns [{type, description, chapter_refs, severity, resolution_hint}].
+
+    Returns ``(issues, meta)`` — issues being
+    [{type, description, chapter_refs, severity, resolution_hint}].
+
+    The meta is not optional decoration: an empty list used to mean either "your
+    manuscript is consistent" or "the model returned something unreadable", and
+    the author was shown the first message in both cases. The caller must
+    distinguish them. For large manuscripts the caller chunks the data and must
+    aggregate the meta across chunks — a failed chunk is a silent hole in the
+    analysis otherwise.
     """
     char_block = "\n".join(
         f"- {p['name']}: appearance={p.get('appearance','')}, status={p.get('status','')}, goals={p.get('goals','')}"
@@ -3701,59 +4128,119 @@ async def check_continuity(
         "If no contradictions found, return an empty array []. "
         "Return ONLY the JSON array."
     )
-    raw = await _complete(system, user, temperature=0.1, max_tokens=1200)
-    parsed = _extract_json(raw, fallback=[])
-    if not isinstance(parsed, list):
-        return []
-    result = []
-    for item in parsed:
-        if not isinstance(item, dict):
-            continue
-        refs = item.get("chapter_refs", [])
-        if isinstance(refs, str):
-            refs = [int(x.strip()) for x in refs.split(",") if x.strip().isdigit()]
-        result.append({
-            "type":            str(item.get("type", "continuity_break")),
-            "description":     str(item.get("description", "")),
-            "chapter_refs":    [int(r) for r in refs if str(r).lstrip("-").isdigit()],
-            "severity":        str(item.get("severity", "medium")),
-            "resolution_hint": str(item.get("resolution_hint", "")),
-        })
-    return result
+    issues, meta = await complete_structured(
+        system, user,
+        coerce=coerce_continuity_issues,
+        temperature=0.1,
+        max_tokens=1200,
+        label="continuity",
+    )
+    if issues is None:
+        # Previously this returned [] — reporting a clean manuscript because the
+        # model's output could not be read. That false all-clear is the defect
+        # (Phase 2 Issue 14); an empty result now means nothing was found, and
+        # a failure says so.
+        return [], DegradedMeta(
+            True,
+            "Some of this manuscript could not be checked — the AI response could "
+            "not be read. Please run the check again.",
+            meta.attempts, 0,
+        )
+    return issues, meta
 
 
 # ── P2-06: Story Bible Generator ─────────────────────────────────────────────
 
+# ── Story bible grounding (task 3.3) ──────────────────────────────────────────
+
+# The exact phrase the model is told to use where the manuscript establishes
+# nothing. Fixed and greppable so the honesty convention can be measured rather
+# than assumed.
+BIBLE_NOT_ESTABLISHED = "Not established in the manuscript"
+
+# Provenance tags the context uses: [Ch 7], [Ch 7-9], [Character: Devika Rao],
+# [Note: …], [Card: …].
+_PROVENANCE_RE = re.compile(r"\[(?:Ch\s*\d+[\d\s,\-–]*|Character:|Note:|Card:)[^\]]*\]", re.I)
+# A generated entry: a bullet, a numbered item, or a "Field: value" line.
+_ENTRY_RE = re.compile(r"^\s*(?:[-*•]\s+|\d+[.)]\s+)")
+
+
+def audit_section_provenance(text: str) -> dict:
+    """
+    Count how much of a generated section actually cites its source.
+
+    A quality metric, not a gate: it is logged for diagnostics and regression
+    tracking, never shown to the author and never used to reject content. An
+    uncited entry is not proof of invention — but a section where most entries
+    are uncited is the signature of the gap-filling this task exists to stop.
+
+    Returns {entries, cited, uncited, not_established, cited_ratio}.
+    """
+    entries = [ln for ln in (text or "").splitlines() if _ENTRY_RE.match(ln)]
+    cited = sum(1 for ln in entries if _PROVENANCE_RE.search(ln))
+    not_established = (text or "").count(BIBLE_NOT_ESTABLISHED)
+    return {
+        "entries": len(entries),
+        "cited": cited,
+        "uncited": len(entries) - cited,
+        "not_established": not_established,
+        "cited_ratio": round(cited / len(entries), 3) if entries else None,
+    }
+
+
 async def generate_story_bible_section(
     section: str,
     context: str,
-) -> str:
+) -> tuple[str, Optional[str]]:
     """
     Generate one section of a story bible (characters, locations, timeline,
     world_rules, or themes) from the provided context.
-    Returns a human-readable formatted string for that section.
+
+    Returns ``(text, finish_reason)`` — a human-readable formatted string for
+    that section, plus vLLM's finish_reason so the caller can tell a complete
+    section from a truncated one.
+
+    ``finish_reason == "length"`` means generation stopped at max_tokens and the
+    text is cut off mid-sentence. That is invisible from the text alone: it
+    arrives looking exactly like success, with no exception raised. Returning it
+    unexamined is what let a fragment be persisted as a finished section and the
+    bible be marked 'completed' (failure path SB-F13 in
+    docs/issues-and-bugs/story-bible-failure-path-audit.md).
+
+    This is why the function delegates to _complete_ex() rather than _complete():
+    _complete() discards finish_reason. The Story Bible pipeline is the only
+    caller, so the signature was widened in place rather than duplicated.
     """
+    # Each instruction states where that section's citations must point, because
+    # "cite your source" means something different per section: a timeline entry
+    # cites where the event happens, a character trait cites where it is shown.
     section_instructions = {
         "characters": (
             "Write a CHARACTER BIBLE section. For each character, create a compact "
             "reference card: Name, Role, Physical description, Personality, Goals, "
-            "Backstory summary, and Arc status. Use '---' between characters."
+            "Backstory summary, and Arc status. Use '---' between characters. "
+            "Cite the chapter or character tag each detail comes from."
         ),
         "locations": (
             "Write a LOCATIONS section. For each distinct location mentioned, provide: "
-            "Name, Description, Significance to the story. Use '---' between locations."
+            "Name, Description, Significance to the story. Use '---' between locations. "
+            "Cite the chapter tag where each location appears."
         ),
         "timeline": (
-            "Write a TIMELINE section: a chronological sequence of key events with "
-            "chapter references where available. Use bullet points."
+            "Write a TIMELINE section: a chronological sequence of key events. "
+            "Use bullet points. Every event MUST end with the chapter tag it "
+            "happens in, e.g. \"- The archive burns [Ch 7]\". Do not include an "
+            "event you cannot attribute to a chapter shown in the context."
         ),
         "world_rules": (
             "Write a WORLD RULES section: list the rules of the story's world — "
-            "physical, social, magical, technological, or cultural. Use bullet points."
+            "physical, social, magical, technological, or cultural. Use bullet points. "
+            "Cite the chapter tag that demonstrates each rule."
         ),
         "themes": (
             "Write a THEMES & MOTIFS section: identify the primary theme, secondary "
-            "themes, recurring motifs, and symbols. Use bullet points."
+            "themes, recurring motifs, and symbols. Use bullet points. "
+            "Cite the chapter tags where each theme or motif is shown."
         ),
     }
     instruction = section_instructions.get(
@@ -3762,10 +4249,21 @@ async def generate_story_bible_section(
     system = (
         "You are a story bible author creating a comprehensive reference document for a manuscript. "
         "Be thorough, specific, and ground everything in what is actually in the text. "
-        "Do not invent details not supported by the provided context."
+        "Do not invent details not supported by the provided context.\n\n"
+        # Grounding is enforced by giving the model a way to cite and a way to
+        # decline. Telling it not to invent, with no alternative to inventing,
+        # is what produced a confident and partly fictional story bible.
+        "Every entry in the context is tagged with its source, like [Ch 7] or "
+        "[Character: Devika Rao].\n"
+        "RULES:\n"
+        f"1. Cite the source tag for every factual statement, e.g. \"She burns the archive [Ch 7].\"\n"
+        f"2. If the manuscript does not establish something, write exactly "
+        f"\"{BIBLE_NOT_ESTABLISHED}\" instead of guessing or filling the gap.\n"
+        "3. Never state anything you cannot attribute to a tag shown in the context.\n"
+        "4. If the context says material is missing, do not describe that material."
     )
     user = f"{instruction}\n\nManuscript context:\n{context}"
-    return await _complete(system, user, temperature=0.2, max_tokens=1500)
+    return await _complete_ex(system, user, temperature=0.2, max_tokens=1500)
 
 
 # ── P2-07: Dead-End Narrative Thread Tracker ──────────────────────────────────
