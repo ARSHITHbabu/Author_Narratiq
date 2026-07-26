@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { Plus, Trash2, ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { Plus, Trash2, ChevronDown, ChevronUp, Loader2, AlertCircle, RefreshCw } from 'lucide-react'
 import { ocrApi } from '@/lib/api'
 import { StoryNote, NoteCard, NoteCardType } from '@/lib/types'
 import { toast } from 'sonner'
@@ -9,6 +9,26 @@ import { toast } from 'sonner'
 interface Props {
   storyId:    string
   reloadKey?: number
+}
+
+// Notes and Note Cards are fetched INDEPENDENTLY (QA Issue 7). They used to share
+// one `Promise.all`, so a failure in either discarded both — and the panel then
+// rendered its ordinary empty state, telling the author they had no notes when the
+// truth was that we could not read them. Each section now owns its own state:
+//
+//   loading → the request is in flight
+//   ready   → we have the server's answer, which may legitimately be an empty list
+//   error   → the request failed; the author is told so and offered Retry
+//
+// A cancelled request (unmount, navigation, a newer load) is NOT an error and never
+// changes what is on screen. There is no automatic retry — a hidden retry would hide
+// the defect this task exists to remove.
+type SectionStatus = 'loading' | 'ready' | 'error'
+interface Section<T> { data: T[]; status: SectionStatus }
+
+const isCancellation = (err: unknown): boolean => {
+  const e = err as { code?: string; name?: string; message?: string } | null
+  return !!e && (e.code === 'ERR_CANCELED' || e.name === 'CanceledError' || e.name === 'AbortError')
 }
 
 const CARD_TYPES: NoteCardType[] = ['scene', 'location', 'theme', 'character', 'general']
@@ -23,48 +43,113 @@ const CARD_TYPE_STYLES: Record<NoteCardType, string> = {
 
 export default function NotesPanel({ storyId, reloadKey }: Props) {
   const [tab, setTab]               = useState<'notes' | 'cards'>('notes')
-  const [notes, setNotes]           = useState<StoryNote[]>([])
-  const [noteCards, setNoteCards]   = useState<NoteCard[]>([])
-  const [loading, setLoading]       = useState(true)
+  const [notesSection, setNotesSection] = useState<Section<StoryNote>>({ data: [], status: 'loading' })
+  const [cardsSection, setCardsSection] = useState<Section<NoteCard>>({ data: [], status: 'loading' })
   const [cardFilter, setCardFilter] = useState<NoteCardType | 'all'>('all')
   const [creating, setCreating]     = useState<'note' | 'card' | null>(null)
 
-  useEffect(() => {
-    let cancelled = false
-    setLoading(true)
-    Promise.all([ocrApi.notes(storyId), ocrApi.noteCards(storyId)])
-      .then(([nr, cr]) => {
-        if (!cancelled) {
-          setNotes(nr.data)
-          setNoteCards(cr.data)
-          setLoading(false)
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          toast.error('Failed to load notes')
-          setLoading(false)
-        }
-      })
-    return () => { cancelled = true }
-  }, [storyId, reloadKey])
+  const notes     = notesSection.data
+  const noteCards = cardsSection.data
 
-  const handleNoteCreated  = (n: StoryNote)  => { setNotes(p => [n, ...p]); setCreating(null) }
-  const handleNoteUpdated  = (n: StoryNote)  => setNotes(p => p.map(x => x.note_id === n.note_id ? n : x))
-  const handleNoteDeleted  = (id: string)    => setNotes(p => p.filter(x => x.note_id !== id))
-  const handleCardCreated  = (c: NoteCard)   => { setNoteCards(p => [c, ...p]); setCreating(null) }
-  const handleCardUpdated  = (c: NoteCard)   => setNoteCards(p => p.map(x => x.card_id === c.card_id ? c : x))
-  const handleCardDeleted  = (id: string)    => setNoteCards(p => p.filter(x => x.card_id !== id))
+  // Every load carries a sequence number and an abort signal. A response from an
+  // older load can never overwrite a newer one, however fast the author navigates.
+  const seqRef = useRef(0)
+  const abortRef = useRef<AbortController | null>(null)
+
+  const loadNotes = useCallback((seq: number, signal: AbortSignal) => {
+    setNotesSection((s) => ({ ...s, status: 'loading' }))
+    ocrApi.notes(storyId, signal)
+      .then((r) => { if (seq === seqRef.current) setNotesSection({ data: r.data, status: 'ready' }) })
+      .catch((e) => {
+        if (isCancellation(e) || seq !== seqRef.current) return   // cancelled ≠ failed
+        setNotesSection((s) => ({ ...s, status: 'error' }))
+      })
+  }, [storyId])
+
+  const loadCards = useCallback((seq: number, signal: AbortSignal) => {
+    setCardsSection((s) => ({ ...s, status: 'loading' }))
+    ocrApi.noteCards(storyId, signal)
+      .then((r) => { if (seq === seqRef.current) setCardsSection({ data: r.data, status: 'ready' }) })
+      .catch((e) => {
+        if (isCancellation(e) || seq !== seqRef.current) return
+        setCardsSection((s) => ({ ...s, status: 'error' }))
+      })
+  }, [storyId])
+
+  const load = useCallback((what: 'both' | 'notes' | 'cards' = 'both') => {
+    abortRef.current?.abort()
+    const ctrl = new AbortController()
+    abortRef.current = ctrl
+    const seq = ++seqRef.current
+    if (what !== 'cards') loadNotes(seq, ctrl.signal)
+    if (what !== 'notes') loadCards(seq, ctrl.signal)
+  }, [loadNotes, loadCards])
+
+  useEffect(() => {
+    load('both')
+    return () => abortRef.current?.abort()
+  }, [load, reloadKey])
+
+  // One accurate toast per outcome, and only on a real failure. Announced once per
+  // transition into the failed state, so a retry that fails again still tells the
+  // author, but a steady failed state does not nag.
+  const announcedRef = useRef<string>('')
+  useEffect(() => {
+    const failed = [
+      notesSection.status === 'error' ? 'notes' : null,
+      cardsSection.status === 'error' ? 'cards' : null,
+    ].filter(Boolean).join('+')
+    if (!failed) { announcedRef.current = ''; return }
+    if (announcedRef.current === failed) return
+    announcedRef.current = failed
+    toast.error(
+      failed === 'notes+cards' ? 'Notes and note cards could not be loaded.'
+        : failed === 'notes'    ? 'Story notes could not be loaded. Note cards are unaffected.'
+        :                         'Note cards could not be loaded. Your story notes are unaffected.',
+    )
+  }, [notesSection.status, cardsSection.status])
+
+  const handleNoteCreated  = (n: StoryNote)  => { setNotesSection(s => ({ ...s, data: [n, ...s.data] })); setCreating(null) }
+  const handleNoteUpdated  = (n: StoryNote)  => setNotesSection(s => ({ ...s, data: s.data.map(x => x.note_id === n.note_id ? n : x) }))
+  const handleNoteDeleted  = (id: string)    => setNotesSection(s => ({ ...s, data: s.data.filter(x => x.note_id !== id) }))
+  const handleCardCreated  = (c: NoteCard)   => { setCardsSection(s => ({ ...s, data: [c, ...s.data] })); setCreating(null) }
+  const handleCardUpdated  = (c: NoteCard)   => setCardsSection(s => ({ ...s, data: s.data.map(x => x.card_id === c.card_id ? c : x) }))
+  const handleCardDeleted  = (id: string)    => setCardsSection(s => ({ ...s, data: s.data.filter(x => x.card_id !== id) }))
 
   const filteredCards = cardFilter === 'all' ? noteCards : noteCards.filter(c => c.card_type === cardFilter)
 
-  if (loading) {
+  // Only the very first load blanks the panel. After that each section shows its own
+  // state, so one slow or failed request never hides the other's content.
+  const neverLoaded = notesSection.status === 'loading' && cardsSection.status === 'loading'
+  if (neverLoaded) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div data-testid="notes-loading" className="flex items-center justify-center h-full">
         <Loader2 className="w-4 h-4 animate-spin text-[#5c6391]" />
       </div>
     )
   }
+
+  const sectionError = (which: 'notes' | 'cards') => (
+    <div data-testid={`${which}-error`} className="m-3 rounded-xl border border-red-500/30 bg-red-500/10 p-3">
+      <div className="flex items-start gap-2">
+        <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+        <div className="min-w-0">
+          <p className="text-xs text-[#e8eaf6]">
+            {which === 'notes' ? 'Your story notes could not be loaded.' : 'Your note cards could not be loaded.'}
+          </p>
+          <p className="text-[11px] text-[#9da3c8] mt-0.5">
+            Nothing has been lost — this is a problem reading them, not a problem with your writing.
+          </p>
+          <button
+            onClick={() => load(which)}
+            className="mt-2 inline-flex items-center gap-1.5 text-[11px] px-2 py-1 rounded-lg border border-[#2e3454] text-[#cdd2f0] hover:bg-[#1f2440]"
+          >
+            <RefreshCw className="w-3 h-3" /> Try again
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -74,13 +159,17 @@ export default function NotesPanel({ storyId, reloadKey }: Props) {
           <button
             key={t}
             onClick={() => { setTab(t); setCreating(null) }}
-            className={`flex-1 py-2 text-xs font-medium transition-colors ${
+            className={`flex-1 py-2 text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${
               tab === t
                 ? 'text-amber-400 border-b-2 border-amber-500'
                 : 'text-[#5c6391] hover:text-[#9da3c8]'
             }`}
           >
             {t === 'notes' ? 'Story Notes' : 'Note Cards'}
+            {/* A failure in the section you are NOT looking at is still visible. */}
+            {(t === 'notes' ? notesSection.status : cardsSection.status) === 'error' && (
+              <AlertCircle data-testid={`${t}-tab-error`} className="w-3 h-3 text-red-400" />
+            )}
           </button>
         ))}
       </div>
@@ -106,8 +195,14 @@ export default function NotesPanel({ storyId, reloadKey }: Props) {
           </div>
 
           <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
-            {notes.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full gap-2 text-center py-8">
+            {notesSection.status === 'error' ? (
+              sectionError('notes')
+            ) : notesSection.status === 'loading' ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-4 h-4 animate-spin text-[#5c6391]" />
+              </div>
+            ) : notes.length === 0 ? (
+              <div data-testid="notes-empty" className="flex flex-col items-center justify-center h-full gap-2 text-center py-8">
                 <p className="text-xs text-[#5c6391] leading-relaxed">
                   No story notes yet.<br />
                   Create one above or scan handwritten notes with the OCR panel.
@@ -167,8 +262,14 @@ export default function NotesPanel({ storyId, reloadKey }: Props) {
           )}
 
           <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
-            {filteredCards.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full gap-2 text-center py-8">
+            {cardsSection.status === 'error' ? (
+              sectionError('cards')
+            ) : cardsSection.status === 'loading' ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-4 h-4 animate-spin text-[#5c6391]" />
+              </div>
+            ) : filteredCards.length === 0 ? (
+              <div data-testid="cards-empty" className="flex flex-col items-center justify-center h-full gap-2 text-center py-8">
                 <p className="text-xs text-[#5c6391] leading-relaxed">
                   {noteCards.length === 0
                     ? 'No note cards yet.\nCreate one above or use the OCR panel.'

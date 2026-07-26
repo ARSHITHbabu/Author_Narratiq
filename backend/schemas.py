@@ -497,6 +497,14 @@ class CharacterOut(BaseModel):
     created_at:   datetime
     updated_at:   datetime
     profile:      Optional[CharacterProfileOut] = None
+    # Set only on responses that just registered this character. Mention indexing
+    # runs in the background (measured at ~0.8-1.4 s of embedding per character per
+    # chapter — far too slow to block the request), so the response says how many
+    # chapters are STILL BEING re-scanned rather than implying the work is done.
+    # None on every read: nothing is pending.
+    mention_indexing_chapters: Optional[int] = None
+    # Live unrecognised-name hints resolved by registering this character.
+    hints_resolved: Optional[int] = None
     model_config = {"from_attributes": True}
 
     @computed_field
@@ -716,6 +724,9 @@ class CastConfirmRequest(BaseModel):
 class CastConfirmResult(BaseModel):
     created:          List[CharacterOut]
     skipped_existing: int
+    # Same contract as CharacterOut: work still in progress, not work completed.
+    mention_indexing_chapters: int = 0
+    hints_resolved:            int = 0
 
 
 # ── Character Mentions ────────────────────────────────────────────────────────

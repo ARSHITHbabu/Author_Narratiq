@@ -18,12 +18,18 @@ const DESTINATIONS = [
 
 interface Props {
   storyId:                string
-  chapterId:              string
+  /** The chapter to inject into, or null while chapters load / when the story has
+   *  none. Only the "Current Chapter Draft" destination needs it — scanning,
+   *  reviewing and the other three destinations work without a chapter. */
+  chapterId:              string | null
+  /** True while the chapter list is still loading, so "no chapter yet" can be
+   *  told apart from "this story has no chapters". */
+  chaptersLoading?:       boolean
   onInjectComplete?:      () => void   // called after successful chapter_draft injection
   onNotesInjectComplete?: () => void   // called after successful story_notes or note_card injection
 }
 
-export default function OCRPanel({ storyId, chapterId, onInjectComplete, onNotesInjectComplete }: Props) {
+export default function OCRPanel({ storyId, chapterId, chaptersLoading = false, onInjectComplete, onNotesInjectComplete }: Props) {
   const fileRef = useRef<HTMLInputElement>(null)
   const [preview, setPreview]           = useState<string | null>(null)
   const [file, setFile]                 = useState<File | null>(null)
@@ -81,9 +87,15 @@ export default function OCRPanel({ storyId, chapterId, onInjectComplete, onNotes
     }
   }
 
+  // Only this one destination needs a chapter. Everything else — scanning,
+  // reviewing, notes, note cards, character profiles — works without one.
+  const chapterRequired = destination === 'chapter_draft'
+  const chapterUnavailable = chapterRequired && !chapterId
+
   const isConfirmDisabled =
     confirming ||
     !editedText.trim() ||
+    chapterUnavailable ||
     (destination === 'character_profile' && !characterName.trim())
 
   const confirm = async () => {
@@ -94,7 +106,7 @@ export default function OCRPanel({ storyId, chapterId, onInjectComplete, onNotes
         result.upload_id,
         editedText,
         destination,
-        destination === 'chapter_draft'     ? chapterId     : undefined,
+        destination === 'chapter_draft'     ? chapterId ?? undefined : undefined,
         destination === 'character_profile' ? characterName : undefined,
       )
       const destLabel = DESTINATIONS.find(d => d.id === destination)?.label ?? destination
@@ -148,6 +160,17 @@ export default function OCRPanel({ storyId, chapterId, onInjectComplete, onNotes
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+
+        {/* Chapter availability. Scanning never depends on a chapter, so this is a
+            note about ONE destination — not a reason to withhold the feature. The
+            two states are kept distinct so the author knows whether to wait or act. */}
+        {!chapterId && (
+          <p data-testid="ocr-chapter-hint" className="text-xs text-[#9da3c8] bg-[#1a1e36] border border-[#2e3454] rounded-lg px-3 py-2">
+            {chaptersLoading
+              ? 'Loading this story’s chapters…'
+              : 'This story has no chapters yet, so scanned text cannot go into a chapter draft. Everything else — notes, note cards and character profiles — works now.'}
+          </p>
+        )}
 
         {/* Upload area */}
         {!preview ? (
@@ -392,20 +415,36 @@ export default function OCRPanel({ storyId, chapterId, onInjectComplete, onNotes
                 <div>
                   <label className="text-xs text-[#5c6391] mb-1.5 block">Save to:</label>
                   <div className="grid grid-cols-2 gap-1.5">
-                    {DESTINATIONS.map((d) => (
-                      <button
-                        key={d.id}
-                        onClick={() => setDestination(d.id)}
-                        className={`py-2 px-2 rounded-lg border text-xs text-left transition-all ${
-                          destination === d.id
-                            ? 'border-amber-500/50 bg-amber-500/10 text-amber-400'
-                            : 'border-[#1f2440] text-[#9da3c8] hover:border-[#2e3454]'
-                        }`}
-                      >
-                        {d.label}
-                      </button>
-                    ))}
+                    {DESTINATIONS.map((d) => {
+                      // Disabled, never hidden: the author can see the destination
+                      // exists and what to do to unlock it.
+                      const needsChapter = d.id === 'chapter_draft' && !chapterId
+                      return (
+                        <button
+                          key={d.id}
+                          onClick={() => setDestination(d.id)}
+                          disabled={needsChapter}
+                          title={needsChapter
+                            ? (chaptersLoading ? 'Still loading this story’s chapters…' : 'Add a chapter to this story first')
+                            : undefined}
+                          className={`py-2 px-2 rounded-lg border text-xs text-left transition-all ${
+                            destination === d.id
+                              ? 'border-amber-500/50 bg-amber-500/10 text-amber-400'
+                              : 'border-[#1f2440] text-[#9da3c8] hover:border-[#2e3454]'
+                          } ${needsChapter ? 'opacity-40 cursor-not-allowed hover:border-[#1f2440]' : ''}`}
+                        >
+                          {d.label}
+                        </button>
+                      )
+                    })}
                   </div>
+                  {!chapterId && (
+                    <p className="text-xs text-[#5c6391] mt-1.5">
+                      {chaptersLoading
+                        ? 'Chapter draft is unavailable until this story’s chapters finish loading.'
+                        : 'Chapter draft needs a chapter — add one to this story to use it.'}
+                    </p>
+                  )}
                 </div>
 
                 {/* ── Character name input (shown only for character_profile) ── */}

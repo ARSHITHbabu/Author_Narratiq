@@ -15,6 +15,7 @@ import AISidecar from '@/components/studio/AISidecar'
 import SelectionToolbar from '@/components/studio/SelectionToolbar'
 import { useStoryContext } from '@/components/studio/StoryContextEngine'
 import { useStudioStore } from '@/lib/studioStore'
+import { isSelectionSafeTarget, selectionSafeProps } from '@/lib/selectionOwnership'
 
 export default function WriteWorkspace() {
   const { storyId, story, chapters, activeChapter, activeChapterId, setActiveChapter, reloadChapters, registerEditor, updateChapterWordCount } = useStoryContext()
@@ -37,15 +38,21 @@ export default function WriteWorkspace() {
     registerEditor(m)
   }, [registerEditor])
 
-  // Selection lifecycle: the toolbar must reflect the LIVE editor selection only.
-  // EditorWithMethods clears `selection` when the ProseMirror selection collapses
-  // (in-editor clicks). Here we also clear it on clicks OUTSIDE the editor area and
-  // whenever the chapter changes — so no stale selection keeps the toolbar open.
+  // Selection lifecycle: this state is what every AI surface treats as the author's
+  // current selection. EditorWithMethods clears it when the ProseMirror selection
+  // collapses (in-editor clicks); here we also clear it when the author clicks away
+  // and whenever the chapter changes — so no stale selection keeps the toolbar open.
+  //
+  // "Clicks away" excludes surfaces that consume the selection — the AI sidebar and
+  // the toolbar itself, both marked with `data-selection-safe`. Clearing on those
+  // would make the sidebar report "no selection" while still transforming the
+  // selected words: the exact dishonesty PRE-2 exists to remove.
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
-      if (editorAreaRef.current && !editorAreaRef.current.contains(e.target as Node)) {
-        setSelection(null)
-      }
+      const target = e.target as Node
+      if (editorAreaRef.current?.contains(target)) return
+      if (isSelectionSafeTarget(target)) return
+      setSelection(null)
     }
     document.addEventListener('mousedown', onDown, true)
     return () => document.removeEventListener('mousedown', onDown, true)
@@ -94,7 +101,6 @@ export default function WriteWorkspace() {
 
           <Panel id="editor" order={2} className="min-w-0 relative">
             <div ref={editorAreaRef} className={`h-full overflow-y-auto relative ${store.typewriter ? 'pb-[40vh]' : ''}`}>
-              <SelectionToolbar selection={selection} />
               <EditorWithMethods
                 storyId={storyId}
                 chapter={activeChapter}
@@ -103,6 +109,12 @@ export default function WriteWorkspace() {
                 onSelectionChange={setSelection}
               />
             </div>
+            {/* Sibling of the scroll area, not a child of it: anchored to the column
+                itself the toolbar cannot drift with scrolled content, and it has a
+                stable box to be dragged and clamped inside. Placed after the editor
+                in the DOM so a keyboard-only author reaches it with one Tab from the
+                text they just selected. */}
+            <SelectionToolbar selection={selection} sidebarVisible={showSidecar} />
           </Panel>
 
           {showSidecar && (
@@ -110,7 +122,7 @@ export default function WriteWorkspace() {
               <PanelResizeHandle className="w-1 bg-transparent hover:bg-amber-500/30 transition-colors" />
               <Panel id="sidecar" order={3} defaultSize={store.sidecarSize} minSize={18} maxSize={40}
                 onResize={(s) => store.setSidecarSize(s)} className="min-w-0">
-                <AISidecar />
+                <AISidecar selection={selection} />
               </Panel>
             </>
           )}
@@ -126,7 +138,10 @@ export default function WriteWorkspace() {
           <span className="text-[#5c6391]">·</span>
           <span>Story {(story?.word_count ?? 0).toLocaleString()}</span>
           <div className="flex-1" />
-          <button onClick={() => store.toggleSidecar()} className={`p-1 rounded hover:bg-[#1f2440] ${store.sidecarOpen ? 'text-amber-400' : ''}`} title="AI sidecar (⌘\\)"><PanelRightOpen className="w-3.5 h-3.5" /></button>
+          {/* Selection-safe: this button hands the selection to the sidebar, so
+              pressing it is not the author walking away from their selection. */}
+          <button onClick={() => store.toggleSidecar()} {...selectionSafeProps()}
+            className={`p-1 rounded hover:bg-[#1f2440] ${store.sidecarOpen ? 'text-amber-400' : ''}`} title="AI sidecar (⌘\\)"><PanelRightOpen className="w-3.5 h-3.5" /></button>
           <button onClick={() => store.toggleTypewriter()} className={`p-1 rounded hover:bg-[#1f2440] ${store.typewriter ? 'text-amber-400' : ''}`} title="Typewriter"><AlignVerticalSpaceAround className="w-3.5 h-3.5" /></button>
           <button onClick={() => store.setFocusMode(!store.focusMode)} className={`p-1 rounded hover:bg-[#1f2440] ${store.focusMode ? 'text-amber-400' : ''}`} title="Focus (⌘.)"><Focus className="w-3.5 h-3.5" /></button>
           <button onClick={() => store.setZenMode(true)} className="p-1 rounded hover:bg-[#1f2440]" title="Zen mode"><Sparkles className="w-3.5 h-3.5" /></button>

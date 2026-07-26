@@ -20,6 +20,7 @@ from schemas import (
     VoiceCheckResponse, VoiceInconsistentPair,
 )
 from routers.auth import get_current_user, User
+from services.character_names import known_names, names_of, normalise_name, resolve_hints_for_names
 
 logger = logging.getLogger(__name__)
 
@@ -124,6 +125,47 @@ async def _embed_profile(profile_id: str) -> None:
         logger.warning(f"[character_embed] failed for {profile_id[:8]}...: {exc}")
     finally:
         db.close()
+
+
+def _queue_mention_index(db: Session, story_id: str, reason: str) -> int:
+    """Queue mention re-indexing for every indexed chapter of a story.
+
+    A new character has no `character_mentions` rows until the chapters are
+    re-scanned, so this runs whenever a name enters the character table. It is
+    deliberately BACKGROUND work — see the measurement in task 3.12's report — and
+    callers must describe it to the author as in progress, never as finished.
+
+    Returns the number of chapters queued (0 if nothing is indexed yet).
+    """
+    from models import Chapter as ChapterModel, ChapterChunk as ChunkModel
+
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        # Called from a sync context: the character IS saved, the mentions are not
+        # indexed. Say nothing false — report zero queued and let the author (or
+        # sync-mentions) trigger it, rather than failing the mutation.
+        logger.warning("[mention_index] %s: no running event loop — indexing not queued "
+                       "for story %s; run sync-mentions", reason, story_id[:8])
+        return 0
+
+    queued = 0
+    for ch in db.query(ChapterModel).filter(ChapterModel.story_id == story_id).all():
+        has_chunks = db.query(ChunkModel).filter(
+            ChunkModel.chapter_id == ch.chapter_id
+        ).first() is not None
+        if not has_chunks:
+            continue
+        asyncio.create_task(_run_mention_index(
+            chapter_id=ch.chapter_id,
+            story_id=story_id,
+            chapter_number=ch.chapter_number,
+        ))
+        queued += 1
+    if queued:
+        logger.info("[mention_index] %s: queued %d chapter(s) for story %s",
+                    reason, queued, story_id[:8])
+    return queued
 
 
 async def _run_mention_index(chapter_id: str, story_id: str, chapter_number: int) -> None:
@@ -368,16 +410,13 @@ async def confirm_cast(
     if not data.suggestions:
         return CastConfirmResult(created=[], skipped_existing=0)
 
-    # Build existing name index for fast duplicate check
+    # Build existing name index for fast duplicate check, using the shared
+    # normalisation so this agrees with hint matching.
     existing = db.query(Character).filter(Character.story_id == story_id).all()
-    taken_names: set[str] = set()
-    for c in existing:
-        taken_names.add(c.name.strip().lower())
-        for alias in (c.aliases or []):
-            if alias.strip():
-                taken_names.add(alias.strip().lower())
+    taken_names: set[str] = known_names(existing)
 
     created_entries: list[tuple[str, str]] = []  # (character_id, profile_id)
+    confirmed_names: list[str] = []             # names + aliases this call registered
     skipped_existing = 0
 
     for s in data.suggestions:
@@ -385,7 +424,7 @@ async def confirm_cast(
         if not raw_name:
             continue
         name = _normalize_character_name(raw_name)
-        if name.lower() in taken_names:
+        if normalise_name(name) in taken_names:
             skipped_existing += 1
             continue
 
@@ -430,12 +469,22 @@ async def confirm_cast(
         db.flush()
         created_entries.append((character.character_id, profile.profile_id))
 
-        # Prevent duplicates within this batch
-        taken_names.add(name.lower())
+        # Prevent duplicates within this batch, and record what was registered so
+        # the unrecognised queue can be reconciled against exactly these names.
+        confirmed_names.append(name)
+        confirmed_names.extend(aliases)
+        taken_names.add(normalise_name(name))
         for alias in aliases:
-            taken_names.add(alias.lower())
+            taken_names.add(normalise_name(alias))
 
+    # Reconcile the unrecognised-names queue in the SAME transaction as the
+    # characters this call created, so the response cannot report a settled cast
+    # while the unrecognised list still names those characters (Issue 9).
+    dismissed_hints = resolve_hints_for_names(db, story_id, confirmed_names)
     db.commit()
+    if dismissed_hints:
+        logger.info("[char_hints] confirm-cast resolved %d hint(s) in story %s",
+                    len(dismissed_hints), story_id[:8])
 
     # Re-query created characters and schedule profile embeddings
     created_chars = []
@@ -447,34 +496,20 @@ async def confirm_cast(
 
     # Auto-trigger mention re-indexing for every indexed chapter so the new
     # characters are immediately discoverable via Story Mentions and RAG.
+    queued = 0
     if created_entries:
-        from models import Chapter as ChapterModel, ChapterChunk as ChunkModel
-        story_chapters = db.query(ChapterModel).filter(
-            ChapterModel.story_id == story_id
-        ).all()
-        queued = 0
-        for ch in story_chapters:
-            has_chunks = db.query(ChunkModel).filter(
-                ChunkModel.chapter_id == ch.chapter_id
-            ).first() is not None
-            if has_chunks:
-                asyncio.create_task(_run_mention_index(
-                    chapter_id=ch.chapter_id,
-                    story_id=story_id,
-                    chapter_number=ch.chapter_number,
-                ))
-                queued += 1
-        if queued:
-            logger.info( f"[confirm_cast] {len(created_entries)} character(s) created — " f"triggered mention re-indexing for {queued} chapter(s)" )
+        queued = _queue_mention_index(db, story_id, reason="confirm-cast")
 
     return CastConfirmResult(
         created=created_chars,
         skipped_existing=skipped_existing,
+        mention_indexing_chapters=queued,
+        hints_resolved=len(dismissed_hints),
     )
 
 
 @router.post("/{story_id}/characters", response_model=CharacterOut)
-def create_character(
+async def create_character(
     story_id: str,
     data: CharacterCreate,
     current_user: User = Depends(get_current_user),
@@ -513,9 +548,21 @@ def create_character(
         status=data.status or "active",
     )
     db.add(character)
+    # Same transaction as the character itself: the response can never report a
+    # registered character while the unrecognised list still names it (Issue 9).
+    dismissed = resolve_hints_for_names(db, story_id, names_of(character))
     db.commit()
     db.refresh(character)
-    return character
+    if dismissed:
+        logger.info("[char_hints] create resolved %d hint(s) in story %s", len(dismissed), story_id[:8])
+    # A character with no mentions is invisible to Story Mentions and to retrieval
+    # until the chapters are re-scanned; queue that now rather than waiting for a
+    # manual sync-mentions call.
+    queued = _queue_mention_index(db, story_id, reason="create")
+    out = CharacterOut.model_validate(character)
+    out.mention_indexing_chapters = queued
+    out.hints_resolved = len(dismissed)
+    return out
 
 
 @router.get("/{story_id}/characters/hints", response_model=list[CharacterHintOut])
@@ -600,10 +647,20 @@ async def promote_hint(
     )
     db.add(profile)
     hint.is_dismissed = True
+    # The same name may have been hinted from more than one chapter; clear them all
+    # in this transaction so the queue and the cast agree the moment we respond.
+    dismissed_hints = resolve_hints_for_names(db, story_id, names_of(character))
     db.commit()
     db.refresh(character)
     asyncio.create_task(_embed_profile(character.profile.profile_id))
-    return character
+    if dismissed_hints:
+        logger.info("[char_hints] promote resolved %d further hint(s) in story %s",
+                    len(dismissed_hints), story_id[:8])
+    queued = _queue_mention_index(db, story_id, reason="promote")
+    out = CharacterOut.model_validate(character)
+    out.mention_indexing_chapters = queued
+    out.hints_resolved = len(dismissed_hints) + 1        # + the promoted hint itself
+    return out
 
 
 @router.post("/{story_id}/characters/sync-mentions")
@@ -618,26 +675,7 @@ async def sync_character_mentions(
     """
     _check_story_access(story_id, current_user.user_id, db)
 
-    from models import ChapterChunk, Chapter
-    chapters_with_chunks = (
-        db.query(Chapter)
-        .filter(Chapter.story_id == story_id)
-        .all()
-    )
-
-    queued = 0
-    for ch in chapters_with_chunks:
-        has_chunks = db.query(ChapterChunk).filter(
-            ChapterChunk.chapter_id == ch.chapter_id
-        ).count() > 0
-        if not has_chunks:
-            continue
-        asyncio.create_task(_run_mention_index(
-            chapter_id=ch.chapter_id,
-            story_id=story_id,
-            chapter_number=ch.chapter_number,
-        ))
-        queued += 1
+    queued = _queue_mention_index(db, story_id, reason="sync-mentions")
 
     return {
         "story_id": story_id,
@@ -912,7 +950,9 @@ async def update_character(
             character.name = new_name
             name_changed = True
 
+    aliases_changed = False
     if data.aliases is not None:
+        aliases_changed = list(data.aliases or []) != list(character.aliases or [])
         character.aliases = data.aliases
     if data.role is not None:
         character.role = data.role
@@ -920,8 +960,18 @@ async def update_character(
         character.status = data.status
 
     character.updated_at = datetime.utcnow()
+
+    # A rename or a new alias can make this character the answer to a pending
+    # unrecognised name. Reconciled in the same transaction as the edit.
+    dismissed_hints: list[str] = []
+    if name_changed or aliases_changed:
+        dismissed_hints = resolve_hints_for_names(db, story_id, names_of(character))
+
     db.commit()
     db.refresh(character)
+    if dismissed_hints:
+        logger.info("[char_hints] update resolved %d hint(s) in story %s",
+                    len(dismissed_hints), story_id[:8])
 
     # Re-embed profile when name changes — the name appears in the formatted
     # character context block that BGE-M3 encodes.

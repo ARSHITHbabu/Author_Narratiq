@@ -83,16 +83,23 @@ export default function AnalyticsPage({ params }: { params: { id: string } }) {
 
   if (loading) {
     return (
-      <div className="h-screen bg-[#0d0f1a] flex items-center justify-center">
+      <div className="h-full bg-[#0d0f1a] flex items-center justify-center">
         <Loader2 className="w-6 h-6 animate-spin text-amber-500" />
       </div>
     )
   }
 
+  // Studio layout contract: every workspace under /projects/[id] renders inside
+  // StudioShell's `<main className="flex-1 min-w-0 overflow-hidden">`, which is
+  // itself inside `h-screen … overflow-hidden`. A page therefore owns exactly the
+  // height it is given and must provide its own single scroll region — the window
+  // never scrolls. This page previously used `min-h-screen` with a `fixed` nav, so
+  // everything below the first viewport was clipped and unreachable (QA Issue 3).
   return (
-    <div className="min-h-screen bg-[#0d0f1a]">
-      {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0d0f1a] border-b border-[#1f2440]">
+    <div className="h-full flex flex-col bg-[#0d0f1a]">
+      {/* In flow, not fixed: it takes its own height instead of overlaying the
+          content, so it can never cover the first section or anything scrolled to. */}
+      <nav className="flex-shrink-0 bg-[#0d0f1a] border-b border-[#1f2440]">
         <div className="max-w-5xl mx-auto px-6 h-14 flex items-center gap-3">
           <Link href={`/projects/${storyId}`} className="text-[#5c6391] hover:text-amber-400">
             <ArrowLeft className="w-4 h-4" />
@@ -104,7 +111,10 @@ export default function AnalyticsPage({ params }: { params: { id: string } }) {
         </div>
       </nav>
 
-      <div className="max-w-5xl mx-auto px-6 pt-24 pb-16">
+      {/* The one and only scroll container on this page. Sections added below grow
+          it; no further layout work is needed for future analytics. */}
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        <div className="max-w-5xl mx-auto px-6 pt-8 pb-16">
         <div className="mb-8">
           <h1 className="text-2xl font-bold mb-1">Writing Statistics</h1>
           <p className="text-[#5c6391] text-sm">Narrative analytics for {story?.title}</p>
@@ -181,7 +191,7 @@ export default function AnalyticsPage({ params }: { params: { id: string } }) {
         </div>
 
         {/* Phase 2 features notice */}
-        <div className="mt-6 bg-[#13162a] border border-[#1f2440] rounded-2xl p-6">
+        <div data-testid="analytics-last-section" className="mt-6 bg-[#13162a] border border-[#1f2440] rounded-2xl p-6">
           <h2 className="font-semibold mb-3 text-[#9da3c8]">Phase 2 Analytics (Coming Soon)</h2>
           <div className="grid sm:grid-cols-3 gap-3">
             {[
@@ -195,6 +205,7 @@ export default function AnalyticsPage({ params }: { params: { id: string } }) {
               </div>
             ))}
           </div>
+        </div>
         </div>
       </div>
     </div>

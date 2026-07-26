@@ -3478,38 +3478,34 @@ async def _detect_new_character_hints(
     Returns number of new hints created.
     """
     from models import Character, CharacterHint
+    from services.character_names import (
+        hint_is_redundant, known_names as known_names_of, normalise_name,
+    )
 
     if not characters_present:
         return 0
 
-    # Build normalized existing name index (name + aliases)
+    # Normalisation and the similarity threshold live in services/character_names.py
+    # so hint creation and hint reconciliation can never drift apart.
     existing = db.query(Character).filter(Character.story_id == story_id).all()
-    known_names: set[str] = set()
-    for c in existing:
-        known_names.add(c.name.strip().lower())
-        for alias in (c.aliases or []):
-            if alias.strip():
-                known_names.add(alias.strip().lower())
+    known_names: set[str] = known_names_of(existing)
 
     # Also load existing hints to avoid duplicates
     existing_hints = db.query(CharacterHint).filter(
         CharacterHint.story_id == story_id,
         CharacterHint.is_dismissed == False,  # noqa: E712
     ).all()
-    hinted_names: set[str] = {h.suggested_name.strip().lower() for h in existing_hints}
+    hinted_names: set[str] = {normalise_name(h.suggested_name) for h in existing_hints}
 
     new_count = 0
     for name in characters_present:
         name = str(name).strip()
         if not name or len(name) < 2:
             continue
-        norm = name.lower()
-        # Skip if already in characters table or already hinted
-        if norm in known_names or norm in hinted_names:
-            continue
-        # Simple fuzzy check: skip if very close to a known name (edit distance proxy)
-        from difflib import SequenceMatcher
-        if any(SequenceMatcher(None, norm, k).ratio() >= 0.85 for k in known_names):
+        norm = normalise_name(name)
+        # Skip if already hinted, or already registered / near-identical to a
+        # registered name (creation is deliberately the generous side).
+        if norm in hinted_names or hint_is_redundant(name, known_names):
             continue
 
         db.add(CharacterHint(
@@ -4215,16 +4211,35 @@ async def generate_story_bible_section(
     # "cite your source" means something different per section: a timeline entry
     # cites where the event happens, a character trait cites where it is shown.
     section_instructions = {
+        # Characters and locations were the two weakest sections for citation
+        # (0.00 and 0.33 cited on 2026-07-26, against 1.00 for timeline). The
+        # difference was not the model: timeline said MUST, gave a per-line
+        # example, and named the consequence. These now say the same.
         "characters": (
             "Write a CHARACTER BIBLE section. For each character, create a compact "
             "reference card: Name, Role, Physical description, Personality, Goals, "
-            "Backstory summary, and Arc status. Use '---' between characters. "
-            "Cite the chapter or character tag each detail comes from."
+            "Backstory summary, and Arc status. Use '---' between characters.\n"
+            "EVERY line MUST end with the source tag it comes from, e.g.\n"
+            "  - **Role:** Veritor for the Bureau [Ch 1]\n"
+            "  - **Goals:** To prove the memory was forged [Ch 2]\n"
+            "Keep each line to one sentence so there is room for its tag. "
+            "If a detail is not established anywhere in the context, write "
+            f"\"{BIBLE_NOT_ESTABLISHED}\" for that line instead of guessing — "
+            "an untagged line is not acceptable."
         ),
         "locations": (
-            "Write a LOCATIONS section. For each distinct location mentioned, provide: "
-            "Name, Description, Significance to the story. Use '---' between locations. "
-            "Cite the chapter tag where each location appears."
+            "Write a LOCATIONS section covering EVERY distinct location that appears "
+            "anywhere in the context — do not stop at the first one or two. For each, "
+            "write its name as a '####' heading, then bulleted lines beneath it for "
+            "Description, Significance and First appearance, with '---' between "
+            "locations. Shape (placeholders, not content to copy):\n"
+            "#### <location name>\n"
+            "  - **Description:** <one or two sentences of what it is> [Ch N]\n"
+            "  - **Significance:** <why it matters to the story> [Ch N]\n"
+            "  - **First appearance:** [Ch N]\n"
+            "EVERY bulleted line MUST end with the chapter tag it comes from. Do not "
+            "write a location you cannot attribute to a chapter shown in the context, "
+            "and do not leave a line untagged."
         ),
         "timeline": (
             "Write a TIMELINE section: a chronological sequence of key events. "
@@ -4234,8 +4249,10 @@ async def generate_story_bible_section(
         ),
         "world_rules": (
             "Write a WORLD RULES section: list the rules of the story's world — "
-            "physical, social, magical, technological, or cultural. Use bullet points. "
-            "Cite the chapter tag that demonstrates each rule."
+            "physical, social, magical, technological, or cultural. Use bullet points.\n"
+            "EVERY bullet MUST end with the chapter tag that demonstrates it, e.g.\n"
+            "  - Lattice sessions require an induction collar [Ch 1]\n"
+            "Do not state a rule you cannot attribute to a chapter shown in the context."
         ),
         "themes": (
             "Write a THEMES & MOTIFS section: identify the primary theme, secondary "
@@ -4263,7 +4280,12 @@ async def generate_story_bible_section(
         "4. If the context says material is missing, do not describe that material."
     )
     user = f"{instruction}\n\nManuscript context:\n{context}"
-    return await _complete_ex(system, user, temperature=0.2, max_tokens=1500)
+    # Per-line citations add roughly 6-10 tokens per entry. The character card is
+    # the longest section and was already close to the old 1500-token ceiling, so
+    # requiring tags without more room would simply trade uncited entries for
+    # truncated ones (SB-F13). Sections that cite per line get the larger budget.
+    max_tokens = 1900 if section in ("characters", "locations") else 1500
+    return await _complete_ex(system, user, temperature=0.2, max_tokens=max_tokens)
 
 
 # ── P2-07: Dead-End Narrative Thread Tracker ──────────────────────────────────

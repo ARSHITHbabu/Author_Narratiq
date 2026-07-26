@@ -325,6 +325,10 @@ export interface Character {
   updated_at:        string
   profile:           CharacterProfile | null
   completeness_score: number
+  // Set only on the response that just registered this character: background
+  // mention indexing still in progress, and unrecognised names it resolved.
+  mention_indexing_chapters?: number | null
+  hints_resolved?: number | null
 }
 
 export interface CharacterRelationship {

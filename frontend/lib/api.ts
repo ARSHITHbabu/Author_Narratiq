@@ -136,8 +136,10 @@ export const ocrApi = {
       character_name: characterName ?? null,
     }),
   list:      (storyId: string) => api.get(`/api/ocr/${storyId}/uploads`),
-  notes:     (storyId: string) => api.get(`/api/ocr/${storyId}/notes`),
-  noteCards: (storyId: string) => api.get(`/api/ocr/${storyId}/note-cards`),
+  // `signal` lets a caller abort an in-flight read when the component unmounts or
+  // the author navigates away — an abort is a cancellation, never a load failure.
+  notes:     (storyId: string, signal?: AbortSignal) => api.get(`/api/ocr/${storyId}/notes`, { signal }),
+  noteCards: (storyId: string, signal?: AbortSignal) => api.get(`/api/ocr/${storyId}/note-cards`, { signal }),
   createNote: (storyId: string, title: string, content: string) =>
     api.post(`/api/ocr/${storyId}/notes`, { title, content }),
   updateNote: (noteId: string, data: { title?: string; content?: string }) =>

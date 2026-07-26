@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Search, Plus, GitBranch, Loader2, Users, Sparkles, AlertCircle, X } from 'lucide-react'
 import { charactersApi } from '@/lib/api'
 import { Character, CharacterHint, CharacterRole, CharacterStatus } from '@/lib/types'
@@ -41,19 +41,30 @@ export default function CharacterList({ storyId }: Props) {
 
   // ── Load characters ────────────────────────────────────────────────────────
 
+  // Mention indexing is background work; this says so rather than pretending it is
+  // finished. Cleared by the author, not by a timer — a timer would be a guess.
+  const [mentionsPending, setMentionsPending] = useState(0)
+
+  // Every load is sequenced: a slower earlier response can never restore a stale
+  // cast list or hint count over a newer one (the banner count is the visible half
+  // of Issue 9, so it must not flicker backwards).
+  const loadSeq = useRef(0)
+
   const loadCharacters = useCallback(async () => {
+    const seq = ++loadSeq.current
     setLoading(true)
     try {
       const [charsRes, hintsRes] = await Promise.all([
         charactersApi.list(storyId),
         charactersApi.getHints(storyId),
       ])
+      if (seq !== loadSeq.current) return          // superseded — drop it
       setCharacters(charsRes.data as Character[])
       setHints(hintsRes.data as CharacterHint[])
     } catch {
-      toast.error('Failed to load characters')
+      if (seq === loadSeq.current) toast.error('Failed to load characters')
     } finally {
-      setLoading(false)
+      if (seq === loadSeq.current) setLoading(false)
     }
   }, [storyId])
 
@@ -85,11 +96,16 @@ export default function CharacterList({ storyId }: Props) {
     setSelected(char)
     setView('profile')
     setShowCreate(false)
+    if (char.mention_indexing_chapters) setMentionsPending(char.mention_indexing_chapters)
+    // Registering a name can resolve unrecognised names — refetch, never guess.
+    loadCharacters()
   }
 
   const handleUpdated = (char: Character) => {
     setCharacters(prev => prev.map(c => c.character_id === char.character_id ? char : c))
     setSelected(char)
+    // A rename or a new alias can resolve a pending unrecognised name.
+    loadCharacters()
   }
 
   const handleDeleted = (characterId: string) => {
@@ -102,11 +118,11 @@ export default function CharacterList({ storyId }: Props) {
     // Immediately show new characters (optimistic)
     setCharacters(prev => [...newChars, ...prev])
     setShowGenerateCast(false)
-    // Reload the full list + hints after a short delay so any background
-    // processing (mention indexing, hints) has had time to land
-    if (mentionsIndexing) {
-      setTimeout(() => loadCharacters(), 3000)
-    }
+    // Hint reconciliation happens inside the confirm-cast transaction, so the
+    // server is already settled when it answers: refetch immediately instead of
+    // waiting out a fixed delay and hoping.
+    if (mentionsIndexing) setMentionsPending((n) => Math.max(n, newChars.length ? 1 : 0))
+    loadCharacters()
   }
 
   const handleDismissHint = async (hintId: string) => {
@@ -124,7 +140,9 @@ export default function CharacterList({ storyId }: Props) {
       const newChar = res.data as Character
       setCharacters(prev => [newChar, ...prev])
       setHints(prev => prev.filter(h => h.hint_id !== hintId))
+      if (newChar.mention_indexing_chapters) setMentionsPending(newChar.mention_indexing_chapters)
       toast.success(`Added "${newChar.name}" to cast`)
+      loadCharacters()          // the same name may have been hinted from other chapters
     } catch (err: any) {
       toast.error(err?.response?.data?.detail || 'Failed to add character')
     }
@@ -137,8 +155,32 @@ export default function CharacterList({ storyId }: Props) {
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
+  // Background mention indexing — stated as in progress, never as finished. Shown
+  // in every view, because creating a character switches to the profile view and
+  // the author must not lose sight of work that is still running.
+  const mentionsBanner = mentionsPending > 0 ? (
+    <div data-testid="mentions-pending" className="px-3 py-2 border-b border-[#1f2440] bg-[#1a1e36] flex items-start gap-1.5 flex-shrink-0">
+      <Loader2 className="w-3 h-3 text-[#9da3c8] animate-spin flex-shrink-0 mt-0.5" />
+      <div className="min-w-0">
+        <p className="text-[10px] text-[#cdd2f0]">
+          Story mentions are still being indexed for {mentionsPending} chapter{mentionsPending !== 1 ? 's' : ''}.
+        </p>
+        <p className="text-[10px] text-[#5c6391]">
+          The cast is saved. Mention counts and mention-based search will fill in shortly.
+        </p>
+      </div>
+      <button onClick={() => { setMentionsPending(0); loadCharacters() }}
+        className="ml-auto text-[10px] text-[#9da3c8] hover:text-white underline flex-shrink-0">
+        Refresh
+      </button>
+    </div>
+  ) : null
+
   if (view === 'profile' && selected) {
     return (
+      <div className="flex flex-col h-full">
+        {mentionsBanner}
+        <div className="flex-1 min-h-0">
       <CharacterProfilePanel
         storyId={storyId}
         character={selected}
@@ -147,6 +189,8 @@ export default function CharacterList({ storyId }: Props) {
         onUpdated={handleUpdated}
         onDeleted={handleDeleted}
       />
+        </div>
+      </div>
     )
   }
 
@@ -164,6 +208,7 @@ export default function CharacterList({ storyId }: Props) {
 
   return (
     <div className="flex flex-col h-full">
+      {mentionsBanner}
       {/* Header */}
       <div className="px-4 py-3 border-b border-[#1f2440] flex items-center gap-2 flex-shrink-0">
         <Users className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
@@ -193,7 +238,7 @@ export default function CharacterList({ storyId }: Props) {
 
       {/* Character hints banner */}
       {hints.length > 0 && (
-        <div className="px-3 py-2 border-b border-amber-500/20 bg-amber-500/5 flex-shrink-0">
+        <div data-testid="hints-banner" className="px-3 py-2 border-b border-amber-500/20 bg-amber-500/5 flex-shrink-0">
           <div className="flex items-center gap-1.5 mb-1.5">
             <AlertCircle className="w-3 h-3 text-amber-400 flex-shrink-0" />
             <span className="text-[10px] font-semibold text-amber-400">

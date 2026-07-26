@@ -19,7 +19,7 @@ const SECTIONS = [
 ] as const
 
 export default function WorldWorkspace() {
-  const { storyId, activeChapterId, reloadChapters } = useStoryContext()
+  const { storyId, activeChapterId, loading, reloadChapters } = useStoryContext()
   const [section, setSection] = useState<typeof SECTIONS[number]['id']>('bible')
   const [notesReload, setNotesReload] = useState(0)
 
@@ -36,8 +36,12 @@ export default function WorldWorkspace() {
       <div className="flex-1 overflow-hidden">
         {section === 'bible' && <StoryBiblePanel storyId={storyId} />}
         {section === 'notes' && <NotesPanel storyId={storyId} reloadKey={notesReload} />}
-        {section === 'ocr' && activeChapterId && (
-          <OCRPanel storyId={storyId} chapterId={activeChapterId}
+        {/* Scanning does not depend on a chapter. Gating the whole panel on
+            `activeChapterId` made this tab render EMPTY while chapters loaded and
+            for any story with no chapters — QA Issue 6. The panel now always
+            renders and disables only the one destination that needs a chapter. */}
+        {section === 'ocr' && (
+          <OCRPanel storyId={storyId} chapterId={activeChapterId} chaptersLoading={loading}
             onInjectComplete={() => reloadChapters()}
             onNotesInjectComplete={() => setNotesReload((k) => k + 1)} />
         )}

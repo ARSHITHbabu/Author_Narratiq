@@ -309,18 +309,36 @@ def test_result_request_separates_outcome_from_approval():
 
 def test_frontend_reports_results_for_non_confirmation_actions():
     """The channel that did not exist: read/analyze/generate steps ran in the
-    browser and told the backend nothing."""
+    browser and told the backend nothing.
+
+    Reporting now goes through the `reportOutcome` helper (corrective plan A,
+    2026-07-26), so this asserts that runPlan reports — not which literal call
+    it uses."""
     src = (FRONTEND / "components/voice/useVoiceAgent.ts").read_text(encoding="utf-8")
     run_plan = src[src.index("const runPlan"):src.index("const confirm")]
-    assert "reportResult" in run_plan, "runPlan must report every executed step"
+    assert "reportOutcome(" in run_plan, "runPlan must report every executed step"
+    helper = src[src.index("const reportOutcome"):src.index("const reportApproval")]
+    assert "voiceApi.reportResult" in helper, "reportOutcome must call the result endpoint"
 
 
 def test_frontend_reports_results_for_confirmed_actions_too():
     src = (FRONTEND / "components/voice/useVoiceAgent.ts").read_text(encoding="utf-8")
     confirm = src[src.index("const confirm"):src.index("const handleFinal")]
-    assert "reportResult" in confirm
-    assert "confirm(resp.command_id, node.node_key, true, false)" in confirm, \
+    assert "reportOutcome(" in confirm, "the confirmation path must report its outcome"
+    assert "reportApproval(resp.command_id, node.node_key, true)" in confirm, \
         "approval must no longer carry the outcome"
+    approval = src[src.index("const reportApproval"):src.index("const runPlan")]
+    assert "voiceApi.confirm" in approval
+
+
+def test_a_failure_to_record_an_outcome_is_never_silent():
+    """A swallowed error is how a total failure of the recording channel went
+    unnoticed until live verification (2026-07-26). Neither helper may hide one."""
+    src = (FRONTEND / "components/voice/useVoiceAgent.ts").read_text(encoding="utf-8")
+    helpers = src[src.index("const reportOutcome"):src.index("const runPlan")]
+    assert "catch { /* noop */ }" not in helpers, "a recording failure is being swallowed"
+    assert "console.error" in helpers, "a recording failure must be logged"
+    assert "toast" in helpers, "a recording failure must be surfaced to the author"
 
 
 def test_api_client_exposes_report_result():

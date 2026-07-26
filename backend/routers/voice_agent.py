@@ -17,6 +17,7 @@ import logging
 import os
 import time
 import uuid
+from datetime import datetime
 
 from fastapi import (APIRouter, Depends, HTTPException, Request, WebSocket,
                      WebSocketDisconnect)
@@ -473,7 +474,6 @@ async def voice_stream(websocket: WebSocket):
             try:
                 sess = db.query(VoiceSession).filter(VoiceSession.session_id == session_id).first()
                 if sess and sess.status == "active":
-                    from datetime import datetime
                     sess.status = "completed"
                     sess.ended_at = datetime.utcnow()
                     db.commit()

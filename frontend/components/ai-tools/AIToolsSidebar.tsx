@@ -22,6 +22,14 @@ interface Props {
   insertText?: (text: string) => void
   // Genre profile from Story Intake — drives genre-aware default tool selections.
   genreProfile?: Partial<GenreProfile> | null
+  // The workspace's live selection, when the host tracks one (the Write workspace
+  // does). `getSelectedText()` is a pull — it reads the editor at call time and this
+  // component does not re-render when the selection changes, so the scope banner
+  // could say "no selection" while a transform still rewrote the selected words.
+  // When this prop is supplied it is the single truth for BOTH the banner and the
+  // transform, so what the author is told and what the AI receives cannot diverge.
+  // Omit it and the component behaves exactly as before.
+  liveSelection?: { text: string } | null
 }
 
 type TabId = 'refine' | 'tone' | 'emotion' | 'age' | 'style' | 'author' | 'translate' | 'continue' | 'outline'
@@ -101,7 +109,7 @@ function ResultPanel({
   )
 }
 
-export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, getFullText, insertText, genreProfile }: Props) {
+export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, getFullText, insertText, genreProfile, liveSelection }: Props) {
   const [activeTab, setActiveTab] = useState<TabId>('refine')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<TransformResponse | null>(null)
@@ -192,15 +200,22 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
     }
   }
 
+  // The one place this component reads the selection. When the host tracks a live
+  // selection we use it; otherwise we pull from the editor as before. Everything —
+  // the scope banner, the full-chapter fallback and the text sent to the model —
+  // goes through here, so the author is never told one scope and given another.
+  const selectionProvided = liveSelection !== undefined
+  const readSelection = () => (selectionProvided ? (liveSelection?.text ?? '') : getSelectedText())
+
   const getText = () => {
-    const sel = getSelectedText()
+    const sel = readSelection()
     return sel.trim() || getFullText().slice(0, 2000)
   }
 
   const run = async () => {
     const text = getText()
     if (!text) return toast.error('Write some text in the editor first')
-    const sel = getSelectedText()
+    const sel = readSelection()
     setHadSelection(!!sel.trim())
     setLoading(true)
     setResult(null)
@@ -223,7 +238,7 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
     }
   }
 
-  const selText = getSelectedText()
+  const selText = readSelection()
   const selWordCount = selText.trim() ? selText.trim().split(/\s+/).length : 0
 
   const runLabel = (() => {

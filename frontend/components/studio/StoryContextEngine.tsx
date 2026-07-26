@@ -23,6 +23,9 @@ export interface EditorBridge {
   insertText: (text: string) => void
   getSelectionRange: () => { from: number; to: number } | null
   replaceRange: (from: number, to: number, text: string) => void
+  /** Text currently in a range, '' if the range no longer exists — used to prove a
+   *  captured range still holds its captured words before overwriting it. */
+  getTextInRange: (from: number, to: number) => string
 }
 
 export interface Selection { text: string; from: number; to: number }

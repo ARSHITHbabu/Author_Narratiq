@@ -9,6 +9,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { voiceApi, voiceWsUrl } from '@/lib/api'
 import { executeVoiceAction, resultKindFor, type VoiceActionContext, type VoiceActionResult } from '@/lib/voiceActions'
 import type { VoiceAgentResponse, VoiceContextSnapshot, WorkflowNode } from '@/lib/types'
+import { toast } from 'sonner'
 
 export type VoiceStatus =
   | 'idle' | 'requesting' | 'listening' | 'transcribing' | 'thinking'
@@ -56,6 +57,33 @@ export function useVoiceAgent({ enabled, getContext, actionCtx }: UseVoiceAgentO
 
   useEffect(() => () => { cleanupMedia(); closeSocket() }, [cleanupMedia, closeSocket])
 
+  // A failure to RECORD an outcome is not cosmetic: the backend then has no idea
+  // what happened and the command ages into a wrong status. Swallowing it silently
+  // is how a total failure of this channel went unnoticed (verification of task
+  // 3.7, 2026-07-26). Logged, and told to the author — without blocking their work,
+  // because the action itself may well have succeeded.
+  const reportOutcome = useCallback(async (
+    commandId: string, nodeKey: string, ok: boolean, message?: string,
+  ) => {
+    try {
+      await voiceApi.reportResult(commandId, nodeKey, ok, message)
+    } catch (err) {
+      console.error('[voice] failed to record the outcome of', nodeKey, err)
+      toast.warning('Your action ran, but NarratIQ could not record the result. Its voice history may be incomplete.')
+    }
+  }, [])
+
+  const reportApproval = useCallback(async (
+    commandId: string, nodeKey: string, approved: boolean,
+  ) => {
+    try {
+      await voiceApi.confirm(commandId, nodeKey, approved, false)
+    } catch (err) {
+      console.error('[voice] failed to record approval for', nodeKey, err)
+      toast.warning('NarratIQ could not record your decision. The action itself is unaffected.')
+    }
+  }, [])
+
   // ── Execute the consolidated plan ───────────────────────────────────────────
   const runPlan = useCallback(async (resp: VoiceAgentResponse) => {
     const ctx = { ...actionCtxRef.current, storyId: getContextRef.current().story_id || actionCtxRef.current.storyId }
@@ -74,10 +102,7 @@ export function useVoiceAgent({ enabled, getContext, actionCtx }: UseVoiceAgentO
       // Report the real outcome. Without this the backend never learns what
       // happened to a client-side step and its command stays at whatever was
       // assumed when the plan was built — the false-success defect.
-      if (resp.command_id) {
-        try { await voiceApi.reportResult(resp.command_id, node.node_key, r.ok, r.message) }
-        catch { /* best effort — the backend's timeout sweep is the backstop */ }
-      }
+      if (resp.command_id) await reportOutcome(resp.command_id, node.node_key, r.ok, r.message)
       // feed generate/analyze results into session memory for follow-ups
       const kind = resultKindFor(node)
       if (kind && r.ok && resp.session_id) {
@@ -86,29 +111,26 @@ export function useVoiceAgent({ enabled, getContext, actionCtx }: UseVoiceAgentO
     }
     setNodeResults(results)
     setPendingConfirm(holds)
-  }, [])
+  }, [reportOutcome])
 
   // ── Confirm (or reject) a held mutating node ────────────────────────────────
   const confirm = useCallback(async (node: WorkflowNode, approve: boolean) => {
     const resp = response
     if (!resp) return
     if (!approve) {
-      if (resp.command_id) { try { await voiceApi.confirm(resp.command_id, node.node_key, false, false) } catch { /* noop */ } }
+      if (resp.command_id) await reportApproval(resp.command_id, node.node_key, false)
       setPendingConfirm((p) => p.filter((n) => n.node_key !== node.node_key))
       return
     }
     const ctx = { ...actionCtxRef.current, storyId: getContextRef.current().story_id || actionCtxRef.current.storyId }
     // Approval and outcome are two different facts, reported separately: the
     // author approving a change is not the same as the change having worked.
-    if (resp.command_id) { try { await voiceApi.confirm(resp.command_id, node.node_key, true, false) } catch { /* noop */ } }
+    if (resp.command_id) await reportApproval(resp.command_id, node.node_key, true)
     const r = await executeVoiceAction(node, ctx)
     setNodeResults((prev) => ({ ...prev, [node.node_key]: { node_key: node.node_key, ...r } }))
-    if (resp.command_id) {
-      try { await voiceApi.reportResult(resp.command_id, node.node_key, r.ok, r.message) }
-      catch { /* best effort — the backend's timeout sweep is the backstop */ }
-    }
+    if (resp.command_id) await reportOutcome(resp.command_id, node.node_key, r.ok, r.message)
     setPendingConfirm((p) => p.filter((n) => n.node_key !== node.node_key))
-  }, [response])
+  }, [response, reportOutcome, reportApproval])
 
   // ── WebSocket message handling ──────────────────────────────────────────────
   const handleFinal = useCallback(async (resp: VoiceAgentResponse) => {
