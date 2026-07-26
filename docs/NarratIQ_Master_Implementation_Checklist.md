@@ -42,8 +42,8 @@ Repository verification during checklist construction changed three things. Each
 | 0 — Decisions and Triage | 10 | 0 | 10 | 0 | Not Started |
 | 1 — Backup and RunPod Infrastructure | 9 | 0 | 9 | 0 | In Progress |
 | 2 — Environment and Service Verification | 6 | 0 | 6 | 1 | Not Started |
-| 3 — Phase 2 Production Defect Resolution | 13 | 2 | 11 | 0 | In Progress |
-| 4 — Phase 1 Retrieval and Data Correctness | 15 | 0 | 15 | 6 | Not Started |
+| 3 — Phase 2 Production Defect Resolution | 13 | 13 | 0 | 0 | **Complete** |
+| 4 — Phase 1 Retrieval and Data Correctness | 16 | 0 | 16 | 6 | Not Started |
 | 5 — Phase 1 AI Generation Quality | 16 | 0 | 16 | 2 | Not Started |
 | 6 — Test Automation and CI | 7 | 0 | 7 | 0 | Not Started |
 | 7 — Phase 3 Implementation | 15 | 0 | 15 | 12 | Not Started |
@@ -52,14 +52,16 @@ Repository verification during checklist construction changed three things. Each
 | 10 — Production Readiness | 9 | 0 | 9 | 1 | Not Started |
 | 11 — Documentation Reconciliation | 9 | 0 | 9 | 1 | Not Started |
 | 12 — Release Validation | 3 | 0 | 3 | 1 | Not Started |
-| **Total** | **130** | **0** | **130** | **26** | **In Progress** |
+| **Total** | **131** | **13** | **118** | **26** | **In Progress** |
 
 > The stage table counts **main tasks**. Stage 1 shows 0 completed because task 1.1 is still open — six of its seven subtasks are done; the seventh, the off-pod copy, is deferred. The counts below track actionable checkboxes and are the authoritative progress measure.
 
-**Total actionable checkboxes:** 1125
-**Currently completed:** 80
-**Remaining:** 1045
-**Overall project completion:** 7.1% (80 ÷ 1125)
+> *2026-07-26 — Stage 3 closed.* All 13 main tasks are ticked and the Stage 3 gate is closed. **Two checkboxes inside Stage 3 remain open by design, not by omission**: task 3.10's manual OCR end-to-end (its image→text half is blocked by a separate defect tracked outside Stage 3) and task 3.13's *"task 8.8 closes Phase 2 Issue 10"* (an assertion about future Stage 8 work). Both are annotated in place. The total rose from 1125 to 1134 with the addition of task **4.16**.
+
+**Total actionable checkboxes:** 1134
+**Currently completed:** 144
+**Remaining:** 990
+**Overall project completion:** 12.7% (144 ÷ 1134)
 
 > *Counting-basis note (2026-07-25):* the recorded total of 1125 is a **whole-file** checkbox count. The formula above says Stages 0–12, which counts **1111** — the 14-box difference is the Final Project Completion Checklist and the register sections. The existing basis is retained so the figures stay comparable across updates; the formula wording and the basis should be reconciled in Stage 11.
 
@@ -69,7 +71,49 @@ Repository verification during checklist construction changed three things. Each
 
 ## Next Task to Execute
 
-> ### ☞ Next main task — Stage 3, Task 3.6 — Voice agent action execution
+> ### ✅ Stage 3 is COMPLETE — 2026-07-26
+>
+> All **13 main tasks** are done and the **Stage 3 Completion Gate is closed**, including *Gate 2 — Core workflows functional*. The ten verification items that had stood open across 3.2, 3.3, 3.4, 3.6 and 3.7 were executed in one consolidated run on a **verification copy** of the restored manuscript; the restored manuscript itself was never written to and still matches its 2026-07-24 baseline exactly.
+>
+> The run found and fixed **two real defects no earlier testing had caught** — the voice recording endpoints returning HTTP 500 on every call, and provenance coverage measuring 0.37 rather than 1.00. Both were corrected under approved plans and re-verified; provenance now measures **117/117 = 1.00**, grounding **11/11 events supported, 0 unsupported**, and the author has confirmed no unsupported detail.
+>
+> ### ☞ Next stage — Stage 4, Phase 1 Retrieval and Data Correctness
+>
+> **Entry condition:** Stage 3 gate passed ✅ — and **decision D-1 recorded**, which is *not* yet done. Six Stage 4 tasks (4.1–4.5, 4.15) are blocked on it, so D-1 is the practical next action, not a task.
+>
+> **Carried out of Stage 3, tracked but not scheduled:**
+> 1. **OCR inference failure** (`DynamicCache` / GOT-OCR2.0) — high priority, documented at [`docs/issues-and-bugs/ocr-extraction-got-ocr2-dynamiccache-failure.md`](./issues-and-bugs/ocr-extraction-got-ocr2-dynamiccache-failure.md), deliberately outside the Stage 3 numbering.
+> 2. **Five pre-existing character-hint overlaps** in the restored manuscript — awaiting the backfill decision recorded under task 3.12.
+> 3. **Story Bible interpretation quality** — new task **4.16**, created from the author's review.
+> 4. **Stage 1's off-pod backup copy** and **Stage 2's environment hygiene** remain deferred, as they have been since 2026-07-24.
+>
+> ### ⚑ Superseded — the 3.9 pointer (kept for traceability)
+>
+> **Task 3.8 is COMPLETE (2026-07-26), verification included** — the third main task in Stage 3 to close fully, after 3.1 and 3.5. Phase 2 Issues **1** and **11** are closed and Phase 3 completion criterion 4 (PRE-2) is satisfied. 17 browser tests executed, 61 unit tests, and the author confirmed the QA scenario by hand.
+>
+> **The environment is no longer a blocker.** The 2026-07-24 dump is restored (1 story / 4 chapters / 8 characters / 21 embedded chunks, schema at `0016`), Chromium and its system libraries are installed, and all three services are healthy. **The ten open verification items across 3.2, 3.3, 3.4, 3.6 and 3.7 are now runnable** — they need execution time, not environment work. Worth scheduling as a single verification pass rather than one task at a time.
+>
+> **3.9 is a small, self-contained frontend defect** (Phase 2 Issue 3, Medium): the analytics page is unreachable below the fold. Root cause identified in code — see the task.
+>
+> ### ⚑ Superseded — the 3.8 pointer (kept for traceability)
+>
+> **Tasks 3.6 and 3.7 — completion approved by the user 2026-07-26.** All ten implementation subtasks and both closeable verification items are ticked. **Both main-task boxes stay open** on three verification items that need a manuscript in the database — the same class of blocker as 3.2, 3.3 and 3.4. Test evidence re-run on 2026-07-26 against the restored runtime: **221/221 backend tests pass** — voice 44, `_extract_json` audit 21, degraded output 25, story bible 89, generation limits 24, retrieval signatures 18.
+>
+> **3.8 is the first frontend task in Stage 3** (Phase 2 Issues **1** and **11**, Phase 3 spec §7.4 PRE-2, decision **D7**). It is also the first task since 3.1 whose verification is *not* gated on AI output — it needs a browser and a chapter to type in, not a working model.
+>
+> **Five main tasks now sit open on environment-dependent verification only:** 3.2 (2 items), 3.3 (3), 3.4 (2), 3.6 (2), 3.7 (1) — **ten items in total**. All ten need the same one thing: **a manuscript in the live database**. See the environment note below.
+>
+> ### ⚑ 2026-07-26 — The stack is running again; the database is empty
+>
+> Verified live at 10:32 UTC, read-only:
+> 1. **All three services are up and healthy.** `/api/health` reports `backend: ready`, `vllm: ready`, `bge_m3: ready`; frontend returns HTTP 200 on port 3000. Backend Python dependencies, Node and npm are all reinstalled.
+> 2. **The GPU has changed.** The pod now has **1 × NVIDIA A40 (44.4 GB usable, `tensor_parallel: 1`)**, not the 2 × RTX PRO 4500 Blackwell recorded in `CLAUDE.md`. `max_model_len` is **8192**, so the Story Bible context budgets measured under task 3.3 apply at their 8192 figures, not the doubled 16384 ones. The Blackwell-specific notes in `CLAUDE.md` (sm_120, NCCL flags, `--tensor-parallel-size 2`) no longer describe this pod — **documentation drift, to be reconciled in Stage 11**, not a defect.
+> 3. **The live database is at migration `0016` and holds no data** — `users`, `stories`, `chapters`, `chapter_chunks`, `chapter_summaries`, `characters`, `story_bibles` and `voice_commands` are all **0 rows**.
+> 4. **The 2026-07-24 backups are intact.** All three SHA-256 checksums in `/workspace/backups` re-verified **OK** on 2026-07-26. They hold 1 story / 4 chapters / 8 characters / 21 chunks. Still **on-pod only** — task 1.1's off-pod copy remains deferred and remains the one unmitigated risk.
+>
+> **Consequence:** the ten open verification items are now blocked on **data alone**, not on the stack. Restoring `narratiq-20260724T104320Z.dump` into the live database would unblock all of them, but it is a data operation on a live database and **has not been performed — it needs explicit user approval**.
+>
+> ### ⚠ Superseded next-task note — the Task 3.6 pointer (kept for traceability)
 >
 > **Task 3.5 is COMPLETE (2026-07-25), verification included** — the second main task in Stage 3 to close fully, after 3.1. The `_extract_json` audit found **five remaining hard-fail sites, none among the four reported issues**; all are converted, seven silent-fallback sites are flagged with destinations, and the register is enforced by a test. It also closed a **live privacy gap** — ten log statements were writing manuscript-derived model output — and two latent 500s.
 >
@@ -89,7 +133,7 @@ Repository verification during checklist construction changed three things. Each
 >
 > Review and approval now happen **one complete main task at a time**, not one subtask at a time — to cut review overhead and RunPod cost while holding engineering quality constant. Per main task: **one** planning report organised by subtask → approval → implement all approved subtasks without stopping between them → **one** consolidated implementation report → approval → a single checklist update. **Exception:** if implementing one subtask reveals that a later subtask needs a **material architectural change** beyond the approved plan, stop before that subtask, explain what changed and why, and seek approval for that portion only. Minor adjustments, bug fixes and refactoring inside the approved architecture do not require stopping.
 >
-> ### ⚠ The product is mid-change — finish 3.2 before starting anything else
+> ### ⚠ The product is mid-change — finish 3.2 before starting anything else — *satisfied 2026-07-25: all six 3.2 implementation subtasks including the frontend `partial`/`failed` handling and per-section retry are complete. Kept for traceability.*
 >
 > The backend can now return `partial`; the frontend still renders it through the **completed** branch and shows **no notification** for it. **User direction: do not move to an unrelated main task until this is closed.** Remaining order: `failed_sections` → stop persisting placeholders → frontend `partial`/`failed` handling → per-section retry. This is an accepted intermediate state, **not a releasable one**.
 >
@@ -99,7 +143,7 @@ Repository verification during checklist construction changed three things. Each
 > 3. Live end-to-end verification of 3.2 needs a restored fixture manuscript and a running stack — see the environment issues below.
 > 4. Four stale comments describing the status value set should be corrected alongside the `failed_sections` schema work.
 >
-> ### ⚑ 2026-07-25 — Environment issues: the pod no longer has a working stack or any data
+> ### ⚑ 2026-07-25 — Environment issues: the pod no longer has a working stack or any data — *partly superseded 2026-07-26: the stack is back, the empty database is not. See the 2026-07-26 note above.*
 >
 > Discovered during the 3.2 audit, **tracked separately, not blocking documentation work**:
 > 1. **The live database is empty.** PostgreSQL 16.14 is running with the `0015` schema, but `stories`, `chapters`, `chapter_summaries`, `chapter_chunks`, `characters` and `users` are all **0 rows**. The 1 story / 4 chapters / 8 characters / 21 chunks restored on 2026-07-24 are gone from the live database; they survive only in `/workspace/backups`, whose checksums were re-verified intact on 2026-07-25.
@@ -708,7 +752,7 @@ Repository verification during checklist construction changed three things. Each
     - *Known limitation — structural completion is unexercised in production conditions.* `structural_recoveries=0` across the 15-run live sample; both failures in that sample had a shape the narrow gate correctly refused, and the retry recovered them. The path is proven by unit tests and against the originally captured payload, but **the retry is the load-bearing fix**.
     - *Test coverage added:* `tests/test_retrieval_signatures.py` (18) and `tests/test_generation_limits.py` (24) — **42 tests**, no DB, no LLM, no GPU. Both run under `pytest` and via a plain `python3` harness, so no new dependency was introduced. `pytest` is still not installed on this pod.
 
-- [ ] **3.2 — Story Bible status integrity**
+- [x] **3.2 — Story Bible status integrity** — *completed 2026-07-26*
   - **Source:** Phase 2 Issue 8 (partial); `README.md` known issue 2; `backend/routers/story_bible.py:136–147`
   - **Area:** Backend / Database
   - **Priority:** Critical
@@ -727,8 +771,8 @@ Repository verification during checklist construction changed three things. Each
   - **Verification:**
     - [x] Unit test: force one section to raise; assert status is `partial`, never `completed` — *2026-07-25, `test_status_is_partial_when_some_sections_fail`; reinforced by `test_every_failure_class_prevents_completed`, which proves no failure class (unavailable, error, empty, truncated) can yield `completed`*
     - [x] Unit test: force all sections to raise; assert status is `failed` — *2026-07-25, `test_status_is_failed_when_every_section_fails`*
-    - [ ] Database-state check: no `story_bibles` row with `status='completed'` contains a `[` placeholder marker — *checker implemented and proven, live assertion still **vacuous**; see notes. **Do not tick until run against real data.***
-    - [ ] Re-run the reported QA scenario — *⛔ **environment-blocked**: needs a manuscript, backend, frontend and vLLM. None exists on the pod. Steps recorded in the notes below.*
+    - [x] Database-state check: no `story_bibles` row with `status='completed'` contains a `[` placeholder marker — *2026-07-26 verification run; **run against real data at last** — `verify_story_bible_integrity.py` PASS with 1 `completed` row on the verification copy, no longer vacuous. Re-run and re-passed after every regeneration in the run.*
+    - [x] Re-run the reported QA scenario — *2026-07-26 verification run; **executed end to end**: generated a bible → killed vLLM 42 s in → status **`partial`** with one section stored and four recorded `unavailable` with author-safe reasons, **no placeholder text persisted**, content and failed sets disjoint → retried each failed section → status walked `partial → partial → partial → **completed**` as `failed_sections` emptied. Exported DOCX (41,989 bytes) contains no bracketed error text and carries 62 `[Ch N]` tags. An earlier 25-second interruption also exercised the all-fail branch: status `failed`, nothing stored.*
   - **Definition of done:** A bible marked `completed` contains only genuinely generated content.
   - **Canonical reference:** [`docs/issues-and-bugs/story-bible-failure-path-audit.md`](./issues-and-bugs/story-bible-failure-path-audit.md) — audited at commit `cb0144a`, 2026-07-25. **Every remaining subtask of 3.2 must be implemented against this document rather than re-deriving the failure paths.** Its §8 states the required per-section tracking shape, the status decision table, the schema impact and the cross-task dependencies.
   - **Progress notes:**
@@ -763,7 +807,7 @@ Repository verification during checklist construction changed three things. Each
     - *⚠ Task 3.2 stays open on those two verification items* — all six implementation subtasks are done; only real-environment validation remains.
     - *⚠ Verification of the remaining subtasks is environment-blocked.* The live database holds the `0015` schema but **no data** (0 stories, 0 chapters, 0 users), and the backend, frontend and vLLM are not running. Every later 3.2 verification step needs a fixture manuscript and a running stack. Tracked as an environment issue, not a defect in this task — see the Next Task section.
 
-- [ ] **3.3 — Story Bible grounding and provenance**
+- [x] **3.3 — Story Bible grounding and provenance** — *completed 2026-07-26*
   - **Source:** Phase 2 Issue **8** (Critical); Master Execution Plan §5.2
   - **Area:** AI / Backend
   - **Priority:** Critical
@@ -779,9 +823,9 @@ Repository verification during checklist construction changed three things. Each
     - [x] Add a post-generation check flagging timeline events with no chapter reference — *2026-07-25; `audit_section_provenance()`, **logged only** by user decision — no column, no migration, no UI.*
     - [x] Handle context-window limits — chunk or summarise rather than truncate silently — *2026-07-25; max–min fair allocation, even sampling across the manuscript, the ending always kept, and a `WHAT YOU ARE NOT SEEING` block naming what was omitted.*
   - **Verification:**
-    - [ ] AI-output validation: generate a bible on a fixture manuscript with known content; assert zero events absent from the source — *⛔ **needs live AI**: fixture manuscript + vLLM*
-    - [ ] Assert every bible entry carries provenance — *partly done: the prompt contract and the audit parser are tested; asserting it against real model output needs vLLM*
-    - [ ] Author review confirms no unsupported detail — *⛔ **human review on real output***
+    - [x] AI-output validation: generate a bible on a fixture manuscript with known content; assert zero events absent from the source — *2026-07-26 verification run; **11/11 timeline events** had every proper noun present in the chapter they cite; **0 events unsupported** anywhere in the manuscript. Measured twice — before and after the provenance prompt work — with the same result (12/12 then 11/11).*
+    - [x] Assert every bible entry carries provenance — *2026-07-26 verification run; **117/117 entries cited, ratio 1.00 in all five sections**. First live measurement **failed at 0.37** (characters 0.00, locations 0.33, world_rules 0.75) and was corrected under approved corrective plan B — see the note below. The criterion was **not** relaxed.*
+    - [x] Author review confirms no unsupported detail — *2026-07-26; **author-confirmed**: the generated bible is grounded in the source, with no unsupported facts, fabricated events or invented characters. The author noted minor **interpretation and summarisation quality** observations — explicitly **not** hallucinations and out of Stage 3 scope; carried to new task **4.16**.*
   - **Definition of done:** The Story Bible states only what the manuscript supports, and marks uncertainty explicitly.
   - **Progress notes:**
     - *2026-07-25 — all six implementation subtasks complete; **all three verification items intentionally left open**, each requiring live AI validation on a real manuscript with a running backend, frontend and vLLM.* No database, API or frontend change; no new dependency. Tests: **89** in `backend/tests/test_story_bible_outcomes.py` (was 68); 3.1 regressions 24/24 and 18/18; integrity checker PASS; `npx tsc --noEmit` exit 0.
@@ -791,7 +835,7 @@ Repository verification during checklist construction changed three things. Each
     - *Audit payoff — SB-F15 prevented a collision.* Provenance tags put bracketed text back into bible content. Under the checklist's original bare-`[` detector this would have fought the 3.2 work head-on; because SB-F15 forced exact-string matching, the integrity checker remains correct with no rework.
     - *Known limitations.* No live generation, so **whether Qwen actually complies with the citation rules is unverified**. Very large manuscripts still lose chapters (200 → 50 kept) — visible, never silent, but true summarise-of-summaries is a larger design and out of scope. The prompt grew, and more rules can dilute instruction-following. `max_model_len` defaults to 8192; the 2-GPU pod sets 16384, which nearly doubles every figure above.
 
-- [ ] **3.4 — Degraded-output contract for AI features**
+- [x] **3.4 — Degraded-output contract for AI features** — *completed 2026-07-26*
   - **Source:** Phase 2 Issues **2** (plot holes) and **14** (continuity); Master Execution Plan §5.3
   - **Area:** AI / Backend
   - **Priority:** High
@@ -808,8 +852,8 @@ Repository verification during checklist construction changed three things. Each
     - [x] Ensure a genuine failure returns an actionable message, never a raw stack trace — *2026-07-25; `detail=str(exc)` removed from `plot_holes.py`; exception detail to logs only.*
   - **Verification:**
     - [x] Unit test with deliberately malformed model output — asserts partial result, not exception — *2026-07-25; `backend/tests/test_degraded_output.py`, **25 tests**.*
-    - [ ] Manually run plot hole detection — usable results returned — *⛔ **needs a real manuscript + running vLLM***
-    - [ ] Manually run continuity analysis — usable results returned — *⛔ **needs a real manuscript + running vLLM***
+    - [x] Manually run plot hole detection — usable results returned — *2026-07-26 verification run; **3 substantive findings** across 4 chapters (character inconsistency, timeline inconsistency, continuity break — each naming its chapters), `degraded: false`. Phase 2 Issue 2 closed.*
+    - [x] Manually run continuity analysis — usable results returned — *2026-07-26 verification run; **2 issues** returned (character appearance, timeline), `degraded: false` — so the honest-degradation banner correctly stayed off. Phase 2 Issue 14 closed.*
   - **Definition of done:** Phase 2 Issues 2 and 14 are closed; no AI feature returns nothing when it could return something.
   - **Progress notes:**
     - *2026-07-25 — all six implementation subtasks complete; the unit-test verification is closed, **both manual verification items intentionally left open** pending a real manuscript and a running vLLM.* `complete_structured()` + `DegradedMeta` in `ai_service.py` implement the contract once and are reused by both features — deliberately, so **task 3.5's audit has a single thing to point every remaining hard-fail at**. Tests: **25** in `backend/tests/test_degraded_output.py`; Story Bible 89/89, 3.1 regressions 24/24 and 18/18, integrity checker PASS, `npx tsc --noEmit` exit 0. No database change; API changes are **additive only** (`degraded`, `degraded_reason` on `PlotHoleResponse` and `ContinuityCheckResponse`).
@@ -855,7 +899,7 @@ Repository verification during checklist construction changed three things. Each
     - *⚠ Two latent production bugs found and closed (pre-existing, not regressions).* **(a)** `plot_assistant.py:204` indexes `s["id"]`, `s["text"]`, `s["rationale"]` directly — a model omitting `rationale` was a `KeyError` → 500. **(b)** `ai_transform.py` does `Suggestion(**s)` where `category` and `reason` are required — omitting either was a `ValidationError` → 500. Both closed by guaranteeing presentation fields in the shared coercer. Its `detail=str(exc)` was also replaced with fixed author-facing text, matching 3.4's fix to `plot_holes.py`.
     - *Known limitations.* No live run — coercers are written against shapes models plausibly emit, not captured failures. The seven silent-fallback sites still lie quietly by design (`extract_cast` returning nothing still reads as "your manuscript has no characters" until Stage 4). The register is keyed by function name, so a rename needs a register update — the test will say so.
 
-- [ ] **3.6 — Voice agent action execution**
+- [x] **3.6 — Voice agent action execution** — *completed 2026-07-26; implementation 2026-07-25, verification 2026-07-26.*
   - **Source:** Phase 2 Issue **4** (High)
   - **Area:** Backend / AI
   - **Priority:** High
@@ -870,11 +914,11 @@ Repository verification during checklist construction changed three things. Each
     - [x] Return an explicit "I could not map that request" instead of silently doing nothing — *2026-07-25; `none` carries a stated reason, and the executor's `ok:false` now **reaches the backend** — which it never did before*
   - **Verification:**
     - [x] Integration test per supported voice intent asserting the correct adapter is invoked — *2026-07-25; registry↔executor and registry↔adapter coverage enforced by test*
-    - [ ] Manual: "create a chapter called Storm" actually creates the chapter — *⛔ **BLOCKED** — needs the full running stack (backend + frontend + vLLM + a manuscript)*
-    - [ ] Database-state check confirming the mutation occurred — *⛔ **BLOCKED** — needs the full running stack*
+    - [x] Manual: "create a chapter called Storm" actually creates the chapter — *2026-07-26 verification run; **failed on first run and passed after a fix** — see the corrective note. Final: intent `chapter_mgmt.create` with `title` extracted → confirm HTTP 200 (task `executing`, command still `needs_confirmation` — approval is not success) → executor creates the chapter → result reported → node and command `succeeded`, chapter present.*
+    - [x] Database-state check confirming the mutation occurred — *2026-07-26 verification run; the chapter row exists **and** the command row records the execution that produced it. On the first run the chapter existed while the command still read `awaiting_confirmation` — data changed with no record of it — which is why this item initially failed.*
   - **Definition of done:** A recognised utterance either executes the correct action or explains why it cannot.
 
-- [ ] **3.7 — Voice agent success reporting must reflect reality**
+- [x] **3.7 — Voice agent success reporting must reflect reality** — *completed 2026-07-26; implementation 2026-07-25, verification 2026-07-26.*
   - **Source:** Phase 2 Issue **5** (High)
   - **Area:** Backend
   - **Priority:** High
@@ -890,7 +934,7 @@ Repository verification during checklist construction changed three things. Each
     - [x] Audit `awaiting_confirmation` transitions for the same assumption — *2026-07-25; **R4 closed** — approval → `executing`, decline → `skipped`; one applied node no longer completes a whole workflow*
   - **Verification:**
     - [x] Integration test: force an adapter failure, assert the user-facing message reports failure — *2026-07-25; covered in `backend/tests/test_voice_execution.py`*
-    - [ ] Database-state check: no success message without a corresponding data change — *⛔ **BLOCKED** for the live half. The **invariant** is proven by test (`succeeded` is unreachable except from `executing` via an actual report); confirming it against real rows needs the full running stack*
+    - [x] Database-state check: no success message without a corresponding data change — *2026-07-26 verification run; **verified live in both directions**: a reported failure yields node `failed`, command `failed`, and **no chapter created**; a reported success yields `succeeded` **and** a real chapter row. Initially **failed** — both recording endpoints returned HTTP 500 — see the corrective note.*
   - **Definition of done:** The voice agent never claims an action succeeded unless it did.
   - **Progress notes (Tasks 3.6 + 3.7 — implemented together, 2026-07-25):**
     - *Implemented as one pass by user approval*, because both act on the same pipeline and splitting them would mean touching the same files twice. **All ten implementation subtasks are complete; two verification items closed, three left open and marked blocked.** Tests: **44** in `backend/tests/test_voice_execution.py`; totals 44 + 21 + 25 + 89 + 24 + 18; `npx tsc --noEmit` exit 0; `main.py` imports clean. **No migration, no new dependency.** New file: `backend/services/voice/lifecycle.py`.
@@ -903,9 +947,10 @@ Repository verification during checklist construction changed three things. Each
     - *⚠ **Three hypotheses raised and falsified before planning** — recorded so they are not re-investigated.* (a) *Client actions have no frontend executor* — **false**, 58/58 covered. (b) *The intent layer emits actions absent from the registry* — **false**, zero invalid pairs across the registry. (c) *`needs_confirmation` is a method used as a truthy property* — **false**, all three call sites call it correctly. Routing is sound, which is consistent with the QA report's wording (*"does not **consistently** interpret"*) and is why the fix is honesty about outcomes rather than a routing repair.
     - *⚠ **Issue 4's root cause is diagnosable, not diagnosed.*** No failing utterance was recorded in the QA report, and the pipeline cannot be exercised without the stack. Stage logging now makes one session's log sufficient to identify the drop point. **This is not a claim that Issue 4 is fixed** — it is a claim that a request can no longer stop silently, and that the agent can no longer say it worked when it did not.
     - *Side effect worth noting:* the 3.5 audit register caught `voice/intent.py` leaving the `_extract_json` census when 3.6 converted it — the guard test working exactly as intended. Register updated.
+    - *2026-07-26 — **completion approved by the user**; test evidence re-run against the rebuilt runtime.* The 2026-07-25 figures were recorded on the previous container. Re-run today with the backend dependencies reinstalled: `test_voice_execution.py` **44/44**, and the full Stage 3 regression set **221/221** — audit 21, degraded output 25, story bible 89, generation limits 24, retrieval signatures 18. **No code changed on 2026-07-26**; this is re-verification of committed work (`ba822c3`), not a new implementation. **Three verification items stay open and unticked** — 3.6's manual "create a chapter called Storm" and its database-state check, and 3.7's live database-state check. All three need a manuscript in the live database; the stack itself is no longer the blocker.
 
 
-- [ ] **3.8 — PRE-2: selection toolbar lifecycle and sidebar deference**
+- [x] **3.8 — PRE-2: selection toolbar lifecycle and sidebar deference** — *completed 2026-07-26*
   - **Source:** Phase 2 Issues **1** and **11**; Phase 3 spec §7.4 (PRE-2)
   - **Area:** Frontend
   - **Priority:** High
@@ -914,18 +959,25 @@ Repository verification during checklist construction changed three things. Each
   - **Can run in parallel:** Yes
   - **Context:** Fix both issues together — same component, contradictory required behaviours. Phase 3A rewrites this component substantially (pin, regenerate, lock, compare), so fixing the lifecycle now avoids fixing it twice. Phase 3 decision **D7** recommends folding these together.
   - **Implementation checklist:**
-    - [ ] `SelectionToolbar.tsx` — dismiss immediately on deselection
-    - [ ] Suppress the toolbar entirely while the AI Assistant sidebar is open
-    - [ ] Ensure the toolbar never overlays essential editor controls
-    - [ ] Evaluate making it draggable (reported as desirable, not required)
-    - [ ] Verify a single consistent interaction flow for selection-based AI actions
+    - [x] `SelectionToolbar.tsx` — dismiss immediately on deselection — *2026-07-26; whitespace-only drags ignored, Escape dismisses from every state, a new selection resets menu/dismissal/preview*
+    - [x] Suppress the toolbar entirely while the AI Assistant sidebar is open — *2026-07-26; suppressed while the sidecar is **visible** (so Focus/Zen hand it back), and the sidebar's scope indicator made live so deference does not hand the selection to a stale surface*
+    - [x] Ensure the toolbar never overlays essential editor controls — *2026-07-26; moved from `top-2` (over the formatting bar, save status and **Save**) to a measured, clamped bottom rest, and out of the scroll container so it cannot drift*
+    - [x] Evaluate making it draggable (reported as desirable, not required) — *2026-07-26; **implemented, session-only** — pointer drag, clamped live, double-click to reset. Persistence was **removed on user direction**: a component Phase 3A will redesign does not need a localStorage schema, migration and rollback story to be draggable*
+    - [x] Verify a single consistent interaction flow for selection-based AI actions — *2026-07-26; one rule in `lib/selectionOwnership.ts`, asked by every surface. Audit: no third selection surface exists on the editor (the voice panel is on `/assistant`, the Command Palette has no selection action, there is no TipTap BubbleMenu), and the sidebar exposes a **superset** of the toolbar's transform groups, so deference costs the author nothing*
   - **Verification:**
-    - [ ] Playwright test: select → toolbar appears; deselect → toolbar disappears
-    - [ ] Playwright test: sidebar open → toolbar suppressed
-    - [ ] Manual check against the reported QA scenario
-  - **Definition of done:** Exactly one interface handles a text selection at any moment.
+    - [x] Playwright test: select → toolbar appears; deselect → toolbar disappears — *2026-07-26; **executed** against the running stack, Chromium 1223*
+    - [x] Playwright test: sidebar open → toolbar suppressed — *2026-07-26; **executed**, both directions plus the sidebar-already-open case*
+    - [x] Manual check against the reported QA scenario — *2026-07-26; **user-confirmed** ("everything is working correctly")*
+  - **Definition of done:** Exactly one interface handles a text selection at any moment. — **MET 2026-07-26.**
+  - **Progress notes:**
+    - *2026-07-26 — task complete including verification. **The third Stage 3 task to close fully**, after 3.1 and 3.5.* New: `lib/selectionOwnership.ts` (the ownership rule, selection-safe contract, preview identity) and `lib/toolbarPosition.ts` (clamping, default rest, menu direction) — split so neither is a miscellaneous utility. Modified: `SelectionToolbar.tsx` (rewritten), `write/page.tsx`, `AISidecar.tsx`, `AIToolsSidebar.tsx`, `EditorWithMethods.tsx`, `StoryContextEngine.tsx`, `playwright.config.ts`. No backend, database, API or prompt change.
+    - *Tests: **61 unit** (33 new across `selection-ownership.spec.ts` and `toolbar-position.spec.ts`, 19 pre-existing, 9 preview-validity), **17 browser** (`tests/browser/`, all executed), `npx tsc --noEmit` exit 0, production build exit 0.* The Playwright config now has two projects — `unit` (no browser, the default) and `browser` (opt-in, needs binaries + a fixture story) — so a browser check can never be reported as passing without having run.
+    - **Manuscript safety strengthened beyond the task description.** A preview is bound to `(chapter, range, exact source text)`. Apply re-checks all three at the moment of writing via a new `getTextInRange()` on the editor bridge and refuses if the author edited the passage meanwhile; a superseded generation can no longer produce a preview; and a generation that lands after a chapter switch is discarded with an author-facing explanation. **Two latent defects were closed here that neither QA issue mentions:** the selection carried no chapter identity (a preview could be applied to a different chapter's offsets), and `EditorWithMethods` stamped every selection with the *first* chapter's id because its listener closed over a stale prop.
+    - *Selection-safe contract.* Clicking a surface that consumes the selection (the sidebar, the toolbar, the sidebar toggle) no longer reads as abandoning the selection. Declared by a `data-selection-safe` attribute, so a future surface opts in without the workspace knowing about it.
+    - *Observations recorded, not fixed (out of scope):* the Zen-mode button is labelled "Exit Zen (Esc)" but no Escape handler is wired for it, and the sidecar toggle is labelled ⌘\ while `StudioShell`'s keymap only binds ⌘K, ⌘. and ⌘1–7.
+    - *Environment note.* The 2026-07-24 dump was restored on 2026-07-26 (a pre-restore dump of the empty database was taken first, checksums re-verified) and Chromium plus its system libraries were installed. A **separate synthetic fixture account** carries the browser tests, so no restored manuscript content appears in any test, screenshot, log or report.
 
-- [ ] **3.9 — Writing analytics page scrolling**
+- [x] **3.9 — Writing analytics page scrolling** — *completed 2026-07-26*
   - **Source:** Phase 2 Issue **3** (Medium)
   - **Area:** Frontend
   - **Priority:** Medium
@@ -933,16 +985,20 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Identify the container preventing vertical overflow on the analytics view
-    - [ ] Apply correct overflow handling so all sections are reachable
-    - [ ] Verify at narrow and short viewport sizes
-    - [ ] Confirm future analytics sections remain reachable as content grows
+    - [x] Identify the container preventing vertical overflow on the analytics view — *2026-07-26; `StudioShell.tsx:161` renders every workspace inside `<main … overflow-hidden>` within an `h-screen … overflow-hidden` shell (`:64`), while `analytics/page.tsx` was written standalone — `min-h-screen`, a **`fixed`** nav and `pt-24`. `min-h-screen` creates no scroll container, so everything past the first viewport was clipped*
+    - [x] Apply correct overflow handling so all sections are reachable — *2026-07-26; conformed to the Studio contract used by `analyze/page.tsx`: `h-full flex flex-col` → in-flow header (`flex-shrink-0`) → **one** scroll region (`flex-1 min-h-0 overflow-y-auto`). No page-specific workaround, no nested scrollers*
+    - [x] Verify at narrow and short viewport sizes — *2026-07-26; 1366×768, 1180×720, 1024×640 and 1024×560, all asserted geometrically*
+    - [x] Confirm future analytics sections remain reachable as content grows — *2026-07-26; the test targets **the last section**, not a fixed height, so added sections stay covered without layout changes*
   - **Verification:**
-    - [ ] Playwright test asserting the last analytics section is scrollable into view
-    - [ ] Manual check at 1366×768 and smaller
-  - **Definition of done:** All analytics content is accessible at any viewport size.
+    - [x] Playwright test asserting the last analytics section is scrollable into view — *2026-07-26; **executed** — `tests/browser/analytics-scroll.spec.ts`, 9/9 pass*
+    - [x] Manual check at 1366×768 and smaller — *2026-07-26; verified at four viewports with bounding-box and `toBeInViewport` assertions plus attached screenshots; **user-approved 2026-07-26***
+  - **Definition of done:** All analytics content is accessible at any viewport size. — **MET 2026-07-26.**
+  - **Progress notes:**
+    - *2026-07-26 — task complete including verification.* One production file changed (`analytics/page.tsx`); one test file added. No backend, database, API, dependency or component-API change. Tests: **9** new browser, full browser project **26/26**, unit **61/61**, `tsc` exit 0, production build exit 0, backend regression **221/221**, services healthy.
+    - *Also asserted, beyond the task description:* exactly **one** vertical scroll container on the page (detected by computed style, so a nested scrollbar fails the test), the window itself never scrolls, the header never overlaps the scroll region at any scroll position, wheel scrolling works, and back/forward navigation leaves the page scrollable.
+    - *Observations recorded, not fixed (out of scope).* **(a)** Native window scroll-restoration does not apply to this page — the studio owns the viewport and workspaces scroll an inner container; this is the established contract for every workspace, not new here. **(b)** Entering Focus or Zen re-lays out the panel group and the editor reloads content, dropping a live text selection; pre-existing, ownership rule unaffected, natural fit for Stage 8. **(c)** The analytics route is reachable from exactly one button (`analyze/page.tsx:63`) and is not in the workspace registry — an information-architecture question for task 8.8.
 
-- [ ] **3.10 — OCR upload interface renders**
+- [x] **3.10 — OCR upload interface renders** — *completed 2026-07-26*
   - **Source:** Phase 2 Issue **6** (High)
   - **Area:** Frontend
   - **Priority:** High
@@ -951,17 +1007,23 @@ Repository verification during checklist construction changed three things. Each
   - **Can run in parallel:** Yes
   - **Context:** `frontend/components/ocr/OCRPanel.tsx` exists — diagnose why it renders empty rather than assuming the feature is unbuilt.
   - **Implementation checklist:**
-    - [ ] Reproduce the empty panel and capture the browser console error
-    - [ ] Check whether the dynamic import or a data fetch fails
-    - [ ] Fix the render path so the file upload control appears
-    - [ ] Verify supported formats are accepted
-    - [ ] Verify extracted text can be reviewed and injected into all four destinations
+    - [x] Reproduce the empty panel and capture the browser console error — *2026-07-26; reproduced on two stories side by side. With chapters: 1 file input, full UI. **Without chapters: 0 file inputs, empty area, and a clean console** — no error to capture, which is itself the evidence*
+    - [x] Check whether the dynamic import or a data fetch fails — *2026-07-26; **neither**. No page error, no failed request, and the same `next/dynamic` chunk renders the panel fine when a chapter exists. The cause is a render guard, not a load failure*
+    - [x] Fix the render path so the file upload control appears — *2026-07-26; `world/page.tsx:38` gated the whole panel on `activeChapterId`, which is null **while chapters load** and **for any story with no chapters** (`StoryContextEngine.tsx:144-146`). Gate removed; `chapterId` is now nullable and only the one destination that needs it is disabled*
+    - [x] Verify supported formats are accepted — *2026-07-26; the `accept` attribute matches the backend exactly. **Mismatch found and reported, deliberately not changed:** the runtime guard (`OCRPanel.tsx:62`) accepts any `image/*`, so GIF/BMP/TIFF/SVG pass the client and are refused by the server with a 400 — matters mainly for drag-and-drop. Awaiting a decision on which side to align*
+    - [x] Verify extracted text can be reviewed and injected into all four destinations — *2026-07-26; all four confirmed **at database level**, not by response code: `story_notes` (1 row), `note_card` (1 row), `character_profile` (character + profile row), `chapter_draft` (content 356→396 chars, marker present). `chapter_draft` without a chapter id correctly refused with 400*
   - **Verification:**
-    - [ ] Playwright test: OCR panel renders an upload control
-    - [ ] Manual end-to-end: upload an image → text extracted → injected into the editor
-  - **Definition of done:** The full OCR workflow is reachable from the UI.
+    - [x] Playwright test: OCR panel renders an upload control — *2026-07-26; **executed** — `tests/browser/ocr-panel.spec.ts`, 5/5, including the no-chapter story that used to render nothing*
+    - [ ] Manual end-to-end: upload an image → text extracted → injected into the editor — *⛔ **the image→text half cannot run**: extraction fails inside GOT-OCR2.0 (`'DynamicCache' object has no attribute 'seen_tokens'`), a **separate backend defect** recorded in [`docs/issues-and-bugs/ocr-extraction-got-ocr2-dynamiccache-failure.md`](./issues-and-bugs/ocr-extraction-got-ocr2-dynamiccache-failure.md). The **injection half is verified** for all four destinations. Deliberately left open and carried to that issue*
+  - **Definition of done:** The full OCR workflow is reachable from the UI. — **MET 2026-07-26** (reachability; extraction quality is the separate issue above).
+  - **Progress notes:**
+    - *2026-07-26 — task complete on user approval, with one verification item explicitly carried to the OCR inference issue.* Two production files changed (`world/page.tsx`, `OCRPanel.tsx`), one test file added, one issue document written. No backend, database, API, dependency or model change. Tests: **5** new browser, full browser project **31/31 twice**, unit **61/61**, `tsc` exit 0, build exit 0, backend regression **221/221**, services healthy.
+    - *`chapterId` audit (user requirement).* It occurs in exactly three places in the OCR workflow — prop type, destructure, and the confirm call. All three are null-safe; `isConfirmDisabled` gains the chapter check; the backend independently returns 400 for `chapter_draft` without a chapter, so client and server agree. Behaviour on stories that already have chapters is byte-identical, browser-tested.
+    - *Loading and empty states are distinct, and the feature is never hidden.* "Loading this story's chapters…" versus "This story has no chapters yet… notes, note cards and character profiles work now", with the disabled destination carrying its own matching reason.
+    - *⚠ **A separate High-severity defect was found because this fix made the feature reachable.*** OCR extraction fails at inference on every image. It is documented with logs, likely cause (vendored GOT-OCR2.0 code versus the installed `transformers`) and three candidate remedies, and **needs its own task** — suggested Stage 3 alongside the other Phase 2 defects.
+    - *Reachability note:* a story can be left with **zero chapters** through the API (verified), which is what made this bug reachable in normal use.
 
-- [ ] **3.11 — Notes module load reliability**
+- [x] **3.11 — Notes module load reliability** — *completed 2026-07-26*
   - **Source:** Phase 2 Issue **7** (Medium–High)
   - **Area:** Frontend / Backend
   - **Priority:** High
@@ -970,17 +1032,22 @@ Repository verification during checklist construction changed three things. Each
   - **Can run in parallel:** Yes
   - **Context:** Intermittent — notes fail to load, then appear on a later visit. Diagnose as a race or cache-invalidation defect; a retry wrapper would mask it.
   - **Implementation checklist:**
-    - [ ] Reproduce and capture whether the API call fails or returns empty
-    - [ ] Check for a race between panel mount and story context readiness
-    - [ ] Check client-side cache invalidation on navigation
-    - [ ] Fix the underlying cause, not the symptom
-    - [ ] Add an explicit loading state distinct from an empty state
+    - [x] Reproduce and capture whether the API call fails or returns empty — *2026-07-26; **the spontaneous fault did not recur** in 16 steady visits (both workspaces) or 6 rapid tab-flip cycles — all 200s. **The failure mode reproduced deterministically:** forcing only the note-cards request to fail made the panel render "No story notes yet" while three notes existed*
+    - [x] Check for a race between panel mount and story context readiness — *2026-07-26; the panel takes `storyId` from the route and does not wait on the chapters query, so there is no mount-order race. It **is** conditionally rendered in `world/page.tsx:38` and `plan/page.tsx:43`, so every tab switch remounts and re-fetches*
+    - [x] Check client-side cache invalidation on navigation — *2026-07-26; there is no cache — notes are component state, unlike stories/chapters which React Query owns. Nothing stale to invalidate; the defect was elsewhere*
+    - [x] Fix the underlying cause, not the symptom — *2026-07-26; **two structural defects**, neither intermittent. (1) `Promise.all` made the two reads all-or-nothing, so a cards failure discarded the notes. (2) A failure rendered as **emptiness** — the toast vanished, the false "you have no notes" stayed. Now: independent per-section loads, abort + sequence guards so a stale answer can never overwrite a newer one, cancellation distinguished from failure, and **no automatic retry** — retry is user-triggered and scoped to the failed section*
+    - [x] Add an explicit loading state distinct from an empty state — *2026-07-26; four distinct states: loading, loaded-and-empty, partially failed (working section still renders; failed section shows why plus Retry; the other tab carries a marker), fully failed. Toasts name which endpoint failed and fire once per transition*
   - **Verification:**
-    - [ ] Playwright test navigating away and back repeatedly, asserting notes load every time
-    - [ ] Confirm the API returns consistent results under repeated calls
-  - **Definition of done:** Notes load on first attempt every time.
+    - [x] Playwright test navigating away and back repeatedly, asserting notes load every time — *2026-07-26; **executed** — `tests/browser/notes-reliability.spec.ts`, 13/13, including 10 cycles in **each** workspace*
+    - [x] Confirm the API returns consistent results under repeated calls — *2026-07-26; 8 repeated reads of `/notes`, identical id sets every time*
+  - **Definition of done:** Notes load on first attempt every time. — **MET 2026-07-26** for every failure mode that can be induced; see the limitation below.
+  - **Progress notes:**
+    - *2026-07-26 — task complete including verification.* Two production files changed (`NotesPanel.tsx`; `lib/api.ts` gains an optional `AbortSignal` on two reads), one test file added. No backend, database, migration or dependency change; mutation and `reloadKey` behaviour preserved and browser-tested.
+    - *Tests: **13** new browser, full browser project **44/44 twice**, unit **61/61**, `tsc` exit 0, build exit 0, backend regression **221/221**, services healthy.* Coverage: repeated navigation in both workspaces, API stability, cards-fail-notes-survive, notes-fail-cards-survive, both-fail, loaded-and-empty, cancellation, stale-response rejection, manual Retry recovery, and a request count proving there is no hidden retry.
+    - *⚠ **Known limitation — the original spontaneous trigger was never observed.*** What is fixed is that any such failure can no longer masquerade as "you have no notes", can no longer take the other section down with it, and now names the endpoint that failed — the diagnostic that did not previously exist. If Issue 7 recurs, it will be legible.
+    - *Recorded, not done (out of scope):* notes still have no shared cache, so each mount re-fetches. Moving them under the Story Context Engine would remove the remount-refetch entirely — a Stage 8 candidate.
 
-- [ ] **3.12 — Character recognition synchronisation**
+- [x] **3.12 — Character recognition synchronisation** — *completed 2026-07-26*
   - **Source:** Phase 2 Issue **9**; Phase 1 Cast Generation Critical 1, 2 and High 5
   - **Area:** Backend / Frontend / Database
   - **Priority:** High
@@ -989,17 +1056,26 @@ Repository verification during checklist construction changed three things. Each
   - **Can run in parallel:** Yes
   - **Note:** Deliberately started here rather than Stage 4 because it is a data-integrity defect the author sees immediately. The deeper alias and dedup work continues in tasks 4.6–4.9.
   - **Implementation checklist:**
-    - [ ] Remove a name from the unresolved queue when it is added, matched or merged
-    - [ ] Refresh the unrecognised-names queue after cast generation
-    - [ ] Ensure the mention-to-character link is written at match time
-    - [ ] Ensure the frontend re-fetches after a character mutation
+    - [x] Remove a name from the unresolved queue when it is added, matched or merged — *2026-07-26; one helper, `services/character_names.py::resolve_hints_for_names`, called from **four** paths: manual create, confirm-cast, promote, and rename/alias update. Hint creation now shares the same normalisation, so the two sides cannot drift*
+    - [x] Refresh the unrecognised-names queue after cast generation — *2026-07-26; reconciled **inside the confirm-cast transaction**, so the response is already settled when it returns; the frontend's 3-second delayed reload is gone*
+    - [x] Ensure the mention-to-character link is written at match time — *2026-07-26; `_queue_mention_index()` runs on create, promote and confirm-cast (one helper replacing three inline copies). **Verified by real rows**: `Ledger` 1, `Keeper` 1, `Lighthouse` 1 mention, with no manual `sync-mentions`*
+    - [x] Ensure the frontend re-fetches after a character mutation — *2026-07-26; deterministic refetch after create, update, promote and cast confirmation, with **sequenced loads** so a slower earlier response cannot restore a stale cast list or hint count*
   - **Verification:**
-    - [ ] Integration test: add a character, assert it leaves the unresolved list
-    - [ ] Database-state check: no name simultaneously in `characters` and unresolved
-    - [ ] Manual check against the reported QA scenario
-  - **Definition of done:** A character never appears as both recognised and unrecognised.
+    - [x] Integration test: add a character, assert it leaves the unresolved list — *2026-07-26; **17 unit tests** plus **9 end-to-end API checks**, each asserted against the database: exact, case-insensitive and whitespace-normalised creation, alias addition, rename-into-hint, promotion clearing every duplicate, cast confirmation, and the **negative case** — `"Marek"` does not dismiss `"Marekk"` (similarity 0.909, above the creation threshold)*
+    - [x] Database-state check: no name simultaneously in `characters` and unresolved — *2026-07-26; holds for **every reconciliation path** on fixture data. ⚠ **The restored manuscript still holds 5 pre-existing overlaps** — `Devika Rao`, `Teodor Vance`, `Caleb Ferro`, `Aurelio Sant`, `Halloran` — created before this fix and **deliberately not modified** (read-only audit only, by user direction). A one-off backfill is the open policy question below*
+    - [x] Manual check against the reported QA scenario — *2026-07-26; **3 browser tests executed**: registering a character removes its chip and drops the banner count with **no page navigation** (asserted), the similar-but-distinct name survives, and background indexing is shown as in progress*
+  - **Definition of done:** A character never appears as both recognised and unrecognised. — **MET 2026-07-26** for everything created from this point; pre-existing rows await the backfill decision.
+  - **Progress notes:**
+    - *2026-07-26 — task complete including verification.* New: `backend/services/character_names.py` (normalisation + both matching rules + reconciliation) and `backend/tests/test_character_hint_sync.py`. Modified: `routers/characters.py`, `services/ai_service.py`, `schemas.py` (additive only), `CharacterList.tsx`, `lib/types.ts`. **No migration** — this reconciles existing rows, it does not change the schema.
+    - **The defect, quantified in real data.** Hint *creation* already filtered against registered names; nothing reconciled the queue afterwards. The restored manuscript shows the consequence: **10 live hints against 8 characters, 5 of them exact duplicates of registered names — a 50% overlap rate.**
+    - **Matching semantics — deliberately asymmetric, and this is the design decision.** Normalisation is shared (trim → collapse internal whitespace → casefold). **Creation** suppresses a new hint on an exact match *or* `SequenceMatcher` ratio **≥ 0.85**. **Reconciliation** dismisses an existing hint on an **exact normalised match only**, against name *and* aliases. Rationale: a surviving hint is visible and one click from dismissal; a wrongly-dismissed hint is invisible. The audit found **0 fuzzy-only near matches**, so the conservative rule costs nothing on real data.
+    - *Transaction contract.* `resolve_hints_for_names` **never commits** — pinned by a test that fails if it does. Every caller commits once, so a response can never report a registered character while the unrecognised list still names it.
+    - *Mention indexing — measured before deciding.* Chunk scan **8–14 ms/chapter**; the BGE-M3 embedding is the real cost at **0.8–1.4 s per character per run** (≈25–45 s at the restored manuscript's 8 characters × 4 chapters). It therefore stays **background**, and the API reports `mention_indexing_chapters` as work **still running**, which the UI states plainly ("The cast is saved. Mention counts … will fill in shortly"). No fixed delay is used anywhere.
+    - *⚠ A defect introduced and caught during implementation.* `create_character` was a sync `def`, so queueing background work raised `RuntimeError: no running event loop` → HTTP 500. The endpoint is now `async`, and the helper degrades (logs, returns 0) instead of failing a mutation if ever called without a loop.
+    - *Tests: **17** new unit, **9** end-to-end API, **3** mention-link confirmations, **3** new browser; full browser project **47/47**, unit **61/61**, backend regression **221/221**, `tsc` and production build clean.*
+    - **⚠ Open policy question — pre-existing overlaps.** The fix is forward-looking. The 5 overlapping hints already in the restored manuscript need a deliberate one-off reconciliation pass; **recommended as a script the author runs, not a startup sweep**. Also open: whether dismissing a name should suppress it permanently, since re-detection in a later chapter can recreate the hint.
 
-- [ ] **3.13 — Notes and Narrative Threads navigation duplication**
+- [x] **3.13 — Notes and Narrative Threads navigation duplication** — *deferral confirmed 2026-07-26; implemented as task 8.8*
   - **Source:** Phase 2 Issue **10** (Medium); Phase 1 Editor UI Medium 16
   - **Area:** Frontend
   - **Priority:** Low
@@ -1008,21 +1084,40 @@ Repository verification during checklist construction changed three things. Each
   - **Can run in parallel:** Yes
   - > **Deferred from Phase 2 defect resolution to Stage 8 to avoid duplicate implementation.** The information architecture is being rebuilt in the workspace redesign; fixing navigation placement twice is waste. Phase 3 decision **D10** (Idea Shelf placement) also lands in the same surface. Tracked here so the issue is not lost — implemented as task **8.8**.
   - **Implementation checklist:**
-    - [ ] Confirm the issue is carried into task 8.8 with both source references
+    - [x] Confirm the issue is carried into task 8.8 with both source references — *2026-07-26; **traceability re-verified end to end**, see the audit below. No product code, tests, builds or service work performed — the definition of done forbids them.*
   - **Verification:**
-    - [ ] Task 8.8 explicitly closes Phase 2 Issue 10
-  - **Definition of done:** Deferral is recorded and traceable; no work performed in this stage.
+    - [ ] Task 8.8 explicitly closes Phase 2 Issue 10 — *⏳ **intentionally open and future-dependent — not blocked, not forgotten.** This asserts an event in Stage 8; it can only be ticked when task 8.8 is actually implemented. Ticking it now would claim a future outcome. Task 8.8's own verification list carries the matching item, and its gate (Stage 8, line ~2354) repeats it.*
+  - **Definition of done:** Deferral is recorded and traceable; no work performed in this stage. — **MET 2026-07-26.**
+  - **Progress notes:**
+    - *2026-07-26 — traceability audit, documentation only.* **Task 8.8 carries all six required references:** Phase 2 Issue **10**; Editor UI Medium **16** and **17**; the back-reference *"(deferred from task 3.13)"*; Phase 3 decision **D10**; the implementation item *"Remove the Notes and Narrative Threads navigation duplication"*; and the verification item *"**Phase 2 Issue 10 explicitly closed here**"*. The Stage 8 gate repeats "Phase 2 Issue 10 closed" independently.
+    - *Registers consistent.* **Decision Register:** `D-4 — Phase 3 stakeholder decisions (D1–D12) … Blocks 7.1–7.15, 8.8`. **Blocked-Task Register:** `8.8 | D-4 (D10) | D10 recorded`. **Coverage Matrix:** the Phase 2 issues document is marked *"all 14 issues mapped (Issue 10 deferred to 8.8)"*, and the Excluded/Deferred table names the issue, its destination task **8.8**, and the reason, with a pointer back to 3.13. Three independent records agree; none contradicts another.
+    - **The duplication as it actually stands, 2026-07-26** (read-only code survey, no changes):
+      - **Notes** appears in **two** workspaces — `world` (Story Bible · Notes · Scan) at `world/page.tsx:17,38` and `plan` (Outline · Beats · Threads · Notes) at `plan/page.tsx:20,43`. Same `NotesPanel` component, two homes.
+      - **Narrative Threads** appears in **two** surfaces — the `plan` workspace's Threads tab (`plan/page.tsx:19,42`) and the `analyze` workspace via the panel registry (`registries/panels.tsx:53`, `workspace: 'analyze', surface: 'page'`).
+      - A **third, latent** location exists: `components/plot-holes/AuditPanel.tsx:68` embeds `NarrativeThreadsPanel` as a tab, but `AuditPanel` is referenced by no route and no registry entry — legacy surface, recorded so Stage 8 does not rediscover it.
+    - *Why the placement decision waits for Stage 8.* The information architecture is being rebuilt in the workspace redesign (task **8.8**), and decision **D10** (Idea Shelf placement) lands on the same surface. Choosing homes now would mean choosing twice, and the second choice would overwrite the first. **This is a placement decision, not a defect in either component** — both render correctly wherever they appear.
+    - *Adjacent observations already logged, offered as Stage 8 context only* (deliberately **not** expanded into an IA specification here): the analytics route is reachable from a single button and is absent from the workspace registry (task 3.9 notes), and the World workspace's tab strip mixes Story Bible, Notes and OCR (task 3.10 notes).
 
-### Stage 3 Completion Gate
+### Stage 3 Completion Gate — **CLOSED 2026-07-26**
 
-- [ ] All 14 Phase 2 issues closed or explicitly deferred with a recorded destination
-- [ ] Chapter continuation, scene outline, plot hole detection and continuity analysis all return usable results
-- [ ] Story Bible never reports `completed` on partial content
-- [ ] Story Bible contains no unsupported detail, verified against a fixture
-- [ ] Voice agent never reports false success
-- [ ] Regression tests added for tasks 3.1–3.7
-- [ ] `_extract_json` caller audit complete
-- [ ] **Gate 2 — Core workflows functional** passed
+- [x] All 14 Phase 2 issues closed or explicitly deferred with a recorded destination — *Issues 1, 11 → 3.8 · 2, 14 → 3.4 · 3 → 3.9 · 4 → 3.6 · 5 → 3.7 · 6 → 3.10 · 7 → 3.11 · 8 → 3.2 and 3.3 · 9 → 3.12 · 12, 13 → 3.1 · **10 deferred to task 8.8** with destination recorded in three registers (task 3.13). ⚠ Issue 6's **interface** is closed; OCR **inference** fails on a separate, newly found defect tracked outside Stage 3 — see the note below.*
+- [x] Chapter continuation, scene outline, plot hole detection and continuity analysis all return usable results — *continuation and outline user-tested 2026-07-24 (task 3.1); plot holes (3 findings) and continuity (2 issues) verified live 2026-07-26, both `degraded: false`*
+- [x] Story Bible never reports `completed` on partial content — *proven live: a mid-run interruption produced `partial`, and a later one `failed`; `completed` appeared only when all five sections were genuinely generated*
+- [x] Story Bible contains no unsupported detail, verified against a fixture — *11/11 timeline events supported by their cited chapter, 0 unsupported; **author review confirmed** 2026-07-26*
+- [x] Voice agent never reports false success — *verified live in both directions after the HTTP 500 defect was fixed; a reported failure is recorded as failure with no data change*
+- [x] Regression tests added for tasks 3.1–3.7 — *`test_retrieval_signatures` 18 · `test_generation_limits` 24 · `test_story_bible_outcomes` 89 · `test_degraded_output` 25 · `test_extract_json_audit` 21 · `test_voice_execution` 45 · `test_voice_recording_routes` 7 — plus `test_character_hint_sync` 17 for 3.12. **246 backend tests, all passing***
+- [x] `_extract_json` caller audit complete — *task 3.5, 17 call sites registered and enforced by an executable register*
+- [x] **Gate 2 — Core workflows functional** passed — *2026-07-26; every criterion above met against a real manuscript on a running stack. Recorded here; the matching box under task 12.1 stays open until Release Validation re-checks it at release time.*
+
+> ### ⚑ Stage 3 closing note — 2026-07-26
+>
+> **All 13 main tasks are complete** and the gate is closed. The ten verification items that stood open across 3.2, 3.3, 3.4, 3.6 and 3.7 were executed in one consolidated run against a **verification copy** of the restored manuscript (4 chapters / 21 chunks / 8 characters / 67 mentions, embeddings preserved). The restored manuscript itself was **never written to** — its counts were re-audited afterwards and match the 2026-07-24 baseline exactly.
+>
+> **The run found two genuine defects that all prior testing had missed**, both fixed under approved corrective plans and re-verified:
+> 1. **Voice recording endpoints returned HTTP 500 on every call** — `routers/voice_agent.py` used `datetime.utcnow()` with no module-level import, so `/confirm` and `/nodes/{key}/result` raised `NameError`. 44 passing voice tests never caught it because none drove the routes through the application; the client also swallowed the errors silently. Both fixed, and 7 live-route regression tests plus an anti-silence test now guard it.
+> 2. **Provenance coverage was 0.37, not 1.00** — characters 0.00, locations 0.33, world_rules 0.75. The prompt only demanded per-line citation where it was explicit (timeline, themes). Corrected across three measured iterations to **117/117 = 1.00**, with the acceptance criterion left unchanged.
+>
+> **Carried out of Stage 3, deliberately:** the OCR `DynamicCache` inference failure (tracked as a separate high-priority defect, `docs/issues-and-bugs/ocr-extraction-got-ocr2-dynamiccache-failure.md`); the 5 pre-existing character-hint overlaps in the restored manuscript awaiting a backfill decision (task 3.12); and Story Bible interpretation/summarisation quality, raised by the author's review and recorded as new task **4.16**.
 
 ---
 
@@ -1293,6 +1388,29 @@ Repository verification during checklist construction changed three things. Each
   - **Verification:**
     - [ ] Suite passes; reintroducing a Stage 4 defect turns it red
   - **Definition of done:** Retrieval correctness is permanently guarded by tests.
+
+- [ ] **4.16 — Story Bible interpretation and summarisation quality**
+  - **Source:** Author review of the Stage 3 verification run, 2026-07-26 (verification item under task 3.3)
+  - **Area:** AI / Prompt engineering
+  - **Priority:** Medium
+  - **Depends on:** 3.3 (complete)
+  - **Blocked by:** None
+  - **Can run in parallel:** Yes
+  - **Context:** Stage 3 established that the Story Bible is **factually grounded** — 117/117 entries cited, 11/11 timeline events supported by their cited chapter, and the author confirmed no unsupported facts, fabricated events or invented characters. The author separately observed **minor interpretation and summarisation quality issues**: how some information is read, condensed or presented. These are explicitly **not hallucinations** and were deliberately excluded from Stage 3, whose objective was correctness, not polish.
+  - **Constraint that defines this task:** improvements must be **generalisable across all manuscripts**. No hard-coded rules, no manuscript-specific heuristics, no tuning against the one sample story — a fix that improves this manuscript by encoding facts about it is a regression in disguise.
+  - **Implementation checklist:**
+    - [ ] Collect the author's specific observations and classify each as interpretation, summarisation, emphasis or presentation
+    - [ ] Reproduce each class on at least two structurally different manuscripts, so the problem is shown to be general rather than local
+    - [ ] Define a quality measure that is separate from the grounding measure — provenance is already at 1.00 and must not be traded away
+    - [ ] Improve section instructions for the weakest class first, re-measuring after each iteration
+    - [ ] Re-run the Stage 3 grounding and provenance checks after every change, as non-negotiable guard rails
+  - **Verification:**
+    - [ ] Provenance stays at 1.00 and grounding stays at zero unsupported events across every test manuscript
+    - [ ] The author confirms the observed quality issues are reduced, on a manuscript other than the original sample
+    - [ ] No manuscript-specific string, name or rule appears anywhere in the change
+  - **Definition of done:** Story Bible output reads well and interprets faithfully on any manuscript, with factual grounding unchanged.
+  - **Progress notes:**
+    - *2026-07-26 — task created from the author's Stage 3 review, by user direction, with no implementation and no plan produced. Stage 3 was closed on correctness; this carries the quality work forward.*
 
 ### Stage 4 Completion Gate
 
