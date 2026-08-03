@@ -464,6 +464,34 @@ for i in $(seq 1 15); do
   sleep 1
 done
 
+# ══════════════════════════════════════════════════════════════
+# STEP 4d — Safety backup BEFORE anything touches the schema
+# ══════════════════════════════════════════════════════════════
+# Everything below this point can modify the database: create_all() adds tables,
+# run_db_migrations() runs ALTER TABLE, and `alembic upgrade head` applies whatever
+# revisions are outstanding. This is the last moment at which the database is still
+# in the state the author left it, so the backup belongs here — after the connection
+# is proven, before the first write.
+#
+# The script decides for itself whether a dump is actually needed (see its header):
+# it always dumps ahead of a pending schema change, honours a freshness window the
+# rest of the time, and writes nothing at all for a brand-new empty database.
+# It never restores — that stays manual so an old dump cannot overwrite newer data.
+#
+# Exit 1 from it means a REQUIRED pre-migration backup could not be produced. That
+# aborts startup here, with the database untouched, rather than migrating unprotected.
+if ! bash /workspace/narratiq-ai/scripts/startup_backup.sh; then
+  echo ""
+  echo "  Startup aborted before any migration ran. The database was not modified."
+  echo ""
+  echo "  There is deliberately no flag to skip this. A pending schema change against a"
+  echo "  database holding data is exactly the case the backup exists for."
+  echo "  Fix the cause (disk space, pg_dump availability, DB reachability), or take a"
+  echo "  backup by hand and confirm it, then re-run:"
+  echo "    bash /workspace/narratiq-ai/scripts/backup_database.sh"
+  exit 1
+fi
+
 # Pre-create tables from ORM models (idempotent; needed before alembic runs)
 cd "$BACKEND_DIR"
 python3 - <<'PYEOF'
