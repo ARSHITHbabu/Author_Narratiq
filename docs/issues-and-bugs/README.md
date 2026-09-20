@@ -11,6 +11,13 @@ need action** — they are not implementation records. Completed work belongs in
 | [`open/`](./open/) | Reported, not yet fixed or not yet verified as fixed |
 | `resolved/` | Created when the first report is closed out; move the document here and note the fixing commit |
 
+## Triage register
+
+[`triage-register.md`](./triage-register.md) — the reconciliation of both reports below against the
+execution checklist (`docs/NarratIQ_Master_Implementation_Checklist.md`, task 0.9): every issue's
+severity, owning checklist task, and proposed release-blocking / post-launch / won't-fix
+classification. Produced 2026-09-21.
+
 ## Open
 
 ### [`open/phase-1-ai-writing-tools-qa-issues.docx`](./open/phase-1-ai-writing-tools-qa-issues.docx)

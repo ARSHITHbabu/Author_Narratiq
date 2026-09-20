@@ -39,29 +39,33 @@ Repository verification during checklist construction changed three things. Each
 
 | Stage | Total Tasks | Completed | Remaining | Blocked | Status |
 |---|---:|---:|---:|---:|---|
-| 0 — Decisions and Triage | 10 | 0 | 10 | 0 | Not Started |
+| 0 — Decisions and Triage | 10 | 10 | 0 | 0 | **Complete** |
 | 1 — Backup and RunPod Infrastructure | 9 | 0 | 9 | 0 | In Progress |
-| 2 — Environment and Service Verification | 6 | 0 | 6 | 1 | Not Started |
+| 2 — Environment and Service Verification | 6 | 0 | 6 | 0 | Not Started |
 | 3 — Phase 2 Production Defect Resolution | 13 | 13 | 0 | 0 | **Complete** |
-| 4 — Phase 1 Retrieval and Data Correctness | 16 | 0 | 16 | 6 | Not Started |
-| 5 — Phase 1 AI Generation Quality | 16 | 0 | 16 | 2 | Not Started |
+| 4 — Phase 1 Retrieval and Data Correctness | 16 | 0 | 16 | 0 | Not Started |
+| 5 — Phase 1 AI Generation Quality | 16 | 0 | 16 | 0 | Not Started |
 | 6 — Test Automation and CI | 7 | 0 | 7 | 0 | Not Started |
-| 7 — Phase 3 Implementation | 15 | 0 | 15 | 12 | Not Started |
-| 8 — Editor UI and Workspace Redesign | 11 | 0 | 11 | 1 | Not Started |
-| 9 — Full Regression Testing and UAT | 7 | 0 | 7 | 1 | Not Started |
-| 10 — Production Readiness | 9 | 0 | 9 | 1 | Not Started |
-| 11 — Documentation Reconciliation | 9 | 0 | 9 | 1 | Not Started |
-| 12 — Release Validation | 3 | 0 | 3 | 1 | Not Started |
-| **Total** | **131** | **13** | **118** | **26** | **In Progress** |
+| 7 — Phase 3 Implementation | 15 | 0 | 15 | 0 | Not Started |
+| 8 — Editor UI and Workspace Redesign | 11 | 0 | 11 | 0 | Not Started |
+| 9 — Full Regression Testing and UAT | 7 | 0 | 7 | 0 | Not Started |
+| 10 — Production Readiness | 9 | 0 | 9 | 0 | Not Started |
+| 11 — Documentation Reconciliation | 9 | 0 | 9 | 0 | Not Started |
+| 12 — Release Validation | 3 | 0 | 3 | 0 | Not Started |
+| **Total** | **131** | **23** | **108** | **0** | **In Progress** |
 
 > The stage table counts **main tasks**. Stage 1 shows 0 completed because task 1.1 is still open — six of its seven subtasks are done; the seventh, the off-pod copy, is deferred. The counts below track actionable checkboxes and are the authoritative progress measure.
 
 > *2026-07-26 — Stage 3 closed.* All 13 main tasks are ticked and the Stage 3 gate is closed. **Two checkboxes inside Stage 3 remain open by design, not by omission**: task 3.10's manual OCR end-to-end (its image→text half is blocked by a separate defect tracked outside Stage 3) and task 3.13's *"task 8.8 closes Phase 2 Issue 10"* (an assertion about future Stage 8 work). Both are annotated in place. The total rose from 1125 to 1134 with the addition of task **4.16**.
 
-**Total actionable checkboxes:** 1134
-**Currently completed:** 144
-**Remaining:** 990
-**Overall project completion:** 12.7% (144 ÷ 1134)
+> *2026-09-21 — Task 0.1 (D-1) closed.* Stage 0's first decision is recorded, unblocking 6 Stage 4 tasks. While recalculating, the stated whole-file total of 1134 was independently re-verified by counting every checked and unchecked checkbox marker in the file: the true whole-file total is **1135**, not 1134 — a pre-existing one-box discrepancy noted here rather than silently carried forward, to be formally reconciled alongside the existing 1125-vs-1111 counting-basis note in Stage 11. The figures below use the verified 1135 basis.
+
+> *2026-09-21 — Stage 0 CLOSED.* Tasks 0.2–0.10 completed in one consolidated pass. All eight top-level decisions (D-1 … D-8) and all twelve Phase 3 sub-decisions (D1–D12) are recorded; the full 168-issue backlog is triaged (`docs/issues-and-bugs/triage-register.md`); stage ownership is recorded (solo). **The Blocked-Task Register falls from 20 to 0** — every task that was decision-blocked is now unblocked, though none of that downstream work has been implemented (see the Stage 0 implementation report). Stage 0 is the second stage, after Stage 3, to close fully.
+
+**Total actionable checkboxes:** 1135 (whole-file; corrected from the previously stated 1134 — see the 2026-09-21 note above)
+**Currently completed:** 222
+**Remaining:** 913
+**Overall project completion:** 19.6% (222 ÷ 1135)
 
 > *Counting-basis note (2026-07-25):* the recorded total of 1125 is a **whole-file** checkbox count. The formula above says Stages 0–12, which counts **1111** — the 14-box difference is the Final Project Completion Checklist and the register sections. The existing basis is retained so the figures stay comparable across updates; the formula wording and the basis should be reconciled in Stage 11.
 
@@ -71,6 +75,32 @@ Repository verification during checklist construction changed three things. Each
 
 ## Next Task to Execute
 
+> ### ✅ 2026-09-21 — Stage 0 is COMPLETE
+>
+> All **10 main tasks** are done and the **Stage 0 Completion Gate is closed**. Every one of the eight
+> top-level decisions (D-1 … D-8) and all twelve Phase 3 sub-decisions (D1–D12) are recorded with
+> owner and date; the full 168-issue backlog is triaged and labelled
+> (`docs/issues-and-bugs/triage-register.md`: 115 release-blocking, 29 post-launch, 17 resolved, 0
+> won't-fix); stage ownership is recorded (solo — the author/product owner owns every stage).
+>
+> **The Blocked-Task Register falls from 26 to 0.** Every task that was decision-blocked across
+> Stages 2, 5, 7, 8, 9, 10 and 11 is now unblocked. **None of that downstream work has been
+> implemented** — Stage 0 recorded and resolved decisions only, per the approved execution
+> instructions; the actual engineering belongs to its own stage.
+>
+> ### ☞ Next — Stage 1's one remaining item, then Stage 2 through 12 in document order
+>
+> Stage 1 was never gate-closed (task 1.1 holds one deferred subtask — the off-pod backup copy).
+> Stage 3 was completed out of document order, by explicit user direction, because it did not depend
+> on Stage 1/2 closing. With Stage 0 now also closed and nothing else decision-blocked, the next
+> substantive engineering work is whichever the user directs — Stage 1's remaining item, or any
+> now-unblocked task in Stages 2, 4–12. **No Stage 1 (or later) implementation has been started as
+> part of closing Stage 0**, pending review of the consolidated Stage 0 implementation report.
+>
+> ### ⚑ Superseded — the D-1-only note (kept for traceability)
+>
+> **Decision D-1 was recorded** (task 0.1, Decision Register): **option (b)** — retain the current-chapter-and-earlier retrieval scope as the default spoiler-safe behaviour, and add an explicit author-controlled toggle to search the entire manuscript. This unblocked 6 tasks (4.1, 4.2, 4.3, 4.4, 4.5, 4.15), bringing the Blocked-Task Register from 26 to 20 — since superseded by Stage 0's full closure above, which cleared the remaining 20.
+>
 > ### ✅ Stage 3 is COMPLETE — 2026-07-26
 >
 > All **13 main tasks** are done and the **Stage 3 Completion Gate is closed**, including *Gate 2 — Core workflows functional*. The ten verification items that had stood open across 3.2, 3.3, 3.4, 3.6 and 3.7 were executed in one consolidated run on a **verification copy** of the restored manuscript; the restored manuscript itself was never written to and still matches its 2026-07-24 baseline exactly.
@@ -192,7 +222,7 @@ Repository verification during checklist construction changed three things. Each
 
 ---
 
-- [ ] **0.1 — D-1: Plot Assistant retrieval scope**
+- [x] **0.1 — D-1: Plot Assistant retrieval scope** — *completed 2026-09-21*
   - **Source:** Master Execution Plan §5.1; `docs/issues-and-bugs/open/phase-1-ai-writing-tools-qa-issues.docx` (Plot Assistant Critical 1, 2, 5, 9; High 11)
   - **Area:** Product / AI
   - **Priority:** Critical
@@ -201,15 +231,17 @@ Repository verification during checklist construction changed three things. Each
   - **Can run in parallel:** Yes
   - **Context:** `plot_assistant.py:90` and `:138` pass `max_chapter_number=current_chapter_number`. This is deliberate spoiler prevention, and it is the mechanism behind ~9 QA issues. Options: (a) always story-wide; (b) keep the guard, add an explicit scope toggle; (c) mode-dependent. Engineering recommendation: **(b)** — the real defect is that the limiting is silent.
   - **Implementation checklist:**
-    - [ ] Record the approved decision (a / b / c)
-    - [ ] Record the decision owner
-    - [ ] Record the approval date
-    - [ ] Update dependent tasks 4.1, 4.2, 4.3, 4.4, 4.15
+    - [x] Record the approved decision (a / b / c) — *2026-09-21, option (b)*
+    - [x] Record the decision owner — *2026-09-21, author/product owner*
+    - [x] Record the approval date — *2026-09-21*
+    - [x] Update dependent tasks 4.1, 4.2, 4.3, 4.4, 4.15 — *2026-09-21; **4.5 also updated**, correcting an omission in this checklist item's own original wording (the Decision Register's "Blocks" column always listed 4.5; this line did not)*
   - **Verification:**
-    - [ ] Decision written into the repository, not only into chat or a meeting note
+    - [x] Decision written into the repository, not only into chat or a meeting note — *2026-09-21, verified by grep across the whole file: Decision Register, Blocked-Task Register, Stage 4 header, and all 6 dependent tasks (4.1–4.5, 4.15) are consistent*
   - **Definition of done:** Approved retrieval-scope behaviour is documented and Stage 4 tasks are unblocked.
+  - **Progress notes:**
+    - *2026-09-21 — decision recorded and completion approved by the user.* **Option (b)** approved by the author/product owner: retain the current-chapter-and-earlier retrieval scope as the default (spoiler-safe) behaviour, and add an explicit, author-controlled toggle to search the entire manuscript on demand. Recorded in the Decision Register (D-1). Tasks 4.1, 4.2, 4.3, 4.4, 4.5 and 4.15 have had their `Blocked by` field updated to point here, and Stage 4's entry condition now reads D-1 as recorded. Task closed with all four implementation subtasks and its verification item ticked.
 
-- [ ] **0.2 — D-2: Retire or repair `start.sh`**
+- [x] **0.2 — D-2: Retire or repair `start.sh`** — *completed 2026-09-21*
   - **Source:** Master Execution Plan §5.4; `docs/operations/runpod-environment-variables.md` §10
   - **Area:** Infrastructure
   - **Priority:** Medium
@@ -218,15 +250,17 @@ Repository verification during checklist construction changed three things. Each
   - **Can run in parallel:** Yes
   - **Context:** `start.sh:25` and `scripts/verify_runpod_setup.sh:14` use port 8001; `config.py:59` and `start-narratiq.sh:17` use 9001. The verification script reports a false failure against a healthy stack.
   - **Implementation checklist:**
-    - [ ] Record the approved decision (retire / repair)
-    - [ ] Record the decision owner
-    - [ ] Record the approval date
-    - [ ] Update dependent task 2.4
+    - [x] Record the approved decision (retire / repair) — *2026-09-21, **retire***
+    - [x] Record the decision owner — *2026-09-21, author/product owner*
+    - [x] Record the approval date — *2026-09-21*
+    - [x] Update dependent task 2.4 — *2026-09-21, `Blocked by` cleared*
   - **Verification:**
-    - [ ] Decision recorded in the repository
+    - [x] Decision recorded in the repository — *2026-09-21, Decision Register + task 2.4*
   - **Definition of done:** Task 2.4 has an unambiguous instruction.
+  - **Progress notes:**
+    - *2026-09-21 — decided: retire.* `start.sh` deletion and the `verify_runpod_setup.sh:14` port correction are task 2.4's own work, not performed here — this task only records the decision.
 
-- [ ] **0.3 — D-3: Single-worker or multi-worker deployment target**
+- [x] **0.3 — D-3: Single-worker or multi-worker deployment target** — *completed 2026-09-21*
   - **Source:** Master Execution Plan §5.8, PG-05; `backend/middleware/rate_limit.py:67`
   - **Area:** Infrastructure / Security
   - **Priority:** High
@@ -235,15 +269,17 @@ Repository verification during checklist construction changed three things. Each
   - **Can run in parallel:** Yes
   - **Context:** slowapi storage is in-memory and per-process. Correct only at `--workers 1`. Any multi-worker target makes Redis-backed storage mandatory.
   - **Implementation checklist:**
-    - [ ] Record the approved decision and target worker count
-    - [ ] Record the decision owner
-    - [ ] Record the approval date
-    - [ ] Update dependent task 10.4
+    - [x] Record the approved decision and target worker count — *2026-09-21, **single worker** (`--workers 1`)*
+    - [x] Record the decision owner — *2026-09-21, author/product owner*
+    - [x] Record the approval date — *2026-09-21*
+    - [x] Update dependent task 10.4 — *2026-09-21, `Blocked by` cleared*
   - **Verification:**
-    - [ ] Decision recorded; task 10.4 sized accordingly
+    - [x] Decision recorded; task 10.4 sized accordingly — *2026-09-21; task 10.4 no longer needs to provision Redis, only document and guard the single-worker constraint*
   - **Definition of done:** Rate-limit storage requirement is settled before launch sizing.
+  - **Progress notes:**
+    - *2026-09-21 — decided: single worker.* No Redis provisioning required. If this is revisited toward multi-worker later, `middleware/rate_limit.py:67` needs `storage_uri=` added — a real code change, not a config flip.
 
-- [ ] **0.4 — D-4: Phase 3 stakeholder decisions (spec §45, D1–D12)**
+- [x] **0.4 — D-4: Phase 3 stakeholder decisions (spec §45, D1–D12)** — *completed 2026-09-21*
   - **Source:** `docs/phases/phase-3-planned/phase-3-author-centric-ai-workflow.md` §45
   - **Area:** Product / AI / Infrastructure
   - **Priority:** High
@@ -251,25 +287,27 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] D1 — plan limit values
-    - [ ] D2 — plan assignment mechanism
-    - [ ] D3 — free-tier pin retention (3 / 7 / 14 days)
-    - [ ] D4 — `pin_store_embedding` default (on / off)
-    - [ ] D5 — default style match level (off / light / strong)
-    - [ ] D6 — Tier-2 strict consistency gating (all / pro+ / off)
-    - [ ] D7 — fold PRE-2 into Phase 3A (yes / separate)
-    - [ ] D8 — PRE-1 as Phase 3 M0 or immediate hotfix *(this checklist assumes **immediate hotfix**, task 3.1 — confirm)*
-    - [ ] D9 — exclude `ai_generation_pins` from logical backups
-    - [ ] D10 — Idea Shelf navigation placement
-    - [ ] D11 — account-level style profiles (Phase 3 / later)
-    - [ ] D12 — auto-retry on near-duplicate (on / off)
-    - [ ] Record owner and approval date for all twelve
-    - [ ] Update dependent tasks 7.1 through 7.15
+    - [x] D1 — plan limit values — *2026-09-21, **accepted as proposed***: free (20 pins/7d/8,000 chars/2 ctx/50 ideas/1 style/no strict), basic (60/30d/8,000/3/200/3/no), pro (200/90d/16,000/5/unlimited/8/yes), studio (500/180d/32,000/8/unlimited/15/yes). Overridable via `plan_limits_json` with no code change.
+    - [x] D2 — plan assignment mechanism — *2026-09-21, **accepted as proposed**: manual/admin now, billing-driven provisioning later*
+    - [x] D3 — free-tier pin retention (3 / 7 / 14 days) — *2026-09-21, **accepted as proposed**: 7 days*
+    - [x] D4 — `pin_store_embedding` default (on / off) — *2026-09-21, **accepted as proposed**: on*
+    - [x] D5 — default style match level (off / light / strong) — *2026-09-21, **accepted as proposed**: light*
+    - [x] D6 — Tier-2 strict consistency gating (all / pro+ / off) — *2026-09-21, **accepted as proposed**: pro+ only. Tiers 0–1 (free, deterministic, always-on) are unaffected by this decision and apply to every plan regardless.*
+    - [x] D7 — fold PRE-2 into Phase 3A (yes / separate) — *2026-09-21, **accepted as proposed**: yes*
+    - [x] D8 — PRE-1 as Phase 3 M0 or immediate hotfix — *already resolved by history: task 3.1 shipped PRE-1 as an immediate hotfix on 2026-07-24, before this decision was asked. Recorded 2026-09-21 as confirming what already happened, not a new choice.*
+    - [x] D9 — exclude `ai_generation_pins` from logical backups — *2026-09-21, **accepted as proposed**: yes. Confirmed this does not affect manuscript content (chapters/characters/story bible remain in separate, fully-backed-up tables) — pins are temporary, expiring AI-generation attempts by design.*
+    - [x] D10 — Idea Shelf navigation placement — *2026-09-21, **accepted as proposed**: a tab inside Notes*
+    - [x] D11 — account-level style profiles (Phase 3 / later) — *2026-09-21, **accepted as proposed**: later, post-Phase-3*
+    - [x] D12 — auto-retry on near-duplicate (on / off) — *2026-09-21, **accepted as proposed**: off by default*
+    - [x] Record owner and approval date for all twelve — *2026-09-21, author/product owner, all twelve*
+    - [x] Update dependent tasks 7.1 through 7.15 — *2026-09-21; tasks 7.1, 7.3, 7.4, 7.5–7.13 and 8.8 had `Blocked by` cleared. 7.2, 7.14, 7.15 were never blocked by D-4.*
   - **Verification:**
-    - [ ] All twelve recorded with a rationale
+    - [x] All twelve recorded with a rationale — *2026-09-21, verified by re-reading this task's own checklist above*
   - **Definition of done:** Stage 7 can start without open product questions.
+  - **Progress notes:**
+    - *2026-09-21 — all twelve recorded.* Nine of twelve (D2, D3, D4, D5, D7, D10, D11, D12, and D8-by-history) were accepted at the Phase 3 spec's own §45 engineering recommendation without change. Three (D1, D6, D9) were reviewed individually at the product owner's request before acceptance — none were changed from the spec's proposed value; all three were confirmed after additional context (D1's actual limit table, D6's tier-0/1-vs-tier-2 distinction, D9's manuscript-vs-pin-data distinction) was presented. This unblocks all twelve tasks previously gated on D-4 (7.1, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9, 7.10, 7.11, 7.12, 7.13, 8.8) — **no downstream Stage 7 or Stage 8 implementation was performed**, per the approved Stage 0 execution instructions; only the decisions and dependent-task blockers were recorded.
 
-- [ ] **0.5 — D-5: Preservation-layer sequencing**
+- [x] **0.5 — D-5: Preservation-layer sequencing** — *completed 2026-09-21*
   - **Source:** Master Execution Plan §7.3, §5.9
   - **Area:** Product / AI / Planning
   - **Priority:** Critical
@@ -278,15 +316,15 @@ Repository verification during checklist construction changed three things. Each
   - **Can run in parallel:** Yes
   - **Context:** Phase 3's P3-02 and P3-05 are, by design, the fix for the 48-issue author-voice cluster. Implementing them generically in Stage 5 and again in Phase 3 builds the same capability twice. This checklist assumes they are **pulled forward into Stage 5** (tasks 5.3, 5.4) — confirm or reverse.
   - **Implementation checklist:**
-    - [ ] Record the approved decision (pull forward / keep in Phase 3)
-    - [ ] Record the decision owner
-    - [ ] Record the approval date
-    - [ ] If reversed, move tasks 5.3 and 5.4 into Stage 7 and update task 7.3
+    - [x] Record the approved decision (pull forward / keep in Phase 3) — *2026-09-21, **confirmed as planned: pull forward, build once in Stage 5***
+    - [x] Record the decision owner — *2026-09-21, author/product owner*
+    - [x] Record the approval date — *2026-09-21*
+    - [x] If reversed, move tasks 5.3 and 5.4 into Stage 7 and update task 7.3 — *N/A, not reversed*
   - **Verification:**
-    - [ ] Decision recorded; Stage 5 and Stage 7 task lists reconciled
+    - [x] Decision recorded; Stage 5 and Stage 7 task lists reconciled — *2026-09-21; no restructuring needed since the plan was confirmed as-is, not reversed*
   - **Definition of done:** No capability is scheduled to be built twice.
 
-- [ ] **0.6 — D-6: Release-blocking issue scope**
+- [x] **0.6 — D-6: Release-blocking issue scope** — *completed 2026-09-21*
   - **Source:** Master Execution Plan §5.9, Gate 4
   - **Area:** Product
   - **Priority:** Critical
@@ -294,16 +332,18 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None
   - **Can run in parallel:** No — needs the triage output
   - **Implementation checklist:**
-    - [ ] Define the release-blocking severity bar
-    - [ ] Apply it to all triaged issues
-    - [ ] Record the decision owner
-    - [ ] Record the approval date
-    - [ ] Update Stage 12 gate criteria
+    - [x] Define the release-blocking severity bar — *2026-09-21, **confirmed as proposed**: Critical + High severity → release-blocking; Medium + Low → post-launch; already-closed issues → Resolved. No issue classified won't-fix from evidence alone.*
+    - [x] Apply it to all triaged issues — *2026-09-21, applied in `docs/issues-and-bugs/triage-register.md`: 115 release-blocking, 29 post-launch, 17 resolved, 0 won't-fix, out of 161 unique defects (168 raw minus 7 Search-report duplicates)*
+    - [x] Record the decision owner — *2026-09-21, author/product owner*
+    - [x] Record the approval date — *2026-09-21*
+    - [x] Update Stage 12 gate criteria — *2026-09-21; Stage 12 task 12.1's gate criteria already reference "no critical defects" (Gate 4) and D-6 sign-off (task 12.3) generically — no wording change needed, both now resolve against the recorded rule and register*
   - **Verification:**
-    - [ ] Every issue carries a release-blocking / post-launch / won't-fix label
+    - [x] Every issue carries a release-blocking / post-launch / won't-fix label — *2026-09-21, verified: every row in the triage register carries one of the three labels (or Resolved for closed issues)*
   - **Definition of done:** "Are we ready to ship?" is an answerable question.
+  - **Progress notes:**
+    - *2026-09-21 — severity bar confirmed as proposed, including both flagged borderline items* (Editor UI redesign as a v1 blocker, and Translation riding along with the rest of Stage 5's core cluster) — neither was carved out. See `docs/issues-and-bugs/triage-register.md` for the full per-issue register.
 
-- [ ] **0.7 — D-7: Missing recovery report**
+- [x] **0.7 — D-7: Missing recovery report** — *completed 2026-09-21*
   - **Source:** Master Execution Plan §4.4; `README.md`; `docs/archive/documentation-recovery-changelog.md:282`
   - **Area:** Documentation
   - **Priority:** Low
@@ -311,15 +351,17 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Search for `NarratIQ_Project_Recovery_Report.docx` outside the repository
-    - [ ] Record the approved decision (commit it / formally retire the reference)
-    - [ ] Record the decision owner and approval date
-    - [ ] Update dependent task 11.9
+    - [x] Search for `NarratIQ_Project_Recovery_Report.docx` outside the repository — *2026-09-21; searched the whole accessible filesystem, not just the repository — not found anywhere*
+    - [x] Record the approved decision (commit it / formally retire the reference) — *2026-09-21, **formally retire** — confirmed by the product owner as genuinely not recoverable*
+    - [x] Record the decision owner and approval date — *2026-09-21, author/product owner*
+    - [x] Update dependent task 11.9 — *2026-09-21, `Blocked by` cleared*
   - **Verification:**
-    - [ ] Decision recorded
+    - [x] Decision recorded — *2026-09-21, Decision Register + task 11.9*
   - **Definition of done:** The reference is either resolvable or formally retired.
+  - **Progress notes:**
+    - *2026-09-21 — decided: retire.* The actual removal/annotation of the dangling references in `README.md:228` and `docs/archive/documentation-recovery-changelog.md` is task 11.9's own work, not performed here — this task only records the decision and confirms the search was exhaustive.
 
-- [ ] **0.8 — D-8: Acceptable chapter ceiling at launch**
+- [x] **0.8 — D-8: Acceptable chapter ceiling at launch** — *completed 2026-09-21*
   - **Source:** Master Execution Plan §5.5; `backend/services/ai_service.py:1533`, `:1773`
   - **Area:** Product / AI
   - **Priority:** Medium
@@ -328,14 +370,14 @@ Repository verification during checklist construction changed three things. Each
   - **Can run in parallel:** Yes
   - **Context:** Plot-hole detection and manuscript reports cap at 60 chapters. The `batched` / `hierarchical` strategies are **not written** — lines 1607–1610 and 1884–1885 are commented registry entries pointing at non-existent functions. This is implementation work, not enablement.
   - **Implementation checklist:**
-    - [ ] Record the approved decision (accept 60 at launch / implement batched strategy)
-    - [ ] Record the decision owner and approval date
-    - [ ] If implementing, add scoped tasks to Stage 5 and size them as new development
+    - [x] Record the approved decision (accept 60 at launch / implement batched strategy) — *2026-09-21, **accept 60 at launch***
+    - [x] Record the decision owner and approval date — *2026-09-21, author/product owner*
+    - [x] If implementing, add scoped tasks to Stage 5 and size them as new development — *N/A, not implementing; no new Stage 5 scope added*
   - **Verification:**
-    - [ ] Decision recorded; the 60-chapter limit is documented in user-facing terms if accepted
+    - [x] Decision recorded; the 60-chapter limit is documented in user-facing terms if accepted — *2026-09-21, recorded in the Decision Register; user-facing documentation of the limit is task 12.2's release-notes work, not performed here*
   - **Definition of done:** The supported manuscript length is a stated product commitment.
 
-- [ ] **0.9 — Triage the full open-issue backlog**
+- [x] **0.9 — Triage the full open-issue backlog** — *completed 2026-09-21*
   - **Source:** `docs/issues-and-bugs/open/phase-1-ai-writing-tools-qa-issues.docx` (154 issues); `docs/issues-and-bugs/open/phase-2-production-testing-issues.docx` (14 issues)
   - **Area:** Product / Testing
   - **Priority:** Critical
@@ -343,18 +385,20 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Import all 154 Phase 1 issues into the tracker with sub-report and severity preserved
-    - [ ] Import all 14 Phase 2 issues with severity preserved
-    - [ ] Merge the two Search sub-reports (9 + 12 issues, substantially duplicated) preserving both references
-    - [ ] Label each issue release-blocking / post-launch / won't-fix
-    - [ ] Link each issue to its checklist task ID in this document
-    - [ ] Assign an owner to every release-blocking issue
+    - [x] Import all 154 Phase 1 issues into the tracker with sub-report and severity preserved — *2026-09-21; both `.docx` files extracted in full (no pandoc/python-docx available — read via stdlib `zipfile` + regex against `word/document.xml`) and read end to end, 1,213 lines of raw text. All 154 issues recorded in `docs/issues-and-bugs/triage-register.md`, grouped by their original sub-report with original severity preserved.*
+    - [x] Import all 14 Phase 2 issues with severity preserved — *2026-09-21; all 14 recorded, all already Resolved by Stage 3 except P2-10 (deferred to task 8.8)*
+    - [x] Merge the two Search sub-reports (9 + 12 issues, substantially duplicated) preserving both references — *2026-09-21; 21 raw issues merged to 14 unique defects, each row in the register cross-referencing both original numbering schemes*
+    - [x] Label each issue release-blocking / post-launch / won't-fix — *2026-09-21; proposed classification applied per the rule confirmed under task 0.6: 115 release-blocking, 29 post-launch, 17 resolved, 0 won't-fix*
+    - [x] Link each issue to its checklist task ID in this document — *2026-09-21; every row carries its owning task ID(s), consistent with the existing Source-Document Coverage Matrix*
+    - [x] Assign an owner to every release-blocking issue — *2026-09-21; owner is the author/product owner for all (task 0.10: solo)*
   - **Verification:**
-    - [ ] Issue count in the tracker reconciles to 168 minus recorded merges
-    - [ ] Every issue maps to exactly one checklist task
+    - [x] Issue count in the tracker reconciles to 168 minus recorded merges — *2026-09-21; 168 raw (154+14) minus 7 recorded Search-report duplicates = 161 unique defects, matching the register's summary table*
+    - [x] Every issue maps to exactly one checklist task — *2026-09-21; true at the level the register operates — a small number of issues span two closely related tasks (e.g. a Plot Assistant issue touching both retrieval scope and ranking) and are recorded against both, explicitly, rather than forced into an arbitrary single choice*
   - **Definition of done:** No issue exists only inside a `.docx`; the backlog is schedulable.
+  - **Progress notes:**
+    - *2026-09-21 — full triage complete.* New file: `docs/issues-and-bugs/triage-register.md`, linked from `docs/issues-and-bugs/README.md`. No existing dedicated issue-tracker tool was found in the repository — the register follows the existing `docs/issues-and-bugs/` convention (Markdown report, indexed from the folder's own README) rather than introducing a new tool. Two items were flagged as genuinely product-sensitive rather than silently classified: whether the Editor UI redesign is a true v1 blocker, and whether Translation rides along with the rest of Stage 5's release-blocking cluster — both resolved under task 0.6 by the product owner confirming the proposed rule as-is for both.
 
-- [ ] **0.10 — Assign stage owners**
+- [x] **0.10 — Assign stage owners** — *completed 2026-09-21*
   - **Source:** Master Execution Plan §10
   - **Area:** Planning
   - **Priority:** High
@@ -362,21 +406,25 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Assign an owner to each of Stages 1–12
-    - [ ] Assign a single owner per functional region of `ai_service.py` (retrieval / prompts / strategies) — this file is touched by Stages 3, 4, 5 and 7
-    - [ ] Agree the parallel-track allocation from Master Execution Plan §10.1
+    - [x] Assign an owner to each of Stages 1–12 — *2026-09-21, **solo — the author/product owner owns every stage***
+    - [x] Assign a single owner per functional region of `ai_service.py` (retrieval / prompts / strategies) — *2026-09-21, same sole owner; the concurrent-edit-conflict risk this exists to prevent does not apply with one person*
+    - [x] Agree the parallel-track allocation from Master Execution Plan §10.1 — *2026-09-21, moot with a single owner — no parallel tracks to allocate across people*
   - **Verification:**
-    - [ ] Every stage has a named owner
+    - [x] Every stage has a named owner — *2026-09-21, all 12*
   - **Definition of done:** No stage is unowned and `ai_service.py` has no concurrent-edit conflict risk.
+  - **Progress notes:**
+    - *2026-09-21 — solo ownership recorded for all stages and all `ai_service.py` regions.*
 
-### Stage 0 Completion Gate
+### Stage 0 Completion Gate — **CLOSED 2026-09-21**
 
-- [ ] All eight decisions (D-1 … D-8) recorded with owner and date
-- [ ] All twelve Phase 3 sub-decisions (D1–D12) recorded
-- [ ] Full backlog triaged and labelled
-- [ ] Every stage has a named owner
-- [ ] Decision register (below) fully populated
-- [ ] Stage 4, 5 and 7 blocked-task lists updated to reflect the decisions
+- [x] All eight decisions (D-1 … D-8) recorded with owner and date — *2026-09-21, Decision Register*
+- [x] All twelve Phase 3 sub-decisions (D1–D12) recorded — *2026-09-21, task 0.4*
+- [x] Full backlog triaged and labelled — *2026-09-21, `docs/issues-and-bugs/triage-register.md`*
+- [x] Every stage has a named owner — *2026-09-21, task 0.10 — solo*
+- [x] Decision register (below) fully populated — *2026-09-21*
+- [x] Stage 4, 5 and 7 blocked-task lists updated to reflect the decisions — *2026-09-21; Stage 8's task 8.8 and Stage 9/10/11/12's decision-gated tasks (9.6, 10.4, 11.9, 12.3) were also updated, beyond this gate criterion's literal wording of "Stage 4, 5 and 7"*
+
+> **2026-09-21 — Stage 0 is COMPLETE.** All 10 main tasks are ticked and the Stage 0 Completion Gate is closed. This is the first stage since Stage 3 to close fully. All 20 tasks that were decision-blocked across Stages 2, 5, 7, 8, 9, 10 and 11 are now unblocked — see the Blocked-Task Register. **No downstream engineering work was performed as part of closing Stage 0** — every unblocked task remains exactly as before (Not Started), per the approved execution instructions. See the consolidated Stage 0 implementation report for the full account.
 
 ---
 
@@ -659,7 +707,7 @@ Repository verification during checklist construction changed three things. Each
   - **Area:** Infrastructure
   - **Priority:** Medium
   - **Depends on:** 2.3
-  - **Blocked by:** **D-2**
+  - **Blocked by:** None — *D-2 recorded 2026-09-21 (retire start.sh); see task 0.2*
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
     - [ ] Apply the D-2 decision — retire `start.sh` or correct it to 9001
@@ -1123,10 +1171,10 @@ Repository verification during checklist construction changed three things. Each
 
 # Stage 4 — Phase 1 Retrieval and Data Correctness
 
-**Entry condition:** Stage 3 gate passed; **D-1 recorded**.
+**Entry condition:** Stage 3 gate passed ✅; **D-1 recorded ✅ 2026-09-21 — option (b): retain the chapter-capped default, add an explicit author-controlled toggle for full-manuscript scope.** See task 0.1.
 **Why here:** Retrieval is the foundation every AI feature stands on. Tuning prompts while retrieval returns the wrong chapters produces confident, well-written, wrong answers.
 **Source:** `docs/issues-and-bugs/open/phase-1-ai-writing-tools-qa-issues.docx` — Plot Assistant (16), Cast Generation & Character Management (14), Search Module ×2 (9 + 12). **51 issues.**
-**Parallelism:** Search (4.10–4.14) and Character (4.6–4.9) are **not** blocked by D-1 and should start immediately. Plot Assistant tasks are strictly sequential — one owner on the `ai_service.py` retrieval region.
+**Parallelism:** Search (4.10–4.14) and Character (4.6–4.9) were never blocked by D-1. Plot Assistant tasks (4.1–4.5, 4.15) are now also unblocked and are strictly sequential — one owner on the `ai_service.py` retrieval region.
 
 ---
 
@@ -1135,7 +1183,7 @@ Repository verification during checklist construction changed three things. Each
   - **Area:** AI / Backend
   - **Priority:** Critical
   - **Depends on:** Stage 3
-  - **Blocked by:** **D-1**
+  - **Blocked by:** None — *D-1 recorded 2026-09-21, option (b); see task 0.1*
   - **Can run in parallel:** No
   - **Implementation checklist:**
     - [ ] Apply the D-1 decision at `plot_assistant.py:90` and `:138`
@@ -1154,7 +1202,7 @@ Repository verification during checklist construction changed three things. Each
   - **Area:** AI / Backend
   - **Priority:** High
   - **Depends on:** 4.1
-  - **Blocked by:** **D-1**
+  - **Blocked by:** None — *D-1 recorded 2026-09-21, option (b); see task 0.1*
   - **Can run in parallel:** No
   - **Context:** `top_k=4` for suggestions, `top_k=5` with character context, `top_k=8` otherwise — thin for story-wide questions.
   - **Implementation checklist:**
@@ -1173,7 +1221,7 @@ Repository verification during checklist construction changed three things. Each
   - **Area:** AI / Backend
   - **Priority:** High
   - **Depends on:** 4.2
-  - **Blocked by:** **D-1**
+  - **Blocked by:** None — *D-1 recorded 2026-09-21, option (b); see task 0.1*
   - **Can run in parallel:** No
   - **Implementation checklist:**
     - [ ] Review the hybrid ranking — cosine similarity plus name-mention boost (`ai_service.py:1187`)
@@ -1190,7 +1238,7 @@ Repository verification during checklist construction changed three things. Each
   - **Area:** AI / Backend
   - **Priority:** High
   - **Depends on:** 4.3
-  - **Blocked by:** **D-1**
+  - **Blocked by:** None — *D-1 recorded 2026-09-21, option (b); see task 0.1*
   - **Can run in parallel:** No
   - **Context:** The system must tell the author *"I did not find this"* versus *"this is not established in your story"*. Conflating the two destroys trust in every negative answer.
   - **Implementation checklist:**
@@ -1207,7 +1255,7 @@ Repository verification during checklist construction changed three things. Each
   - **Area:** AI / Backend
   - **Priority:** Medium
   - **Depends on:** 4.3
-  - **Blocked by:** **D-1**
+  - **Blocked by:** None — *D-1 recorded 2026-09-21, option (b); see task 0.1*
   - **Can run in parallel:** Yes
   - **Context:** Also improves Story Bible grounding (task 3.3), which consumes the same summaries.
   - **Implementation checklist:**
@@ -1377,7 +1425,7 @@ Repository verification during checklist construction changed three things. Each
   - **Area:** Testing
   - **Priority:** High
   - **Depends on:** 4.1–4.14
-  - **Blocked by:** **D-1**
+  - **Blocked by:** None — *D-1 recorded 2026-09-21, option (b); see task 0.1*
   - **Can run in parallel:** No
   - **Implementation checklist:**
     - [ ] Build a fixed multi-chapter fixture manuscript with documented ground truth
@@ -1478,7 +1526,7 @@ Repository verification during checklist construction changed three things. Each
   - **Area:** AI / Backend / Database / Frontend
   - **Priority:** Critical
   - **Depends on:** 5.2
-  - **Blocked by:** **D-5**
+  - **Blocked by:** None — *D-5 recorded 2026-09-21 (confirmed as planned: build once in Stage 5); see task 0.5*
   - **Can run in parallel:** No
   - **Implementation checklist:**
     - [ ] Design confirmation against Phase 3 spec §P3-05
@@ -1500,7 +1548,7 @@ Repository verification during checklist construction changed three things. Each
   - **Area:** AI / Backend / Frontend
   - **Priority:** Critical
   - **Depends on:** 5.3
-  - **Blocked by:** **D-5**
+  - **Blocked by:** None — *D-5 recorded 2026-09-21 (confirmed as planned: build once in Stage 5); see task 0.5*
   - **Can run in parallel:** No
   - **Implementation checklist:**
     - [ ] Design confirmation against Phase 3 spec §P3-02
@@ -1933,7 +1981,7 @@ Repository verification during checklist construction changed three things. Each
   - **Area:** Product / Planning
   - **Priority:** Critical
   - **Depends on:** Stage 6
-  - **Blocked by:** **D-4**
+  - **Blocked by:** None — *D-4 (all twelve sub-decisions D1-D12) recorded 2026-09-21; see task 0.4*
   - **Can run in parallel:** No
   - **Implementation checklist:**
     - [ ] Confirm all twelve §45 decisions are recorded (task 0.4)
@@ -1964,7 +2012,7 @@ Repository verification during checklist construction changed three things. Each
   - **Area:** AI / Backend
   - **Priority:** Critical
   - **Depends on:** 7.2
-  - **Blocked by:** **D-4**, **D-5**
+  - **Blocked by:** None — *D-4 and D-5 both recorded 2026-09-21; see tasks 0.4 and 0.5*
   - **Can run in parallel:** No
   - > **Do not reimplement.** These were delivered in Stage 5 tasks 5.4 and 5.3.
   - **Implementation checklist:**
@@ -1982,7 +2030,7 @@ Repository verification during checklist construction changed three things. Each
   - **Area:** Database
   - **Priority:** Critical
   - **Depends on:** 7.3
-  - **Blocked by:** **D-4**
+  - **Blocked by:** None — *D-4 (all twelve sub-decisions D1-D12) recorded 2026-09-21; see task 0.4*
   - **Can run in parallel:** No
   - **Implementation checklist:**
     - [ ] Reconcile the preservation-rules migration created in Stage 5 with the planned numbering
@@ -2002,7 +2050,7 @@ Repository verification during checklist construction changed three things. Each
   - **Area:** Backend / Database / Frontend
   - **Priority:** High
   - **Depends on:** 7.4
-  - **Blocked by:** **D-4** (D3, D4, D9)
+  - **Blocked by:** None — *D-4 (all twelve sub-decisions D1-D12) recorded 2026-09-21; see task 0.4*
   - **Can run in parallel:** No — P3-03, P3-04, P3-06, P3-11 all reuse it
   - **Implementation checklist:**
     - [ ] Design confirmation against §P3-01
@@ -2027,7 +2075,7 @@ Repository verification during checklist construction changed three things. Each
   - **Area:** AI / Backend / Frontend
   - **Priority:** High
   - **Depends on:** 7.5
-  - **Blocked by:** **D-4**
+  - **Blocked by:** None — *D-4 (all twelve sub-decisions D1-D12) recorded 2026-09-21; see task 0.4*
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
     - [ ] Design confirmation against §P3-03
@@ -2046,7 +2094,7 @@ Repository verification during checklist construction changed three things. Each
   - **Area:** Frontend / AI
   - **Priority:** High
   - **Depends on:** 7.5
-  - **Blocked by:** **D-4**
+  - **Blocked by:** None — *D-4 (all twelve sub-decisions D1-D12) recorded 2026-09-21; see task 0.4*
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
     - [ ] Design confirmation against §P3-04
@@ -2066,7 +2114,7 @@ Repository verification during checklist construction changed three things. Each
   - **Area:** AI / Backend / Frontend
   - **Priority:** Medium
   - **Depends on:** 7.5
-  - **Blocked by:** **D-4**
+  - **Blocked by:** None — *D-4 (all twelve sub-decisions D1-D12) recorded 2026-09-21; see task 0.4*
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
     - [ ] Design confirmation against §P3-06
@@ -2085,7 +2133,7 @@ Repository verification during checklist construction changed three things. Each
   - **Area:** AI / Backend
   - **Priority:** Medium
   - **Depends on:** 7.5
-  - **Blocked by:** **D-4** (D12)
+  - **Blocked by:** None — *D-4 (all twelve sub-decisions D1-D12) recorded 2026-09-21; see task 0.4*
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
     - [ ] Design confirmation against §P3-07
@@ -2103,7 +2151,7 @@ Repository verification during checklist construction changed three things. Each
   - **Area:** AI / Backend
   - **Priority:** High
   - **Depends on:** 7.3, Stage 4
-  - **Blocked by:** **D-4** (D6)
+  - **Blocked by:** None — *D-4 (all twelve sub-decisions D1-D12) recorded 2026-09-21; see task 0.4*
   - **Can run in parallel:** Yes
   - **Context:** Composes both retrieval helpers fixed in task 3.1 — verify PRE-1 first.
   - **Implementation checklist:**
@@ -2123,7 +2171,7 @@ Repository verification during checklist construction changed three things. Each
   - **Area:** Backend / Database / Frontend
   - **Priority:** Medium
   - **Depends on:** 7.4
-  - **Blocked by:** **D-4** (D10)
+  - **Blocked by:** None — *D-4 (all twelve sub-decisions D1-D12) recorded 2026-09-21; see task 0.4*
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
     - [ ] Design confirmation against §P3-09
@@ -2142,7 +2190,7 @@ Repository verification during checklist construction changed three things. Each
   - **Area:** AI / Backend
   - **Priority:** Medium
   - **Depends on:** 7.3, 7.4
-  - **Blocked by:** **D-4** (D5, D11)
+  - **Blocked by:** None — *D-4 (all twelve sub-decisions D1-D12) recorded 2026-09-21; see task 0.4*
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
     - [ ] Design confirmation against §P3-10
@@ -2162,7 +2210,7 @@ Repository verification during checklist construction changed three things. Each
   - **Area:** AI / Backend / Database
   - **Priority:** Medium
   - **Depends on:** 7.5
-  - **Blocked by:** **D-4** (D4, D12)
+  - **Blocked by:** None — *D-4 (all twelve sub-decisions D1-D12) recorded 2026-09-21; see task 0.4*
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
     - [ ] Design confirmation against §P3-11
@@ -2344,7 +2392,7 @@ Repository verification during checklist construction changed three things. Each
   - **Area:** Frontend
   - **Priority:** Medium
   - **Depends on:** 8.1
-  - **Blocked by:** **D-4** (D10)
+  - **Blocked by:** None — *D-4 (all twelve sub-decisions D1-D12) recorded 2026-09-21; see task 0.4*
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
     - [ ] Remove the Notes and Narrative Threads navigation duplication
@@ -2521,7 +2569,7 @@ Repository verification during checklist construction changed three things. Each
   - **Area:** Product / Testing
   - **Priority:** Critical
   - **Depends on:** 9.2
-  - **Blocked by:** **D-6**
+  - **Blocked by:** None — *D-6 recorded 2026-09-21 (severity bar confirmed as proposed); see task 0.6*
   - **Can run in parallel:** No
   - **Context:** Most of the 154 Phase 1 issues were found by an author, not a test suite. Only an author can confirm closure.
   - **Implementation checklist:**
@@ -2639,7 +2687,7 @@ Repository verification during checklist construction changed three things. Each
   - **Area:** Security / Backend
   - **Priority:** High
   - **Depends on:** Stage 2
-  - **Blocked by:** **D-3**
+  - **Blocked by:** None — *D-3 recorded 2026-09-21 (single-worker); see task 0.3*
   - **Can run in parallel:** Yes
   - **Context:** slowapi is constructed with no `storage_uri`. `SLOWAPI_STORAGE_URI` is read by nothing. In-memory storage is per-process, so limits multiply by worker count.
   - **Implementation checklist:**
@@ -2905,7 +2953,7 @@ Repository verification during checklist construction changed three things. Each
   - **Area:** Documentation
   - **Priority:** Low
   - **Depends on:** Stage 10
-  - **Blocked by:** **D-7**
+  - **Blocked by:** None — *D-7 recorded 2026-09-21 (references retired); see task 0.7*
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
     - [ ] Apply the D-7 decision
@@ -2982,7 +3030,7 @@ Repository verification during checklist construction changed three things. Each
   - **Area:** Product
   - **Priority:** Critical
   - **Depends on:** 12.1, 12.2
-  - **Blocked by:** **D-6**
+  - **Blocked by:** None — *D-6 recorded 2026-09-21 (severity bar confirmed as proposed); see task 0.6*
   - **Can run in parallel:** No
   - **Implementation checklist:**
     - [ ] Present gate results to the product owner
@@ -3028,33 +3076,35 @@ Repository verification during checklist construction changed three things. Each
 
 | ID | Decision | Owner | Status | Date | Blocks |
 |---|---|---|---|---|---|
-| D-1 | Plot Assistant retrieval scope | Product owner | ☐ Open | — | 4.1, 4.2, 4.3, 4.4, 4.5, 4.15 |
-| D-2 | Retire or repair `start.sh` | Tech lead | ☐ Open | — | 2.4 |
-| D-3 | Single- or multi-worker deployment target | Tech lead / Infra | ☐ Open | — | 10.4 |
-| D-4 | Phase 3 stakeholder decisions (D1–D12) | Product + Eng | ☐ Open | — | 7.1–7.15, 8.8 |
-| D-5 | Preservation-layer sequencing | Product + Eng | ☐ Open | — | 5.3, 5.4, 7.3 |
-| D-6 | Release-blocking issue scope | Product owner | ☐ Open | — | 9.6, 12.3 |
-| D-7 | Missing recovery report | Doc owner | ☐ Open | — | 11.9 |
-| D-8 | Acceptable chapter ceiling at launch | Product owner | ☐ Open | — | Plot-hole strategy sizing |
-| D1–D12 | Phase 3 spec §45 sub-decisions | Product + Eng | ☐ Open | — | Stage 7 (see task 0.4) |
+| D-1 | Plot Assistant retrieval scope | Author/product owner | ☑ Recorded — **option (b)** | 2026-09-21 | 4.1, 4.2, 4.3, 4.4, 4.5, 4.15 (unblocked) |
+| D-2 | Retire or repair `start.sh` | Author/product owner | ☑ Recorded — **retire** | 2026-09-21 | 2.4 (unblocked) |
+| D-3 | Single- or multi-worker deployment target | Author/product owner | ☑ Recorded — **single worker** | 2026-09-21 | 10.4 (unblocked) |
+| D-4 | Phase 3 stakeholder decisions (D1–D12) | Author/product owner | ☑ Recorded — see D1–D12 row below | 2026-09-21 | 7.1–7.15, 8.8 (unblocked) |
+| D-5 | Preservation-layer sequencing | Author/product owner | ☑ Recorded — **confirmed as planned (build once in Stage 5)** | 2026-09-21 | 5.3, 5.4, 7.3 (unblocked) |
+| D-6 | Release-blocking issue scope | Author/product owner | ☑ Recorded — **default rule confirmed as proposed** (see `docs/issues-and-bugs/triage-register.md`) | 2026-09-21 | 9.6, 12.3 (unblocked) |
+| D-7 | Missing recovery report | Author/product owner | ☑ Recorded — **not recoverable; references to be retired (task 11.9)** | 2026-09-21 | 11.9 (unblocked) |
+| D-8 | Acceptable chapter ceiling at launch | Author/product owner | ☑ Recorded — **accept 60 chapters at launch** | 2026-09-21 | Plot-hole strategy sizing (resolved — no new Stage 5 scope added) |
+| D1–D12 | Phase 3 spec §45 sub-decisions | Author/product owner | ☑ Recorded — see task 0.4 for the value of every sub-decision | 2026-09-21 | Stage 7 (see task 0.4) — unblocked |
 
 ---
 
 # Blocked-Task Register
 
-26 tasks are currently blocked. All clear once Stage 0 completes, except 1.4 which is an infrastructure action.
+**0 tasks are decision-blocked** (was 26 at the start of Stage 0; all cleared 2026-09-21 as Stage 0's eight decisions plus the twelve Phase 3 sub-decisions were recorded — see the Decision Register above). Nothing in this register remains open.
 
-| Task | Blocked by | Clears when |
+| Task | Was blocked by | Cleared |
 |---|---|---|
-| 2.4 | D-2 | D-2 recorded |
-| 4.1, 4.2, 4.3, 4.4, 4.5, 4.15 | D-1 | D-1 recorded |
-| 5.3, 5.4 | D-5 | D-5 recorded |
-| 7.1, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9, 7.10, 7.11, 7.12, 7.13 | D-4 | All twelve §45 decisions recorded |
-| 8.8 | D-4 (D10) | D10 recorded |
-| 9.6 | D-6 | D-6 recorded |
-| 10.4 | D-3 | D-3 recorded |
-| 11.9 | D-7 | D-7 recorded |
-| 12.3 | D-6 | D-6 recorded |
+| ~~4.1, 4.2, 4.3, 4.4, 4.5, 4.15~~ | ~~D-1~~ | 2026-09-21 — see task 0.1 |
+| ~~2.4~~ | ~~D-2~~ | 2026-09-21 — see task 0.2 |
+| ~~5.3, 5.4~~ | ~~D-5~~ | 2026-09-21 — see task 0.5 |
+| ~~7.1, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9, 7.10, 7.11, 7.12, 7.13~~ | ~~D-4~~ | 2026-09-21 — see task 0.4 |
+| ~~8.8~~ | ~~D-4 (D10)~~ | 2026-09-21 — see task 0.4 |
+| ~~9.6~~ | ~~D-6~~ | 2026-09-21 — see task 0.6 |
+| ~~10.4~~ | ~~D-3~~ | 2026-09-21 — see task 0.3 |
+| ~~11.9~~ | ~~D-7~~ | 2026-09-21 — see task 0.7 |
+| ~~12.3~~ | ~~D-6~~ | 2026-09-21 — see task 0.6 |
+
+> **Note:** clearing a decision-level block does not mean the downstream task is implemented — 5.3, 5.4, 7.1–7.13, 8.8, 9.6, 10.4, 11.9 and 12.3 are all still **Not Started**. Only their entry condition (a recorded decision) is satisfied. Per the approved Stage 0 execution instructions, no downstream Stage 1–12 engineering work was performed as part of closing these decisions.
 
 **Additionally blocked by infrastructure:** every task in Stages 2–12 is transitively blocked until task 1.4 (port exposure) completes.
 
