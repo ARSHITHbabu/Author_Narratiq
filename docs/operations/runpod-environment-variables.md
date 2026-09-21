@@ -8,6 +8,10 @@ history. No service was started, no model downloaded, no migration run. Where a 
 be verified by reading alone, it is marked **UNVERIFIED** and listed in
 [§11 Uncertainties](#11-uncertainties--runtime-verification-required).
 
+> **2026-09-21 — live runtime verification performed.** 6 of the 7 items in §11 are now confirmed
+> against an actual running pod (not just static analysis) — see the updated §11 table. The
+> port contradiction in §10 has also been resolved in code, not just documented.
+
 ---
 
 ## 1. Executive summary
@@ -335,10 +339,10 @@ Format notes: list-typed fields (`CORS_ORIGINS`, `VOICE_ADMIN_EMAILS`) must be *
 | `SLOWAPI_STORAGE_URI` | **Never read by any code** | Appears only in prose: `config.py:86`, `middleware/rate_limit.py:6`, `CLAUDE.md:200,236`. The limiter is built with no storage argument at `middleware/rate_limit.py:67` (`Limiter(key_func=get_remote_address)`). Rate limiting is unconditionally in-memory; CLAUDE.md's "zero code changes" Redis claim is false |
 | `HF_HUB_ENABLE_HF_TRANSFER` | **Never read in this repo** | Only in comments (`requirements.setup.txt:13`, `docs/operations/runpod-deployment.md:131`). Would be honoured by the `huggingface_hub` library if exported, but nothing here sets it |
 | `HUGGING_FACE_HUB_TOKEN`, `HF_HOME`, `TRANSFORMERS_CACHE` | **Zero occurrences** | Note `start-narratiq.sh:264` hardcodes `$HOME/.cache/huggingface/hub/…` rather than honouring `HF_HOME` |
-| `VLLM_PORT` | **Shell-only; no `Settings` field** | `start.sh:25` (default 8001), `verify_runpod_setup.sh:14` (default 8001). `start-narratiq.sh:17` hardcodes 9001 and does not read the variable |
+| `VLLM_PORT` | **Shell-only; no `Settings` field** | *(2026-09-21: `start.sh` deleted; `verify_runpod_setup.sh:14` now defaults to 9001)* Historically `start.sh:25` and `verify_runpod_setup.sh:14` both defaulted to 8001. `start-narratiq.sh:17` hardcodes 9001 and does not read the variable |
 | `GOT_OCR_MODEL_PATH` | **Shell-only; no `Settings` field** | `verify_runpod_setup.sh:13` only |
-| `BACKEND_DIR` | **Shell-only** | `start.sh:27`. `start-narratiq.sh:14` hardcodes it |
-| `GPU_MEMORY_UTILIZATION`, `TENSOR_PARALLEL_SIZE`, `MAX_MODEL_LEN` | **Vestigial for the current script** | `Settings` fields and `start.sh` overrides, but `start-narratiq.sh:311-315` auto-detects from GPU count and passes CLI flags directly to vLLM — it never reads these |
+| `BACKEND_DIR` | **Shell-only** | *(2026-09-21: `start.sh` deleted)* Was also read by `start.sh:27`. `start-narratiq.sh:14` hardcodes it |
+| `GPU_MEMORY_UTILIZATION`, `TENSOR_PARALLEL_SIZE`, `MAX_MODEL_LEN` | **Vestigial for the current script** | `Settings` fields, and were `start.sh` overrides (`start.sh` deleted 2026-09-21); `start-narratiq.sh:311-315` auto-detects from GPU count and passes CLI flags directly to vLLM — it never reads these |
 | `BACKEND_HOST`, `BACKEND_PORT` | **Vestigial for the current script** | `start-narratiq.sh:505-506` passes `--host`/`--port` as CLI flags |
 | `NARRATIQ_URL`, `FRONTEND_URL`, `BACKEND_URL` | **Test-only** | `backend/scripts/smoke_test.py:33`, `scripts/smoke_test_browser.js:18-19` |
 | `NCCL_P2P_DISABLE`, `NCCL_SHM_DISABLE` | **Set, never read by the app** | `start-narratiq.sh:318`, consumed by NCCL itself |
@@ -457,48 +461,57 @@ SLOWAPI_STORAGE_URI   # never read by any code — rate limiting is always in-me
 
 ---
 
-## 10. Port contradiction — documented, not fixed
+## 10. Port contradiction — RESOLVED 2026-09-21 (was: documented, not fixed)
 
-Per the constraints of this task, **no code or script was modified**. The contradiction is recorded
-here and must be resolved separately.
+This section originally recorded the contradiction without fixing it, per that task's constraints.
+**Follow-up item 1 below has since been carried out** (Stage 2, task 2.4): `start.sh` is deleted and
+`scripts/verify_runpod_setup.sh` is corrected to 9001. Items 2 and 3 remain open by design — see the
+note after the table.
 
 | Source | Port | Status |
 |---|---|---|
 | `start-narratiq.sh:17` | **9001** | **Authoritative** — the startup path actually in use |
 | `backend/config.py:59` | **9001** | Consistent with the script |
-| `start.sh:25` | 8001 | **Legacy** — superseded, last touched 5 June 2026 |
-| `scripts/verify_runpod_setup.sh:14` | 8001 | Legacy — will report a **false failure** against a working 9001 stack |
-| `.env.example:34-35` | 8001 | **Corrected by this task** (documentation file) |
-| `docs/operations/runpod-deployment.md` | 8001 | **Corrected by this task** (documentation file) |
-| `CLAUDE.md:242` | claims `config.py` defaults to 8001 | **Corrected by this task** — the default became 9001 at commit `b0f64be` |
+| `start.sh:25` | 8001 | **Deleted 2026-09-21** — was legacy, superseded, last touched 5 June 2026 |
+| `scripts/verify_runpod_setup.sh:14` | **9001** | **Fixed 2026-09-21** — was 8001, reported a false failure against a working 9001 stack |
+| `.env.example:34-35` | 8001 | **Corrected** (documentation file) |
+| `docs/operations/runpod-deployment.md` | 8001 | **Corrected** (documentation file) |
+| `CLAUDE.md:242` | claims `config.py` defaults to 8001 | **Corrected** — the default became 9001 at commit `b0f64be` |
 
-**Which path is authoritative:** `start-narratiq.sh` (port 9001). `start.sh` is abandoned; its last
-commit is `3496e0c` (5 June 2026), before the Postgres migration, before `SECRET_KEY` became
-mandatory, and before the port changed.
+**Which path is authoritative:** `start-narratiq.sh` (port 9001) — now the only path; `start.sh` no
+longer exists.
 
-**Recommended follow-up (separate task, requires code changes — not performed here):**
-1. Align `start.sh:25` and `scripts/verify_runpod_setup.sh:14` to 9001, or delete `start.sh`.
+**Recommended follow-up, historical (item 1 done; items 2–3 remain open by design, out of Stage 2's scope):**
+1. ~~Align `start.sh:25` and `scripts/verify_runpod_setup.sh:14` to 9001, or delete `start.sh`.~~ **Done 2026-09-21 — `start.sh` deleted.**
 2. Decide whether `start-narratiq.sh:16` should honour `MODEL_BASE_DIR` instead of hardcoding
    `/workspace/models`, so Network Volumes work as `docs/operations/runpod-deployment.md` promises.
+   **Not decided or implemented — this is a design decision (whether to change startup behavior),
+   not an environment-verification task; left for a future task.** See §11 item 4 for the
+   verification finding that motivates this (2026-09-21: confirmed by direct code inspection that
+   `start-narratiq.sh` hardcodes `MODEL_DIR` and unconditionally overwrites any pre-set
+   `MODEL_BASE_DIR` before `download_models.sh` runs — so today, setting it has no effect through
+   that path, exactly as this document already said).
 3. Either implement `SLOWAPI_STORAGE_URI` in `middleware/rate_limit.py:67` or remove the claim from
-   `CLAUDE.md`.
+   `CLAUDE.md`. **Not implemented — out of Stage 2's scope** (a production-readiness feature
+   decision, not environment verification).
 
 ---
 
 ## 11. Uncertainties — runtime verification required
 
-Nothing in this document was validated against a running system. The following need confirmation on a
-provisioned pod.
+Nothing in this document was validated against a running system as originally written. **Updated
+2026-09-21 with live verification against an actual running pod** (Stage 2, task 2.5) — 6 of 7 items
+below are now resolved; item 4 remains genuinely open, with the reason recorded rather than assumed.
 
-| # | Item | Confidence | How to verify |
+| # | Item | Confidence | Resolution |
 |---|---|---|---|
-| 1 | Which variables are *actually* still in your RunPod UI | **Unknown — ground truth** | Open the pod's Environment Variables panel and read them. This settles §4 immediately |
-| 2 | Next.js `.env.local` vs OS env precedence for `NEXT_PUBLIC_API_URL` | **UNVERIFIED** — follows from documented `@next/env` behaviour | After `npm run build`, grep the bundle: `grep -ro "proxy.runpod.net" frontend/.next/static \| head` |
-| 3 | Whether the app runs at all | **Unverified** | No service was started. Nothing here asserts the application works |
-| 4 | `MODEL_BASE_DIR` override behaviour on a Network Volume | Inferred from `:16`/`:501` | Set it, run the script, then check `echo $MODEL_BASE_DIR` and where weights land |
-| 5 | `pydantic-settings` precedence (env > `.env`) | **High** — documented behaviour of 2.3.0, matches the script's export-and-write belt-and-braces design | `VLLM_BASE_URL=http://127.0.0.1:9999/v1 python3 -c "from config import settings; print(settings.vllm_base_url)"` from `backend/` |
-| 6 | `extra_forbidden` crash from `.env.example` | **VERIFIED** — reproduced against an unmodified copy of `config.py` in an isolated directory | Already confirmed; `.env.example` has been corrected |
-| 7 | Whether existing user accounts survive | Inferred | Accounts live in Postgres and are unaffected by `SECRET_KEY`; only JWT sessions are invalidated |
+| 1 | Which variables are *actually* still in your RunPod UI | **CONFIRMED 2026-09-21** | Directly inspected the pod's environment. **None of the app-relevant or obsolete variables listed in §4/§7 are set** — no `SECRET_KEY`, `VLLM_BASE_URL`, `DATABASE_URL`, `CORS_ORIGINS`, `MODEL_BASE_DIR`, `HF_TOKEN`, `NEXT_PUBLIC_API_URL`, and none of §7's obsolete keys. This pod's RunPod UI is clean |
+| 2 | Next.js `.env.local` vs OS env precedence for `NEXT_PUBLIC_API_URL` | **PARTIALLY CONFIRMED 2026-09-21** | The default path (no OS env var set, `.env.local` used) is directly demonstrated: the built bundle contains zero stale host references and exactly one correct one. The *override* case (an OS env var present taking precedence over `.env.local`) was **not** separately tested on this repo — no such variable exists to test against. That half remains inferred from documented Next.js/`@next/env` behaviour, not directly demonstrated here |
+| 3 | Whether the app runs at all | **CONFIRMED 2026-09-21** | Fully verified end to end, including a complete manual author session through the external URL (login, story/chapter creation and persistence, a real AI generation, logout, re-login) |
+| 4 | `MODEL_BASE_DIR` override behaviour on a Network Volume | **CONFIRMED 2026-09-21, split finding — no download triggered** | Verified by direct code inspection plus a zero-side-effect reproduction of each script's own resolution line (not the full script — running the full script would trigger real downloads, which was deliberately avoided). Result: **`start-narratiq.sh` hardcodes `MODEL_DIR="/workspace/models"` (`:16`) and unconditionally re-exports `MODEL_BASE_DIR` from it before calling `download_models.sh` (`:283`,`:530`) — a pre-set `MODEL_BASE_DIR` has no effect through this path.** But `scripts/download_models.sh` run **standalone** does honour `MODEL_BASE_DIR` (`:14`, `${MODEL_BASE_DIR:-/workspace/models}`) — reproduced safely with a throwaway path and no download. So the override works for one entry point and not the other; §10 follow-up item 2 (whether to change `start-narratiq.sh` to honour it) remains an open design decision, not a verification gap |
+| 5 | `pydantic-settings` precedence (env > `.env`) | **CONFIRMED 2026-09-21** | `VLLM_BASE_URL=http://127.0.0.1:9999/v1 python3 -c "from config import settings; print(settings.vllm_base_url)"` from `backend/` → correctly returned the override value, not the `.env` one |
+| 6 | `extra_forbidden` crash from `.env.example` | **VERIFIED** (unchanged) | Already confirmed; `.env.example` has been corrected |
+| 7 | Whether existing user accounts survive | **CONFIRMED 2026-09-21** | Confirmed by schema inspection: the `users` table has no relationship to `SECRET_KEY`; only JWTs (not stored server-side) are affected by a key change |
 
 ---
 

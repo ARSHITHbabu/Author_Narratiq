@@ -1,0 +1,180 @@
+{
+  "results": [
+    {
+      "passage_id": "repetitive-structure",
+      "weakness": "repetitive sentence structure / monotonous rhythm",
+      "n_suggestions": 2,
+      "weakness_detected": true,
+      "categories": [
+        "Lack of Scene Detail",
+        "Repetitive Actions"
+      ],
+      "has_priority_field": true,
+      "soft_praise_hits": 0,
+      "raw_suggestions": [
+        {
+          "id": 1,
+          "category": "Repetitive Actions",
+          "observation": "The narrative uses 'She' exclusively, making it monotonous.",
+          "recommendation": "Diversify pronouns and actions. For instance: 'She walked into the room. He saw the note on the table. She picked it up. He read it twice. She put it down. He walked back out.'",
+          "priority": "high",
+          "text": "The narrative uses 'She' exclusively, making it monotonous.",
+          "reason": "The narrative uses 'She' exclusively, making it monotonous. Diversify pronouns and actions. For instance: 'She walked into the room. He saw the note on the table. She picked it up. He read it twice. She put it down. He walked back out.'"
+        },
+        {
+          "id": 2,
+          "category": "Lack of Scene Detail",
+          "observation": "The scene lacks descriptive elements or sensory details.",
+          "recommendation": "Enhance the scene with descriptive details. For example: 'She walked into the dimly lit study, her footsteps echoing softly on the hardwood floor. A single candle flickered on the oak table, casting shadows over a crumpled note. She picked it up, her fingers tracing the creases. She read it twice, her heart pounding. She put it down, the weight of the message heavy in her chest. She walked back out, the door creaking behind her.', adding visual and emotional depth.",
+          "priority": "high",
+          "text": "The scene lacks descriptive elements or sensory details.",
+          "reason": "The scene lacks descriptive elements or sensory details. Enhance the scene with descriptive details. For example: 'She walked into the dimly lit study, her footsteps echoing softly on the hardwood floor. A single candle flickered on the oak table, casting shadows over a crumpled note. She picked it up, her fingers tracing the creases. She read it twice, her heart pounding. She put it down, the weight of the message heavy in her chest. She walked back out, the door creaking behind her.', adding visual and emotional depth."
+        }
+      ]
+    },
+    {
+      "passage_id": "telling-not-showing",
+      "weakness": "telling emotion directly instead of showing it",
+      "n_suggestions": 2,
+      "weakness_detected": true,
+      "categories": [
+        "Emotional Overload",
+        "Unclear Stakes"
+      ],
+      "has_priority_field": true,
+      "soft_praise_hits": 0,
+      "raw_suggestions": [
+        {
+          "id": 1,
+          "category": "Emotional Overload",
+          "observation": "The excerpt lists multiple emotions (furious, sad, betrayed) without showing how Maria reacts to them.",
+          "recommendation": "Detail Maria's physical reactions to these emotions. For instance, 'Maria's face flushed with fury, her fists clenched until her nails dug into her palms, and her eyes welled with unshed tears.'",
+          "priority": "high",
+          "text": "The excerpt lists multiple emotions (furious, sad, betrayed) without showing how Maria reacts to them.",
+          "reason": "The excerpt lists multiple emotions (furious, sad, betrayed) without showing how Maria reacts to them. Detail Maria's physical reactions to these emotions. For instance, 'Maria's face flushed with fury, her fists clenched until her nails dug into her palms, and her eyes welled with unshed tears.'"
+        },
+        {
+          "id": 2,
+          "category": "Unclear Stakes",
+          "observation": "The excerpt does not indicate any immediate stakes or consequences for Maria's emotional state.",
+          "recommendation": "Add a specific consequence or decision point that stems from her emotions. For example, 'She stormed out of the room, slamming the door behind her, and now faced the choice of confronting her friend or ignoring her.'",
+          "priority": "medium",
+          "text": "The excerpt does not indicate any immediate stakes or consequences for Maria's emotional state.",
+          "reason": "The excerpt does not indicate any immediate stakes or consequences for Maria's emotional state. Add a specific consequence or decision point that stems from her emotions. For example, 'She stormed out of the room, slamming the door behind her, and now faced the choice of confronting her friend or ignoring her.'"
+        }
+      ]
+    },
+    {
+      "passage_id": "generic-dialogue",
+      "weakness": "flat, generic dialogue with no character voice",
+      "n_suggestions": 2,
+      "weakness_detected": true,
+      "categories": [
+        "Dialogue Tags",
+        "Stilted Dialogue"
+      ],
+      "has_priority_field": true,
+      "soft_praise_hits": 0,
+      "raw_suggestions": [
+        {
+          "id": 1,
+          "category": "Dialogue Tags",
+          "observation": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+          "recommendation": "Vary dialogue tags by using actions instead of repetitive 'said'. For example: 'Hello,' she greeted warmly. He replied with a nod, 'How are you?' She smiled and said, 'I am fine.' 'That is good,' he commented.",
+          "priority": "high",
+          "text": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+          "reason": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said. Vary dialogue tags by using actions instead of repetitive 'said'. For example: 'Hello,' she greeted warmly. He replied with a nod, 'How are you?' She smiled and said, 'I am fine.' 'That is good,' he commented."
+        },
+        {
+          "id": 2,
+          "category": "Stilted Dialogue",
+          "observation": "The dialogue exchanges feel very formal and stilted, lacking natural flow.",
+          "recommendation": "Adjust the phrasing and tone to make the dialogue more natural. For example: 'Hey there,' she said with a smile. 'How\u2019s it going?' he asked. 'Pretty good,' she replied. 'That\u2019s great,' he said, looking pleased.",
+          "priority": "high",
+          "text": "The dialogue exchanges feel very formal and stilted, lacking natural flow.",
+          "reason": "The dialogue exchanges feel very formal and stilted, lacking natural flow. Adjust the phrasing and tone to make the dialogue more natural. For example: 'Hey there,' she said with a smile. 'How\u2019s it going?' he asked. 'Pretty good,' she replied. 'That\u2019s great,' he said, looking pleased."
+        }
+      ]
+    },
+    {
+      "passage_id": "info-dump",
+      "weakness": "exposition dumped directly rather than woven in",
+      "n_suggestions": 2,
+      "weakness_detected": true,
+      "categories": [
+        "Exposition",
+        "Narrative Risk"
+      ],
+      "has_priority_field": true,
+      "soft_praise_hits": 0,
+      "raw_suggestions": [
+        {
+          "id": 1,
+          "category": "Exposition",
+          "observation": "The passage is purely expository, providing historical background without any immediate scene or character interaction.",
+          "recommendation": "Replace the expository section with a dialogue between the protagonist and a mentor who shares this history, making it relevant to the current plot.",
+          "priority": "high",
+          "text": "The passage is purely expository, providing historical background without any immediate scene or character interaction.",
+          "reason": "The passage is purely expository, providing historical background without any immediate scene or character interaction. Replace the expository section with a dialogue between the protagonist and a mentor who shares this history, making it relevant to the current plot."
+        },
+        {
+          "id": 2,
+          "category": "Narrative Risk",
+          "observation": "There is no clear stake or immediate relevance to the current narrative, which could risk losing the reader's interest.",
+          "recommendation": "Reframe the information to show how it directly affects the main character's current dilemma or decision.",
+          "priority": "medium",
+          "text": "There is no clear stake or immediate relevance to the current narrative, which could risk losing the reader's interest.",
+          "reason": "There is no clear stake or immediate relevance to the current narrative, which could risk losing the reader's interest. Reframe the information to show how it directly affects the main character's current dilemma or decision."
+        }
+      ]
+    },
+    {
+      "passage_id": "flat-description",
+      "weakness": "vague adjectives with no sensory specificity",
+      "n_suggestions": 2,
+      "weakness_detected": true,
+      "categories": [
+        "Lack of Specificity",
+        "Repetitive Adjectives"
+      ],
+      "has_priority_field": true,
+      "soft_praise_hits": 1,
+      "raw_suggestions": [
+        {
+          "id": 2,
+          "category": "Lack of Specificity",
+          "observation": "The description lacks specific details about the house and garden, such as the type of flowers in the garden or the exact nature of the view.",
+          "recommendation": "Specify the types of flowers in the garden (e.g., roses, lavender) and describe the view (e.g., a distant mountain range, a lush forest).",
+          "priority": "high",
+          "text": "The description lacks specific details about the house and garden, such as the type of flowers in the garden or the exact nature of the view.",
+          "reason": "The description lacks specific details about the house and garden, such as the type of flowers in the garden or the exact nature of the view. Specify the types of flowers in the garden (e.g., roses, lavender) and describe the view (e.g., a distant mountain range, a lush forest)."
+        },
+        {
+          "id": 1,
+          "category": "Repetitive Adjectives",
+          "observation": "The adjectives 'nice', 'big', 'spacious', and 'very nice' are repeated multiple times, creating a monotonous effect.",
+          "recommendation": "Replace 'nice' with 'charming', 'big' with 'impressive', 'spacious' with 'ample', and 'very nice' with 'excellent' to vary the adjectives.",
+          "priority": "medium",
+          "text": "The adjectives 'nice', 'big', 'spacious', and 'very nice' are repeated multiple times, creating a monotonous effect.",
+          "reason": "The adjectives 'nice', 'big', 'spacious', and 'very nice' are repeated multiple times, creating a monotonous effect. Replace 'nice' with 'charming', 'big' with 'impressive', 'spacious' with 'ample', and 'very nice' with 'excellent' to vary the adjectives."
+        }
+      ]
+    }
+  ],
+  "recall_rate": 1.0,
+  "distinct_categories_across_set": [
+    "Dialogue Tags",
+    "Emotional Overload",
+    "Exposition",
+    "Lack of Scene Detail",
+    "Lack of Specificity",
+    "Narrative Risk",
+    "Repetitive Actions",
+    "Repetitive Adjectives",
+    "Stilted Dialogue",
+    "Unclear Stakes"
+  ],
+  "distinct_category_count": 10,
+  "any_soft_praise": true,
+  "all_have_priority": true
+}

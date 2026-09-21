@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, computed_field, field_validator
-from typing import Optional, List, Any
+from typing import Optional, List, Any, Literal, Dict
 from datetime import datetime
 
 
@@ -151,6 +151,18 @@ class PlotAssistantRequest(BaseModel):
     current_chapter_text: Optional[str] = ""
     current_chapter_number: Optional[int] = None
     template: Optional[str] = None
+    # D-1 (Stage 0 task 0.1, option b): default is spoiler-safe — retrieval is
+    # capped at current_chapter_number. "full" is an explicit author opt-in to
+    # search the entire manuscript, including chapters after the current one.
+    scope: Optional[Literal["chapter", "full"]] = "chapter"
+
+
+class RetrievalMeta(BaseModel):
+    """Task 4.4 — lets the author (and the UI) tell 'I found nothing relevant'
+    apart from 'this isn't in your story', instead of both looking identical."""
+    chunks_retrieved: int = 0
+    chapters_covered: List[int] = []
+    scope_limited: bool = False   # True when scope="chapter" capped retrieval at all
 
 
 class PlotAssistantResponse(BaseModel):
@@ -160,6 +172,11 @@ class PlotAssistantResponse(BaseModel):
     suggestions: List[PlotSuggestion] = []   # present for "suggestions" and "mixed"
     context_used: str
     tokens_used: int
+    # Task 4.1 — the active scope must be visible to the author, never silent.
+    scope_used: str = "chapter"   # "chapter" | "full"
+    # Task 4.4 — structured retrieval metadata, separate from the free-text
+    # context_used description, so the frontend can render it without parsing prose.
+    retrieval: RetrievalMeta = RetrievalMeta()
 
 
 # ── Plot Hole Detection ────────────────────────────────────────────────────────
@@ -219,6 +236,25 @@ class ImprovementEntry(BaseModel):
     chapters: List[int]         # chapters that motivated this recommendation
 
 
+class StakesEscalationPoint(BaseModel):
+    chapter: int
+    note:    str
+
+
+class StakesAssessment(BaseModel):
+    """Task 5.14 Medium 9 — what the protagonist(s) stand to lose, and
+    whether it escalates across the manuscript. New dimension, no prior
+    signal existed for this anywhere in the schema."""
+    summary:    str
+    escalation: List[StakesEscalationPoint] = []
+
+
+class ThemeEntry(BaseModel):
+    """Task 5.14 Medium 9 — recurring thematic material. New dimension."""
+    theme:    str
+    chapters: List[int]
+
+
 class ManuscriptReport(BaseModel):
     story_id:           str
     chapters_analyzed:  int
@@ -229,6 +265,25 @@ class ManuscriptReport(BaseModel):
     strengths:          List[StrengthEntry]
     improvements:       List[ImprovementEntry]
     analysis_note:      str
+    # Additive Stage 5 task 5.14 fields — every existing client that ignores
+    # unknown JSON fields keeps working unchanged.
+    stakes:                     Optional[StakesAssessment] = None
+    themes:                     List[ThemeEntry] = []
+    # Chapter number (as a string, since JSON object keys must be strings) ->
+    # a 0-100 relative plot-importance score, reusing Stage 4's existing
+    # deterministic _plot_importance_by_chapter() signal rather than a new
+    # LLM judgment of "importance".
+    chapter_plot_importance:    Dict[str, float] = {}
+    # Cross-check against the independently-maintained, deterministic
+    # narrative-thread lifecycle tracker (routers/narrative_threads.py) —
+    # present only when that scanner has been run for this story. Lets an
+    # author compare the LLM's own unresolved_threads judgment against a
+    # non-hallucinating source instead of only ever seeing one version.
+    deterministic_open_threads: List[str] = []
+    # How many findings across all sections were dropped for citing a
+    # chapter number that doesn't exist in this manuscript (task 5.14's
+    # citation-validation extended from continuity-check to this report).
+    citations_suppressed:       int = 0
 
 
 # ── AI Transform ──────────────────────────────────────────────────────────────
@@ -240,7 +295,24 @@ class TransformRequest(BaseModel):
     mode: Optional[str] = "standard"
 
 
-class ToneRequest(BaseModel):
+class LockedRangeIn(BaseModel):
+    """Task 5.4 — a locked sub-span, as character offsets into THIS request's
+    own `text` field (the already-selected substring), not document-absolute
+    editor positions. See services/transform_preservation.py's docstring for
+    the full sentence-lock contract."""
+    start: int
+    end: int
+
+
+class StrengthMixin(BaseModel):
+    """Task 5.6 — optional edit-degree control, shared by every transform it
+    applies to. Defaults to "light" per the checklist's own instruction to
+    default to the lower-intervention setting."""
+    strength: Optional[str] = "light"  # light | moderate | strong
+    locked_ranges: Optional[List[LockedRangeIn]] = None
+
+
+class ToneRequest(StrengthMixin):
     story_id: Optional[str] = None
     chapter_id: Optional[str] = None
     text: str
@@ -248,6 +320,11 @@ class ToneRequest(BaseModel):
 
 
 class EmotionRequest(BaseModel):
+    # Strength/locking are deliberately NOT offered for emotion — the
+    # approved design excludes emotion from the 5.5 no-change layer for the
+    # same reason (a fuzzier, more subjective judgment than tone/style/
+    # audience), and strength's sentence/paragraph-count proxy doesn't map
+    # cleanly onto "how much emotional intensity", a different axis entirely.
     story_id: Optional[str] = None
     chapter_id: Optional[str] = None
     text: str
@@ -255,13 +332,13 @@ class EmotionRequest(BaseModel):
     intensity: Optional[str] = "medium"  # low, medium, high
 
 
-class AgeAdaptRequest(BaseModel):
+class AgeAdaptRequest(StrengthMixin):
     story_id: Optional[str] = None
     text: str
     target_age: str  # children (5-10), ya (10-18), adult
 
 
-class StyleRequest(BaseModel):
+class StyleRequest(StrengthMixin):
     story_id: Optional[str] = None
     text: str
     style: str  # gothic, noir, contemporary, etc.
@@ -305,6 +382,15 @@ class TransformResponse(BaseModel):
     transformed: str
     mode: str
     tokens_used: int
+    # Additive Stage 5 fields — every existing client that ignores unknown
+    # JSON fields keeps working unchanged (see the approved backward-
+    # compatibility requirement).
+    no_change: bool = False              # task 5.5
+    reason: Optional[str] = None         # task 5.5's "already suitable" explanation
+    strength_violation: bool = False     # task 5.6 — deterministic proxy check
+    preservation_violations: List[str] = []  # task 5.3 — character names that
+                                              # could not be confirmed preserved
+                                              # even after the one repair retry
 
 
 # ── Copyright / Plagiarism Risk Detection ──────────────────────────────────────
@@ -586,12 +672,29 @@ class Suggestion(BaseModel):
     id: int
     category: str
     text: str
-    reason: str
+    reason: str                          # deprecated — kept for backward compatibility (task 5.13)
+    observation: Optional[str] = None    # task 5.13 — what was actually observed in the excerpt
+    recommendation: Optional[str] = None  # task 5.13 — the concrete, actionable fix
+    priority: Optional[str] = "medium"   # task 5.13 — "high" | "medium" | "low"
 
 
 class SuggestionsResponse(BaseModel):
     suggestions: List[Suggestion]
     tokens_used: int
+
+
+# ── Writing Analytics (task 5.15) ───────────────────────────────────────────
+
+class AnalyticsMetric(BaseModel):
+    value: Any
+    explanation: str
+    target_words: Optional[int] = None  # only set on word_count_progress
+
+
+class StoryAnalyticsResponse(BaseModel):
+    metrics: dict[str, AnalyticsMetric]
+    story_intelligence: Optional[dict] = None
+    story_intelligence_available: bool = False
 
 
 # ── Search & Replace ──────────────────────────────────────────────────────────
@@ -727,6 +830,17 @@ class CastConfirmResult(BaseModel):
     # Same contract as CharacterOut: work still in progress, not work completed.
     mention_indexing_chapters: int = 0
     hints_resolved:            int = 0
+
+
+# ── Character Deduplication (task 4.8) ─────────────────────────────────────────
+
+class MergeCharactersRequest(BaseModel):
+    duplicate_id: str   # the character being merged away and deleted
+
+
+class MergeCharactersResult(BaseModel):
+    survivor: CharacterOut
+    summary:  dict   # see services/character_merge.merge_characters' docstring
 
 
 # ── Character Mentions ────────────────────────────────────────────────────────
@@ -1383,6 +1497,13 @@ class ContinuityIssue(BaseModel):
     chapter_refs:     List[int]
     severity:         str    # high | medium | low
     resolution_hint:  str
+    # Task 5.14 — every surfaced finding has already passed Tier 1 (its
+    # chapter_refs are real chapters in this manuscript) by construction;
+    # this additionally says whether Tier 2 (the cited chapter's own
+    # structured data supports the claim) could be confirmed. False does
+    # NOT mean the finding is wrong — Tier 2 is a heuristic — it means
+    # "verify this one yourself", not "distrust it".
+    citation_verified: bool = True
 
 
 class ContinuityCheckResponse(BaseModel):

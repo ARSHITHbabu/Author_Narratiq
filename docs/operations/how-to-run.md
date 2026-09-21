@@ -243,8 +243,9 @@ Allow 15–30 s per chapter. The story ID is in the URL when you open a story.
 | Next.js frontend | 3000 | `http://localhost:3000` | Yes |
 | PostgreSQL | 5432 | `localhost:5432` | No — internal |
 
-> The legacy `start.sh` and `scripts/verify_runpod_setup.sh` still default vLLM to **8001**.
-> They are superseded by `start-narratiq.sh`. See `docs/operations/runpod-deployment.md` → Port contradiction.
+> The legacy `start.sh`, which defaulted vLLM to 8001, has been deleted (2026-09-21) — it was
+> superseded by `start-narratiq.sh`. `scripts/verify_runpod_setup.sh` is now corrected to 9001 too.
+> See `docs/operations/runpod-deployment.md` → Port contradiction.
 
 ### Log files
 

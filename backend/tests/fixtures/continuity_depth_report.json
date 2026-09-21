@@ -1,0 +1,134 @@
+{
+  "motivation_contradiction": {
+    "expected_type_keywords": [
+      "motivation"
+    ],
+    "old_prompt_issues": [
+      {
+        "type": "character_appearance",
+        "description": "Kael is described as having a scarred left hand in the character profiles, but in Chapter 2, he draws his sword on his sister without hesitation, implying both hands are functional.",
+        "chapter_refs": [
+          1,
+          2
+        ],
+        "severity": "high",
+        "resolution_hint": "Clarify whether Kael has regained the use of his left hand or if there was a mistake in the initial description."
+      },
+      {
+        "type": "timeline",
+        "description": "In Chapter 1, Kael swears he will never raise a weapon against his sister, but in Chapter 2, he draws his sword on her without hesitation, contradicting his earlier statement.",
+        "chapter_refs": [
+          1,
+          2
+        ],
+        "severity": "high",
+        "resolution_hint": "Ensure Kael's actions align with his stated intentions to maintain consistency."
+      }
+    ],
+    "new_prompt_issues": [
+      {
+        "type": "motivation",
+        "description": "Kael's sworn promise to never raise a weapon against his sister is contradicted by his subsequent action of drawing his sword on her without hesitation.",
+        "chapter_refs": [
+          1,
+          2
+        ],
+        "severity": "high",
+        "resolution_hint": "Clarify Kael's motivations in Chapter 2. Perhaps he was forced into a situation where he felt he had no choice but to defend himself, or there was a misunderstanding."
+      }
+    ],
+    "old_prompt_detected_expected": false,
+    "new_prompt_detected_expected": true
+  },
+  "relationship_contradiction": {
+    "expected_type_keywords": [
+      "relationship"
+    ],
+    "old_prompt_issues": [
+      {
+        "type": "character_location",
+        "description": "Kael is present at the manor in both Chapter 1 and Chapter 2, but in Chapter 1 he reconciles with Priya while in Chapter 2 she refuses to speak to him.",
+        "chapter_refs": [
+          1,
+          2
+        ],
+        "severity": "high",
+        "resolution_hint": "Ensure that the emotional state of the characters aligns with their actions in each chapter."
+      }
+    ],
+    "new_prompt_issues": [
+      {
+        "type": "motivation",
+        "description": "Kael's motivation to protect his sister is contradicted by the fact that he reconciles with her in Chapter 1 but then she refuses to speak to him in Chapter 2.",
+        "chapter_refs": [
+          1,
+          2
+        ],
+        "severity": "high",
+        "resolution_hint": "Clarify Kael's motivation in Chapter 2. Either have Kael continue to try to protect his sister despite the estrangement, or adjust his motivation to align with the new situation."
+      }
+    ],
+    "old_prompt_detected_expected": false,
+    "new_prompt_detected_expected": false
+  },
+  "surface_control (should still be caught)": {
+    "expected_type_keywords": [
+      "location",
+      "timeline"
+    ],
+    "old_prompt_issues": [
+      {
+        "type": "character_location",
+        "description": "Kael is said to have arrived in Paris in Chapter 1 but then has breakfast in Tokyo in Chapter 2.",
+        "chapter_refs": [
+          1,
+          2
+        ],
+        "severity": "high",
+        "resolution_hint": "Ensure Kael's travel from Paris to Tokyo is clearly described or remove the mention of breakfast in Tokyo."
+      }
+    ],
+    "new_prompt_issues": [
+      {
+        "type": "character_location",
+        "description": "Kael is described as being in Paris in Chapter 1 but then in Tokyo in Chapter 2, which contradicts his initial location.",
+        "chapter_refs": [
+          1,
+          2
+        ],
+        "severity": "high",
+        "resolution_hint": "Move the events in Chapter 2 back to Paris or clarify Kael's journey from Paris to Tokyo."
+      },
+      {
+        "type": "motivation",
+        "description": "In Chapter 1, Kael\u2019s goal is to protect his sister, but in Chapter 2, he is seen having breakfast in Tokyo without any mention of his sister, suggesting he may have left her behind or abandoned his goal.",
+        "chapter_refs": [
+          1,
+          2
+        ],
+        "severity": "medium",
+        "resolution_hint": "Clarify Kael's current status regarding his sister and ensure his actions align with his protective goal throughout the story."
+      }
+    ],
+    "old_prompt_detected_expected": true,
+    "new_prompt_detected_expected": true
+  },
+  "clean_control (should stay empty)": {
+    "expected_type_keywords": [],
+    "old_prompt_issues": [
+      {
+        "type": "character_location",
+        "description": "Kael is described as being at the harbor in Chapter 1 but then on the ship in Chapter 2.",
+        "chapter_refs": [
+          1,
+          2
+        ],
+        "severity": "high",
+        "resolution_hint": "Ensure Kael's location transitions are consistent."
+      }
+    ],
+    "new_prompt_issues": [],
+    "old_prompt_detected_expected": false,
+    "new_prompt_detected_expected": true
+  }
+}

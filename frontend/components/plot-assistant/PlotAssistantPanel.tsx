@@ -40,6 +40,10 @@ export default function PlotAssistantPanel({ storyId, getEditorText, chapterNumb
   const [result, setResult]       = useState<PlotAssistantResponse | null>(null)
   const [copiedId, setCopiedId]   = useState<number | null>(null)
   const [answerCopied, setAnswerCopied] = useState(false)
+  // Task 4.1 (D-1, option b): spoiler-safe "chapter" scope by default; author
+  // can explicitly opt into "full" manuscript search. Never silent — the
+  // active scope is shown both here and in the result badge below.
+  const [scope, setScope] = useState<'chapter' | 'full'>('chapter')
 
   const ask = async (q?: string) => {
     const finalQ = q || question.trim()
@@ -47,7 +51,7 @@ export default function PlotAssistantPanel({ storyId, getEditorText, chapterNumb
     setLoading(true)
     setResult(null)
     try {
-      const res = await plotApi.suggest(storyId, finalQ, getEditorText().slice(0, 1500), undefined, chapterNumber)
+      const res = await plotApi.suggest(storyId, finalQ, getEditorText().slice(0, 1500), undefined, chapterNumber, scope)
       setResult(res.data as PlotAssistantResponse)
       if (q) setQuestion('')
     } catch (err: any) {
@@ -126,6 +130,37 @@ export default function PlotAssistantPanel({ storyId, getEditorText, chapterNumb
           <div className="flex-1 h-px bg-[#1f2440]" />
         </div>
 
+        {/* Search scope toggle — always visible, never a silent default */}
+        <div className="flex items-center justify-between text-xs bg-[#0d0f1a] border border-[#1f2440] rounded-xl px-3 py-2">
+          <span className="text-[#5c6391]">Search scope</span>
+          <div className="flex gap-1">
+            <button
+              type="button"
+              onClick={() => setScope('chapter')}
+              className={`px-2.5 py-1 rounded-lg transition-colors ${
+                scope === 'chapter'
+                  ? 'bg-amber-500 text-black font-medium'
+                  : 'text-[#5c6391] hover:text-[#9da3c8]'
+              }`}
+              title="Spoiler-safe: only this chapter and earlier"
+            >
+              This chapter
+            </button>
+            <button
+              type="button"
+              onClick={() => setScope('full')}
+              className={`px-2.5 py-1 rounded-lg transition-colors ${
+                scope === 'full'
+                  ? 'bg-amber-500 text-black font-medium'
+                  : 'text-[#5c6391] hover:text-[#9da3c8]'
+              }`}
+              title="Search the entire manuscript, including later chapters"
+            >
+              Full manuscript
+            </button>
+          </div>
+        </div>
+
         {/* Input */}
         <div className="relative">
           <textarea
@@ -160,11 +195,23 @@ export default function PlotAssistantPanel({ storyId, getEditorText, chapterNumb
         {result && (
           <div className="flex flex-col gap-3">
 
-            {/* Context + mode badge */}
-            <div className="flex items-center justify-between">
-              <span className={`text-xs font-medium ${MODE_COLOR[result.mode] ?? 'text-amber-400'}`}>
-                {MODE_LABEL[result.mode] ?? result.mode}
-              </span>
+            {/* Context + mode + scope badge */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className={`text-xs font-medium ${MODE_COLOR[result.mode] ?? 'text-amber-400'}`}>
+                  {MODE_LABEL[result.mode] ?? result.mode}
+                </span>
+                <span
+                  className={`text-[10px] px-1.5 py-0.5 rounded-full border ${
+                    result.scope_used === 'full'
+                      ? 'border-violet-500/40 text-violet-300'
+                      : 'border-emerald-500/40 text-emerald-300'
+                  }`}
+                  title={result.scope_used === 'full' ? 'Searched the entire manuscript' : 'Spoiler-safe: this chapter and earlier only'}
+                >
+                  {result.scope_used === 'full' ? 'full manuscript' : 'this chapter'}
+                </span>
+              </div>
               {result.context_used && (
                 <span className="text-xs text-[#3d4466] truncate max-w-[160px]" title={result.context_used}>
                   {result.context_used}
@@ -192,6 +239,20 @@ export default function PlotAssistantPanel({ storyId, getEditorText, chapterNumb
                   </button>
                 </div>
                 <p className="text-sm text-[#e8eaf6] leading-relaxed whitespace-pre-wrap">{result.answer}</p>
+
+                {/* Task 4.4: make retrieval-limit vs. knowledge-limit visible, not silent */}
+                {result.retrieval && result.retrieval.chunks_retrieved === 0 && result.retrieval.scope_limited && (
+                  <p className="text-xs text-amber-400/80 mt-2 border-t border-[#1f2440] pt-2">
+                    ⚠ No results in the searched chapters — this only searched "this chapter" scope.
+                    Try "Full manuscript" scope if the answer might be later in the story.
+                  </p>
+                )}
+                {result.retrieval && result.retrieval.chunks_retrieved > 0 && (
+                  <p className="text-[10px] text-[#3d4466] mt-2">
+                    Based on {result.retrieval.chunks_retrieved} passage(s) from chapter(s){' '}
+                    {result.retrieval.chapters_covered.join(', ')}
+                  </p>
+                )}
               </div>
             )}
 

@@ -78,6 +78,12 @@ export interface PlotSuggestion {
   rationale: string
 }
 
+export interface RetrievalMeta {
+  chunks_retrieved: number
+  chapters_covered: number[]
+  scope_limited: boolean
+}
+
 export interface PlotAssistantResponse {
   session_id: string
   mode: 'qa' | 'creative' | 'mixed'
@@ -85,6 +91,8 @@ export interface PlotAssistantResponse {
   suggestions: PlotSuggestion[]
   context_used: string
   tokens_used: number
+  scope_used: 'chapter' | 'full'
+  retrieval: RetrievalMeta
 }
 
 export interface PlotHoleIssue {
@@ -156,6 +164,12 @@ export interface TransformResponse {
   transformed: string
   mode: string
   tokens_used: number
+  // Stage 5 additive fields (schemas.TransformResponse) — optional so older
+  // endpoints that do not return them still type-check.
+  no_change?: boolean
+  reason?: string | null
+  strength_violation?: boolean
+  preservation_violations?: string[]
 }
 
 // ── Copyright / Plagiarism Risk Detection ──────────────────────────────────────
@@ -743,4 +757,25 @@ export interface VoiceContextSnapshot {
   active_panel?:        string | null
   active_character_id?: string | null
   word_count?:          number | null
+}
+
+// ── Stage 5 — Writing Analytics (task 5.15) ──────────────────────────────────
+export interface AnalyticsMetric {
+  value:         number | string
+  explanation:   string
+  target_words?: number | null
+}
+
+export interface StoryIntelligenceSummary {
+  emotional_arc_shape?: string | null
+  dominant_emotions?:   string[] | null
+  overall_pacing?:      string | null
+  pacing_score?:        number | null
+  slow_zones?:          unknown
+}
+
+export interface StoryAnalyticsResponse {
+  metrics: Record<string, AnalyticsMetric>
+  story_intelligence?:            StoryIntelligenceSummary | null
+  story_intelligence_available:   boolean
 }

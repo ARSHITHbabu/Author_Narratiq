@@ -238,7 +238,7 @@ def _summary_entry(s: ChapterSummary, body_chars: int) -> str:
     body = str(s.raw_summary or "")
     if body_chars and len(body) > body_chars:
         body = body[:body_chars].rstrip() + "…"
-    return (
+    entry = (
         f"[Ch {s.chapter_number}] "
         f"events={s.key_events}, "
         f"characters={s.characters_present}, "
@@ -246,6 +246,17 @@ def _summary_entry(s: ChapterSummary, body_chars: int) -> str:
         f"tone={s.emotional_tone}, "
         f"summary={body}"
     )
+    # Task 4.16 (informed by 4.5's schema addition): arc/relationship movement
+    # is exactly the signal a flat "Arc Status" line is missing — without it,
+    # the model has no material to draw a real turning point from and falls
+    # back to a generic ongoing-activity description. Appended, not inserted
+    # into the summary= field, so existing callers reading raw_summary alone
+    # are unaffected.
+    if s.character_arc_notes:
+        entry += f", arc_movement={s.character_arc_notes}"
+    if s.relationship_changes:
+        entry += f", relationship_movement={s.relationship_changes}"
+    return entry
 
 
 def _build_full_context(story_id: str, db: Session) -> str:

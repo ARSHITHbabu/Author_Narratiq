@@ -16,11 +16,13 @@ from schemas import (
     CharacterCreate, CharacterGraphResponse, CharacterMentionOut, CharacterHintOut,
     CharacterOut, CharacterProfileUpdate, CharacterUpdate,
     EnrichResult, EnrichSuggestion,
+    MergeCharactersRequest, MergeCharactersResult,
     RelationshipCreate, RelationshipOut, RelationshipUpdate,
     VoiceCheckResponse, VoiceInconsistentPair,
 )
 from routers.auth import get_current_user, User
 from services.character_names import known_names, names_of, normalise_name, resolve_hints_for_names
+from services.character_merge import merge_characters, MergeError
 
 logger = logging.getLogger(__name__)
 
@@ -506,6 +508,56 @@ async def confirm_cast(
         mention_indexing_chapters=queued,
         hints_resolved=len(dismissed_hints),
     )
+
+
+@router.post(
+    "/{story_id}/characters/{character_id}/merge",
+    response_model=MergeCharactersResult,
+)
+async def merge_character(
+    story_id: str,
+    character_id: str,
+    data: MergeCharactersRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Task 4.8 — merge `data.duplicate_id` into `character_id` (the survivor).
+    The duplicate is deleted; every reference to it (relationships, mentions,
+    arc snapshots, profile/intelligence data, and the denormalized character_id
+    arrays on chunks/summaries) is reassigned or reconciled first. See
+    services/character_merge.py for the full, per-table rule set.
+
+    Fully transactional: any failure rolls back every change from this call,
+    including the survivor's own field updates — never a partial merge.
+    """
+    _check_story_access(story_id, current_user.user_id, db)
+
+    try:
+        merge_summary = merge_characters(db, story_id, character_id, data.duplicate_id)
+        db.commit()
+    except MergeError as exc:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception:
+        db.rollback()
+        raise
+
+    survivor = db.query(Character).filter(Character.character_id == character_id).first()
+    if not survivor:
+        # Should be unreachable — merge_characters would have raised MergeError
+        # first — but never report success against a row that isn't there.
+        raise HTTPException(status_code=500, detail="Merge committed but survivor could not be re-read.")
+
+    # Re-embed the surviving profile (task 4.8's own requirement) — background,
+    # same pattern confirm_cast uses for newly created profiles.
+    if survivor.profile:
+        asyncio.create_task(_embed_profile(survivor.profile.profile_id))
+
+    logger.info("[char_merge] story=%s survivor=%s duplicate=%s → %s",
+                story_id[:8], character_id[:8], data.duplicate_id[:8], merge_summary)
+
+    return MergeCharactersResult(survivor=survivor, summary=merge_summary)
 
 
 @router.post("/{story_id}/characters", response_model=CharacterOut)

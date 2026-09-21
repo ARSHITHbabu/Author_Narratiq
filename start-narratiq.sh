@@ -171,6 +171,7 @@ pip install \
   "aiofiles==23.2.1" \
   "httpx>=0.27.0,<0.28" \
   "alembic==1.13.1" \
+  "transformers==4.57.6" \
   "sentence-transformers>=3.0.0" \
   "accelerate>=0.30.0" \
   "python-multipart>=0.0.9" \
@@ -642,6 +643,22 @@ done
 RUNNING=$(pgrep -fc "next-server" 2>/dev/null || true); RUNNING=${RUNNING:-0}
 echo "  Active next-server processes: ${RUNNING} (expected: 1)"
 echo "  Frontend PID: $FRONTEND_PID  (BUILD_ID: $(cat "$FRONTEND_DIR/.next/BUILD_ID" 2>/dev/null || echo '?'))"
+
+# ══════════════════════════════════════════════════════════════
+# STEP 7 — Periodic backup loop (closes the gap between restarts;
+#           see scripts/periodic_backup_loop.sh and the 2026-09-21
+#           persistence investigation in storage-and-persistence.md)
+# ══════════════════════════════════════════════════════════════
+echo ""
+echo "[7/7] Periodic backup loop..."
+PERIODIC_BACKUP_PIDFILE="$LOG_DIR/periodic-backup.pid"
+if [ -f "$PERIODIC_BACKUP_PIDFILE" ] && kill -0 "$(cat "$PERIODIC_BACKUP_PIDFILE" 2>/dev/null)" 2>/dev/null; then
+  echo "  Already running (PID $(cat "$PERIODIC_BACKUP_PIDFILE"))"
+else
+  nohup bash /workspace/narratiq-ai/scripts/periodic_backup_loop.sh >> "$LOG_DIR/periodic-backup.log" 2>&1 &
+  echo $! > "$PERIODIC_BACKUP_PIDFILE"
+  echo "  Started (PID $!, every ${NARRATIQ_PERIODIC_BACKUP_INTERVAL_HOURS:-4}h, keeps last ${NARRATIQ_PERIODIC_BACKUP_RETENTION_COUNT:-12} backups)"
+fi
 
 # ══════════════════════════════════════════════════════════════
 # Done

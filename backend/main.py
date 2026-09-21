@@ -26,7 +26,7 @@ from middleware.rate_limit import limiter
 from routers import auth, projects, chapters, intake, plot_assistant, ai_transform, ocr, manuscript, export, characters, plot_holes, manuscript_report
 from routers import search as search_router
 from routers import story_intel
-from routers import analysis, writing_tools, pacing, narrative_threads, story_bible, audio as audio_router
+from routers import analysis, analytics, writing_tools, pacing, narrative_threads, story_bible, audio as audio_router
 from routers import voice_agent
 from routers import activity
 from routers import copyright_risk
@@ -356,6 +356,7 @@ app.include_router(manuscript_report.router, prefix="/api/stories")
 app.include_router(story_intel.router,       prefix="/api/stories")
 # ── Phase 2 routers ───────────────────────────────────────────────────────────
 app.include_router(analysis.router,          prefix="/api/stories")
+app.include_router(analytics.router,         prefix="/api/stories")
 app.include_router(writing_tools.router,     prefix="/api/stories")
 app.include_router(pacing.router,            prefix="/api/stories")
 app.include_router(narrative_threads.router, prefix="/api/stories")

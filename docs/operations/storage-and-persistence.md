@@ -168,11 +168,13 @@ To re-measure the `chmod` behaviour of §5.1, create a scratch file on `/workspa
 
 ## 8. Pod-stop survival
 
-> ### ⚠ Evidence status: **Predicted (unobserved)**
+> ### ✅ Evidence status: **Verified 2026-09-21** — a real manual pod restart was performed and observed
 >
-> **No pod stop has been performed.** Every survival statement in this section is a prediction derived from the measured filesystem layout (§4) and RunPod's documented container/volume model. **Nothing here has been observed on this pod.**
->
-> Checklist task 1.5 performs the first start after a stop and can convert these predictions into observations. Until it does, treat every row as a working assumption — and where the assumption is optimistic, assume the pessimistic case instead.
+> **A manual pod restart was performed by the author on 2026-09-21** (pod `ckqiafptcbpcuq`, volume
+> `/podvolumes/lcm4qhpt4448/ckqiafptcbpcuq`, unchanged across the restart). §8.2 below is updated from
+> the prediction table to the actually-observed outcome. See §8.6 for the full account, including the
+> unexpected-empty-database guard's behaviour, which had never been exercised end-to-end against a real
+> restart before this event.
 
 ### 8.1 The model this prediction rests on
 
@@ -184,32 +186,32 @@ Applied to §4: **paths under `/workspace` are predicted to survive; everything 
 
 | Path | Filesystem | Prediction | Evidence | If lost |
 |---|---|---|---|---|
-| `/workspace/narratiq-ai` | network volume | **Survives** | Predicted (unobserved) | Application code — would need re-clone |
-| `/workspace/models` (22 G) | network volume | **Survives** | Predicted (unobserved) | 22 G re-download |
-| `/workspace/backups` | network volume | **Survives** | Predicted (unobserved) | **The only database backup** |
-| `/workspace/narratiq-ai/backend/uploads` | network volume | **Survives** | Predicted (unobserved) | Author audio and OCR uploads |
-| `/workspace/narratiq-ai/frontend/node_modules` (2.9 G) | network volume | **Survives** | Predicted (unobserved) | `npm install` re-run |
-| `/workspace/narratiq-ai/frontend/.next` (195 M) | network volume | **Survives** | Predicted (unobserved) | `npm run build` re-run |
-| `/workspace/narratiq-ai/backend/.env` | network volume | **Survives** | Predicted (unobserved) | `SECRET_KEY` — all sessions invalidated |
-| **`/var/lib/postgresql/16/main`** | **container layer** | **LOST** | Predicted (unobserved) | **Every manuscript, chapter, character, note and embedding** |
-| `/usr/local/lib/python3.11/dist-packages` | container layer | **LOST** | Predicted (unobserved) | vLLM, PyTorch, FastAPI, sentence-transformers, faster-whisper, Alembic — all re-installed |
-| PostgreSQL 16 binaries + pgvector (apt) | container layer | **LOST** | Predicted (unobserved) | Re-installed by apt |
-| Node.js runtime (apt) | container layer | **LOST** | Predicted (unobserved) | Re-installed by apt |
-| vLLM `ovis.py` patch | container layer | **LOST** | Predicted (unobserved) | Re-applied by the startup script |
-| `/tmp/narratiq-logs` | container layer | **LOST** | Predicted (unobserved) | Diagnostic history for this pod session |
-| `/root` | container layer | **LOST** | Predicted (unobserved) | Shell history and any stray files |
+| `/workspace/narratiq-ai` | network volume | **Survives** | **Verified 2026-09-21** | Application code — would need re-clone |
+| `/workspace/models` (22 G) | network volume | **Survives** | **Verified 2026-09-21** — all 4 model dirs present, correct sizes, no re-download triggered | 22 G re-download |
+| `/workspace/backups` | network volume | **Survives** | **Verified 2026-09-21** — both pre-restart dumps present, SHA-256 unchanged | **The only database backup** |
+| `/workspace/narratiq-ai/backend/uploads` | network volume | **Survives** | Predicted (unobserved) — not exercised this pass, no upload fixture existed | Author audio and OCR uploads |
+| `/workspace/narratiq-ai/frontend/node_modules` (2.9 G) | network volume | **Survives** | **Verified 2026-09-21** — `npm install` step skipped (`node_modules — OK`) | `npm install` re-run |
+| `/workspace/narratiq-ai/frontend/.next` (195 M) | network volume | **Survives** | **Verified 2026-09-21** (directory present pre-rebuild; the startup script unconditionally wipes and rebuilds it regardless of survival, so this is not evidence of use, only of presence) | `npm run build` re-run |
+| `/workspace/narratiq-ai/backend/.env` | network volume | **Survives** | **Verified 2026-09-21** — `SECRET_KEY` confirmed byte-identical pre/post-restart via SHA-256 of the file line (safe comparison, plaintext never displayed) | `SECRET_KEY` — all sessions invalidated |
+| **`/var/lib/postgresql/16/main`** | **container layer** | **LOST** | **Verified 2026-09-21** — `psql` absent post-restart, fresh empty cluster on re-install, 0 tables/0 rows, `alembic none` | **Every manuscript, chapter, character, note and embedding** |
+| `/usr/local/lib/python3.11/dist-packages` | container layer | **LOST** | **Verified 2026-09-21** — vLLM, PyTorch cu128, transformers, numpy, backend packages all reported "not found"/reinstalled by the script | vLLM, PyTorch, FastAPI, sentence-transformers, faster-whisper, Alembic — all re-installed |
+| PostgreSQL 16 binaries + pgvector (apt) | container layer | **LOST** | **Verified 2026-09-21** — `psql` not found, PGDG repo re-added, `postgresql-16 + pgvector` re-installed from scratch | Re-installed by apt |
+| Node.js runtime (apt) | container layer | **LOST** | **Verified 2026-09-21** — `node` not found, Node 20.20.2 re-installed | Re-installed by apt |
+| vLLM `ovis.py` patch | container layer | **LOST** | **Verified 2026-09-21** (implied — vLLM package itself was reinstalled from scratch, so the patch step reapplied against a fresh copy) | Re-applied by the startup script |
+| `/tmp/narratiq-logs` | container layer | **LOST** | **Verified 2026-09-21** — directory absent pre-run, recreated by the script | Diagnostic history for this pod session |
+| `/root` | container layer | Not directly tested | Not exercised this pass — no stray `/root` state was tracked before the restart to diff against | Shell history and any stray files |
 
-Filesystem assignments in this table are **measured**, not predicted — each was confirmed with `df --output=source,fstype`. It is only the survival column that is unobserved.
+Filesystem assignments in this table were already **measured**, not predicted, before this pass — each was confirmed with `df --output=source,fstype`. **The survival column is now Verified for every row actually exercised by this restart** (2026-09-21, checklist task 1.5 / the persistence-recovery verification session), superseding the earlier "Predicted (unobserved)" status throughout. `/root` and the uploads directory were not exercised and remain unverified, honestly.
 
 ### 8.3 The consequence that matters
 
-**The database is predicted to be destroyed by a pod stop, and its only backup is on a different filesystem that is predicted to survive.**
+**The database is destroyed by a pod stop, and its only backup is on a different filesystem that survives.** (Confirmed 2026-09-21 — see §8.6. Previously stated as a prediction; no longer.)
 
-The recovery therefore depends on two things being true at once: that `/workspace` persists as expected, and that the backup in `/workspace/backups` is restorable. The second is **proven** — the archive was test-restored on 2026-07-24 with exact row, content and embedding matches (checklist task 1.1). The first is **not**.
+The recovery therefore depends on two things being true at once: that `/workspace` persists as expected, and that the backup in `/workspace/backups` is restorable. Both are now **proven**: the volume's persistence across a real restart, and the archive's restorability — test-restored on 2026-07-24 with exact row/content/embedding matches (checklist task 1.1), and again on 2026-09-21 into a disposable scratch database with exact row-count matches and the fixture intact (§8.6).
 
-That asymmetry is why the checklist requires the backup to be copied off-pod before task 1.3 stops anything. Until that copy exists, a single wrong assumption about volume persistence loses every manuscript.
+That asymmetry is why the checklist requires the backup to be copied off-pod before stopping the pod. A single wrong assumption about volume persistence would still lose every manuscript on a pod where no off-pod copy exists — this pass verified the on-pod half of that risk, not the off-pod one.
 
-**Plan for the restore, do not hope to avoid it.** Task 1.5's line *"Confirm the database survived; if not, restore from task 1.1"* reads as a contingency; on this layout it is the expected path.
+**Plan for the restore, do not hope to avoid it.** Task 1.5's line *"Confirm the database survived; if not, restore from task 1.1"* reads as a contingency; on this layout it is the expected path — and on 2026-09-21 it is exactly what happened.
 
 ### 8.4 What has to be re-created after a start
 
@@ -252,5 +254,25 @@ ls /tmp/narratiq-logs 2>&1           # absent/empty = reset as predicted
 findmnt -no SOURCE,FSTYPE,TARGET /workspace
 ```
 
-Then update §8.2's Evidence column from *Predicted (unobserved)* to **Verified 〈date〉** for each row the results confirm — and **correct any row the results contradict**, rather than leaving the prediction standing.
+Then update §8.2's Evidence column from *Predicted (unobserved)* to **Verified 〈date〉** for each row the results confirm — and **correct any row the results contradict**, rather than leaving the prediction standing. *(Done — see §8.6.)*
 
+### 8.6 2026-09-21 — First real pod restart: observed behaviour
+
+The author manually restarted the RunPod pod (pod `ckqiafptcbpcuq`, same network volume before and after — `findmnt` confirmed identical `/podvolumes/lcm4qhpt4448/ckqiafptcbpcuq`). This is the first time §8's predictions were checked against an actual restart rather than reasoned about. **Every prediction in §8.2 that was exercised held exactly as stated.**
+
+**What survived (network volume):** the repository, all four model directories (Qwen2.5-7B-Instruct, BGE-M3, GOT-OCR2.0, faster-whisper-large-v3-turbo, ~22 G, no re-download triggered), `frontend/node_modules` (`npm install` skipped), both pre-restart backup dumps (`narratiq-20260921T105252Z.dump`, `narratiq-20260921T124933Z.dump`) with unchanged SHA-256 checksums, and `backend/.env` — **`SECRET_KEY` was confirmed byte-identical pre- and post-restart via a SHA-256 comparison of the file line, never displaying the plaintext.**
+
+**What was lost (container layer):** `psql`, `node`, vLLM, PyTorch, transformers and every other pip/apt package were all absent and had to be reinstalled by `start-narratiq.sh` from a bare container. PostgreSQL came back as a **fresh, empty cluster** — no `narratiq` database existed until the script created one, and it held 0 tables until migrations ran.
+
+**The unexpected-empty-database guard (`scripts/startup_backup.sh`), exercised end-to-end for the first time against a real restart, behaved exactly as designed:**
+1. First `start-narratiq.sh` run: vLLM loaded, Postgres was installed and started, the `narratiq` role/database/`vector` extension were (re)created, but the database held 0 tables and 0 rows.
+2. The guard detected this, found the newest valid prior backup (`narratiq-20260921T124933Z.dump`, correctly preferring it over the older `…T105252Z` one, by mtime), and **aborted before `Base.metadata.create_all()` or `alembic upgrade head` ran** — printing the exact restore command and requiring an explicit `NARRATIQ_ACKNOWLEDGE_EMPTY_RESTART=yes-start-empty-intentionally` to proceed empty on purpose. No dump was written (correctly — an empty-database dump would misrepresent itself as protection), and `BACKUP-RECORD.txt` recorded the abort.
+3. **Manual recovery**, following the guard's own printed procedure: checksum-verified `narratiq-20260921T124933Z.dump`, then `pg_restore --clean --if-exists --no-owner --role=narratiq` into the now-provisioned empty `narratiq` database. (Two non-fatal warnings — `must be owner of extension vector` on the archive's `DROP EXTENSION`/`COMMENT` statements — are expected: the extension was created by the `postgres` superuser during setup, not by `narratiq`, so `narratiq` cannot drop/recreate it via `--clean`. The extension was already present and functional; `pg_restore` reported "errors ignored on restore: 2" and proceeded.) Row counts, Alembic head (`0016`), and the restored fixture data all matched the pre-restart state exactly.
+4. Re-running `start-narratiq.sh` with data now present: the guard correctly recognised a fresh backup existed and no schema change was pending, skipped writing a redundant backup, and let `alembic upgrade head` run as a no-op. Backend, frontend and the periodic backup loop all started cleanly.
+5. **The older, independently-protected backup (`narratiq-20260921T105252Z.dump`) was never touched** — read, never written — throughout the entire recovery, confirmed by an unchanged SHA-256 both before and after.
+6. A **new post-recovery backup** (`narratiq-20260921T132802Z.dump`) was taken via the deliberate `scripts/backup_database.sh` path, checksum-verified, and restore-tested into a disposable scratch database (`narratiq_scratch_verify`) with matching row counts and the fixture intact — then the scratch database was dropped.
+7. The temporary verification fixture (one user, one story, two chapters — self-labelled `[TEMP VERIFICATION FIXTURE - safe to delete]`) was deleted from the live database. A full scan of every `story_id`/`user_id`-bearing table in the schema confirmed **zero orphan rows** before and after.
+
+**One cosmetic false alarm, not a real defect:** `start-narratiq.sh`'s own sanity check reported "Active next-server processes: 5 (expected: 1)" immediately after the frontend came up. Investigation found this is `pgrep -fc "next-server"` matching its own invocation's command-line text when the literal string `"next-server"` appears as a quoted argument in nearby shell invocations — a pre-existing artifact of the pattern-match approach, not a real duplicate-process condition. Steady-state process inspection confirmed exactly one `next-server` process, one listener on port 3000, and a healthy `HTTP 200` response throughout. Not fixed as part of this verification pass (out of scope — noted here for anyone chasing the same false alarm).
+
+**Full post-recovery service verification, all confirmed live:** PostgreSQL 16.15 + pgvector 0.8.6; Alembic at head `0016`; vLLM 0.9.2 serving `Qwen/Qwen2.5-7B-Instruct` on 1× NVIDIA A40 (44.4 GB, `tensor_parallel=1`, `max_model_len=8192`) with a real completion returned; BGE-M3 loaded and producing correct 1024-dim normalized embeddings; backend `/api/health` reporting `ok`/`ready`/`ready` locally and via the external proxy; frontend reachable locally and externally (`HTTP 200`); pgvector self-distance query returning `0`; exactly one periodic-backup-loop process running (4 h interval, 12-backup retention).

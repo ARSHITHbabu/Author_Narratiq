@@ -4,14 +4,14 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Wand2, Palette, Heart, Users, Type, Globe, BookOpen,
   Copy, Check, Loader2, X, ArrowDownToLine,
-  Play, List, Sparkles,
+  Play, List, Sparkles, Lock, Unlock,
 } from 'lucide-react'
 import { aiApi, continuationApi, outlineApi } from '@/lib/api'
 import { TransformResponse, ContinuationSuggestion, OutlineBeat, GenreProfile } from '@/lib/types'
 import { toast } from 'sonner'
 // Shared transform option config — single source of truth (also powers the
 // Selection Toolbar). No duplicated option lists across components.
-import { TONES, EMOTIONS, STYLES, LANGUAGES, REFINE_MODES, AUDIENCES, AUTHOR_STYLES } from '@/lib/transforms'
+import { TONES, EMOTIONS, STYLES, LANGUAGES, REFINE_MODES, AUDIENCES, AUTHOR_STYLES, STRENGTH_LEVELS, splitSentences, type StrengthLevel } from '@/lib/transforms'
 import { deriveToolDefaults, NEUTRAL_DEFAULTS, hasGenreProfile } from '@/lib/genreDefaults'
 
 interface Props {
@@ -33,6 +33,10 @@ interface Props {
 }
 
 type TabId = 'refine' | 'tone' | 'emotion' | 'age' | 'style' | 'author' | 'translate' | 'continue' | 'outline'
+
+// Stage 5 (tasks 5.4/5.6) — tabs whose endpoint accepts strength + locked_ranges.
+// Same set as LOCKABLE_GROUPS in lib/transforms.ts, in this component's tab ids.
+const LOCKABLE_TABS: TabId[] = ['tone', 'age', 'style']
 
 const TABS = [
   { id: 'refine'    as TabId, label: 'Refine',    icon: Wand2    },
@@ -93,6 +97,12 @@ function ResultPanel({
         </p>
       </div>
 
+      {result.strength_violation && (
+        <p data-testid="sidebar-strength-warning" className="mx-3 mb-2 text-[11px] text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded px-2 py-1.5">
+          This rewrite changed more than the selected strength usually allows — review before applying.
+        </p>
+      )}
+
       <div className="px-3 py-2.5 border-t border-[#1f2440] flex items-center justify-between gap-2">
         <span className="text-xs text-[#3d4466]">{result.tokens_used} tokens</span>
         {onInsert && (
@@ -129,6 +139,11 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
   const [selectedLang, setSelectedLang] = useState('French')
   const [refineMode, setRefineMode] = useState('standard')
   const [hadSelection, setHadSelection] = useState(false)
+  // Stage 5 — strength (5.6) and sentence locks (5.4) for LOCKABLE_TABS. Lock
+  // indices point into splitSentences(selection text) and are reset whenever the
+  // selected text changes, so they can never refer to different prose.
+  const [strength, setStrength] = useState<StrengthLevel>('light')
+  const [lockedIdx, setLockedIdx] = useState<Set<number>>(new Set())
 
   // Apply genre-derived defaults once the profile resolves — but never clobber a
   // choice the user has already made this session (tracked per field).
@@ -217,16 +232,23 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
     if (!text) return toast.error('Write some text in the editor first')
     const sel = readSelection()
     setHadSelection(!!sel.trim())
+    // Locks only apply to a real selection: offsets are into THIS request's text,
+    // which is the selection itself (getText() returns it unmodified).
+    const spans = sel.trim() ? splitSentences(sel) : []
+    const lock = {
+      strength,
+      lockedRanges: Array.from(lockedIdx).filter((i) => i < spans.length).map((i) => ({ start: spans[i].start, end: spans[i].end })),
+    }
     setLoading(true)
     setResult(null)
     try {
       let res
       switch (activeTab) {
         case 'refine': res = await aiApi.refine(text, refineMode, storyId, chapterId); break
-        case 'tone': res = await aiApi.tone(text, selectedTone.toLowerCase(), storyId); break
+        case 'tone': res = await aiApi.tone(text, selectedTone.toLowerCase(), storyId, lock); break
         case 'emotion': res = await aiApi.emotion(text, selectedEmotion.toLowerCase(), intensity, storyId); break
-        case 'age': res = await aiApi.ageAdapt(text, selectedAge, storyId); break
-        case 'style': res = await aiApi.style(text, selectedStyle.toLowerCase(), storyId); break
+        case 'age': res = await aiApi.ageAdapt(text, selectedAge, storyId, lock); break
+        case 'style': res = await aiApi.style(text, selectedStyle.toLowerCase(), storyId, lock); break
         case 'author': res = await aiApi.authorStyle(text, selectedAuthor, storyId, chapterId); break
         case 'translate': res = await aiApi.translate(text, selectedLang, storyId); break
       }
@@ -240,6 +262,13 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
 
   const selText = readSelection()
   const selWordCount = selText.trim() ? selText.trim().split(/\s+/).length : 0
+  const sentenceSpans = useMemo(() => (selText.trim() ? splitSentences(selText) : []), [selText])
+  useEffect(() => { setLockedIdx(new Set()) }, [selText])
+  const toggleLock = (i: number) => setLockedIdx((prev) => {
+    const next = new Set(prev)
+    if (next.has(i)) next.delete(i); else next.add(i)
+    return next
+  })
 
   const runLabel = (() => {
     const actionMap: Record<TabId, string> = {
@@ -315,6 +344,50 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
 
       {/* Tab Content */}
       <div className="flex-1 overflow-y-auto p-4">
+
+        {LOCKABLE_TABS.includes(activeTab) && (
+          <div data-testid="sidebar-lock-strength" className="mb-4 space-y-3 rounded-xl border border-[#1f2440] p-3">
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] text-[#5c6391] mr-1">Strength</span>
+              {STRENGTH_LEVELS.map((s) => (
+                <button key={s} type="button" onClick={() => setStrength(s)}
+                  aria-pressed={strength === s}
+                  title={
+                    s === 'light' ? 'Word choice and connectives only' :
+                    s === 'moderate' ? 'Sentence-level rewriting allowed' :
+                    'Full rewrite within preservation limits'
+                  }
+                  className={`text-[11px] px-2 py-0.5 rounded ${strength === s ? 'bg-amber-500/20 text-amber-300' : 'text-[#9da3c8] hover:bg-[#1f2440]'}`}>{s}</button>
+              ))}
+            </div>
+            {sentenceSpans.length > 1 ? (
+              <div>
+                <div className="flex items-center gap-1 mb-1">
+                  <Lock className="w-2.5 h-2.5 text-[#5c6391]" />
+                  <span className="text-[10px] text-[#5c6391]">
+                    Lock sentences to keep unchanged{lockedIdx.size > 0 ? ` (${lockedIdx.size})` : ''}
+                  </span>
+                </div>
+                <div className="max-h-40 overflow-y-auto space-y-0.5">
+                  {sentenceSpans.map((s, i) => {
+                    const locked = lockedIdx.has(i)
+                    return (
+                      <button key={i} type="button" onClick={() => toggleLock(i)}
+                        aria-pressed={locked}
+                        title={locked ? 'Locked — click to unlock' : 'Click to lock this sentence unchanged'}
+                        className={`w-full flex items-start gap-1 text-left px-1.5 py-1 rounded text-[10px] leading-snug ${locked ? 'bg-amber-500/15 text-amber-200' : 'text-[#9da3c8] hover:bg-[#1f2440]'}`}>
+                        {locked ? <Lock className="w-2.5 h-2.5 mt-0.5 flex-shrink-0" /> : <Unlock className="w-2.5 h-2.5 mt-0.5 flex-shrink-0 opacity-40" />}
+                        <span className="line-clamp-2">{s.text}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            ) : (
+              <p className="text-[10px] text-[#5c6391]">Select two or more sentences in the editor to lock individual sentences.</p>
+            )}
+          </div>
+        )}
 
         {activeTab === 'refine' && (
           <div className="space-y-3">

@@ -11,14 +11,18 @@
 # detection, and the authority to abort the boot.
 #
 # Decision table
-#   database unreachable                     -> exit 1  (migrations must not run blind)
-#   database empty / brand-new environment    -> exit 0  (nothing to protect; logged, no dump)
-#   schema change pending, or FORCE set       -> backup REQUIRED; failure exits 1
-#   no schema change + fresh backup exists    -> exit 0  (no duplicate dump)
-#   no schema change + backup stale/absent    -> backup attempted; failure only warns
+#   database unreachable                            -> exit 1  (migrations must not run blind)
+#   database empty, no prior backup on record        -> exit 0  (genuine first boot; nothing to protect)
+#   database empty, a valid prior backup exists       -> exit 1  (unexpected loss — see the guard below,
+#                                                                  unless NARRATIQ_ACKNOWLEDGE_EMPTY_RESTART is set)
+#   schema change pending, or FORCE set               -> backup REQUIRED; failure exits 1
+#   no schema change + fresh backup exists            -> exit 0  (no duplicate dump)
+#   no schema change + backup stale/absent            -> backup attempted; failure only warns
 #
 # Never restores. Restoring is deliberate and manual by design — an automatic restore
-# would let an old dump silently overwrite newer data.
+# would let an old dump silently overwrite newer data. The guard below only detects
+# and reports an unexpected loss; it never restores anything itself (2026-09-21
+# persistence investigation — see docs/operations/storage-and-persistence.md).
 #
 # Produces, per run, in BACKUP_DIR:
 #   narratiq-<UTC timestamp>.dump           pg_dump custom-format archive
@@ -37,6 +41,11 @@
 #   NARRATIQ_BACKUP_MAX_AGE_HOURS   freshness window   (default: 24)
 #   NARRATIQ_BACKUP_FORCE           1 = always dump, and treat it as required
 #   NARRATIQ_BACKUP_SKIP_PROBE      1 = skip the pending-schema probe, assume pending
+#   NARRATIQ_ACKNOWLEDGE_EMPTY_RESTART
+#       must equal the literal phrase 'yes-start-empty-intentionally' (not '1' or
+#       'true' — deliberately specific so it is never left set by accident) to
+#       proceed when the live database is empty AND a valid prior backup exists.
+#       Unset or any other value: startup aborts and prints the restore procedure.
 
 set -Eeuo pipefail
 
@@ -181,9 +190,18 @@ TABLE_COUNT="$(psql -Atqc "SELECT count(*) FROM pg_tables WHERE schemaname='publ
 
 # ── Does this database hold any data worth protecting? ────────────────────────
 # EXISTS-per-table via query_to_xml rather than count(*): it short-circuits on the
-# first row of each table, so cost does not grow with manuscript size. alembic_version
-# is excluded — it is schema bookkeeping, not author data, and a schema-only database
-# that has run migrations must still be treated as empty.
+# first row of each table, so cost does not grow with manuscript size.
+#
+# Excluded tables are system/rollup bookkeeping, never author data, and are
+# populated automatically even in an otherwise-empty environment — counting them
+# would make an empty database register as "has data" and defeat both the
+# freshness logic below and the unexpected-empty-database guard that follows it:
+#   alembic_version    — schema version marker, not data
+#   voice_usage_daily  — a global zero-valued rollup row is written automatically
+#                        by the daily voice-usage rollup (main.py, services/voice/
+#                        analytics.py) with no voice activity required; observed
+#                        directly on 2026-09-21 on a freshly-migrated, otherwise
+#                        empty database (one row, user_id NULL, every counter 0)
 NONEMPTY_TABLES="$(psql -Atqc "
     SELECT COALESCE(sum(
         (xpath('/row/c/text()',
@@ -192,7 +210,8 @@ NONEMPTY_TABLES="$(psql -Atqc "
                             false, true, '')))[1]::text::int
     ), 0)
     FROM pg_tables
-    WHERE schemaname = 'public' AND tablename <> 'alembic_version'
+    WHERE schemaname = 'public'
+      AND tablename NOT IN ('alembic_version', 'voice_usage_daily')
 " 2>/dev/null || echo 'error')"
 
 case "${NONEMPTY_TABLES}" in
@@ -325,6 +344,66 @@ DO_BACKUP="no"
 DECISION=""
 
 if [ "${HAS_DATA}" = "no" ]; then
+    # ── Guard: distinguish genuine first boot from unexpected data loss ─────────
+    # A live database with zero rows is ambiguous by itself: it is the expected
+    # state of a brand-new environment, and it is also exactly what an ephemeral
+    # container filesystem produces after a restart wipes PGDATA (2026-09-21
+    # persistence investigation; see docs/operations/storage-and-persistence.md).
+    # $LATEST_BACKUP (computed above) is the tiebreaker: it is only ever non-empty
+    # when a real dump — automatic or manual — was produced at some point, which
+    # can only happen against a database that held data. If one exists, an empty
+    # live database now is not a fresh environment, it is a loss, and startup must
+    # say so instead of quietly building an empty schema and reporting "healthy".
+    ACK="${NARRATIQ_ACKNOWLEDGE_EMPTY_RESTART:-}"
+    if [ -n "${LATEST_BACKUP}" ] && [ "${ACK}" != "yes-start-empty-intentionally" ]; then
+        {
+            echo ""
+            echo "--- STARTUP ABORTED: unexpected empty database (start-narratiq.sh) ---"
+            echo "Recorded:    $(date -u +%Y-%m-%dT%H:%M:%SZ) (UTC)"
+            echo "Database:    ${PGDATABASE} on ${PGHOST}:${PGPORT}"
+            echo "Result:      ABORTED — database is empty but a valid prior backup exists"
+            echo "Latest backup: $(basename "${LATEST_BACKUP}") (${LATEST_AGE_SECONDS}s old)"
+        } >> "${RECORD_FILE}" 2>/dev/null || true
+        chmod 600 "${RECORD_FILE}" 2>/dev/null || true
+
+        echo ""
+        echo "  ══════════════════════════════════════════════════════════════"
+        echo "   UNEXPECTED EMPTY DATABASE — STARTUP ABORTED"
+        echo "  ══════════════════════════════════════════════════════════════"
+        echo "   PostgreSQL's data directory lives on the container's ephemeral"
+        echo "   storage, not the persistent /workspace volume (see"
+        echo "   docs/operations/storage-and-persistence.md). It is currently"
+        echo "   EMPTY, but a valid backup on record proves this environment held"
+        echo "   real data before. This looks like an unexpected restart wiping the"
+        echo "   live database, not a fresh environment — startup will not paper"
+        echo "   over that by quietly building an empty schema."
+        echo ""
+        echo "   Newest valid backup: $(basename "${LATEST_BACKUP}")"
+        echo "     SHA-256: $(cut -d' ' -f1 "${LATEST_BACKUP}.sha256" 2>/dev/null || echo unknown)"
+        echo "     Age:     $(( LATEST_AGE_SECONDS / 3600 ))h"
+        echo ""
+        echo "   To restore it manually (verify the checksum first):"
+        echo "     cd ${BACKUP_DIR} && sha256sum -c $(basename "${LATEST_BACKUP}").sha256"
+        echo "     pg_restore --clean --if-exists --no-owner --role=${PGUSER:-narratiq} \\"
+        echo "         -h ${PGHOST:-localhost} -U ${PGUSER:-narratiq} -d ${PGDATABASE:-narratiq} \\"
+        echo "         ${LATEST_BACKUP}"
+        echo ""
+        echo "   If you intend to start with an empty database on purpose (you"
+        echo "   deliberately wiped it, or this genuinely is a new environment),"
+        echo "   acknowledge it explicitly and re-run:"
+        echo "     NARRATIQ_ACKNOWLEDGE_EMPTY_RESTART=yes-start-empty-intentionally bash start-narratiq.sh"
+        echo ""
+        echo "   (The phrase above is deliberately specific, not '1' or 'true' —"
+        echo "   this should never be set by accident or left on in an env file.)"
+        echo ""
+        echo "   Startup aborted before any migration ran. The database was not modified."
+        echo "  ══════════════════════════════════════════════════════════════"
+        exit 1
+    fi
+    if [ -n "${LATEST_BACKUP}" ]; then
+        log "Empty database acknowledged via NARRATIQ_ACKNOWLEDGE_EMPTY_RESTART — proceeding intentionally."
+    fi
+
     # New or empty environment. There is no previous data, so any dump written here
     # would be an empty archive carrying a reassuring filename — worse than nothing.
     DECISION="empty database — no data to back up"

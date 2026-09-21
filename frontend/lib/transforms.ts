@@ -103,26 +103,90 @@ export const TRANSFORM_GROUPS: TransformGroup[] = [
   { id: 'translate', label: 'Translate', icon: Globe, options: LANGUAGES.map((l) => ({ id: l, label: l })) },
 ]
 
-export interface TransformOpts { storyId?: string; chapterId?: string; intensity?: string }
+// Task 5.4 — groups whose backend request schema accepts `strength` +
+// `locked_ranges` (schemas.StrengthMixin). Emotion, refine, author_style and
+// translate deliberately do NOT — see EmotionRequest's own docstring in
+// schemas.py for why emotion is excluded, and translate_text()'s own
+// glossary-based mechanism (task 5.11) for why translation isn't part of
+// this shared orchestrator at all.
+export const LOCKABLE_GROUPS: GroupId[] = ['tone', 'age_adapt', 'style']
+export const STRENGTH_LEVELS = ['light', 'moderate', 'strong'] as const
+export type StrengthLevel = (typeof STRENGTH_LEVELS)[number]
+
+export interface LockedRange { start: number; end: number }
+
+/** A sentence span within `text`, as exact character offsets — the same
+ * contract `LockedRangeIn` expects server-side (offsets into THIS request's
+ * own `text` field, the already-captured selection substring, not
+ * document-absolute editor positions). */
+export interface SentenceSpan { text: string; start: number; end: number }
+
+export function splitSentences(text: string): SentenceSpan[] {
+  const spans: SentenceSpan[] = []
+  const re = /[^.!?]*[.!?]+(?:\s+|$)|[^.!?]+$/g
+  let m: RegExpExecArray | null
+  while ((m = re.exec(text))) {
+    if (m[0].length === 0) { re.lastIndex++; continue }
+    const start = m.index
+    const trimmedEnd = start + m[0].replace(/\s+$/, '').length
+    if (trimmedEnd > start) spans.push({ text: text.slice(start, trimmedEnd), start, end: trimmedEnd })
+  }
+  return spans
+}
+
+export interface TransformOpts {
+  storyId?: string
+  chapterId?: string
+  intensity?: string
+  strength?: StrengthLevel
+  lockedRanges?: LockedRange[]
+}
+
+// Full Stage 5 response shape (schemas.TransformResponse) — additive fields
+// an older client could ignore, but the toolbar surfaces them (task 5.3's
+// remaining UI gap) so preservation/no-change/strength signals are actually
+// visible to the author, not just returned by the API.
+export interface TransformResult {
+  transformed: string
+  no_change: boolean
+  reason: string | null
+  strength_violation: boolean
+  preservation_violations: string[]
+}
 
 // Pure descriptor of the HTTP call for a transform — used by runTransform AND by
 // tests to assert correct routing + that the SELECTED TEXT is what gets sent.
 export function buildTransformCall(group: GroupId, value: string, text: string, opts: TransformOpts = {}) {
-  const { storyId, chapterId, intensity = 'medium' } = opts
+  const { storyId, chapterId, intensity = 'medium', strength, lockedRanges } = opts
+  const lockable = LOCKABLE_GROUPS.includes(group)
+  // Only attached for groups whose backend schema actually accepts them —
+  // sending these to /emotion, /refine, /author-style or /translate would be
+  // silently ignored server-side (extra fields aren't rejected), but keeping
+  // the client honest about what each endpoint supports is worth the branch.
+  const lockFields = lockable ? { strength, locked_ranges: lockedRanges?.map((r) => ({ start: r.start, end: r.end })) } : {}
   switch (group) {
     case 'refine':    return { path: '/api/ai/refine', body: { text, mode: value, story_id: storyId, chapter_id: chapterId } }
-    case 'tone':      return { path: '/api/ai/tone', body: { text, tone: value.toLowerCase(), story_id: storyId } }
+    case 'tone':      return { path: '/api/ai/tone', body: { text, tone: value.toLowerCase(), story_id: storyId, ...lockFields } }
     case 'emotion':   return { path: '/api/ai/emotion', body: { text, emotion: value.toLowerCase(), intensity, story_id: storyId } }
-    case 'age_adapt': return { path: '/api/ai/age-adapt', body: { text, target_age: value, story_id: storyId } }
-    case 'style':     return { path: '/api/ai/style', body: { text, style: value.toLowerCase(), story_id: storyId } }
+    case 'age_adapt': return { path: '/api/ai/age-adapt', body: { text, target_age: value, story_id: storyId, ...lockFields } }
+    case 'style':     return { path: '/api/ai/style', body: { text, style: value.toLowerCase(), story_id: storyId, ...lockFields } }
     case 'author_style': return { path: '/api/ai/author-style', body: { text, author: value, story_id: storyId, chapter_id: chapterId } }
     case 'translate': return { path: '/api/ai/translate', body: { text, target_language: value, story_id: storyId } }
   }
 }
 
-// Run a transform on EXACTLY the given (selected) text → returns the rewritten prose.
-export async function runTransform(group: GroupId, value: string, text: string, opts: TransformOpts = {}): Promise<string> {
+// Run a transform on EXACTLY the given (selected) text → returns the full
+// Stage 5 result (not just the rewritten prose), so callers can surface
+// no_change/reason/preservation/strength signals to the author.
+export async function runTransform(group: GroupId, value: string, text: string, opts: TransformOpts = {}): Promise<TransformResult> {
   const call = buildTransformCall(group, value, text, opts)
   const res = await api.post(call.path, call.body)
-  return res.data.transformed as string
+  const d = res.data
+  return {
+    transformed: d.transformed as string,
+    no_change: !!d.no_change,
+    reason: d.reason ?? null,
+    strength_violation: !!d.strength_violation,
+    preservation_violations: Array.isArray(d.preservation_violations) ? d.preservation_violations : [],
+  }
 }

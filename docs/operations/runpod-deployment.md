@@ -12,11 +12,11 @@ For which environment variables to enter in the RunPod UI, see
 RunPod pod (1+ NVIDIA GPU, >= 24 GB VRAM)
 │
 ├── /workspace/narratiq-ai/          ← project code (path is REQUIRED, see Step 3)
-├── /workspace/models/               ← model weights (~17 GB total)
-│   ├── Qwen2.5-7B-Instruct/                 ~14 GB
-│   ├── bge-m3/                              ~570 MB
+├── /workspace/models/               ← model weights (~22 GB total, measured 2026-09-21)
+│   ├── Qwen2.5-7B-Instruct/                 ~15 GB
+│   ├── bge-m3/                              ~4.3 GB (older estimate of ~570 MB was stale)
 │   ├── GOT-OCR2_0/                          ~1.4 GB
-│   └── faster-whisper-large-v3-turbo/       ~1.5 GB
+│   └── faster-whisper-large-v3-turbo/       ~1.6 GB
 │
 ├── vLLM server (port 9001)          ← serves Qwen via OpenAI-compatible API
 │
@@ -29,9 +29,9 @@ RunPod pod (1+ NVIDIA GPU, >= 24 GB VRAM)
 └── Next.js frontend (port 3000)
 ```
 
-> **Port note.** vLLM runs on **9001**. Older revisions of this guide said 8001, and the legacy
-> `start.sh` and `scripts/verify_runpod_setup.sh` still default to 8001. See
-> [Port contradiction](#port-contradiction) before trusting any 8001 reference.
+> **Port note.** vLLM runs on **9001**. Older revisions of this guide said 8001; the legacy
+> `start.sh` that also defaulted to 8001 has been deleted, and `scripts/verify_runpod_setup.sh` is
+> now corrected to 9001 too. See [Port contradiction](#port-contradiction) for the resolved history.
 
 **Database:** PostgreSQL 16 with the `pgvector` extension is **required**. SQLite is not supported —
 retrieval uses pgvector HNSW indexes and the `<=>` cosine operator, and a startup self-check in
@@ -45,15 +45,27 @@ retrieval uses pgvector HNSW indexes and the `<=>` cosine operator, and a startu
 **Testing (no Network Volume).** Models download into `/workspace/models` on first run and are lost
 when the pod is destroyed. Budget 10–20 minutes for the first boot.
 
-**Production (Network Volume).** Attach a RunPod Network Volume so the ~17 GB of weights persists.
+**Production (Network Volume).** Attach a RunPod Network Volume so the ~22 GB of weights persists.
 
-> **Caveat.** `start-narratiq.sh:16` hardcodes `MODEL_DIR="/workspace/models"` and re-exports
-> `MODEL_BASE_DIR` at `:501`, so setting `MODEL_BASE_DIR=/runpod-volume/models` in the RunPod UI has
-> **no effect** on the scripted path. Symlink instead:
-> ```bash
-> mkdir -p /runpod-volume/models
-> ln -s /runpod-volume/models /workspace/models
-> ```
+**Check which volume layout your pod actually has before following any symlink instructions below.**
+RunPod pod templates differ in where the persistent Network Volume is mounted:
+
+- **`/workspace` itself is the Network Volume** (confirm with `df -h /workspace` — a network filesystem
+  such as `mfs#...` or `nfs`/`cephfs`, not `overlay`). This is the layout observed on this project's
+  pods as of 2026-09-21. In this case **`/workspace/models` is already a real directory on persistent
+  storage — no symlink is needed or possible.** `/runpod-volume` does not exist on these pods; do not
+  follow the symlink instructions below on a pod with this layout, they will create a broken path.
+- **A separate Network Volume is mounted at `/runpod-volume`**, with `/workspace` on the ephemeral
+  container overlay. This is a different, older RunPod template convention. On *that* layout only:
+  > **Caveat.** `start-narratiq.sh:16` hardcodes `MODEL_DIR="/workspace/models"` and re-exports
+  > `MODEL_BASE_DIR` at `:501`, so setting `MODEL_BASE_DIR=/runpod-volume/models` in the RunPod UI has
+  > **no effect** on the scripted path. Symlink instead:
+  > ```bash
+  > mkdir -p /runpod-volume/models
+  > ln -s /runpod-volume/models /workspace/models
+  > ```
+
+If you're unsure which layout you have, run `df -h /workspace` first — do not assume.
 
 ---
 
@@ -61,13 +73,33 @@ when the pod is destroyed. Budget 10–20 minutes for the first boot.
 
 ### 1. Create a RunPod Pod
 
+> ### ⚠ Pod-creation prerequisite — expose ports 3000 and 8000 now, not later
+> **RunPod ports are fixed at pod creation.** Exposing 3000 and 8000 later requires a
+> **stop → edit configuration → start** cycle — not a restart of the application, an actual pod
+> stop/start, which is disruptive and, on a pod without ephemeral-storage awareness, can be
+> destructive to anything not on the persistent volume (see [Storage options](#storage-options)).
+> Get this right at creation.
+>
+> **Diagnostic signature if you get this wrong:** the frontend proxy URL returns an **HTTP 404 with
+> an empty body and `server: cloudflare`**. This is RunPod's own "no such exposed port" response —
+> **it is never an application fault.** Do not debug the backend, frontend, or startup script for
+> this symptom; check the pod's exposed-ports configuration first. (A `502` on the same URL means
+> the opposite — the port *is* exposed and RunPod is forwarding to it, but nothing inside the pod is
+> listening yet, which is normal before the stack finishes starting.)
+>
+> *Incident resolved 2026-07-24 (`docs/incidents/runpod-port-3000-404-incident-report.md`); the
+> prerequisite and diagnostic above are the fix that prevents recurrence. Re-confirmed in practice
+> 2026-09-21 on an unrelated pod, where both signatures (404-before-exposure equivalent absent
+> because ports were pre-configured, and 502-before-services-started) were observed exactly as
+> documented.*
+
 | Setting | Recommendation |
 |---|---|
 | **GPU** | One card with ≥24 GB VRAM. The script auto-detects count and sets tensor-parallel size |
 | **Template** | Any recent PyTorch/CUDA image on Ubuntu 22.04. The script installs everything else |
 | **Container Disk** | 60 GB+ |
 | **Volume Disk** | 30 GB+ if using a Network Volume |
-| **Expose HTTP Ports** | `8000` (backend), `3000` (frontend). Port 9001 is internal only |
+| **Expose HTTP Ports** | `8000` (backend), `3000` (frontend) — **at pod creation, see above.** Port 9001 is internal only |
 
 Qwen2.5-7B-Instruct has **4 KV heads**, so tensor-parallel size must divide 4 — valid values are
 **1, 2 or 4**, never 3. The script handles this:
@@ -203,21 +235,23 @@ The script prints both on completion. `backend/main.py` already allows any
 
 ---
 
-## Port contradiction
+## Port contradiction — RESOLVED 2026-09-21
 
-Not yet resolved in code. Documented here so it does not cause confusion.
+Historical record, kept so the fix is traceable. **`start.sh` has been deleted** (decision D-2:
+retire, not repair — it was fully superseded by `start-narratiq.sh`'s self-bootstrapping design) and
+`scripts/verify_runpod_setup.sh`'s default has been corrected to 9001.
 
 | Source | Port | Status |
 |---|---|---|
 | `start-narratiq.sh:17` | **9001** | **Authoritative** — the path in use |
 | `backend/config.py:59` | **9001** | Consistent |
-| `start.sh:25` | 8001 | **Legacy**, superseded — predates the Postgres migration |
-| `scripts/verify_runpod_setup.sh:14` | 8001 | Legacy — reports a **false failure** against a working 9001 stack |
+| `start.sh:25` | 8001 | **Deleted 2026-09-21** — was legacy, superseded, predated the Postgres migration |
+| `scripts/verify_runpod_setup.sh:14` | **9001** | **Fixed 2026-09-21** — previously 8001, reported a false failure against a working 9001 stack |
 
-The default moved from 8001 to 9001 in commit `b0f64be`. If you must run the verifier, override it:
+The default moved from 8001 to 9001 in commit `b0f64be`. No override is needed to run the verifier now:
 
 ```bash
-VLLM_PORT=9001 bash scripts/verify_runpod_setup.sh
+bash scripts/verify_runpod_setup.sh
 ```
 
 ---

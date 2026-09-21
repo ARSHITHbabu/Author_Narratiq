@@ -228,8 +228,9 @@ Tracked in [`docs/issues-and-bugs/open/`](docs/issues-and-bugs/) — see
 (A code-level audit, `NarratIQ_Project_Recovery_Report.docx`, is referenced by older documents but is
 not present in this repository.) Highest priority:
 
-1. **vLLM port contradiction** — `start-narratiq.sh` and `config.py` use 9001; the legacy `start.sh`
-   and `scripts/verify_runpod_setup.sh` still use 8001. See
+1. ~~**vLLM port contradiction**~~ — **Resolved 2026-09-21.** `start-narratiq.sh` and `config.py` use
+   9001; the legacy `start.sh` (which used 8001) has been deleted and
+   `scripts/verify_runpod_setup.sh` corrected to 9001. See
    [`docs/operations/runpod-deployment.md`](docs/operations/runpod-deployment.md).
 2. **Story Bible can persist placeholder text** while marking the job `completed`
    (`routers/story_bible.py:138-147`).

@@ -8,7 +8,7 @@ from openai import APIConnectionError, APIStatusError
 
 from database import get_db
 from models import Story, PlotAssistantSession, GenreProfile, ChapterSummary
-from schemas import PlotAssistantRequest, PlotAssistantResponse, PlotSuggestion
+from schemas import PlotAssistantRequest, PlotAssistantResponse, PlotSuggestion, RetrievalMeta
 from routers.auth import get_current_user, User
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,16 @@ async def plot_assistant(
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
 
-    logger.info( f"\n[plot_assistant] ── New request ──────────────────────────────\n" f"  story_id : {data.story_id[:8]}...\n" f"  question : {data.question!r}\n" f"  cur_chapter_len : {len(data.current_chapter_text or '')}" )
+    logger.info( f"\n[plot_assistant] ── New request ──────────────────────────────\n" f"  story_id : {data.story_id[:8]}...\n" f"  question : {data.question!r}\n" f"  cur_chapter_len : {len(data.current_chapter_text or '')}\n" f"  scope    : {data.scope!r}" )
+
+    # ── D-1 (task 4.1): resolve the effective chapter cap from the requested
+    # scope. "chapter" (default) caps retrieval at the author's current
+    # position — spoiler-safe. "full" is an explicit opt-in that removes the
+    # cap entirely. The active scope is always echoed back in the response
+    # (PlotAssistantResponse.scope_used) — silent limiting is the defect this
+    # task exists to close.
+    scope = data.scope or "chapter"
+    effective_max_chapter = data.current_chapter_number if scope == "chapter" else None
 
     # ── Load genre profile ────────────────────────────────────────────────────
     genre_profile = db.query(GenreProfile).filter(
@@ -65,9 +74,9 @@ async def plot_assistant(
     _fallback_q = db.query(ChapterSummary).filter(
         ChapterSummary.story_id == data.story_id
     )
-    if data.current_chapter_number is not None:
+    if effective_max_chapter is not None:
         _fallback_q = _fallback_q.filter(
-            ChapterSummary.chapter_number <= data.current_chapter_number
+            ChapterSummary.chapter_number <= effective_max_chapter
         )
     summaries = (
         _fallback_q
@@ -87,8 +96,11 @@ async def plot_assistant(
         intent, retrieved_chunks = await asyncio.gather(
             detect_query_intent(data.question),
             retrieve_relevant_chunks(
-                data.question, data.story_id, db, top_k=4,
-                max_chapter_number=data.current_chapter_number,
+                # Task 4.2: raised from 4 — this is chapter-SUMMARY-level
+                # retrieval (much cheaper per item than paragraph chunks), so
+                # it had more headroom than the QA chunk path did.
+                data.question, data.story_id, db, top_k=6,
+                max_chapter_number=effective_max_chapter,
             ),
         )
     except (APIConnectionError, APIStatusError) as exc:
@@ -131,11 +143,15 @@ async def plot_assistant(
             for c in story_chars
         )
 
-        # Reduce chunk count to top_k=5 when character context will be injected
-        qa_top_k = 5 if has_name_mention else 8
+        # Task 4.2: raised from 5/8 to 6/10 — measured against the shared
+        # ground-truth fixture (tests/fixtures/retrieval_fixture.py) and the
+        # verified max_model_len=8192 context window (see
+        # tests/test_recall_measurement.py for the recall and budget evidence).
+        # Reduce chunk count when character context will be injected.
+        qa_top_k = 6 if has_name_mention else 10
         text_chunks = await retrieve_chunks_from_store(
             data.question, data.story_id, db, top_k=qa_top_k,
-            max_chapter_number=data.current_chapter_number,
+            max_chapter_number=effective_max_chapter,
         )
         logger.info( f"[plot_assistant] chunk-level retrieval: " f"{len(text_chunks)} passage(s) across " f"{len({c['chapter'] for c in text_chunks})} chapter(s) " f"(top_k={qa_top_k}, name_mention={has_name_mention})" )
 
@@ -143,6 +159,7 @@ async def plot_assistant(
         if has_name_mention:
             character_context = await retrieve_character_context(
                 data.story_id, data.question, db, top_k=3, token_budget=600,
+                max_chapter_number=effective_max_chapter,
             )
 
     if intent in ("creative", "mixed"):
@@ -150,6 +167,7 @@ async def plot_assistant(
         if not character_context:  # avoid double retrieval in mixed mode
             character_context = await retrieve_character_context(
                 data.story_id, data.question, db, top_k=3, token_budget=800,
+                max_chapter_number=effective_max_chapter,
             )
 
     # ── Note context — retrieved for all intents ──────────────────────────────
@@ -186,6 +204,7 @@ async def plot_assistant(
                 current_chapter   = cur_chapter,
                 character_context = character_context or None,
                 note_context      = note_context or None,
+                scope_limited     = effective_max_chapter is not None,
             )
             logger.info(f"[plot_assistant] QA answer → {len(answer)} chars")
         elif intent == "creative":
@@ -214,6 +233,7 @@ async def plot_assistant(
                 current_chapter   = cur_chapter,
                 character_context = character_context or None,
                 note_context      = note_context or None,
+                scope_limited     = effective_max_chapter is not None,
             )
             suggestions_coro = generate_plot_suggestions(
                 question           = data.question,
@@ -292,7 +312,20 @@ async def plot_assistant(
         if genre_profile:
             context_desc = f"{genre_profile.genre} genre profile + {context_desc}"
 
-    logger.info(f"[plot_assistant] mode={intent!r} | context_used={context_desc!r}")
+    # Scope is always named in context_used, never left implicit — a story-wide
+    # search and a chapter-capped one must never look the same in the UI.
+    context_desc += f" [scope: {'full manuscript' if scope == 'full' else f'up to Ch{data.current_chapter_number}' if data.current_chapter_number is not None else 'chapter (no chapter number given)'}]"
+
+    # Task 4.4 — structured retrieval metadata, independent of the free-text
+    # context_used description above, so the frontend can render "how much
+    # was searched" without parsing prose.
+    retrieval_meta = RetrievalMeta(
+        chunks_retrieved=len(text_chunks),
+        chapters_covered=sorted({c["chapter"] for c in text_chunks}) if text_chunks else [],
+        scope_limited=effective_max_chapter is not None,
+    )
+
+    logger.info(f"[plot_assistant] mode={intent!r} | scope={scope!r} | context_used={context_desc!r}")
     logger.debug("[plot_assistant] ── Done ─────────────────────────────────────────")
     return PlotAssistantResponse(
         session_id=session.session_id,
@@ -301,6 +334,8 @@ async def plot_assistant(
         suggestions=suggestions,
         context_used=context_desc,
         tokens_used=session.tokens_used,
+        scope_used=scope,
+        retrieval=retrieval_meta,
     )
 
 

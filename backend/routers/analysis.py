@@ -162,10 +162,15 @@ async def run_continuity_check(
 
     summary_dicts = [
         {
-            "chapter_number":    s.chapter_number,
-            "locations":         s.locations,
-            "characters_present": s.characters_present,
-            "key_events":        s.key_events,
+            "chapter_number":       s.chapter_number,
+            "locations":            s.locations,
+            "characters_present":   s.characters_present,
+            "key_events":           s.key_events,
+            # Task 5.14 — wired into check_continuity's prompt so character-arc
+            # and relationship-arc contradictions are reasoned about, not just
+            # location/appearance/world-rule/timeline facts.
+            "character_arc_notes":  s.character_arc_notes,
+            "relationship_changes": s.relationship_changes,
         }
         for s in summaries
     ]
@@ -215,6 +220,13 @@ async def run_continuity_check(
                 "could not be fully checked. Please run the check again."
             )
 
+    # Task 5.14 — validated ONCE here, against the FULL manuscript's
+    # summary_dicts, never per-chunk (see validate_continuity_citations'
+    # and check_continuity's own docstrings for why: a chunk-local check
+    # would wrongly suppress a valid cross-chunk citation).
+    from services.ai_service import validate_continuity_citations
+    all_issues = validate_continuity_citations(all_issues, summary_dicts)
+
     issues = [
         ContinuityIssue(
             type=i.get("type", "continuity_break"),
@@ -222,6 +234,7 @@ async def run_continuity_check(
             chapter_refs=i.get("chapter_refs", []),
             severity=i.get("severity", "medium"),
             resolution_hint=i.get("resolution_hint", ""),
+            citation_verified=i.get("citation_verified", True),
         )
         for i in all_issues
     ]

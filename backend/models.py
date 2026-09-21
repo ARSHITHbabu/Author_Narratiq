@@ -43,6 +43,7 @@ class Story(Base):
     user = relationship("User", back_populates="stories")
     chapters = relationship("Chapter", back_populates="story", cascade="all, delete-orphan")
     genre_profile = relationship("GenreProfile", back_populates="story", uselist=False, cascade="all, delete-orphan")
+    preservation_settings = relationship("StoryPreservationSettings", back_populates="story", uselist=False, cascade="all, delete-orphan")
     story_intake = relationship("StoryIntake", back_populates="story", uselist=False, cascade="all, delete-orphan")
     plot_sessions = relationship("PlotAssistantSession", back_populates="story", cascade="all, delete-orphan")
     ocr_uploads = relationship("OcrUpload", back_populates="story", cascade="all, delete-orphan")
@@ -157,6 +158,43 @@ class GenreProfile(Base):
     story = relationship("Story", back_populates="genre_profile")
 
 
+class StoryPreservationSettings(Base):
+    """
+    Stage 5 task 5.3 — author-defined preservation rules for AI transforms.
+
+    Deliberately shaped like GenreProfile, not a many-row rules table: a
+    preservation "rule set" is realistically a handful of toggles plus one
+    free-text note per story, never a variable-length list an author adds
+    rules to one at a time — the same data-shape reasoning that put
+    Character.aliases on the character row as a plain JSON column rather
+    than in its own table.
+
+    Absent row = current (pre-Stage-5) default behaviour exactly
+    (preserve_character_names=True, preserve_tone=True are the DEFAULTS
+    used when no row exists at all, matching what every transform already
+    implicitly tried to do before this task — see
+    services/ai_service.py's _build_preservation_clause).
+
+    translation_glossary (task 5.11's cross-language name-consistency
+    requirement) lives here rather than in a second new table: it is the
+    same "small per-story AI-configuration blob" shape, and adding a second
+    table for one JSON field would be the over-engineering this stage was
+    explicitly asked to avoid. Shape: {target_language: {source_name:
+    translated_name}}, populated lazily on first translation to a given
+    language.
+    """
+    __tablename__ = "story_preservation_settings"
+    setting_id = Column(String, primary_key=True, default=gen_uuid)
+    story_id = Column(String, ForeignKey("stories.story_id"), nullable=False, unique=True)
+    preserve_character_names = Column(Boolean, default=True)
+    preserve_tone = Column(Boolean, default=True)
+    author_notes = Column(Text, default="")
+    translation_glossary = Column(JSON, default=dict)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    story = relationship("Story", back_populates="preservation_settings")
+
+
 class PlotAssistantSession(Base):
     __tablename__ = "plot_assistant_sessions"
     session_id = Column(String, primary_key=True, default=gen_uuid)
@@ -209,6 +247,11 @@ class ChapterSummary(Base):
     generated_at = Column(DateTime, default=datetime.utcnow)
     is_stale = Column(Boolean, default=False)
     character_ids = Column(JSON, default=list)   # list of character UUIDs in this chapter
+    # Task 4.5 (migration 0017): per-chapter arc/relationship signal, used by
+    # 4.3's ranking and Story Bible grounding. Nullable — absent until a
+    # chapter is (re)summarised under the updated prompt.
+    character_arc_notes = Column(JSON, nullable=True)   # {character_id: progression note}
+    relationship_changes = Column(JSON, nullable=True)  # [{"characters": [id, id], "change": "..."}]
 
     chapter = relationship("Chapter", back_populates="summary")
     story = relationship("Story", back_populates="chapter_summaries")

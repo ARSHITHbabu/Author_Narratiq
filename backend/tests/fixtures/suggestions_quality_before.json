@@ -1,0 +1,163 @@
+{
+  "results": [
+    {
+      "passage_id": "repetitive-structure",
+      "weakness": "repetitive sentence structure / monotonous rhythm",
+      "n_suggestions": 2,
+      "weakness_detected": true,
+      "categories": [
+        "Lack of Action",
+        "Redundancy"
+      ],
+      "has_priority_field": false,
+      "raw_suggestions": [
+        {
+          "id": 1,
+          "category": "Redundancy",
+          "observation": "The phrase 'She' is repeated four times in the first five sentences.",
+          "recommendation": "Vary the pronoun usage by alternating between 'she' and 'her', or using a noun like 'Mary'. For example: 'Mary walked into the room. She saw the note on the table... '",
+          "text": "The phrase 'She' is repeated four times in the first five sentences.",
+          "reason": "The phrase 'She' is repeated four times in the first five sentences. Vary the pronoun usage by alternating between 'she' and 'her', or using a noun like 'Mary'. For example: 'Mary walked into the room. She saw the note on the table... '"
+        },
+        {
+          "id": 2,
+          "category": "Lack of Action",
+          "observation": "The actions are too mechanical and lack specificity. For instance, 'She read it twice' is bland.",
+          "recommendation": "Add descriptive details to make the actions more vivid. For example: 'She read the note quickly, then slowly, as if searching for hidden meanings.'",
+          "text": "The actions are too mechanical and lack specificity. For instance, 'She read it twice' is bland.",
+          "reason": "The actions are too mechanical and lack specificity. For instance, 'She read it twice' is bland. Add descriptive details to make the actions more vivid. For example: 'She read the note quickly, then slowly, as if searching for hidden meanings.'"
+        }
+      ]
+    },
+    {
+      "passage_id": "telling-not-showing",
+      "weakness": "telling emotion directly instead of showing it",
+      "n_suggestions": 2,
+      "weakness_detected": true,
+      "categories": [
+        "Clarity and Specificity",
+        "Emotional Depth"
+      ],
+      "has_priority_field": false,
+      "raw_suggestions": [
+        {
+          "id": 1,
+          "category": "Emotional Depth",
+          "observation": "The emotions are listed in a straightforward manner without much nuance or depth.",
+          "recommendation": "Consider blending the emotions or adding specific details that reflect each emotion. For example, 'Maria was furious, her fists clenched tight, yet she felt a deep sadness welling up, as if her heart was breaking.'",
+          "text": "The emotions are listed in a straightforward manner without much nuance or depth.",
+          "reason": "The emotions are listed in a straightforward manner without much nuance or depth. Consider blending the emotions or adding specific details that reflect each emotion. For example, 'Maria was furious, her fists clenched tight, yet she felt a deep sadness welling up, as if her heart was breaking.'"
+        },
+        {
+          "id": 2,
+          "category": "Clarity and Specificity",
+          "observation": "The phrase 'did not know what to do next' is vague and could be more specific.",
+          "recommendation": "Specify Maria's dilemma or action. For instance, 'She felt betrayed and did not know whether to confront him or walk away.'",
+          "text": "The phrase 'did not know what to do next' is vague and could be more specific.",
+          "reason": "The phrase 'did not know what to do next' is vague and could be more specific. Specify Maria's dilemma or action. For instance, 'She felt betrayed and did not know whether to confront him or walk away.'"
+        }
+      ]
+    },
+    {
+      "passage_id": "generic-dialogue",
+      "weakness": "flat, generic dialogue with no character voice",
+      "n_suggestions": 2,
+      "weakness_detected": true,
+      "categories": [
+        "Dialogue Tags",
+        "Repetition"
+      ],
+      "has_priority_field": false,
+      "raw_suggestions": [
+        {
+          "id": 1,
+          "category": "Dialogue Tags",
+          "observation": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+          "recommendation": "Replace 'he said' and 'she said' with actions or internal thoughts to make the dialogue more dynamic. For example: 'Hello,' she said, smiling. He looked at her and replied, 'How are you?' She responded, 'I am fine,' and he nodded, saying, 'That is good.'",
+          "text": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+          "reason": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said. Replace 'he said' and 'she said' with actions or internal thoughts to make the dialogue more dynamic. For example: 'Hello,' she said, smiling. He looked at her and replied, 'How are you?' She responded, 'I am fine,' and he nodded, saying, 'That is good.'"
+        },
+        {
+          "id": 2,
+          "category": "Repetition",
+          "observation": "The phrase 'said' is repeated four times in quick succession.",
+          "recommendation": "Vary the dialogue tags by using actions or internal thoughts. For instance: 'Hello,' she said, smiling. He looked at her and replied, 'How are you?' She responded, 'I am fine,' and he nodded, saying, 'That is good.' This reduces repetition and adds more depth to the interaction.",
+          "text": "The phrase 'said' is repeated four times in quick succession.",
+          "reason": "The phrase 'said' is repeated four times in quick succession. Vary the dialogue tags by using actions or internal thoughts. For instance: 'Hello,' she said, smiling. He looked at her and replied, 'How are you?' She responded, 'I am fine,' and he nodded, saying, 'That is good.' This reduces repetition and adds more depth to the interaction."
+        }
+      ]
+    },
+    {
+      "passage_id": "info-dump",
+      "weakness": "exposition dumped directly rather than woven in",
+      "n_suggestions": 2,
+      "weakness_detected": false,
+      "categories": [
+        "Character Development",
+        "Historical Consistency"
+      ],
+      "has_priority_field": false,
+      "raw_suggestions": [
+        {
+          "id": 1,
+          "category": "Historical Consistency",
+          "observation": "The use of 'old tongue' for the founding charter introduces an element of mystery but lacks historical context.",
+          "recommendation": "Specify what the 'old tongue' is\u2014e.g., 'the ancient Elvish dialect'\u2014to provide readers with a clearer understanding of the cultural and historical background.",
+          "text": "The use of 'old tongue' for the founding charter introduces an element of mystery but lacks historical context.",
+          "reason": "The use of 'old tongue' for the founding charter introduces an element of mystery but lacks historical context. Specify what the 'old tongue' is\u2014e.g., 'the ancient Elvish dialect'\u2014to provide readers with a clearer understanding of the cultural and historical background."
+        },
+        {
+          "id": 2,
+          "category": "Character Development",
+          "observation": "King Aldric the First is mentioned without any personal details or actions that might flesh out his character.",
+          "recommendation": "Add a brief anecdote or detail about King Aldric, such as 'who was known for his wisdom and fairness', to give him more depth and make his role in the kingdom more tangible.",
+          "text": "King Aldric the First is mentioned without any personal details or actions that might flesh out his character.",
+          "reason": "King Aldric the First is mentioned without any personal details or actions that might flesh out his character. Add a brief anecdote or detail about King Aldric, such as 'who was known for his wisdom and fairness', to give him more depth and make his role in the kingdom more tangible."
+        }
+      ]
+    },
+    {
+      "passage_id": "flat-description",
+      "weakness": "vague adjectives with no sensory specificity",
+      "n_suggestions": 2,
+      "weakness_detected": true,
+      "categories": [
+        "Lack of Specificity",
+        "Redundancy"
+      ],
+      "has_priority_field": false,
+      "raw_suggestions": [
+        {
+          "id": 1,
+          "category": "Redundancy",
+          "observation": "The phrase 'nice, big house' is followed by 'The rooms were nice and spacious', which repeats the idea of niceness and spaciousness.",
+          "recommendation": "Vary the description by focusing on unique features. For example, 'It was a spacious, well-lit house with a lush, well-maintained garden. The rooms were filled with natural light, and the view from the terrace offered a panoramic vista.'",
+          "text": "The phrase 'nice, big house' is followed by 'The rooms were nice and spacious', which repeats the idea of niceness and spaciousness.",
+          "reason": "The phrase 'nice, big house' is followed by 'The rooms were nice and spacious', which repeats the idea of niceness and spaciousness. Vary the description by focusing on unique features. For example, 'It was a spacious, well-lit house with a lush, well-maintained garden. The rooms were filled with natural light, and the view from the terrace offered a panoramic vista.'"
+        },
+        {
+          "id": 2,
+          "category": "Lack of Specificity",
+          "observation": "The description uses general terms like 'nice' and 'spacious' without providing any specific details that would make the setting more vivid.",
+          "recommendation": "Add specific details to create a clearer image. For instance, 'The sprawling, four-story house boasted a meticulously manicured garden with a winding stone path leading to a grand fountain. The rooms were filled with natural light, each with its own unique architectural detail, and the view from the terrace offered a panoramic vista of the rolling hills beyond.'",
+          "text": "The description uses general terms like 'nice' and 'spacious' without providing any specific details that would make the setting more vivid.",
+          "reason": "The description uses general terms like 'nice' and 'spacious' without providing any specific details that would make the setting more vivid. Add specific details to create a clearer image. For instance, 'The sprawling, four-story house boasted a meticulously manicured garden with a winding stone path leading to a grand fountain. The rooms were filled with natural light, each with its own unique architectural detail, and the view from the terrace offered a panoramic vista of the rolling hills beyond.'"
+        }
+      ]
+    }
+  ],
+  "recall_rate": 0.8,
+  "distinct_categories_across_set": [
+    "Character Development",
+    "Clarity and Specificity",
+    "Dialogue Tags",
+    "Emotional Depth",
+    "Historical Consistency",
+    "Lack of Action",
+    "Lack of Specificity",
+    "Redundancy",
+    "Repetition"
+  ],
+  "distinct_category_count": 9,
+  "all_have_priority": false
+}

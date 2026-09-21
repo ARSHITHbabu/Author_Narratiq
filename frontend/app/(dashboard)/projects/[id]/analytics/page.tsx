@@ -2,23 +2,35 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, BarChart3, BookOpen, FileText, Clock, Feather, Loader2, TrendingUp } from 'lucide-react'
-import { projectsApi, chaptersApi } from '@/lib/api'
-import { Story, Chapter } from '@/lib/types'
+import { ArrowLeft, BarChart3, BookOpen, FileText, Clock, Feather, Loader2, TrendingUp, Sparkles } from 'lucide-react'
+import { projectsApi, chaptersApi, analyticsApi } from '@/lib/api'
+import { Story, Chapter, StoryAnalyticsResponse } from '@/lib/types'
 import { toast } from 'sonner'
+
+// Per-chapter breakdown below has no server-side equivalent (the backend
+// endpoint returns whole-story metrics only — see services/analytics_service.py),
+// so these stay client-side. They use the same corrected heuristics as the
+// backend (vowel-GROUP syllable counting, straight-OR-curly-quote dialogue
+// matching) rather than the old buggy vowel-letter/curly-only versions.
+function countSyllables(word: string): number {
+  const groups = word.match(/[aeiouy]+/gi) || []
+  let n = groups.length
+  if (/e$/i.test(word) && n > 1) n -= 1
+  return Math.max(1, n)
+}
 
 function readabilityScore(text: string): number {
   if (!text.trim()) return 0
   const sentences = text.split(/[.!?]+/).filter((s) => s.trim().length > 0)
   const words = text.trim().split(/\s+/)
-  const syllables = words.reduce((acc, w) => acc + Math.max(1, w.replace(/[^aeiou]/gi, '').length), 0)
+  const syllables = words.reduce((acc, w) => acc + countSyllables(w), 0)
   if (sentences.length === 0 || words.length === 0) return 0
   const fk = 206.835 - 1.015 * (words.length / sentences.length) - 84.6 * (syllables / words.length)
   return Math.round(Math.max(0, Math.min(100, fk)))
 }
 
 function dialogueRatio(text: string): number {
-  const dialogue = (text.match(/[""][^""]*[""]/g) || []).join('').length
+  const dialogue = (text.match(/["“][^"“”]*["”]/g) || []).join('').length
   return text.length > 0 ? Math.round((dialogue / text.length) * 100) : 0
 }
 
@@ -34,6 +46,7 @@ export default function AnalyticsPage({ params }: { params: { id: string } }) {
   const [story, setStory] = useState<Story | null>(null)
   const [chapters, setChapters] = useState<Chapter[]>([])
   const [chapterContents, setChapterContents] = useState<Record<string, string>>({})
+  const [analytics, setAnalytics] = useState<StoryAnalyticsResponse | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -43,7 +56,9 @@ export default function AnalyticsPage({ params }: { params: { id: string } }) {
         setStory(sr.data)
         const chs: Chapter[] = cr.data
         setChapters(chs)
-        // Load content for each chapter (for metrics)
+        // Load content for each chapter (for the per-chapter breakdown only —
+        // the aggregate metrics below come from the server, which is now the
+        // source of truth: see services/analytics_service.py).
         const contents: Record<string, string> = {}
         await Promise.all(
           chs.map(async (ch) => {
@@ -56,6 +71,12 @@ export default function AnalyticsPage({ params }: { params: { id: string } }) {
         setChapterContents(contents)
       } catch {
         toast.error('Failed to load analytics')
+      }
+      try {
+        const ar = await analyticsApi.get(storyId)
+        setAnalytics(ar.data)
+      } catch {
+        toast.error('Failed to load server-side analytics; showing partial data')
       } finally {
         setLoading(false)
       }
@@ -63,23 +84,23 @@ export default function AnalyticsPage({ params }: { params: { id: string } }) {
     load()
   }, [storyId])
 
-  const allText = Object.values(chapterContents).join(' ')
   const totalWords = story?.word_count || 0
-  const avgWC = chapters.length > 0 ? Math.round(totalWords / chapters.length) : 0
-  const overallReadability = readabilityScore(allText)
-  const overallDialogue = dialogueRatio(allText)
-  const overallAvgSentence = avgSentenceLength(allText)
-  const targetNovelWords = 80000
-  const progressPct = Math.min(100, Math.round((totalWords / targetNovelWords) * 100))
+  const m = analytics?.metrics
+  const targetNovelWords = m?.word_count_progress?.target_words ?? 80000
+  const progressPct = m?.word_count_progress
+    ? Math.min(100, Number(m.word_count_progress.value))
+    : Math.min(100, Math.round((totalWords / targetNovelWords) * 100))
 
-  const metrics = [
-    { label: 'Total Words', value: totalWords.toLocaleString(), icon: FileText, color: 'text-amber-400' },
-    { label: 'Chapters', value: chapters.length, icon: BookOpen, color: 'text-blue-400' },
-    { label: 'Avg Words/Chapter', value: avgWC.toLocaleString(), icon: BarChart3, color: 'text-green-400' },
-    { label: 'Readability Score', value: `${overallReadability}/100`, icon: TrendingUp, color: 'text-purple-400' },
-    { label: 'Dialogue Ratio', value: `${overallDialogue}%`, icon: Clock, color: 'text-pink-400' },
-    { label: 'Avg Sentence Length', value: `${overallAvgSentence} words`, icon: FileText, color: 'text-cyan-400' },
-  ]
+  const metrics = m
+    ? [
+        { label: 'Total Words', value: Number(m.total_words.value).toLocaleString(), icon: FileText, color: 'text-amber-400', explanation: m.total_words.explanation },
+        { label: 'Chapters', value: m.chapters.value, icon: BookOpen, color: 'text-blue-400', explanation: m.chapters.explanation },
+        { label: 'Avg Words/Chapter', value: Number(m.avg_words_per_chapter.value).toLocaleString(), icon: BarChart3, color: 'text-green-400', explanation: m.avg_words_per_chapter.explanation },
+        { label: 'Readability Score', value: `${m.readability.value}/100`, icon: TrendingUp, color: 'text-purple-400', explanation: m.readability.explanation },
+        { label: 'Dialogue Ratio', value: `${m.dialogue_ratio.value}%`, icon: Clock, color: 'text-pink-400', explanation: m.dialogue_ratio.explanation },
+        { label: 'Avg Sentence Length', value: `${m.avg_sentence_length.value} words`, icon: FileText, color: 'text-cyan-400', explanation: m.avg_sentence_length.explanation },
+      ]
+    : []
 
   if (loading) {
     return (
@@ -124,7 +145,7 @@ export default function AnalyticsPage({ params }: { params: { id: string } }) {
         <div className="bg-[#13162a] border border-[#1f2440] rounded-2xl p-6 mb-6">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-medium">Novel Progress</span>
-            <span className="text-sm text-amber-400">{progressPct}% of 80,000 words</span>
+            <span className="text-sm text-amber-400">{progressPct}% of {targetNovelWords.toLocaleString()} words</span>
           </div>
           <div className="h-3 bg-[#0d0f1a] rounded-full overflow-hidden">
             <div
@@ -134,22 +155,67 @@ export default function AnalyticsPage({ params }: { params: { id: string } }) {
           </div>
           <div className="flex justify-between mt-2 text-xs text-[#5c6391]">
             <span>{totalWords.toLocaleString()} written</span>
-            <span>{Math.max(0, 80000 - totalWords).toLocaleString()} remaining</span>
+            <span>{Math.max(0, targetNovelWords - totalWords).toLocaleString()} remaining</span>
           </div>
         </div>
 
-        {/* Metric cards */}
+        {/* Metric cards — value + explanation come from the server
+            (services/analytics_service.py); each explanation is surfaced as
+            a title tooltip so the number is never shown unexplained. */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-          {metrics.map((m) => (
-            <div key={m.label} className="bg-[#13162a] border border-[#1f2440] rounded-xl p-5">
+          {metrics.map((mt) => (
+            <div key={mt.label} title={mt.explanation} className="bg-[#13162a] border border-[#1f2440] rounded-xl p-5">
               <div className="flex items-center gap-2 text-[#5c6391] mb-2">
-                <m.icon className="w-3.5 h-3.5" />
-                <span className="text-xs">{m.label}</span>
+                <mt.icon className="w-3.5 h-3.5" />
+                <span className="text-xs">{mt.label}</span>
               </div>
-              <div className={`text-2xl font-bold ${m.color}`}>{m.value}</div>
+              <div className={`text-2xl font-bold ${mt.color}`}>{mt.value}</div>
+              <div className="text-[10px] text-[#5c6391] mt-1 line-clamp-2">{mt.explanation}</div>
             </div>
           ))}
+          {!analytics && (
+            <div className="col-span-full text-xs text-[#5c6391] italic">
+              Server-side analytics unavailable — showing chapter breakdown only.
+            </div>
+          )}
         </div>
+
+        {/* Story Intelligence — read-only summary from Stage 4's emotional-arc
+            and pacing analysis, when it exists for this story. */}
+        {analytics?.story_intelligence_available && analytics.story_intelligence && (
+          <div className="bg-[#13162a] border border-[#1f2440] rounded-2xl p-6 mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <Sparkles className="w-4 h-4 text-amber-400" />
+              <h2 className="font-semibold">Story Intelligence</h2>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4 text-sm">
+              {analytics.story_intelligence.emotional_arc_shape && (
+                <div>
+                  <span className="text-[#5c6391] text-xs block mb-1">Emotional Arc Shape</span>
+                  <span className="text-[#e8eaf6]">{analytics.story_intelligence.emotional_arc_shape}</span>
+                </div>
+              )}
+              {analytics.story_intelligence.dominant_emotions && analytics.story_intelligence.dominant_emotions.length > 0 && (
+                <div>
+                  <span className="text-[#5c6391] text-xs block mb-1">Dominant Emotions</span>
+                  <span className="text-[#e8eaf6]">{analytics.story_intelligence.dominant_emotions.join(', ')}</span>
+                </div>
+              )}
+              {analytics.story_intelligence.overall_pacing && (
+                <div>
+                  <span className="text-[#5c6391] text-xs block mb-1">Overall Pacing</span>
+                  <span className="text-[#e8eaf6]">{analytics.story_intelligence.overall_pacing}</span>
+                </div>
+              )}
+              {analytics.story_intelligence.pacing_score != null && (
+                <div>
+                  <span className="text-[#5c6391] text-xs block mb-1">Pacing Score</span>
+                  <span className="text-[#e8eaf6]">{analytics.story_intelligence.pacing_score}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Chapter breakdown */}
         <div className="bg-[#13162a] border border-[#1f2440] rounded-2xl overflow-hidden">

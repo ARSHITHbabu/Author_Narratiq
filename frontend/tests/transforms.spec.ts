@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import {
   REFINE_MODES, TONES, EMOTIONS, AUDIENCES, STYLES, LANGUAGES, INTENSITIES,
-  AUTHOR_STYLES, TRANSFORM_GROUPS, buildTransformCall,
+  AUTHOR_STYLES, TRANSFORM_GROUPS, buildTransformCall, splitSentences, LOCKABLE_GROUPS, STRENGTH_LEVELS,
 } from '../lib/transforms'
 
 // ── Complete Phase 1/Phase 2 option inventory is present ──────────────────────
@@ -85,6 +85,64 @@ test('translate routes to /api/ai/translate with the language', () => {
   const c = buildTransformCall('translate', 'French', SEL, { storyId: 's1' })
   expect(c.path).toBe('/api/ai/translate')
   expect(c.body).toMatchObject({ text: SEL, target_language: 'French' })
+})
+
+// ── Task 5.4/5.6 — strength + locked_ranges are wired for the right groups ────
+
+test('LOCKABLE_GROUPS is exactly tone/age_adapt/style — matching schemas.StrengthMixin', () => {
+  expect(LOCKABLE_GROUPS.sort()).toEqual(['age_adapt', 'style', 'tone'])
+  expect(STRENGTH_LEVELS).toEqual(['light', 'moderate', 'strong'])
+})
+
+test('tone sends strength + locked_ranges when provided', () => {
+  const c = buildTransformCall('tone', 'Dark', SEL, {
+    storyId: 's1', strength: 'moderate', lockedRanges: [{ start: 0, end: 8 }],
+  })
+  expect(c.body).toMatchObject({ strength: 'moderate', locked_ranges: [{ start: 0, end: 8 }] })
+})
+
+test('age_adapt and style also send strength + locked_ranges', () => {
+  const a = buildTransformCall('age_adapt', 'ya', SEL, { strength: 'strong', lockedRanges: [{ start: 2, end: 5 }] })
+  expect(a.body).toMatchObject({ strength: 'strong', locked_ranges: [{ start: 2, end: 5 }] })
+  const s = buildTransformCall('style', 'Gothic', SEL, { strength: 'light' })
+  expect(s.body).toMatchObject({ strength: 'light' })
+})
+
+test('non-lockable groups never send strength or locked_ranges, even if passed', () => {
+  for (const group of ['refine', 'emotion', 'author_style', 'translate'] as const) {
+    const c = buildTransformCall(group, group === 'translate' ? 'French' : 'standard', SEL, {
+      strength: 'strong', lockedRanges: [{ start: 0, end: 3 }],
+    })
+    expect(c.body).not.toHaveProperty('strength')
+    expect(c.body).not.toHaveProperty('locked_ranges')
+  }
+})
+
+// ── Task 5.4 — sentence splitting for the lock picker ──────────────────────────
+
+test('splitSentences finds exact character offsets for each sentence', () => {
+  const text = 'The letter had said everything and nothing. Devika read it twice, then folded it back.'
+  const spans = splitSentences(text)
+  expect(spans.length).toBe(2)
+  expect(text.slice(spans[0].start, spans[0].end)).toBe('The letter had said everything and nothing.')
+  expect(text.slice(spans[1].start, spans[1].end)).toBe('Devika read it twice, then folded it back.')
+})
+
+test('splitSentences handles a single sentence with no trailing period', () => {
+  const text = 'He stood at the window, saying nothing'
+  const spans = splitSentences(text)
+  expect(spans.length).toBe(1)
+  expect(spans[0]).toEqual({ text, start: 0, end: text.length })
+})
+
+test('splitSentences offsets are usable as locked_ranges — round-trips through buildTransformCall', () => {
+  const text = 'Aanya was not going to get a fifth chance. She knew it.'
+  const spans = splitSentences(text)
+  const lockedRanges = [spans[0]].map((s) => ({ start: s.start, end: s.end }))
+  const c = buildTransformCall('tone', 'Dark', text, { lockedRanges })
+  const body = c.body as { locked_ranges: { start: number; end: number }[] }
+  expect(body.locked_ranges).toEqual([{ start: 0, end: text.indexOf('.') + 1 }])
+  expect(text.slice(body.locked_ranges[0].start, body.locked_ranges[0].end)).toBe('Aanya was not going to get a fifth chance.')
 })
 
 // ── Selected text only — no RAG / story passages / chapter summary anywhere ───

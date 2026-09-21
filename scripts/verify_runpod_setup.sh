@@ -1,6 +1,18 @@
 #!/bin/bash
-# Verify that the RunPod environment is correctly set up before running NarratIQ AI.
-# Run this script AFTER downloading models and BEFORE running start.sh.
+# Verify that the RunPod environment is correctly set up for NarratIQ AI.
+#
+# Safe to run at any point: before the stack has ever been started (checks
+# dependencies, models, disk space) or after `bash start-narratiq.sh` has brought
+# everything up (additionally verifies each service is actually healthy, not just
+# that its port is occupied). A service that isn't running yet is reported as
+# NOT STARTED (informational), not a failure — this script does not require the
+# stack to be up to be useful.
+#
+# Read-only with respect to application and manuscript data: every live check
+# either calls a health/models endpoint or runs a throwaway smoke request (a
+# 4-token completion, a literal-vector distance query) — nothing here reads,
+# lists, or touches real story/chapter/user rows, and nothing here stops or
+# restarts any service.
 #
 # Usage:
 #   bash scripts/verify_runpod_setup.sh
@@ -11,8 +23,10 @@ MODEL_BASE_DIR="${MODEL_BASE_DIR:-/workspace/models}"
 LLM_MODEL_PATH="${LLM_MODEL_PATH:-${MODEL_BASE_DIR}/Qwen2.5-7B-Instruct}"
 BGE_MODEL_PATH="${BGE_MODEL_PATH:-${MODEL_BASE_DIR}/bge-m3}"
 GOT_OCR_MODEL_PATH="${GOT_OCR_MODEL_PATH:-${MODEL_BASE_DIR}/GOT-OCR2_0}"
-VLLM_PORT="${VLLM_PORT:-8001}"
+WHISPER_MODEL_PATH="${WHISPER_MODEL_PATH:-${MODEL_BASE_DIR}/faster-whisper-large-v3-turbo}"
+VLLM_PORT="${VLLM_PORT:-9001}"
 BACKEND_PORT="${BACKEND_PORT:-8000}"
+FRONTEND_PORT="${FRONTEND_PORT:-3000}"
 
 PASS=0
 FAIL=0
@@ -41,6 +55,41 @@ if command -v python3 &>/dev/null; then
     fi
 else
     fail "python3 not found"
+fi
+
+# ── Node.js ───────────────────────────────────────────────────────────────────
+hdr "Node.js"
+if command -v node &>/dev/null; then
+    NODE_VER=$(node --version)
+    ok "Node found: ${NODE_VER}"
+else
+    fail "node not found — required for the frontend (start-narratiq.sh installs Node 20)"
+fi
+
+# ── PostgreSQL / pgvector ───────────────────────────────────────────────────────
+hdr "PostgreSQL / pgvector"
+if command -v psql &>/dev/null; then
+    ok "psql client found"
+    if pg_isready -h localhost -p 5432 &>/dev/null; then
+        ok "PostgreSQL is accepting connections on localhost:5432"
+        DB_URL_ENV="${DATABASE_URL:-}"
+        if PGPASSWORD=narratiq psql -h localhost -U narratiq -d narratiq -tAc "SELECT 1;" &>/dev/null; then
+            ok "Can connect to the 'narratiq' database as the 'narratiq' role"
+            VEC_VER=$(PGPASSWORD=narratiq psql -h localhost -U narratiq -d narratiq -tAc \
+                "SELECT extversion FROM pg_extension WHERE extname='vector';" 2>/dev/null | tr -d '[:space:]')
+            if [ -n "${VEC_VER}" ]; then
+                ok "pgvector extension enabled (version ${VEC_VER})"
+            else
+                fail "pgvector extension is NOT enabled in the 'narratiq' database"
+            fi
+        else
+            warn "Could not connect to the 'narratiq' database as 'narratiq' — may not be created yet (run start-narratiq.sh)"
+        fi
+    else
+        warn "PostgreSQL is not accepting connections yet — may not be started (run start-narratiq.sh, or: pg_ctlcluster 16 main start)"
+    fi
+else
+    fail "psql not found — PostgreSQL is required (SQLite is not supported); start-narratiq.sh installs it"
 fi
 
 # ── GPU / CUDA ────────────────────────────────────────────────────────────────
@@ -82,9 +131,10 @@ check_model_dir() {
     fi
 }
 
-check_model_dir "LLM (Qwen2.5-7B-Instruct)" "${LLM_MODEL_PATH}"
-check_model_dir "BGE-M3 (embeddings)"         "${BGE_MODEL_PATH}"
-check_model_dir "GOT-OCR2.0 (OCR, required)"  "${GOT_OCR_MODEL_PATH}"
+check_model_dir "LLM (Qwen2.5-7B-Instruct)"          "${LLM_MODEL_PATH}"
+check_model_dir "BGE-M3 (embeddings)"                  "${BGE_MODEL_PATH}"
+check_model_dir "GOT-OCR2.0 (OCR, required)"           "${GOT_OCR_MODEL_PATH}"
+check_model_dir "faster-whisper-large-v3-turbo (audio, required)" "${WHISPER_MODEL_PATH}"
 
 # ── Key model files ───────────────────────────────────────────────────────────
 hdr "Key Model Files"
@@ -134,20 +184,124 @@ else
     fail "vllm NOT installed — run: pip install -r requirements.vllm.txt"
 fi
 
-# ── Port availability ─────────────────────────────────────────────────────────
-hdr "Port Availability"
-check_port() {
-    local port="$1"
-    local label="$2"
-    if ss -tlnp 2>/dev/null | grep -q ":${port} " || netstat -tlnp 2>/dev/null | grep -q ":${port} "; then
-        warn "Port ${port} (${label}) is already in use — something is running on it"
-    else
-        ok "Port ${port} (${label}) is free"
-    fi
+# ── Service health ───────────────────────────────────────────────────────────
+# Each service is reported NOT STARTED (informational, not a failure) if its port
+# isn't listening yet — this script is safe to run before the stack has ever been
+# brought up. If a port IS listening, its actual health is checked, not just its
+# occupancy, so a stuck/broken service is caught rather than mistaken for healthy.
+hdr "Service Health"
+
+port_listening() {
+    ss -tln 2>/dev/null | grep -q ":$1 " || netstat -tln 2>/dev/null | grep -q ":$1 "
 }
 
-check_port "${VLLM_PORT}"    "vLLM"
-check_port "${BACKEND_PORT}" "FastAPI"
+VLLM_UP=0
+if port_listening "${VLLM_PORT}"; then
+    if curl -s -m 5 "http://localhost:${VLLM_PORT}/health" &>/dev/null; then
+        ok "vLLM is listening on ${VLLM_PORT} and reports healthy"
+        VLLM_UP=1
+    else
+        fail "vLLM is listening on ${VLLM_PORT} but /health did not respond — check tail -50 /tmp/narratiq-logs/vllm.log"
+    fi
+else
+    warn "vLLM (port ${VLLM_PORT}) — NOT STARTED (run: bash start-narratiq.sh)"
+fi
+
+BACKEND_UP=0
+BACKEND_HEALTH_JSON=""
+if port_listening "${BACKEND_PORT}"; then
+    BACKEND_HEALTH_JSON=$(curl -s -m 5 "http://localhost:${BACKEND_PORT}/api/health" 2>/dev/null)
+    if echo "${BACKEND_HEALTH_JSON}" | grep -q '"status":\s*"ok"'; then
+        ok "Backend is listening on ${BACKEND_PORT} and /api/health reports ok"
+        BACKEND_UP=1
+        if echo "${BACKEND_HEALTH_JSON}" | grep -q '"vllm":\s*"ready"'; then
+            ok "Backend reports vLLM as ready (not degraded)"
+        else
+            fail "Backend is up but reports vLLM NOT ready — every AI endpoint will return 503. Check for a stale VLLM_BASE_URL (§1.2 of runpod-environment-variables.md)"
+        fi
+        if echo "${BACKEND_HEALTH_JSON}" | grep -q '"bge_m3":\s*"ready"'; then
+            ok "Backend reports BGE-M3 as ready"
+        else
+            fail "Backend is up but BGE-M3 is not ready — embedding-dependent features will fail"
+        fi
+    else
+        fail "Backend is listening on ${BACKEND_PORT} but /api/health did not report ok — check tail -50 /tmp/narratiq-logs/backend.log"
+    fi
+else
+    warn "Backend (port ${BACKEND_PORT}) — NOT STARTED (run: bash start-narratiq.sh)"
+fi
+
+FRONTEND_UP=0
+if port_listening "${FRONTEND_PORT}"; then
+    if curl -s -o /dev/null -m 5 -w "%{http_code}" "http://localhost:${FRONTEND_PORT}/" 2>/dev/null | grep -q "^200$"; then
+        ok "Frontend is listening on ${FRONTEND_PORT} and returns HTTP 200"
+        FRONTEND_UP=1
+    else
+        fail "Frontend is listening on ${FRONTEND_PORT} but did not return HTTP 200 — check tail -50 /tmp/narratiq-logs/frontend.log"
+    fi
+else
+    warn "Frontend (port ${FRONTEND_PORT}) — NOT STARTED (run: bash start-narratiq.sh)"
+fi
+
+# ── External proxy reachability (RunPod only; skipped in local/non-RunPod dev) ─
+hdr "External Proxy Reachability"
+if [ -n "${RUNPOD_POD_ID:-}" ]; then
+    # Hits each service's own known-good path, not just "/" — a bare "/" on the
+    # backend is a legitimate FastAPI 404 (JSON body {"detail":"Not Found"}) that
+    # must not be confused with RunPod's own unexposed-port 404 (empty body).
+    check_proxy() {
+        local port="$1" label="$2" path="$3"
+        local url="https://${RUNPOD_POD_ID}-${port}.proxy.runpod.net${path}"
+        local resp code body
+        resp=$(curl -s -m 8 -w "\n%{http_code}" "${url}" 2>/dev/null)
+        code=$(echo "${resp}" | tail -1)
+        body=$(echo "${resp}" | sed '$d')
+        case "${code}" in
+            200) ok "${label} proxy (${port}) reachable — HTTP 200" ;;
+            502) warn "${label} proxy (${port}) exposed but nothing listening yet (HTTP 502) — expected if the service hasn't started" ;;
+            404)
+                if [ -z "${body}" ]; then
+                    fail "${label} proxy (${port}) returned an EMPTY-BODY 404 — port likely NOT EXPOSED at pod creation (see docs/operations/runpod-deployment.md, pod-creation prerequisite). This is never an application fault"
+                else
+                    fail "${label} proxy (${port}) returned HTTP 404 with a response body (${body}) — this is an APPLICATION 404 (wrong path), not the unexposed-port signature. Port exposure looks fine; check the path/route instead"
+                fi
+                ;;
+            "") fail "${label} proxy (${port}) — no response (timeout or connection failure)" ;;
+            *) warn "${label} proxy (${port}) returned unexpected HTTP ${code}" ;;
+        esac
+    }
+    check_proxy "${FRONTEND_PORT}" "Frontend" "/"
+    check_proxy "${BACKEND_PORT}"  "Backend"  "/api/health"
+else
+    warn "RUNPOD_POD_ID not set — skipping external proxy checks (not a RunPod pod, or run from outside it)"
+fi
+
+# ── Smoke tests (real but throwaway requests; read-only w.r.t. application data) ─
+hdr "Smoke Tests"
+if [ "${VLLM_UP}" -eq 1 ]; then
+    SMOKE_OUT=$(curl -s -m 15 "http://localhost:${VLLM_PORT}/v1/completions" \
+        -H "Content-Type: application/json" \
+        -d '{"model":"Qwen/Qwen2.5-7B-Instruct","prompt":"Say OK","max_tokens":4}' 2>/dev/null)
+    if echo "${SMOKE_OUT}" | grep -q '"text"'; then
+        ok "vLLM generation smoke test passed (real completion returned)"
+    else
+        fail "vLLM generation smoke test failed — no completion text in response"
+    fi
+else
+    warn "Skipping vLLM generation smoke test — vLLM is not up"
+fi
+
+if [ "${BACKEND_UP}" -eq 1 ] && command -v psql &>/dev/null; then
+    PGVEC_OUT=$(PGPASSWORD=narratiq psql -h localhost -U narratiq -d narratiq -tAc \
+        "SELECT '[1,2,3]'::vector <=> '[1,2,3]'::vector;" 2>/dev/null | tr -d '[:space:]')
+    if [ "${PGVEC_OUT}" = "0" ]; then
+        ok "pgvector query smoke test passed (self-distance = 0, using a literal test vector — no application data read)"
+    else
+        fail "pgvector query smoke test failed — expected 0, got '${PGVEC_OUT}'"
+    fi
+else
+    warn "Skipping pgvector query smoke test — backend/database not confirmed up"
+fi
 
 # ── Disk space ────────────────────────────────────────────────────────────────
 hdr "Disk Space (/workspace)"
@@ -177,7 +331,11 @@ if [ "${FAIL}" -gt 0 ]; then
     exit 1
 else
     echo ""
-    echo " All checks passed! You can now run:"
-    echo "   bash start.sh"
+    if [ "${BACKEND_UP:-0}" -eq 1 ] && [ "${FRONTEND_UP:-0}" -eq 1 ] && [ "${VLLM_UP:-0}" -eq 1 ]; then
+        echo " All checks passed and the stack is already up and healthy."
+    else
+        echo " All checks passed! Start the stack with:"
+        echo "   bash start-narratiq.sh"
+    fi
     exit 0
 fi

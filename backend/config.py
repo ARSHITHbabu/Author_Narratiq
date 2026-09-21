@@ -115,6 +115,25 @@ class Settings(BaseSettings):
     # disabled responses and the frontend hides the panel (safe rollout / rollback).
     voice_agent_enabled: bool = True
 
+    # ── Transform prompt versioning (Stage 5, task 5.1) ────────────────────────
+    # Selects which entry in services.prompt_registry.PROMPT_REGISTRY builds the
+    # system prompt for every transform (tone/emotion/audience/style/author-style/
+    # translate) and generate_suggestions. "v1" is the frozen pre-Stage-5 baseline,
+    # byte-identical to what shipped before this task. Reverting to a prior version
+    # is this env var, not a code change (task 5.1's own definition of done). An
+    # unknown version fails safe: services.prompt_registry.resolve_prompt_version()
+    # logs an error and falls back to prompt_version_fallback, never to arbitrary
+    # or partially-applied prompt content.
+    # v2 is Stage 5's improved prompt set (tasks 5.7-5.11 — see
+    # prompt_registry.py's v2 builders for the specific issue each one
+    # addresses). Flipped from "v1" only after the pre-change golden-set
+    # baseline (task 5.2, tests/fixtures/transform_golden_baseline_v1.json)
+    # had already been captured against v1, per the required capture-before-
+    # change ordering. Fallback stays "v1" (the frozen baseline) so an
+    # unknown/misconfigured version never silently falls forward to v2.
+    prompt_version:          str = "v2"
+    prompt_version_fallback: str = "v1"
+
     # Streaming STT runs faster-whisper on CPU behind a bounded worker pool so it
     # never contends with vLLM/BGE-M3 on the GPU. Scale out via CPU replicas.
     #   stt_concurrency       — max simultaneous transcription jobs (partial+final)

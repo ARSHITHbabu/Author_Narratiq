@@ -8,8 +8,9 @@
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import {
-  Command as CommandIcon, Mic, History, ChevronDown, PanelLeftClose, PanelLeft,
+  Command as CommandIcon, Mic, History, ChevronDown, PanelLeftClose, PanelLeft, LogOut,
 } from 'lucide-react'
 import { WORKSPACES, PROJECTS_WORKSPACE, workspacePath, type WorkspaceId } from '@/lib/registries/workspaces'
 import { useStudioStore } from '@/lib/studioStore'
@@ -115,17 +116,33 @@ export default function StudioShell({ children }: { children: React.ReactNode })
             <History className="w-4 h-4" />
           </button>
           <div className="w-px h-5 bg-[#2e3454] mx-1" />
-          <div className="relative group">
-            <button className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-[#1f2440]">
-              <span className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 text-xs flex items-center justify-center">
-                {user?.username?.[0]?.toUpperCase() ?? '?'}
-              </span>
-            </button>
-            <div className="absolute right-0 top-full mt-1 w-40 rounded-lg border border-[#2e3454] bg-[#13162a] shadow-xl py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition">
-              <p className="px-3 py-1 text-xs text-[#9da3c8] truncate">{user?.username}</p>
-              <button onClick={() => logout()} className="w-full text-left px-3 py-1.5 text-sm text-[#cdd2f0] hover:bg-[#1f2440]">Log out</button>
-            </div>
-          </div>
+          <DropdownMenu.Root>
+            <DropdownMenu.Trigger asChild>
+              <button
+                className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-[#1f2440] focus:outline-none focus-visible:ring-1 focus-visible:ring-amber-500/60"
+                aria-label="User menu"
+              >
+                <span className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 text-xs flex items-center justify-center">
+                  {user?.username?.[0]?.toUpperCase() ?? '?'}
+                </span>
+              </button>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Portal>
+              <DropdownMenu.Content
+                align="end"
+                sideOffset={4}
+                className="w-40 rounded-lg border border-[#2e3454] bg-[#13162a] shadow-xl py-1 z-50"
+              >
+                <p className="px-3 py-1 text-xs text-[#9da3c8] truncate">{user?.username}</p>
+                <DropdownMenu.Item
+                  onSelect={() => logout()}
+                  className="w-full text-left px-3 py-1.5 text-sm text-[#cdd2f0] hover:bg-[#1f2440] focus:bg-[#1f2440] focus:outline-none cursor-pointer flex items-center gap-2 outline-none"
+                >
+                  <LogOut className="w-3.5 h-3.5" /> Log out
+                </DropdownMenu.Item>
+              </DropdownMenu.Content>
+            </DropdownMenu.Portal>
+          </DropdownMenu.Root>
         </header>
       )}
 

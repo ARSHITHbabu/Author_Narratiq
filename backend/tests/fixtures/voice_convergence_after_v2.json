@@ -1,0 +1,31 @@
+{
+  "prompt_version": "v2",
+  "target_tone": "humorous",
+  "n_trials": 3,
+  "original_text_similarity": 0.005141388174807198,
+  "original_content_similarity": 0.7821898996186958,
+  "trials": [
+    {
+      "output_a": "Rain pattered down. Mara trudged along. The street was as deserted as a ghost town on a Sunday. She approached the door and gave it a good, solid knock\u2014two sharp taps. Silence greeted her. No one seemed home, not even a stray cat.",
+      "output_b": "The rain fell in long silver threads, and Mara strolled through it leisurely, as if the storm was holding its breath for her. When she finally got to the door and discovered it locked, she knocked\u2014twice, gently, like a polite question she already knew might go unanswered.",
+      "text_similarity": 0.01195219123505976,
+      "content_similarity": 0.7529032845483876
+    },
+    {
+      "output_a": "Rain pattered down. Mara trudged along. The street was as deserted as a ghost town. She approached the door and gave it a good once-over. It was stubbornly locked. She rapped twice, just to be heard. Still, no one answered.",
+      "output_b": "The rain fell in long silver threads, and Mara strolled through it unhurried, as if the storm were just hanging around, waiting for her. When she finally got to the door and found it locked, she knocked\u2014twice, softly, like a polite question she already knew might go unanswered.",
+      "text_similarity": 0.011976047904191617,
+      "content_similarity": 0.8028040657766484
+    },
+    {
+      "output_a": "Rain fell. Mara trudged along. The street was as empty as a desert on a Sunday. She approached the door, her knuckles white from gripping the umbrella. It was locked tight. She rapped twice, just to be dramatic. Still, no one answered.",
+      "output_b": "The rain came down in long silver threads, and Mara strolled through it unhurried, as if the storm were a dawdling friend waiting for her; when she finally reached the door and found it locked, she knocked\u2014twice, softly, like a polite question she already knew would go unanswered.",
+      "text_similarity": 0.003875968992248062,
+      "content_similarity": 0.7558076357149937
+    }
+  ],
+  "avg_output_text_similarity": 0.00926806937716648,
+  "avg_output_content_similarity": 0.7705049953466766,
+  "text_similarity_convergence_delta": 0.0041,
+  "content_similarity_convergence_delta": -0.0117
+}

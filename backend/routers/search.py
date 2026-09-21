@@ -252,8 +252,10 @@ async def semantic_search(
         for ch in db.query(Chapter).filter(Chapter.story_id == story_id).all()
     }
 
+    # De-duplication across near-identical overlapping chunks (task 4.13) now
+    # happens inside retrieve_chunks_from_store itself, so every result here
+    # is already content-distinct — nothing further to filter.
     results: list[SemanticResult] = []
-    seen_chapters: set[str] = set()
     for c in chunks:
         ch = chapter_map.get(c["chapter"])
         if not ch:
@@ -267,7 +269,6 @@ async def semantic_search(
                 score         = c["score"],
             )
         )
-        seen_chapters.add(ch.chapter_id)
 
     return SemanticSearchResponse(query=data.query, results=results)
 

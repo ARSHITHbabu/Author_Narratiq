@@ -179,7 +179,10 @@ def test_copyright_coercion_keeps_findings_and_clamps_risk():
 def test_manuscript_report_coercion_accepts_partial_composites():
     """Character arcs without pacing still tells the author something."""
     value, discarded = coerce_manuscript_report({"character_arcs": [{"name": "Devika"}]})
-    assert "character_arcs" in value and discarded == 4
+    # 7 recognised keys as of task 5.14's stakes/themes addition
+    # (character_arcs, pacing, unresolved_threads, strengths, improvements,
+    # stakes, themes) — 1 present, 6 discarded.
+    assert "character_arcs" in value and discarded == 6
     assert coerce_manuscript_report({"unrelated": 1})[0] is None
 
 

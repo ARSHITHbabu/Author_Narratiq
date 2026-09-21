@@ -69,12 +69,24 @@ async def refine_stream(request: Request, data: TransformRequest, current_user: 
 
 # ── Tone ──────────────────────────────────────────────────────────────────────
 
+def _locked_range_dicts(data) -> Optional[list]:
+    ranges = getattr(data, "locked_ranges", None)
+    return [{"start": r.start, "end": r.end} for r in ranges] if ranges else None
+
+
 @router.post("/tone", response_model=TransformResponse)
 @limiter.limit(settings.rate_limit_realtime_ai, key_func=get_user_id)
 async def tone_transform(request: Request, data: ToneRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    result = await ai_service.transform_tone(data.text, data.tone, genre_context=_genre_ctx(data.story_id, db))
-    return TransformResponse(original=data.text, transformed=result,
-                             mode=f"tone:{data.tone}", tokens_used=len(data.text.split()) * 2)
+    result = await ai_service.transform_tone(
+        data.text, data.tone, genre_context=_genre_ctx(data.story_id, db),
+        story_id=data.story_id, db=db,
+        strength=data.strength or "light", locked_ranges=_locked_range_dicts(data),
+    )
+    return TransformResponse(original=data.text, transformed=result["transformed"],
+                             mode=f"tone:{data.tone}", tokens_used=len(data.text.split()) * 2,
+                             no_change=result["no_change"], reason=result["reason"],
+                             strength_violation=result["strength_violation"],
+                             preservation_violations=result["preservation_violations"])
 
 
 @router.post("/tone/stream")
@@ -88,9 +100,13 @@ async def tone_stream(request: Request, data: ToneRequest, current_user: User = 
 @router.post("/emotion", response_model=TransformResponse)
 @limiter.limit(settings.rate_limit_realtime_ai, key_func=get_user_id)
 async def emotion_rewrite(request: Request, data: EmotionRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    result = await ai_service.rewrite_emotion(data.text, data.emotion, data.intensity or "medium", genre_context=_genre_ctx(data.story_id, db))
-    return TransformResponse(original=data.text, transformed=result,
-                             mode=f"emotion:{data.emotion}", tokens_used=len(data.text.split()) * 2)
+    result = await ai_service.rewrite_emotion(
+        data.text, data.emotion, data.intensity or "medium", genre_context=_genre_ctx(data.story_id, db),
+        story_id=data.story_id, db=db,
+    )
+    return TransformResponse(original=data.text, transformed=result["transformed"],
+                             mode=f"emotion:{data.emotion}", tokens_used=len(data.text.split()) * 2,
+                             preservation_violations=result["preservation_violations"])
 
 
 @router.post("/emotion/stream")
@@ -104,9 +120,16 @@ async def emotion_stream(request: Request, data: EmotionRequest, current_user: U
 @router.post("/age-adapt", response_model=TransformResponse)
 @limiter.limit(settings.rate_limit_realtime_ai, key_func=get_user_id)
 async def age_adapt(request: Request, data: AgeAdaptRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    result = await ai_service.adapt_for_age(data.text, data.target_age, genre_context=_genre_ctx(data.story_id, db))
-    return TransformResponse(original=data.text, transformed=result,
-                             mode=f"age:{data.target_age}", tokens_used=len(data.text.split()) * 2)
+    result = await ai_service.adapt_for_age(
+        data.text, data.target_age, genre_context=_genre_ctx(data.story_id, db),
+        story_id=data.story_id, db=db,
+        strength=data.strength or "light", locked_ranges=_locked_range_dicts(data),
+    )
+    return TransformResponse(original=data.text, transformed=result["transformed"],
+                             mode=f"age:{data.target_age}", tokens_used=len(data.text.split()) * 2,
+                             no_change=result["no_change"], reason=result["reason"],
+                             strength_violation=result["strength_violation"],
+                             preservation_violations=result["preservation_violations"])
 
 
 @router.post("/age-adapt/stream")
@@ -120,9 +143,16 @@ async def age_adapt_stream(request: Request, data: AgeAdaptRequest, current_user
 @router.post("/style", response_model=TransformResponse)
 @limiter.limit(settings.rate_limit_realtime_ai, key_func=get_user_id)
 async def style_transform(request: Request, data: StyleRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    result = await ai_service.transform_style(data.text, data.style, genre_context=_genre_ctx(data.story_id, db))
-    return TransformResponse(original=data.text, transformed=result,
-                             mode=f"style:{data.style}", tokens_used=len(data.text.split()) * 2)
+    result = await ai_service.transform_style(
+        data.text, data.style, genre_context=_genre_ctx(data.story_id, db),
+        story_id=data.story_id, db=db,
+        strength=data.strength or "light", locked_ranges=_locked_range_dicts(data),
+    )
+    return TransformResponse(original=data.text, transformed=result["transformed"],
+                             mode=f"style:{data.style}", tokens_used=len(data.text.split()) * 2,
+                             no_change=result["no_change"], reason=result["reason"],
+                             strength_violation=result["strength_violation"],
+                             preservation_violations=result["preservation_violations"])
 
 
 @router.post("/style/stream")
@@ -177,10 +207,14 @@ async def author_style_stream(request: Request, data: AuthorStyleRequest, curren
 
 @router.post("/translate", response_model=TransformResponse)
 @limiter.limit(settings.rate_limit_realtime_ai, key_func=get_user_id)
-async def translate(request: Request, data: TranslationRequest, current_user: User = Depends(get_current_user)):
-    result = await ai_service.translate_text(data.text, data.target_language, data.source_language or "en")
-    return TransformResponse(original=data.text, transformed=result,
-                             mode=f"translate:{data.target_language}", tokens_used=len(data.text.split()) * 3)
+async def translate(request: Request, data: TranslationRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    result = await ai_service.translate_text(
+        data.text, data.target_language, data.source_language or "en",
+        story_id=data.story_id, db=db,
+    )
+    return TransformResponse(original=data.text, transformed=result["transformed"],
+                             mode=f"translate:{data.target_language}", tokens_used=len(data.text.split()) * 3,
+                             preservation_violations=result["preservation_violations"])
 
 
 @router.post("/translate/stream")
@@ -193,9 +227,32 @@ async def translate_stream(request: Request, data: TranslationRequest, current_u
 
 @router.post("/suggestions", response_model=SuggestionsResponse)
 @limiter.limit(settings.rate_limit_realtime_ai, key_func=get_user_id)
-async def suggestions(request: Request, data: SuggestionRequest, current_user: User = Depends(get_current_user)):
+async def suggestions(request: Request, data: SuggestionRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    # Task 5.13 — story_id/chapter_id were already required fields on this
+    # request but were never used: generate_suggestions(data.text) alone
+    # meant story-specific analysis (checklist High 9) had no context to
+    # work with even though the caller always supplies the IDs to build it.
+    # Reuses Stage 4's existing retrieval, not new infrastructure.
+    story_context = ""
     try:
-        raw = await ai_service.generate_suggestions(data.text)
+        from services.ai_service import retrieve_chunks_from_store
+        chunks = await retrieve_chunks_from_store(data.text, data.story_id, db, top_k=3)
+        if chunks:
+            story_context = "\n".join(c["text"] for c in chunks)
+    except Exception as exc:  # never let context retrieval break suggestions
+        logger.warning("[ai_transform] suggestions: story-context retrieval failed (%s) — continuing without it", exc)
+
+    genre = ""
+    try:
+        from models import GenreProfile
+        profile = db.query(GenreProfile).filter(GenreProfile.story_id == data.story_id).first()
+        if profile and profile.genre:
+            genre = profile.genre
+    except Exception:
+        pass
+
+    try:
+        raw = await ai_service.generate_suggestions(data.text, story_context=story_context, genre=genre)
     except ValueError as exc:
         # Fixed author-facing text; the detail goes to the log. Same rule as
         # plot_holes.py — str(exc) is safe only until one internal error reaches

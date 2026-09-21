@@ -122,7 +122,11 @@ def test_every_caller_unpacks_the_widened_return():
 
     Originally asserted a single caller; the per-section regeneration pipeline
     added a second, legitimate one. The invariant that matters is the unpacking,
-    not the count."""
+    not the count — and (task 4.16) not the location either: test files that
+    call the real function directly for measurement (e.g.
+    test_story_bible_quality.py, which measures actual Qwen output against
+    synthetic fixtures) are legitimate callers too, and are held to the exact
+    same unpacking requirement as production code, not exempted from it."""
     call_sites = []
     for path in BACKEND.rglob("*.py"):
         if path.name == Path(__file__).name:
@@ -133,7 +137,6 @@ def test_every_caller_unpacks_the_widened_return():
 
     assert call_sites, "no call sites found — has the function been renamed?"
     for where, line in call_sites:
-        assert where.startswith("routers/story_bible.py:"), f"unexpected caller at {where}"
         assert re.match(r"\w+,\s*\w+\s*=\s*await\s+generate_story_bible_section", line), \
             f"{where} does not unpack (text, finish_reason): {line}"
 
@@ -1023,13 +1026,18 @@ def test_verifier_catches_an_unrecognised_status():
 # ── 11. Grounding and provenance (task 3.3) ──────────────────────────────────
 
 class _FakeSummary:
-    def __init__(self, n, body, events=None):
+    def __init__(self, n, body, events=None, arc_notes=None, relationship_changes=None):
         self.chapter_number = n
         self.raw_summary = body
         self.key_events = events or [f"event {n}"]
         self.characters_present = ["Devika"]
         self.locations = ["The Archive"]
         self.emotional_tone = "tense"
+        # Task 4.5 — present on every real ChapterSummary row post-migration
+        # 0017; defaulted here (not just via getattr in _summary_entry) so
+        # this fake keeps matching the real schema shape as it evolves.
+        self.character_arc_notes = arc_notes or {}
+        self.relationship_changes = relationship_changes or []
 
 
 class _FakeChar:

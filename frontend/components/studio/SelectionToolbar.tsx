@@ -22,9 +22,12 @@
 // re-checks that binding and discards rather than guesses.
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Sparkles, Loader2, Check, X, ChevronDown, GripVertical } from 'lucide-react'
+import { Sparkles, Loader2, Check, X, ChevronDown, GripVertical, Lock, Unlock, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
-import { TRANSFORM_GROUPS, INTENSITIES, runTransform, type GroupId } from '@/lib/transforms'
+import {
+  TRANSFORM_GROUPS, INTENSITIES, runTransform, splitSentences, LOCKABLE_GROUPS, STRENGTH_LEVELS,
+  type GroupId, type StrengthLevel, type SentenceSpan,
+} from '@/lib/transforms'
 import { useStoryContext } from './StoryContextEngine'
 import { deriveToolDefaults, hasGenreProfile } from '@/lib/genreDefaults'
 import {
@@ -40,6 +43,11 @@ interface Preview extends PreviewIdentity {
   text: string
   group: GroupId
   value: string
+  // Task 5.3 — surfaced deterministic signals from the Stage 5 response, not
+  // just the rewritten prose. See preservation_violations/strengthViolation.
+  preservationViolations: string[]
+  strengthViolation: boolean
+  lockedSentenceCount: number
 }
 
 interface Props {
@@ -55,6 +63,13 @@ export default function SelectionToolbar({ selection, sidebarVisible }: Props) {
   const [openGroup, setOpenGroup] = useState<GroupId | null>(null)
   const [busy, setBusy] = useState(false)
   const [intensity, setIntensity] = useState<string>('medium')
+  // Task 5.6 — strength control, offered only for the groups whose backend
+  // schema accepts it (LOCKABLE_GROUPS — same set as the lock feature, since
+  // both come from schemas.StrengthMixin).
+  const [strength, setStrength] = useState<StrengthLevel>('light')
+  // Task 5.4 — indices into splitSentences(selection.text) the author has
+  // marked locked for the NEXT transform run on this selection.
+  const [lockedIdx, setLockedIdx] = useState<Set<number>>(new Set())
   const [preview, setPreview] = useState<Preview | null>(null)
   // Escape hides the toolbar until the author makes a different selection.
   const [dismissed, setDismissed] = useState(false)
@@ -85,7 +100,17 @@ export default function SelectionToolbar({ selection, sidebarVisible }: Props) {
     setOpenGroup(null)
     setDismissed(false)
     if (selKey) setPreview(null)
+    // A new selection is a new set of sentences — stale locked indices would
+    // point at the wrong spans (or none at all) in different prose.
+    setLockedIdx(new Set())
   }, [selKey])
+
+  // Sentences of the CURRENT selection, for the lock picker — recomputed only
+  // when the selected text itself changes, not on every render.
+  const sentenceSpans: SentenceSpan[] = useMemo(
+    () => (selection ? splitSentences(selection.text) : []),
+    [selection?.text],
+  )
 
   // Chapter boundary. A preview generated for another chapter is discarded the
   // moment the author moves away — it can never survive to be applied.
@@ -186,10 +211,21 @@ export default function SelectionToolbar({ selection, sidebarVisible }: Props) {
   const run = async (group: GroupId, value: string) => {
     if (!selection) { toast.error('Select the text again to transform it.'); return }
     const { from, to, text, chapterId } = selection
+    const lockable = LOCKABLE_GROUPS.includes(group)
+    // Locked ranges are computed at RUN time, from the CURRENT sentence spans
+    // and the author's current lock selections — never stale offsets held
+    // over from a previous selection or a previous render.
+    const spans = lockable ? splitSentences(text) : []
+    const lockedRanges = lockable
+      ? Array.from(lockedIdx).filter((i) => i < spans.length).map((i) => ({ start: spans[i].start, end: spans[i].end }))
+      : undefined
     const seq = ++requestSeq.current
     setBusy(true); setOpenGroup(null)
     try {
-      const out = await runTransform(group, value, text, { storyId, chapterId, intensity })
+      const result = await runTransform(group, value, text, {
+        storyId, chapterId, intensity,
+        ...(lockable ? { strength, lockedRanges } : {}),
+      })
       // A newer transform was started while this one was in flight — the author is
       // waiting on that one, and only it may produce the preview.
       if (requestSeq.current !== seq) return
@@ -199,13 +235,32 @@ export default function SelectionToolbar({ selection, sidebarVisible }: Props) {
         toast.info('You moved to another chapter, so that suggestion was discarded.')
         return
       }
-      setPreview({ text: out, from, to, group, value, chapterId, sourceText: text })
-      logActivity({ category: 'ai', type: `${group}_transform`, title: `AI ${group} on selection`, summary: out.slice(0, 160), ref_type: 'selection', metadata: { value } })
+      // Task 5.5 — already suitable: nothing to review or apply, tell the
+      // author why instead of showing a no-op preview.
+      if (result.no_change) {
+        toast.info(result.reason ? `Already reads that way — ${result.reason}` : 'This already reads that way — no change made.')
+        return
+      }
+      setPreview({
+        text: result.transformed, from, to, group, value, chapterId, sourceText: text,
+        preservationViolations: result.preservation_violations,
+        strengthViolation: result.strength_violation,
+        lockedSentenceCount: lockedRanges?.length ?? 0,
+      })
+      logActivity({ category: 'ai', type: `${group}_transform`, title: `AI ${group} on selection`, summary: result.transformed.slice(0, 160), ref_type: 'selection', metadata: { value, strength: lockable ? strength : undefined, locked_count: lockedRanges?.length ?? 0 } })
     } catch {
       if (requestSeq.current === seq) toast.error('Transform failed')
     } finally {
       if (requestSeq.current === seq) setBusy(false)
     }
+  }
+
+  const toggleLock = (idx: number) => {
+    setLockedIdx((prev) => {
+      const next = new Set(prev)
+      if (next.has(idx)) next.delete(idx); else next.add(idx)
+      return next
+    })
   }
 
   const apply = () => {
@@ -290,6 +345,51 @@ export default function SelectionToolbar({ selection, sidebarVisible }: Props) {
                         ))}
                       </div>
                     )}
+                    {LOCKABLE_GROUPS.includes(g.id) && (
+                      <>
+                        {/* Task 5.6 — strength control. Applies to whichever option
+                            below is clicked next. */}
+                        <div className="flex items-center gap-1 px-2 py-1.5 border-b border-[#1f2440]">
+                          <span className="text-[10px] text-[#5c6391] mr-1">Strength</span>
+                          {STRENGTH_LEVELS.map((s) => (
+                            <button key={s} onClick={() => setStrength(s)}
+                              title={
+                                s === 'light' ? 'Word choice and connectives only' :
+                                s === 'moderate' ? 'Sentence-level rewriting allowed' :
+                                'Full rewrite within preservation limits'
+                              }
+                              className={`text-[10px] px-1.5 py-0.5 rounded ${strength === s ? 'bg-amber-500/20 text-amber-300' : 'text-[#9da3c8] hover:bg-[#1f2440]'}`}>{s}</button>
+                          ))}
+                        </div>
+                        {/* Task 5.4 — sentence locking. Toggled sentences are sent as
+                            locked_ranges and are guaranteed byte-identical in the
+                            result, never trusted from the model's own output. */}
+                        {sentenceSpans.length > 1 && (
+                          <div className="px-2 py-1.5 border-b border-[#1f2440]">
+                            <div className="flex items-center gap-1 mb-1">
+                              <Lock className="w-2.5 h-2.5 text-[#5c6391]" />
+                              <span className="text-[10px] text-[#5c6391]">
+                                Lock sentences to keep unchanged{lockedIdx.size > 0 ? ` (${lockedIdx.size})` : ''}
+                              </span>
+                            </div>
+                            <div className="max-h-24 overflow-y-auto space-y-0.5">
+                              {sentenceSpans.map((s, i) => {
+                                const locked = lockedIdx.has(i)
+                                return (
+                                  <button key={i} type="button" onClick={() => toggleLock(i)}
+                                    aria-pressed={locked}
+                                    title={locked ? 'Locked — click to unlock' : 'Click to lock this sentence unchanged'}
+                                    className={`w-full flex items-start gap-1 text-left px-1.5 py-1 rounded text-[10px] leading-snug ${locked ? 'bg-amber-500/15 text-amber-200' : 'text-[#9da3c8] hover:bg-[#1f2440]'}`}>
+                                    {locked ? <Lock className="w-2.5 h-2.5 mt-0.5 flex-shrink-0" /> : <Unlock className="w-2.5 h-2.5 mt-0.5 flex-shrink-0 opacity-40" />}
+                                    <span className="line-clamp-2">{s.text}</span>
+                                  </button>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
                     {recByGroup[g.id] && (
                       <div className="px-3 py-1 text-[10px] text-amber-300/80 border-b border-[#1f2440]">
                         ★ Recommended for {genreProfile?.genre || 'this genre'}
@@ -318,9 +418,26 @@ export default function SelectionToolbar({ selection, sidebarVisible }: Props) {
               {dragHandle}
               <p className="text-[10px] uppercase tracking-wide text-amber-300/80">
                 Preview · {preview.group.replace('_', ' ')} {preview.value} (selected text)
+                {preview.lockedSentenceCount > 0 && (
+                  <span className="ml-1 normal-case text-amber-200/80">
+                    · {preview.lockedSentenceCount} sentence{preview.lockedSentenceCount === 1 ? '' : 's'} locked
+                  </span>
+                )}
               </p>
             </div>
             <p className="text-xs text-[#cdd2f0] leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap font-serif">{preview.text}</p>
+            {/* Task 5.3 — surface preservation warnings in the UI, not just the API. */}
+            {preview.preservationViolations.length > 0 && (
+              <p data-testid="preservation-warning" className="flex items-start gap-1 text-[11px] text-red-300 bg-red-500/10 border border-red-500/30 rounded px-2 py-1.5">
+                <AlertTriangle className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                Could not confirm these character names were preserved: {preview.preservationViolations.join(', ')}.
+              </p>
+            )}
+            {preview.strengthViolation && (
+              <p data-testid="strength-warning" className="text-[11px] text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded px-2 py-1.5">
+                This rewrite changed more than a {strength}-strength edit usually does — review before applying.
+              </p>
+            )}
             {previewProblem && (
               <p data-testid="preview-stale" className="text-[11px] text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded px-2 py-1.5">
                 You have changed this passage since the suggestion was made, so it can no longer be applied here. Select the text again to redo it.

@@ -24,6 +24,14 @@ from sentence_transformers import SentenceTransformer
 
 from config import settings
 from exceptions import AIResponseTruncatedError, AIServiceUnavailableError
+from services.prompt_registry import resolve_prompt_version
+from services.transform_preservation import (
+    build_preservation_clause, build_strength_clause,
+    mark_locked_segments, reconstruct_with_locks, verify_lock_byte_identity,
+    check_character_name_preservation, check_strength_violation,
+    ensure_translation_glossary, build_translation_glossary_clause,
+    check_translation_name_consistency,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -739,24 +747,205 @@ def _with_genre(system: str, genre_context: str) -> str:
     return f"{genre_context}\n\n{system}" if genre_context else system
 
 
-async def transform_tone(text: str, tone: str, context: str = "", genre_context: str = "") -> str:
-    system = _with_genre(
-        f"You are a literary writing coach. Rewrite the passage in a {tone} tone. "
-        "Keep all events and characters identical — only change style, word choice, and mood. "
-        "Return ONLY the rewritten passage.",
-        genre_context,
+def _log_prompt_version(transform_type: str, resolved_version: str) -> None:
+    """Task 5.1 — every generation's log entry names the prompt version that
+    actually built its system prompt (not just the configured default, since
+    resolve_prompt_version() can fall back at runtime)."""
+    logger.info("[prompt_version] transform=%s version=%s", transform_type, resolved_version)
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# Task 5.5 — "no change required" decision layer
+# ══════════════════════════════════════════════════════════════════════════
+
+async def _assess_change_needed(text: str, target_description: str, transform_type: str) -> tuple[bool, str]:
+    """
+    Cheap pre-assessment: does `text` already satisfy `target_description`?
+    Returns (needs_change: bool, reason: str). Deliberately narrow questions
+    per transform type (never a generic "is this good?") — see the approved
+    design. Fails OPEN on any error: if the assessment call itself fails,
+    proceed to the main transform as if "change needed" was the answer —
+    the safer default is doing the transform the author asked for, not
+    silently doing nothing.
+
+    Known limitation (found via the golden set's "needs_check" fixture and
+    confirmed NOT fixable by prompt wording alone — an explicit euphemism-
+    awareness instruction was tried and measurably made false-positive rate
+    WORSE across the fixture, so it was reverted, not kept): with a 7B
+    model, this assessment can miss age-inappropriate content conveyed
+    through euphemism (e.g. "nobody survived" read as non-graphic rather
+    than as implied death). This is a heuristic gate that skips unnecessary
+    rewrites — it does not censor or block anything — so a false "already
+    suitable" here just means the author doesn't get an automatic rewrite
+    they may still want; it is not a safety filter. Flagged for the
+    required blind/manual author review, not silently claimed as solved.
+    """
+    system = (
+        f"You are assessing a passage for a {transform_type} transform. Question: "
+        f"is this passage ALREADY {target_description}? Return ONLY JSON: "
+        '{"already_suitable": true/false, "reason": "one sentence"}.'
     )
-    ctx = f"\n\nStory context:\n{context}" if context else ""
-    return await _complete(system, text + ctx, temperature=0.5, max_tokens=len(text.split()) * 2 + 150)
+    try:
+        result, meta = await complete_structured(
+            system, text, coerce=lambda p: (p, 0) if isinstance(p, dict) and "already_suitable" in p else (None, 1),
+            temperature=0.0, max_tokens=80, label="no_change_assessment",
+        )
+    except Exception as exc:
+        logger.warning("[no_change_assessment] failed open (%s: %s) — proceeding with transform", type(exc).__name__, exc)
+        return True, ""
+
+    if result is None:
+        return True, ""  # fail open — see docstring
+    already_suitable = bool(result.get("already_suitable"))
+    reason = str(result.get("reason") or "")
+    return (not already_suitable), reason
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# Shared orchestration for tone/emotion/audience/style (5.7-5.10): ties
+# together 5.5 (no-change), 5.3 (preservation), 5.6 (strength), 5.4 (locks)
+# and the bounded retry/failure policy from the approved design. Translation
+# (5.11) does NOT use this — its preservation semantics are structurally
+# different (glossary-based, not verbatim), see translate_text below.
+# ══════════════════════════════════════════════════════════════════════════
+
+async def _per_segment_fallback(segments: list[dict], system: str, temperature: float, max_tokens: int) -> Optional[str]:
+    """5.4's final retry tier: generate each [REWRITE] segment independently
+    (a simpler, lower-failure-surface prompt per segment) rather than trust
+    the model to preserve marker structure across the whole passage again."""
+    out_parts = []
+    for seg in segments:
+        if seg["locked"]:
+            out_parts.append(seg["text"])
+            continue
+        try:
+            piece = await _complete(
+                system + " Rewrite ONLY this short passage fragment; return just the rewritten fragment, no markers.",
+                seg["text"], temperature=temperature, max_tokens=max(60, len(seg["text"].split()) * 2 + 60),
+            )
+        except Exception as exc:
+            logger.warning("[lock_fallback] per-segment generation failed (%s) — keeping original fragment", exc)
+            piece = seg["text"]
+        out_parts.append(piece)
+    return "".join(out_parts)
+
+
+async def _run_constrained_transform(
+    *, transform_type: str, text: str, temperature: float, max_tokens: int,
+    builder_kwargs: dict, story_id: Optional[str] = None, db=None,
+    strength: str = "light", locked_ranges: Optional[list] = None,
+    change_check_target: str = "", extra_user_context: str = "",
+) -> dict:
+    """
+    Returns {transformed, no_change, reason, strength_violation,
+    preservation_violations, failed}. See the approved Stage 5 design's
+    failure policy: one repair retry on a preservation violation, one
+    stricter retry + one per-segment fallback on a lock-shape failure,
+    never more — `failed=True` means "return original text unchanged", the
+    bounded end of every retry ladder here.
+    """
+    if change_check_target:
+        needs_change, reason = await _assess_change_needed(text, change_check_target, transform_type)
+        if not needs_change:
+            return {"transformed": text, "no_change": True, "reason": reason,
+                    "strength_violation": False, "preservation_violations": [], "failed": False}
+
+    preservation_clause = build_preservation_clause(story_id, db)
+    strength_clause = build_strength_clause(strength)
+
+    builder, resolved_version = resolve_prompt_version(transform_type, settings.prompt_version, settings.prompt_version_fallback)
+    _log_prompt_version(transform_type, resolved_version)
+    system = builder(preservation_clause=preservation_clause, strength_clause=strength_clause, **builder_kwargs)
+
+    marked_text, segments = mark_locked_segments(text, locked_ranges)
+    user_message = marked_text + (f"\n\nStory context:\n{extra_user_context}" if extra_user_context else "")
+
+    async def _attempt(extra: str = "") -> str:
+        sys_prompt = f"{system} {extra}".strip()
+        return await _complete(sys_prompt, user_message, temperature=temperature, max_tokens=max_tokens)
+
+    raw = await _attempt()
+
+    if locked_ranges:
+        reconstructed, shape_ok = reconstruct_with_locks(raw, segments)
+        if not shape_ok:
+            raw = await _attempt(
+                "Your previous output did not correctly wrap each segment — return the "
+                "SAME [KEEP]/[REWRITE] structure you were given, with [KEEP] segments "
+                "copied back verbatim and every [REWRITE] segment rewritten."
+            )
+            reconstructed, shape_ok = reconstruct_with_locks(raw, segments)
+        if not shape_ok:
+            reconstructed = await _per_segment_fallback(segments, system, temperature, max_tokens)
+            shape_ok = reconstructed is not None
+        if not shape_ok:
+            return {"transformed": text, "no_change": False,
+                    "reason": "Could not safely apply this transform with the current lock selection.",
+                    "strength_violation": False, "preservation_violations": [], "failed": True}
+        if not verify_lock_byte_identity(segments, reconstructed):
+            # Must be unreachable by construction (reconstruct_with_locks always
+            # splices original bytes for locked segments) — if this ever fires,
+            # it is a real bug, not a runtime condition to paper over.
+            raise RuntimeError("lock byte-identity guarantee violated — this must never happen")
+    else:
+        reconstructed = raw
+
+    violations = check_character_name_preservation(text, reconstructed, story_id, db)
+    if violations:
+        correction = (
+            f"You removed or changed these character names, which must be preserved "
+            f"exactly: {', '.join(violations)}. Restore them exactly as given."
+        )
+        raw2 = await _attempt(correction)
+        if locked_ranges:
+            reconstructed2, shape_ok2 = reconstruct_with_locks(raw2, segments)
+        else:
+            reconstructed2, shape_ok2 = raw2, True
+        if shape_ok2:
+            violations2 = check_character_name_preservation(text, reconstructed2, story_id, db)
+            reconstructed, violations = reconstructed2, violations2
+        # else: keep the first attempt's result and reported violations —
+        # the retry's own shape failure is reported via violations staying
+        # non-empty, never retried a second time (bounded).
+
+    strength_violation = check_strength_violation(text, reconstructed, strength)
+
+    return {
+        "transformed": reconstructed, "no_change": False, "reason": None,
+        "strength_violation": strength_violation, "preservation_violations": violations,
+        "failed": False,
+    }
+
+
+def _resolve_tone_system(tone: str, genre_context: str, **kw) -> tuple[str, str]:
+    builder, resolved = resolve_prompt_version("tone", settings.prompt_version, settings.prompt_version_fallback)
+    system = builder(tone=tone, genre_context=genre_context, **kw)
+    _log_prompt_version("tone", resolved)
+    return system, resolved
+
+
+async def transform_tone(
+    text: str, tone: str, context: str = "", genre_context: str = "",
+    story_id: Optional[str] = None, db=None,
+    strength: str = "light", locked_ranges: Optional[list] = None,
+) -> dict:
+    """
+    Returns the full Stage 5 result dict (see _run_constrained_transform).
+    `context` (free-text story excerpt) is still supported and appended to
+    the user message exactly as before — it is independent of `story_id`/
+    `db`, which are used for the DB-backed preservation clause (5.3).
+    """
+    return await _run_constrained_transform(
+        transform_type="tone", text=text, temperature=0.5,
+        max_tokens=len(text.split()) * 2 + 150,
+        builder_kwargs={"tone": tone, "genre_context": genre_context},
+        story_id=story_id, db=db, strength=strength, locked_ranges=locked_ranges,
+        change_check_target=f"written in a {tone} tone", extra_user_context=context,
+    )
 
 
 async def stream_tone(text: str, tone: str, context: str = "", genre_context: str = "") -> AsyncGenerator[str, None]:
-    system = _with_genre(
-        f"You are a literary writing coach. Rewrite the passage in a {tone} tone. "
-        "Keep all events and characters identical — only change style, word choice, and mood. "
-        "Return ONLY the rewritten passage.",
-        genre_context,
-    )
+    system, _ = _resolve_tone_system(tone, genre_context)
     ctx = f"\n\nStory context:\n{context}" if context else ""
     async for token in _stream_generate(system, text + ctx, temperature=0.5, max_tokens=len(text.split()) * 2 + 150):
         yield token
@@ -764,54 +953,68 @@ async def stream_tone(text: str, tone: str, context: str = "", genre_context: st
 
 # ── Emotion Rewriting ─────────────────────────────────────────────────────────
 
-async def rewrite_emotion(text: str, emotion: str, intensity: str = "medium", genre_context: str = "") -> str:
-    system = _with_genre(
-        f"You are a fiction editor. Rewrite the passage so it deeply conveys {emotion} at "
-        f"{intensity} intensity using sensory detail and interiority — not emotional labels. "
-        "Return ONLY the rewritten passage.",
-        genre_context,
+def _resolve_emotion_system(emotion: str, intensity: str, genre_context: str, **kw) -> str:
+    builder, resolved = resolve_prompt_version("emotion", settings.prompt_version, settings.prompt_version_fallback)
+    system = builder(emotion=emotion, intensity=intensity, genre_context=genre_context, **kw)
+    _log_prompt_version("emotion", resolved)
+    return system
+
+
+async def rewrite_emotion(
+    text: str, emotion: str, intensity: str = "medium", genre_context: str = "",
+    story_id: Optional[str] = None, db=None,
+) -> dict:
+    """
+    Returns the Stage 5 result dict. Deliberately no strength/locking/
+    no-change parameters — the approved design excludes emotion from those
+    (see schemas.EmotionRequest's own docstring for why); it still gets 5.3's
+    preservation clause (character names/tone), applied uniformly.
+    """
+    return await _run_constrained_transform(
+        transform_type="emotion", text=text, temperature=0.6,
+        max_tokens=len(text.split()) * 2 + 150,
+        builder_kwargs={"emotion": emotion, "intensity": intensity, "genre_context": genre_context},
+        story_id=story_id, db=db, strength="strong",  # "strong" = no structural ceiling, matching pre-5.6 behaviour
+        locked_ranges=None, change_check_target="",     # no no-change check for emotion, by design
     )
-    return await _complete(system, text, temperature=0.6, max_tokens=len(text.split()) * 2 + 150)
 
 
 async def stream_emotion(text: str, emotion: str, intensity: str = "medium", genre_context: str = "") -> AsyncGenerator[str, None]:
-    system = _with_genre(
-        f"You are a fiction editor. Rewrite the passage so it deeply conveys {emotion} at "
-        f"{intensity} intensity using sensory detail and interiority — not emotional labels. "
-        "Return ONLY the rewritten passage.",
-        genre_context,
-    )
+    system = _resolve_emotion_system(emotion, intensity, genre_context)
     async for token in _stream_generate(system, text, temperature=0.6, max_tokens=len(text.split()) * 2 + 150):
         yield token
 
 
 # ── Age Adaptation ─────────────────────────────────────────────────────────────
-
-_AGE_GUIDE = {
-    "children": "children aged 5–10 — simple vocabulary, short sentences, no violence or adult themes",
-    "ya":       "young adult readers aged 10–18 — age-appropriate complexity and themes",
-    "adult":    "adult readers — full vocabulary and thematic depth",
-}
+# The age → guide-text mapping lives in prompt_registry.py (_AGE_GUIDE_V1 and
+# each version's own copy) since it's part of what a "prompt version" means —
+# a v2 age-guide wording change is exactly the kind of thing versioning exists
+# to track. Not duplicated here.
 
 
-async def adapt_for_age(text: str, target_age: str, context: str = "", genre_context: str = "") -> str:
-    guide = _AGE_GUIDE.get(target_age, _AGE_GUIDE["adult"])
-    system = _with_genre(
-        f"You are an editor. Adapt the text for {guide}. "
-        "Preserve the story meaning. Return ONLY the adapted text.",
-        genre_context,
+def _resolve_age_adapt_system(target_age: str, genre_context: str, **kw) -> str:
+    builder, resolved = resolve_prompt_version("age_adapt", settings.prompt_version, settings.prompt_version_fallback)
+    system = builder(target_age=target_age, genre_context=genre_context, **kw)
+    _log_prompt_version("age_adapt", resolved)
+    return system
+
+
+async def adapt_for_age(
+    text: str, target_age: str, context: str = "", genre_context: str = "",
+    story_id: Optional[str] = None, db=None,
+    strength: str = "light", locked_ranges: Optional[list] = None,
+) -> dict:
+    return await _run_constrained_transform(
+        transform_type="age_adapt", text=text, temperature=0.3,
+        max_tokens=len(text.split()) * 2 + 150,
+        builder_kwargs={"target_age": target_age, "genre_context": genre_context},
+        story_id=story_id, db=db, strength=strength, locked_ranges=locked_ranges,
+        change_check_target=f"already appropriate for {target_age} readers", extra_user_context=context,
     )
-    ctx = f"\n\nContext:\n{context}" if context else ""
-    return await _complete(system, text + ctx, temperature=0.3, max_tokens=len(text.split()) * 2 + 150)
 
 
 async def stream_age_adapt(text: str, target_age: str, context: str = "", genre_context: str = "") -> AsyncGenerator[str, None]:
-    guide = _AGE_GUIDE.get(target_age, _AGE_GUIDE["adult"])
-    system = _with_genre(
-        f"You are an editor. Adapt the text for {guide}. "
-        "Preserve the story meaning. Return ONLY the adapted text.",
-        genre_context,
-    )
+    system = _resolve_age_adapt_system(target_age, genre_context)
     ctx = f"\n\nContext:\n{context}" if context else ""
     async for token in _stream_generate(system, text + ctx, temperature=0.3, max_tokens=len(text.split()) * 2 + 150):
         yield token
@@ -819,21 +1022,29 @@ async def stream_age_adapt(text: str, target_age: str, context: str = "", genre_
 
 # ── Style Transformation ───────────────────────────────────────────────────────
 
-async def transform_style(text: str, style: str, genre_context: str = "") -> str:
-    system = _with_genre(
-        f"Rewrite the passage in the literary style of {style} — capturing their characteristic "
-        "sentence structure, diction, rhythm, and voice. Return ONLY the rewritten passage.",
-        genre_context,
+def _resolve_style_system(style: str, genre_context: str, **kw) -> str:
+    builder, resolved = resolve_prompt_version("style", settings.prompt_version, settings.prompt_version_fallback)
+    system = builder(style=style, genre_context=genre_context, **kw)
+    _log_prompt_version("style", resolved)
+    return system
+
+
+async def transform_style(
+    text: str, style: str, genre_context: str = "",
+    story_id: Optional[str] = None, db=None,
+    strength: str = "light", locked_ranges: Optional[list] = None,
+) -> dict:
+    return await _run_constrained_transform(
+        transform_type="style", text=text, temperature=0.6,
+        max_tokens=len(text.split()) * 2 + 150,
+        builder_kwargs={"style": style, "genre_context": genre_context},
+        story_id=story_id, db=db, strength=strength, locked_ranges=locked_ranges,
+        change_check_target=f"already written in the style of {style}",
     )
-    return await _complete(system, text, temperature=0.6, max_tokens=len(text.split()) * 2 + 150)
 
 
 async def stream_style(text: str, style: str, genre_context: str = "") -> AsyncGenerator[str, None]:
-    system = _with_genre(
-        f"Rewrite the passage in the literary style of {style} — capturing their characteristic "
-        "sentence structure, diction, rhythm, and voice. Return ONLY the rewritten passage.",
-        genre_context,
-    )
+    system = _resolve_style_system(style, genre_context)
     async for token in _stream_generate(system, text, temperature=0.6, max_tokens=len(text.split()) * 2 + 150):
         yield token
 
@@ -940,19 +1151,47 @@ async def stream_author_style(text: str, author: str, genre_context: str = "") -
 
 # ── Translation ────────────────────────────────────────────────────────────────
 
-async def translate_text(text: str, target_language: str, source_language: str = "en") -> str:
-    system = (
-        f"You are a professional literary translator. Translate from {source_language} to "
-        f"{target_language}, preserving tone, style, and literary quality. Return ONLY the translation."
-    )
-    return await _complete(system, text, temperature=0.2, max_tokens=len(text.split()) * 3 + 200)
+def _resolve_translate_system(source_language: str, target_language: str, **kw) -> str:
+    builder, resolved = resolve_prompt_version("translate", settings.prompt_version, settings.prompt_version_fallback)
+    system = builder(source_language=source_language, target_language=target_language, **kw)
+    _log_prompt_version("translate", resolved)
+    return system
+
+
+async def translate_text(
+    text: str, target_language: str, source_language: str = "en",
+    story_id: Optional[str] = None, db=None,
+) -> dict:
+    """
+    Translation's preservation is architecturally different from tone/
+    emotion/audience/style (approved correction #2): a name is not a
+    violation merely for no longer being byte-identical — it is checked
+    against the story's translation glossary (built once per (story,
+    language), never introducing a name that isn't a real character — see
+    ensure_translation_glossary's write-path guard) instead of requiring
+    verbatim preservation. No strength/locking here: legitimate translation
+    restructures sentences, which the strength proxy would misfire on.
+    """
+    glossary = await ensure_translation_glossary(story_id, target_language, db) if story_id and db else {}
+    glossary_clause = build_translation_glossary_clause(glossary)
+
+    builder, resolved = resolve_prompt_version("translate", settings.prompt_version, settings.prompt_version_fallback)
+    _log_prompt_version("translate", resolved)
+    system = builder(source_language=source_language, target_language=target_language, glossary_clause=glossary_clause)
+
+    transformed = await _complete(system, text, temperature=0.2, max_tokens=len(text.split()) * 3 + 200)
+
+    consistency = check_translation_name_consistency(text, transformed, glossary) if glossary else {"missing": []}
+    return {
+        "transformed": transformed, "no_change": False, "reason": None,
+        "strength_violation": False,
+        "preservation_violations": consistency["missing"],
+        "failed": False,
+    }
 
 
 async def stream_translate(text: str, target_language: str, source_language: str = "en") -> AsyncGenerator[str, None]:
-    system = (
-        f"You are a professional literary translator. Translate from {source_language} to "
-        f"{target_language}, preserving tone, style, and literary quality. Return ONLY the translation."
-    )
+    system = _resolve_translate_system(source_language, target_language)
     async for token in _stream_generate(system, text, temperature=0.2, max_tokens=len(text.split()) * 3 + 200):
         yield token
 
@@ -1255,12 +1494,53 @@ async def extract_cast(chapter_texts: list) -> list:
 
 # ── AI Suggestions ─────────────────────────────────────────────────────────────
 
+_ADVERSARIAL_CRITIQUE_SYSTEM = (
+    "You are reviewing a developmental editor's own draft feedback before it goes "
+    "to the author. For EACH item below, check: is this too soft, too generic, or "
+    "does it read as praise dressed up as a suggestion? If so, REWRITE that item "
+    "to be sharper and more specific — same category and priority, tightened "
+    "observation/recommendation. If an item is already sharp and specific, "
+    "return it unchanged. Return the FULL list, same length, same shape: "
+    "{id, category, observation, recommendation, priority}. Return ONLY the "
+    "JSON array."
+)
+
+
+async def _adversarial_sharpen_suggestions(suggestions: list) -> list:
+    """
+    Task 5.13 — one BOUNDED extra pass (never retried, never looped) that
+    checks the initial suggestions for softness/genericness and sharpens
+    them. Fails open: any error here returns the ORIGINAL suggestions
+    unchanged, never raises — this is a quality pass, not a correctness
+    gate, and losing it should never break suggestion generation.
+    """
+    if not suggestions:
+        return suggestions
+    payload = json.dumps([
+        {"id": s["id"], "category": s["category"], "observation": s["observation"],
+         "recommendation": s["recommendation"], "priority": s.get("priority", "medium")}
+        for s in suggestions
+    ])
+    try:
+        revised, meta = await complete_structured(
+            _ADVERSARIAL_CRITIQUE_SYSTEM, payload,
+            coerce=coerce_writing_suggestions,
+            temperature=0.0, max_tokens=700, label="writing_suggestions_adversarial",
+        )
+    except Exception as exc:
+        logger.warning("[suggestions] adversarial sharpening call failed (%s) — keeping original", exc)
+        return suggestions
+    if not revised or len(revised) != len(suggestions):
+        # Shape mismatch (dropped/added items) is treated the same as a
+        # failure — never trust a pass that changed the item count.
+        return suggestions
+    return revised
+
+
 async def generate_suggestions(text: str, story_context: str = "", genre: str = "") -> list:
-    system = (
-        "You are a literary coach giving manuscript feedback. Analyse the excerpt and return ONLY "
-        "a JSON array of exactly 4 objects: {id: int, category: string, text: string, reason: string}. "
-        "Categories: Prose Quality | Show Don't Tell | Dialogue | Pacing | Characterisation | Structure."
-    )
+    builder, resolved = resolve_prompt_version("suggestions", settings.prompt_version, settings.prompt_version_fallback)
+    system = builder()
+    _log_prompt_version("suggestions", resolved)
     parts = []
     if genre:
         parts.append(f"Genre: {genre}")
@@ -1269,13 +1549,19 @@ async def generate_suggestions(text: str, story_context: str = "", genre: str = 
     parts.append(f"Excerpt:\n{text}")
     result, meta = await complete_structured(
         system, "\n\n".join(parts),
-        coerce=coerce_text_suggestions,
+        coerce=coerce_writing_suggestions,
         temperature=0.0, max_tokens=600, label="writing_suggestions",
     )
     if result is None:
         raise ValueError(
             "Writing suggestions could not be generated. Please try again."
         )
+    # Task 5.13 — the adversarial sharpening pass is part of v2's improved
+    # suggestions design specifically; v1 stays byte-identical to its
+    # pre-Stage-5 behavior (task 5.1's frozen-baseline guarantee), so this
+    # only runs when v2 was the version actually resolved.
+    if resolved == "v2":
+        result = await _adversarial_sharpen_suggestions(result)
     return result
 
 
@@ -1371,6 +1657,7 @@ async def retrieve_character_context(
     db,
     top_k: int = 5,
     token_budget: int = 1200,
+    max_chapter_number: int | None = None,
 ) -> list[str]:
     """
     Hybrid character retrieval for Plot Assistant context injection.
@@ -1382,6 +1669,12 @@ async def retrieve_character_context(
 
     Each retrieved character is formatted with their profile AND up to 2 recent
     story evidence passages, giving the LLM both author intent and story grounding.
+
+    max_chapter_number: spoiler-safe scope boundary (D-1, task 4.1). Limits the
+    quoted story-evidence passages (see `_get_recent_mentions`) to chapters at
+    or before this number. None means unscoped (author opted into full-manuscript
+    search). Character *existence* and profile text are never scoped by this —
+    only which story passages get quoted as evidence.
 
     Returns [] when no characters exist for the story.
     """
@@ -1469,7 +1762,9 @@ async def retrieve_character_context(
             continue
 
         # Get story evidence passages for this character
-        story_passages = _get_recent_mentions(char_id, story_id, db, top_k=2)
+        story_passages = _get_recent_mentions(
+            char_id, story_id, db, top_k=2, max_chapter_number=max_chapter_number,
+        )
 
         if not profile:
             block = f"## Character: {char.name}\nRole: {char.role} | Status: {char.status}"
@@ -1574,6 +1869,7 @@ async def answer_story_question(
     character_context: list[str] = None,
     note_context: list[str] = None,
     genre_context: str = "",
+    scope_limited: bool = False,
 ) -> str:
     """
     Answer a factual question about the story using top-k semantically retrieved
@@ -1585,6 +1881,13 @@ async def answer_story_question(
 
     note_context is a list of pre-formatted story note / note card strings from
     retrieve_note_context().  Injected after character context when present.
+
+    scope_limited (task 4.4): True when retrieval was capped to the author's
+    current chapter (D-1 default). Told to the model explicitly so a negative
+    answer names its actual cause — "not found in what I searched" is a
+    different claim from "this isn't established in your story", and
+    conflating them under a chapter-scoped search would tell the author
+    something false about their own manuscript.
     """
     system = (
         "You are a story knowledge assistant. Answer the writer's question using "
@@ -1592,7 +1895,24 @@ async def answer_story_question(
         "do not invent any characters, events, or details absent from the context.\n\n"
         "• Short factual questions (Who is X? Where is Y?): 1–3 sentences.\n"
         "• List/summary questions (What happened? What problems? What events?): "
-        "read every passage and list ALL distinct items you find — do not stop early."
+        "read every passage and list ALL distinct items you find — do not stop early.\n\n"
+        "• If the answer is not in the retrieved context, you MUST distinguish two "
+        "different situations and say which one applies — never use one vague phrase "
+        "for both:\n"
+        + (
+            "  1. RETRIEVAL LIMIT: the search only covered chapters up to the "
+            "author's current position (chapter-scoped search). If the fact might "
+            "exist in a later chapter you were not shown, say so explicitly — e.g. "
+            "\"I didn't find this in the chapters searched so far — it may appear "
+            "later, or you can search the full manuscript.\" Do NOT say \"this isn't "
+            "in your story\" when you were never shown the whole story.\n"
+            if scope_limited else
+            "  1. RETRIEVAL LIMIT: not applicable here — the full manuscript was "
+            "searched, so do not hedge with \"it may appear later\".\n"
+        )
+        + "  2. NOT ESTABLISHED: the full available context was searched and the "
+        "fact genuinely is not there — say so directly, e.g. \"This isn't "
+        "established anywhere in what I have access to.\""
     )
 
     parts = [f"Question: {question}"]
@@ -1791,11 +2111,13 @@ _PLOT_HOLE_MAX_CHAPTERS = 60   # single_pass per-call limit; batched/hierarchica
 
 def coerce_text_suggestions(parsed) -> tuple[Optional[list], int]:
     """
-    Coerce a list of writing/plot suggestions ({id, text, rationale}-ish).
+    Coerce a list of plot suggestions ({id, text, rationale}-ish).
 
-    Shared by generate_suggestions and generate_plot_suggestions: both ask for a
-    bare array of objects carrying a text field. An entry with no text is
-    dropped — a suggestion with nothing to suggest is not a suggestion.
+    Used by generate_plot_suggestions only — generate_suggestions (writing
+    tips) moved to its own coerce_writing_suggestions (task 5.13) once its
+    prompt started asking for {observation, recommendation} instead of a
+    single {text, reason} pair. Kept unchanged here deliberately: Stage 5
+    must not touch Stage 4's plot-assistant behaviour.
     """
     items = _issue_list_from(parsed, "suggestions")
     if items is None:
@@ -1823,6 +2145,59 @@ def coerce_text_suggestions(parsed) -> tuple[Optional[list], int]:
         entry["reason"]    = explanation
         entry.setdefault("category", "general")
         kept.append(entry)
+    return kept, discarded
+
+
+_VALID_SUGGESTION_PRIORITIES = ("high", "medium", "low")
+
+
+def coerce_writing_suggestions(parsed) -> tuple[Optional[list], int]:
+    """
+    Task 5.13 — coerce the v2 writing-suggestions shape:
+    {id, category, observation, recommendation, priority}. `reason` is
+    computed and kept as a deprecated backward-compatible field (approved
+    correction #6) for any existing client still reading it, rather than
+    breaking immediately — reason = "{observation} {recommendation}".
+
+    A v1-shaped item (only `text`/`reason`, no `observation`/
+    `recommendation`) is also accepted, mapped observation=text,
+    recommendation="" — so a fallback to prompt_version=v1 (task 5.1's own
+    revert guarantee) does not crash this coercer. `priority` defaults to
+    "medium" when absent or invalid — additive, so a v1-shaped item (which
+    never had priority) still gets a valid value, not a crash or a null.
+    """
+    items = _issue_list_from(parsed, "suggestions")
+    if items is None:
+        return None, 0
+
+    kept, discarded = [], 0
+    for position, item in enumerate(items, 1):
+        if not isinstance(item, dict):
+            discarded += 1
+            continue
+        observation = str(item.get("observation") or item.get("text") or "").strip()
+        recommendation = str(item.get("recommendation") or "").strip()
+        if not observation and not recommendation:
+            discarded += 1
+            continue
+        reason = " ".join(p for p in (observation, recommendation) if p) or str(item.get("reason") or "")
+        priority = str(item.get("priority") or "").strip().lower()
+        if priority not in _VALID_SUGGESTION_PRIORITIES:
+            priority = "medium"
+        kept.append({
+            "id": item.get("id", position),
+            "category": str(item.get("category") or "General"),
+            "observation": observation or reason,
+            "recommendation": recommendation,
+            "priority": priority,
+            "text": observation or reason,   # legacy field, kept in sync
+            "reason": reason,                # deprecated compatibility field
+        })
+    # Task 5.13 Medium 13 — recommendation prioritisation: order high-priority
+    # items first rather than leaving the model's own (often arbitrary) order,
+    # while keeping relative order stable within the same priority level.
+    order = {"high": 0, "medium": 1, "low": 2}
+    kept.sort(key=lambda s: order.get(s["priority"], 1))
     return kept, discarded
 
 
@@ -1859,7 +2234,8 @@ def coerce_manuscript_report(parsed) -> tuple[Optional[dict], int]:
     """
     if not isinstance(parsed, dict):
         return None, 0
-    keys = ("character_arcs", "pacing", "unresolved_threads", "strengths", "improvements")
+    keys = ("character_arcs", "pacing", "unresolved_threads", "strengths", "improvements",
+            "stakes", "themes")  # task 5.14 — new dimensions, same partial-is-useful policy
     present = {k: parsed[k] for k in keys if k in parsed}
     if not present:
         return None, 0
@@ -1904,6 +2280,25 @@ def coerce_chapter_summary(parsed) -> tuple[Optional[dict], int]:
         discarded += 1
     if not result["chapter_purpose"]:
         discarded += 1
+
+    # Task 4.5 (migration 0017) — additive, best-effort fields. Deliberately
+    # NOT counted in `discarded`: they are new, the model may reasonably have
+    # nothing to report for a quiet chapter, and older/simpler manuscripts
+    # should not be penalised as "degraded" for lacking arc/relationship
+    # movement that genuinely isn't there. This keeps the existing degradation
+    # contract (discarded == 6 for a raw-summary-only response) unchanged.
+    arc_notes = parsed.get("character_arc_notes")
+    result["character_arc_notes"] = arc_notes if isinstance(arc_notes, dict) else {}
+
+    rel_changes = parsed.get("relationship_changes")
+    if isinstance(rel_changes, list):
+        result["relationship_changes"] = [
+            r for r in rel_changes
+            if isinstance(r, dict) and isinstance(r.get("characters"), list) and r.get("change")
+        ]
+    else:
+        result["relationship_changes"] = []
+
     return result, discarded
 
 
@@ -2292,7 +2687,17 @@ async def _strategy_manuscript_summary_pass(chapters: list[dict]) -> dict:
         "4. STRENGTHS — 2-4 specific observations about what this manuscript does well.\n"
         "   - chapters: the actual chapter numbers that demonstrate this strength.\n"
         "5. IMPROVEMENTS — 2-4 specific, actionable revision suggestions.\n"
-        "   - chapters: the actual chapter numbers that motivated this recommendation.\n\n"
+        "   - chapters: the actual chapter numbers that motivated this recommendation.\n"
+        "   - Be concrete: name the specific scene/character/mechanism, never a generic "
+        "craft-book line ('show don't tell') without saying exactly where and how it applies.\n"
+        "6. STAKES — what the protagonist(s) stand to lose or gain, and whether that risk "
+        "escalates across the manuscript (or stays flat, which is itself worth noting).\n"
+        "   - summary: 1-3 sentences on the overall stakes.\n"
+        "   - escalation: chapter-by-chapter points where the stakes meaningfully raise or "
+        "resolve — cite real chapter numbers, one note each.\n"
+        "7. THEMES — 1-3 recurring thematic threads (not plot events — the IDEAS the "
+        "manuscript keeps returning to).\n"
+        "   - chapters: the actual chapters where this theme is present.\n\n"
         "RULES:\n"
         "- Every chapter reference MUST be an actual chapter number from the data below.\n"
         "- Do NOT invent chapter numbers or make generic observations without chapter evidence.\n"
@@ -2304,6 +2709,8 @@ async def _strategy_manuscript_summary_pass(chapters: list[dict]) -> dict:
         '"unresolved_threads": [{"description": str, "introduced_in": int, "chapters": [int]}], '
         '"strengths": [{"text": str, "chapters": [int]}], '
         '"improvements": [{"text": str, "chapters": [int]}], '
+        '"stakes": {"summary": str, "escalation": [{"chapter": int, "note": str}]}, '
+        '"themes": [{"theme": str, "chapters": [int]}], '
         '"note": "one-sentence summary"}'
     )
 
@@ -2341,6 +2748,8 @@ async def _strategy_manuscript_summary_pass(chapters: list[dict]) -> dict:
         "unresolved_threads": result.get("unresolved_threads", []),
         "strengths":          result.get("strengths",          []),
         "improvements":       result.get("improvements",       []),
+        "stakes":             result.get("stakes"),
+        "themes":             result.get("themes", []),
         "note":               cap_note or result.get("note", ""),
         "mode_note":          mode_note,
         "chapters_analyzed":  len(capped),
@@ -2361,6 +2770,7 @@ async def analyze_manuscript(
     story_id:  str,
     chapters:  list[dict],
     strategy:  str = "summary_pass",
+    db=None,
 ) -> dict:
     """
     Dispatch to the named manuscript analysis strategy and return results.
@@ -2370,9 +2780,19 @@ async def analyze_manuscript(
     strategy — analysis strategy name (default "summary_pass")
                Future strategies added to _MANUSCRIPT_STRATEGIES are immediately
                selectable from the router without endpoint or schema changes.
+    db — optional SQLAlchemy session (task 5.14). When given, this function
+         also applies deterministic citation validation (existence-checking
+         every chapter reference in the LLM's output against the REAL
+         chapter numbers, exactly as validate_continuity_citations does for
+         continuity-check), attaches Stage 4's existing plot-importance
+         signal, and cross-references the independently-maintained
+         narrative-thread tracker. None of these three steps call the LLM.
 
     Returns dict with: character_arcs, pacing, unresolved_threads, strengths,
-                       improvements, note, mode_note, chapters_analyzed, word_count_total
+                       improvements, stakes, themes, note, mode_note,
+                       chapters_analyzed, word_count_total,
+                       chapter_plot_importance, deterministic_open_threads,
+                       citations_suppressed
     """
     fn = _MANUSCRIPT_STRATEGIES.get(strategy)
     if fn is None:
@@ -2384,10 +2804,44 @@ async def analyze_manuscript(
     logger.info(f"[manuscript] story={story_id[:8]}... "
         f"strategy={strategy!r} total_chapters={len(chapters)}")
     result = await fn(chapters)
+
+    chapter_numbers = {c["chapter"] for c in chapters}
+    result, suppressed = validate_manuscript_report_citations(result, chapter_numbers)
+    result["citations_suppressed"] = suppressed
+
+    result["chapter_plot_importance"] = {}
+    result["deterministic_open_threads"] = []
+    if db is not None:
+        try:
+            raw_boosts = _plot_importance_by_chapter(story_id, chapter_numbers, db)
+            if raw_boosts:
+                lo, hi = min(raw_boosts.values()), max(raw_boosts.values())
+                span = (hi - lo) or 1.0
+                # Relative 0-100 scale for display — the raw boost values are a
+                # tiny retrieval re-ranking signal (task 4.3), not a
+                # human-readable scale on their own.
+                result["chapter_plot_importance"] = {
+                    str(ch): round((v - lo) / span * 100, 1) for ch, v in raw_boosts.items()
+                }
+        except Exception as exc:
+            logger.warning(f"[manuscript] plot-importance lookup failed (%s) — omitted, not fabricated", exc)
+
+        try:
+            from models import NarrativeThread
+            open_threads = (
+                db.query(NarrativeThread.name)
+                .filter(NarrativeThread.story_id == story_id, NarrativeThread.status == "open")
+                .all()
+            )
+            result["deterministic_open_threads"] = [name for (name,) in open_threads]
+        except Exception as exc:
+            logger.warning(f"[manuscript] narrative-thread cross-reference failed (%s) — omitted, not fabricated", exc)
+
     logger.info(f"[manuscript] done — "
         f"{result['chapters_analyzed']} analyzed, "
         f"{len(result.get('character_arcs', []))} arc(s), "
-        f"{len(result.get('unresolved_threads', []))} thread(s)")
+        f"{len(result.get('unresolved_threads', []))} thread(s), "
+        f"{suppressed} citation(s) suppressed")
     return result
 
 
@@ -3174,22 +3628,29 @@ def _get_recent_mentions(
     story_id: str,
     db,
     top_k: int = 2,
+    max_chapter_number: int | None = None,
 ) -> list[tuple[int, str]]:
     """
     Return (chapter_number, passage_excerpt) tuples for the most recent
     chapters where this character appears.  Used for story evidence in prompts.
     Excerpts are capped at 150 words.
+
+    max_chapter_number: when set, only mentions at or before this chapter are
+    eligible. This is the spoiler-safe scope boundary (D-1, task 4.1) — without
+    it, "recent" means most-recent-in-the-whole-manuscript, which can quote a
+    later chapter's evidence into a prompt built from an earlier chapter.
     """
     from models import CharacterMention
 
     # Get distinct recent chapters for this character
+    q = db.query(CharacterMention).filter(
+        CharacterMention.character_id == character_id,
+        CharacterMention.story_id     == story_id,
+    )
+    if max_chapter_number is not None:
+        q = q.filter(CharacterMention.chapter_number <= max_chapter_number)
     mentions = (
-        db.query(CharacterMention)
-        .filter(
-            CharacterMention.character_id == character_id,
-            CharacterMention.story_id     == story_id,
-        )
-        .order_by(CharacterMention.chapter_number.desc())
+        q.order_by(CharacterMention.chapter_number.desc())
         .limit(top_k * 3)  # fetch extra; deduplicate by chapter below
         .all()
     )
@@ -3539,6 +4000,21 @@ async def generate_chapter_summary(chapter_text: str, chapter_number: int) -> di
         "  emotional_tone (string)\n"
         "  chapter_purpose (string)\n"
         "  raw_summary    (string ≤ 300 words) — comprehensive prose summary\n"
+        "  character_arc_notes (object) — REQUIRED to check every named character "
+        "against, even though individual entries are optional. For each character in "
+        "characters_present, ask: did they make a decision, change their mind, learn "
+        "something, or reveal something about themselves in THIS chapter? If yes, add "
+        "one sentence describing it. A character simply appearing or speaking is NOT "
+        "arc movement — only include a character when something about who they are or "
+        "what they want actually shifted. Example: a chapter where a character is "
+        "revealed to have lied about their identity → "
+        '{"Kael": "Revealed to have been lying about his identity since chapter 1."}. '
+        "Only return {} if you checked every character and none of them changed.\n"
+        "  relationship_changes (array) — same check, but between PAIRS of named "
+        "characters: did trust, alliance, suspicion, or power between any two of them "
+        "shift in THIS chapter? Example: "
+        '[{"characters": ["Kael", "Mira"], "change": "Mira stops trusting Kael after '
+        'discovering the lie."}]. Only return [] if no pair\'s relationship moved.\n'
         "Return ONLY the JSON object, no extra text."
     )
     excerpt = chapter_text[:8000]
@@ -3622,8 +4098,11 @@ async def retrieve_chunks_from_store(
     callers that don't know the current chapter).
 
     This is the primary retrieval path for QA mode.
-    Works identically whether the story has 3 chapters or 300 — only the
-    top-k chunks (by cosine similarity) are returned and passed to Qwen.
+    Works identically whether the story has 3 chapters or 300. Ranking is
+    cosine similarity FIRST, with a small, bounded plot-importance boost
+    (task 4.3) applied only to break ties among semantically comparable
+    candidates — it can never lift an irrelevant chunk over a relevant one
+    from a quieter chapter. See _plot_importance_boost.
     """
     from sqlalchemy import text
 
@@ -3632,7 +4111,10 @@ async def retrieve_chunks_from_store(
     q_vec_str = vector_literal(q_emb)
 
     chapter_filter = "AND chapter_number <= :max_ch" if max_chapter_number is not None else ""
-    params: dict = {"q": q_vec_str, "story_id": story_id, "limit": top_k}
+    # Over-fetch a candidate pool so the plot-importance re-rank below has
+    # something to work with beyond the raw top-k cosine order.
+    candidate_k = min(top_k * 3, 40)
+    params: dict = {"q": q_vec_str, "story_id": story_id, "limit": candidate_k}
     if max_chapter_number is not None:
         params["max_ch"] = max_chapter_number
 
@@ -3654,11 +4136,26 @@ async def retrieve_chunks_from_store(
         logger.info(f"[chunk_retrieval] story={story_id[:8]}... — no indexed chunks found")
         return []
 
-    chapters_hit = sorted({row.chapter_number for row in rows})
-    logger.info(f"[chunk_retrieval] top-{len(rows)}: "
-        f"scores={[round(float(row.score), 3) for row in rows]}, "
+    chapter_numbers = {row.chapter_number for row in rows}
+    importance = _plot_importance_by_chapter(story_id, chapter_numbers, db)
+
+    ranked_all = sorted(
+        rows,
+        key=lambda row: float(row.score) + importance.get(row.chapter_number, 0.0),
+        reverse=True,
+    )
+    # Task 4.13: dedupe on CONTENT, not chunk_id — 350-word overlapping chunks
+    # legitimately share text, so two different chunk_ids can carry almost the
+    # same passage. Greedy: keep a candidate only if it isn't near-duplicate
+    # text of something already selected, so top_k slots aren't wasted on
+    # near-repeats of the same passage.
+    ranked = _dedupe_chunks_by_content(ranked_all, top_k)
+
+    chapters_hit = sorted({row.chapter_number for row in ranked})
+    logger.info(f"[chunk_retrieval] top-{len(ranked)} (of {len(rows)} candidates): "
+        f"scores={[round(float(r.score), 3) for r in ranked]}, "
         f"chapters={chapters_hit}")
-    best = rows[0]
+    best = ranked[0]
     logger.info(f"[chunk_retrieval] best: "
         f"ch{best.chapter_number}[chunk {best.chunk_index}]: "
         f"{best.text[:120]!r}")
@@ -3671,8 +4168,94 @@ async def retrieve_chunks_from_store(
             "word_count":  row.word_count,
             "score":       round(float(row.score), 3),
         }
-        for row in rows
+        for row in ranked
     ]
+
+
+_CONTENT_DEDUPE_JACCARD_THRESHOLD = 0.6   # word-set overlap above this = "same passage"
+
+
+def _dedupe_chunks_by_content(ranked_rows: list, top_k: int) -> list:
+    """
+    Task 4.13 — greedily fill up to top_k slots from `ranked_rows` (already
+    sorted best-first), skipping any candidate whose text is a near-duplicate
+    of one already selected.
+
+    Similarity is word-set Jaccard overlap, not chunk_id equality: the
+    chunking design deliberately uses 350-word overlapping windows
+    (CLAUDE.md), so two DIFFERENT chunk_ids routinely carry the same
+    sentences. Deduping by ID would keep both; this dedupes by what the
+    passage actually says.
+
+    Threshold 0.6 is deliberately generous (only drops passages that are
+    MOSTLY the same text) — a lower threshold risks discarding chunks that
+    happen to share vocabulary but cover different content, which would
+    reduce diversity rather than improve it.
+    """
+    selected: list = []
+    selected_word_sets: list[set] = []
+    for row in ranked_rows:
+        words = set(row.text.lower().split())
+        is_duplicate = False
+        for prior_words in selected_word_sets:
+            if not words or not prior_words:
+                continue
+            overlap = len(words & prior_words) / len(words | prior_words)
+            if overlap >= _CONTENT_DEDUPE_JACCARD_THRESHOLD:
+                is_duplicate = True
+                break
+        if is_duplicate:
+            continue
+        selected.append(row)
+        selected_word_sets.append(words)
+        if len(selected) >= top_k:
+            break
+    return selected
+
+
+_PLOT_IMPORTANCE_CAP = 0.08   # bounded so importance can only break near-ties,
+                              # never override a genuinely more relevant chunk
+
+
+def _plot_importance_by_chapter(story_id: str, chapter_numbers: set[int], db) -> dict[int, float]:
+    """
+    Bounded, per-chapter re-ranking boost (task 4.3) built entirely from
+    signal that already exists on ChapterSummary (key_events count, and —
+    since migration 0017, task 4.5 — whether any character arc or
+    relationship genuinely moved in that chapter). A chapter with more
+    distinct plot events and real character/relationship movement is more
+    likely to hold plot-critical information than a quiet transitional one.
+
+    Deliberately NOT based on mention frequency (that already drives cosine
+    similarity and the name-mention boost elsewhere) — this is an
+    independent signal, as task 4.3 asks for.
+    """
+    if not chapter_numbers:
+        return {}
+    from models import ChapterSummary
+
+    rows = (
+        db.query(
+            ChapterSummary.chapter_number,
+            ChapterSummary.key_events,
+            ChapterSummary.character_arc_notes,
+            ChapterSummary.relationship_changes,
+        )
+        .filter(
+            ChapterSummary.story_id == story_id,
+            ChapterSummary.chapter_number.in_(chapter_numbers),
+        )
+        .all()
+    )
+
+    boosts: dict[int, float] = {}
+    for chapter_number, key_events, arc_notes, rel_changes in rows:
+        n_events = len(key_events) if isinstance(key_events, list) else 0
+        has_arc = bool(arc_notes)          # dict — {} is falsy, matches coercer default
+        has_rel = bool(rel_changes)        # list — [] is falsy, matches coercer default
+        raw = 0.015 * n_events + (0.02 if has_arc else 0.0) + (0.02 if has_rel else 0.0)
+        boosts[chapter_number] = min(raw, _PLOT_IMPORTANCE_CAP)
+    return boosts
 
 
 # ── Chapter summary + embedding pipeline ─────────────────────────────────────
@@ -3734,6 +4317,10 @@ async def summarize_and_embed_chapter(
         cs.raw_summary         = raw_summary
         cs.embedding           = summary_emb
         cs.is_stale            = False
+        # Task 4.5 — optional; None/[] is a legitimate "nothing moved" result,
+        # not a missing-data condition (see coerce_chapter_summary).
+        cs.character_arc_notes  = summary_data.get("character_arc_notes", {})
+        cs.relationship_changes = summary_data.get("relationship_changes", [])
     else:
         cs = ChapterSummary(
             chapter_id         = chapter_id,
@@ -3747,6 +4334,8 @@ async def summarize_and_embed_chapter(
             chapter_purpose    = summary_data.get("chapter_purpose", ""),
             raw_summary        = raw_summary,
             embedding          = summary_emb,
+            character_arc_notes  = summary_data.get("character_arc_notes", {}),
+            relationship_changes = summary_data.get("relationship_changes", []),
         )
         db.add(cs)
     db.commit()
@@ -4071,6 +4660,172 @@ async def generate_chapter_outline(
 
 # ── P2-05: Continuity & World Consistency Validator ──────────────────────────
 
+def validate_continuity_citations(issues: list[dict], chapter_summaries: list[dict]) -> list[dict]:
+    """
+    Task 5.14 — deterministic two-tier validation of check_continuity's
+    chapter_refs, distinguishing an unsupported claim from a merely-missing
+    citation (per the approved design). No DB access needed: chapter_summaries
+    is already the real ground truth check_continuity was given.
+
+    Tier 1 (reference existence): a finding with no chapter_refs at all, or
+    citing a chapter_number that isn't in this manuscript's real set, is
+    fabricated/uncitable — SUPPRESSED outright. It has no informational
+    value and audit_section_provenance's own precedent (measuring presence,
+    not truth) is exactly the gap this closes: a citation that fails Tier 1
+    would have counted as "cited" under that mechanism.
+
+    Tier 2 (claim groundedness): for findings that pass Tier 1, check
+    whether the finding's own description text mentions any location,
+    character, or event that the CITED chapter's structured summary fields
+    actually record. A real chapter number attached to a claim that
+    chapter's own data doesn't support is a stronger, different failure
+    than a missing citation — NOT suppressed (Tier 2 is a heuristic
+    substring match that can false-negative on a validly-phrased but
+    differently-worded citation), instead flagged citation_verified=False
+    so the author sees it with a caveat rather than either hiding it or
+    silently trusting it.
+    """
+    real_chapter_numbers = {s["chapter_number"] for s in chapter_summaries}
+    validated = []
+    for issue in issues:
+        refs = issue.get("chapter_refs") or []
+        if not refs or not all(r in real_chapter_numbers for r in refs):
+            continue  # Tier 1 failure — suppressed, see docstring
+
+        description_lower = str(issue.get("description", "")).lower()
+        grounded = False
+        for s in chapter_summaries:
+            if s.get("chapter_number") not in refs:
+                continue
+            arc_notes = s.get("character_arc_notes")
+            rel_changes = s.get("relationship_changes")
+            entities = (
+                list(s.get("locations") or [])
+                + list(s.get("characters_present") or [])
+                + [str(e) for e in (s.get("key_events") or [])]
+                # Task 5.14 — ground motivation/relationship contradictions the
+                # same way, now that check_continuity's prompt is given this data.
+                + (list(arc_notes.values()) if isinstance(arc_notes, dict) else [])
+                + ([c.get("change", "") for c in rel_changes if isinstance(c, dict)] if isinstance(rel_changes, list) else [])
+            )
+            if any(str(e).strip() and str(e).strip().lower() in description_lower for e in entities):
+                grounded = True
+                break
+
+        entry = dict(issue)
+        entry["citation_verified"] = grounded
+        validated.append(entry)
+    return validated
+
+
+def validate_manuscript_report_citations(result: dict, chapter_numbers: set[int]) -> tuple[dict, int]:
+    """
+    Task 5.14 — the same Tier-1 (existence) citation discipline
+    validate_continuity_citations applies to continuity-check findings,
+    extended to every chapter-citing section of the manuscript report. A
+    finding whose ONLY chapter reference(s) are fabricated/out-of-range has
+    no informational value and is dropped; a finding with at least one
+    valid reference keeps only its valid references (an author can act on
+    "chapters 2, 5" even if the model also hallucinated a "chapter 14" that
+    doesn't exist in a 10-chapter manuscript).
+
+    No Tier-2 groundedness check here (unlike continuity's contradiction
+    claims, these are open-ended editorial judgments — "this chapter is
+    slow-paced" isn't a checkable fact the way "Mira was in Paris in Ch3"
+    is) — existence is the only deterministically checkable property.
+
+    Returns (cleaned_result, suppressed_count).
+    """
+    suppressed = 0
+
+    def _valid(refs) -> list[int]:
+        return [r for r in (refs or []) if r in chapter_numbers]
+
+    cleaned = dict(result)
+
+    kept_arcs = []
+    for arc in result.get("character_arcs", []) or []:
+        valid = _valid(arc.get("appears_in"))
+        if not valid:
+            suppressed += 1
+            continue
+        kept_arcs.append({**arc, "appears_in": sorted(valid)})
+    cleaned["character_arcs"] = kept_arcs
+
+    pacing = dict(result.get("pacing") or {})
+    pacing["slow_chapters"] = _valid(pacing.get("slow_chapters"))
+    pacing["intense_chapters"] = _valid(pacing.get("intense_chapters"))
+    cleaned["pacing"] = pacing
+
+    kept_threads = []
+    for t in result.get("unresolved_threads", []) or []:
+        valid_chapters = _valid(t.get("chapters"))
+        introduced_in = t.get("introduced_in")
+        introduced_valid = introduced_in in chapter_numbers
+        if not valid_chapters and not introduced_valid:
+            suppressed += 1
+            continue
+        kept_threads.append({
+            **t,
+            "chapters": sorted(valid_chapters),
+            "introduced_in": introduced_in if introduced_valid else (valid_chapters[0] if valid_chapters else introduced_in),
+        })
+    cleaned["unresolved_threads"] = kept_threads
+
+    for key in ("strengths", "improvements"):
+        kept = []
+        for item in result.get(key, []) or []:
+            valid = _valid(item.get("chapters"))
+            if not valid:
+                suppressed += 1
+                continue
+            kept.append({**item, "chapters": sorted(valid)})
+        cleaned[key] = kept
+
+    kept_themes = []
+    for theme in result.get("themes", []) or []:
+        valid = _valid(theme.get("chapters"))
+        if not valid:
+            suppressed += 1
+            continue
+        kept_themes.append({**theme, "chapters": sorted(valid)})
+    cleaned["themes"] = kept_themes
+
+    stakes = result.get("stakes")
+    if isinstance(stakes, dict):
+        kept_escalation = []
+        for point in stakes.get("escalation", []) or []:
+            if point.get("chapter") in chapter_numbers:
+                kept_escalation.append(point)
+            else:
+                suppressed += 1
+        cleaned["stakes"] = {**stakes, "escalation": kept_escalation}
+
+    return cleaned, suppressed
+
+
+def _arc_notes_str(s: dict) -> str:
+    """Task 5.14 — format ChapterSummary.character_arc_notes ({character_id:
+    note}) for check_continuity's prompt. Module-level (not a closure) so it
+    is independently unit-testable without an LLM call."""
+    notes = s.get("character_arc_notes")
+    if not isinstance(notes, dict) or not notes:
+        return ""
+    return "; ".join(f"{k}: {v}" for k, v in notes.items() if v)
+
+
+def _rel_changes_str(s: dict) -> str:
+    """Task 5.14 — format ChapterSummary.relationship_changes
+    ([{"characters": [...], "change": "..."}]) for check_continuity's prompt."""
+    changes = s.get("relationship_changes")
+    if not isinstance(changes, list) or not changes:
+        return ""
+    return "; ".join(
+        f"{'+'.join(c.get('characters', []))}: {c.get('change', '')}"
+        for c in changes if isinstance(c, dict) and c.get("change")
+    )
+
+
 async def check_continuity(
     character_profiles: list[dict],
     chapter_summaries: list[dict],
@@ -4099,6 +4854,8 @@ async def check_continuity(
         f"- Ch{s['chapter_number']}: locations={s.get('locations','')}, "
         f"characters_present={s.get('characters_present','')}, "
         f"key_events={s.get('key_events','')}"
+        + (f", character_arc_notes={arc}" if (arc := _arc_notes_str(s)) else "")
+        + (f", relationship_changes={rel}" if (rel := _rel_changes_str(s)) else "")
         for s in chapter_summaries
     ) or "(no summaries)"
 
@@ -4107,7 +4864,11 @@ async def check_continuity(
 
     system = (
         "You are a continuity editor reviewing a manuscript for internal contradictions. "
-        "Be specific: quote the conflicting facts and cite chapter numbers."
+        "Be specific: quote the conflicting facts and cite chapter numbers. Reason about "
+        "CAUSE AND EFFECT, not just surface facts — a character acting against an "
+        "established motivation, or a setup (promise, threat, planted object, stated goal) "
+        "that is contradicted rather than paid off, is as real a continuity problem as a "
+        "changed eye color or an impossible travel time."
     )
     user = (
         "## Character Profiles\n" + char_block + "\n\n"
@@ -4115,12 +4876,15 @@ async def check_continuity(
         "## World/Story Notes\n" + notes_block + "\n\n"
         "## Location/World Cards\n" + cards_block + "\n\n"
         "Identify contradictions in: character appearance, character locations, "
-        "world rules, and timeline. Return a JSON array of objects with keys:\n"
-        '  "type": one of character_appearance | character_location | world_rule | timeline\n'
+        "world rules, timeline, character motivation/arc consistency, and relationship "
+        "consistency. Return a JSON array of objects with keys:\n"
+        '  "type": one of character_appearance | character_location | world_rule | timeline '
+        '| motivation | relationship\n'
         '  "description": specific description of the contradiction\n'
         '  "chapter_refs": array of chapter numbers involved\n'
         '  "severity": high | medium | low\n'
-        '  "resolution_hint": one sentence suggestion for the author\n'
+        '  "resolution_hint": a concrete, specific suggestion naming exactly what to change '
+        "and where — never a generic line like 'add more detail' or 'clarify this'\n"
         "If no contradictions found, return an empty array []. "
         "Return ONLY the JSON array."
     )
@@ -4142,6 +4906,13 @@ async def check_continuity(
             "not be read. Please run the check again.",
             meta.attempts, 0,
         )
+    # NOTE: validate_continuity_citations is deliberately NOT called here.
+    # The caller (routers/analysis.py) chunks large manuscripts across
+    # multiple check_continuity calls, each seeing only its own chunk's
+    # chapter_summaries — validating here would wrongly suppress a
+    # legitimate finding that cites a chapter in a DIFFERENT chunk. The
+    # caller validates once, after aggregating every chunk's issues,
+    # against the full manuscript's chapter set.
     return issues, meta
 
 
@@ -4157,6 +4928,36 @@ BIBLE_NOT_ESTABLISHED = "Not established in the manuscript"
 # Provenance tags the context uses: [Ch 7], [Ch 7-9], [Character: Devika Rao],
 # [Note: …], [Card: …].
 _PROVENANCE_RE = re.compile(r"\[(?:Ch\s*\d+[\d\s,\-–]*|Character:|Note:|Card:)[^\]]*\]", re.I)
+
+# Task 4.16 — deterministic safety net for a measured, prompt-resistant LLM
+# failure: even with an explicit instruction and a worked example, the model
+# still reports a carried/held POSSESSION as a physical description on a
+# meaningful fraction of runs (measured 4/9 ≈ 44% residual failure rate on a
+# repeated fixture after the prompt fix alone — improved from 9/9 before it,
+# but not reliable enough to leave to the prompt). Deliberately narrow: only
+# "carries/carrying/holds/holding" (verbs that can NEVER legitimately describe
+# physical appearance) are caught — "wears/wearing" is left alone because worn
+# clothing IS a valid physical descriptor (see the prompt instruction).
+_PHYSICAL_DESC_LINE_RE = re.compile(
+    r"^(\s*-?\s*\*\*Physical [Dd]escription:?\*\*:?\s*)(.*)$"
+)
+_POSSESSION_VERB_RE = re.compile(r"\b(carr(?:y|ies|ying)|held|holds|holding)\b", re.I)
+
+
+def _sanitize_character_physical_descriptions(text: str) -> str:
+    """Replace any 'Physical description' line that reports a carried/held
+    possession with the standard not-established phrase, preserving the
+    citation tag if one is present. See the constants above for why."""
+    out_lines = []
+    for line in text.split("\n"):
+        m = _PHYSICAL_DESC_LINE_RE.match(line)
+        if m and _POSSESSION_VERB_RE.search(m.group(2)):
+            tag_match = re.search(r"(\[Ch[^\]]*\])", m.group(2))
+            tag = f" {tag_match.group(1)}" if tag_match else ""
+            out_lines.append(f"{m.group(1)}{BIBLE_NOT_ESTABLISHED}{tag}")
+        else:
+            out_lines.append(line)
+    return "\n".join(out_lines)
 # A generated entry: a bullet, a numbered item, or a "Field: value" line.
 _ENTRY_RE = re.compile(r"^\s*(?:[-*•]\s+|\d+[.)]\s+)")
 
@@ -4219,13 +5020,43 @@ async def generate_story_bible_section(
             "Write a CHARACTER BIBLE section. For each character, create a compact "
             "reference card: Name, Role, Physical description, Personality, Goals, "
             "Backstory summary, and Arc status. Use '---' between characters.\n"
-            "EVERY line MUST end with the source tag it comes from, e.g.\n"
-            "  - **Role:** Veritor for the Bureau [Ch 1]\n"
-            "  - **Goals:** To prove the memory was forged [Ch 2]\n"
+            "EVERY line MUST end with the source tag it comes from — for instance, "
+            "a line's shape is '  - **Role:** <their role, as established> [Ch N]'. "
+            "The angle-bracket text above is a FORMAT PLACEHOLDER, not a character — "
+            "never invent or include a character because of how this instruction "
+            "is worded; only include characters the manuscript context below "
+            "actually establishes.\n"
             "Keep each line to one sentence so there is room for its tag. "
             "If a detail is not established anywhere in the context, write "
             f"\"{BIBLE_NOT_ESTABLISHED}\" for that line instead of guessing — "
-            "an untagged line is not acceptable."
+            "an untagged line is not acceptable.\n"
+            "PHYSICAL DESCRIPTION is the line most often over-written, in two "
+            "different ways — both must be avoided:\n"
+            "  (a) If the context gives one small physical detail (e.g. one "
+            "worn feature, one facial detail, build), report exactly that "
+            "detail and nothing more — do not extrapolate a fuller build, "
+            "posture, or appearance from it. A single stated detail is not "
+            "evidence of an unstated one, no matter how natural the inference "
+            "feels.\n"
+            "  (b) Physical description means the character's own body and "
+            "appearance ONLY — build, face, hair, visible marks, clothing worn "
+            "on their person. It does NOT mean what they carry, hold, own, or "
+            "do. Worked example — a character described only as 'entered the "
+            "room carrying a lantern and set it on the table' has NO physical "
+            "description in the text (a lantern is not a body part or "
+            "appearance), so the ONLY correct Physical description line for "
+            f"that character is \"{BIBLE_NOT_ESTABLISHED}\" — writing 'Carries "
+            "a lantern' would be WRONG, because an object someone carries "
+            "stays wrong no matter how it is phrased ('carries', 'holds', "
+            "'wears', 'is seen with' — all wrong for the same reason). Apply "
+            "this same test to every character: does the text describe their "
+            "BODY, or only an object/action near them? If only the latter, "
+            f"the line is \"{BIBLE_NOT_ESTABLISHED}\", full stop.\n"
+            "ARC STATUS should name the character's actual turning point or "
+            "decision in the story, not a generic ongoing activity — 'Chose to "
+            "leave Vell in the dark rather than accept his bribe [Ch 5]' is "
+            "useful; 'Investigating the truth' is not, because it is equally "
+            "true at any point in any mystery and describes no actual change."
         ),
         "locations": (
             "Write a LOCATIONS section covering EVERY distinct location that appears "
@@ -4285,7 +5116,10 @@ async def generate_story_bible_section(
     # requiring tags without more room would simply trade uncited entries for
     # truncated ones (SB-F13). Sections that cite per line get the larger budget.
     max_tokens = 1900 if section in ("characters", "locations") else 1500
-    return await _complete_ex(system, user, temperature=0.2, max_tokens=max_tokens)
+    text, finish_reason = await _complete_ex(system, user, temperature=0.2, max_tokens=max_tokens)
+    if section == "characters" and text:
+        text = _sanitize_character_physical_descriptions(text)
+    return text, finish_reason
 
 
 # ── P2-07: Dead-End Narrative Thread Tracker ──────────────────────────────────

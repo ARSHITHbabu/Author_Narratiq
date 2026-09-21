@@ -1,0 +1,422 @@
+{
+  "label": "baseline_v1",
+  "prompt_version": "v1",
+  "n_trials_per_scenario": 3,
+  "scenarios": [
+    {
+      "passage_id": "gothic-1",
+      "genre": "gothic literary",
+      "transform_type": "tone",
+      "target": "suspenseful",
+      "trials": [
+        {
+          "output": "The house stood silent, untouched for a decade and a half, its atmosphere thick with the weight of neglect. The air within clung to the memory of its former life, still, cold, and faintly sweet with the scent of forgotten dust. Mira moved through the halls with cautious steps, her voice barely a whisper, as if calling out might shatter the fragile silence. There was no one left to answer.",
+          "byte_identical": false,
+          "text_similarity": 0.058319039451114926,
+          "content_similarity": 0.8648210274309608,
+          "lock_target_preserved": null
+        },
+        {
+          "output": "The house stood silent and uninviting, its silence stretching back a decade like an unbreached tomb. The air within clung to the heavy, oppressive quiet, thick with the scent of forgotten years and the faint, sweet tang of dust. Mira moved through the halls with cautious, almost reverent steps, her breath the only sound in the vast, empty space. No voice greeted her; no one remained to hear her call.",
+          "byte_identical": false,
+          "text_similarity": 0.10756302521008404,
+          "content_similarity": 0.8403617642756774,
+          "lock_target_preserved": null
+        },
+        {
+          "output": "The house, untouched for a decade, exhaled an eerie silence, its atmosphere thick with the weight of forgotten time\u2014still, cold, and faintly sweet with the scent of dust. Mira moved through the halls with silent steps, her breath the only sound in the vast emptiness. There was no one left to answer her call.",
+          "byte_identical": false,
+          "text_similarity": 0.059880239520958084,
+          "content_similarity": 0.8518387779975396,
+          "lock_target_preserved": null
+        }
+      ],
+      "avg_text_similarity": 0.07525410139405235,
+      "avg_content_similarity": 0.852340523234726,
+      "byte_identical_rate": 0.0,
+      "stdev_text_similarity": 0.027991235325135696,
+      "stdev_content_similarity": 0.012237348558291939
+    },
+    {
+      "passage_id": "gothic-2",
+      "genre": "gothic literary",
+      "transform_type": "age_adapt",
+      "target": "adult",
+      "trials": [
+        {
+          "output": "Over the years, she had mastered the art of maintaining silence during moments of profound fear. The habit, once a practical necessity, had long since outlived its purpose. Even now, as she stood alone in the dimly lit hallway, she instinctively contorted her features into an appearance of composure.",
+          "byte_identical": false,
+          "text_similarity": 0.23387096774193547,
+          "content_similarity": 0.840730182721217,
+          "lock_target_preserved": null
+        },
+        {
+          "output": "Over the years, she had mastered the art of maintaining silence during moments of profound fear. The habit, once a necessity, had persisted long after it served any practical purpose. Even now, standing alone in the hallway, she instinctively composed her expression into one of tranquility.",
+          "byte_identical": false,
+          "text_similarity": 0.01646090534979424,
+          "content_similarity": 0.8560723125993797,
+          "lock_target_preserved": null
+        },
+        {
+          "output": "Over the years, she had mastered the art of maintaining silence during moments of profound fear. The habit, once a necessity, had long outlived its original purpose. Even now, as she stood alone in the dimly lit hallway, she instinctively composed her features into an appearance of tranquility.",
+          "byte_identical": false,
+          "text_similarity": 0.0163265306122449,
+          "content_similarity": 0.8662847250412766,
+          "lock_target_preserved": null
+        }
+      ],
+      "avg_text_similarity": 0.08888613456799155,
+      "avg_content_similarity": 0.854362406787291,
+      "byte_identical_rate": 0.0,
+      "stdev_text_similarity": 0.12556056666804188,
+      "stdev_content_similarity": 0.012862794863931788
+    },
+    {
+      "passage_id": "gothic-3",
+      "genre": "gothic literary",
+      "transform_type": "tone",
+      "target": "suspenseful",
+      "trials": [
+        {
+          "output": "The letter whispered secrets in cryptic script, leaving Devika in a state of uneasy contemplation. She read it twice, each time the words seemed to shift on the page, then folded it back along its old creases as if those folds could somehow erase the truth they contained.",
+          "byte_identical": false,
+          "text_similarity": 0.08076009501187649,
+          "content_similarity": 0.8390387166057098,
+          "lock_target_preserved": false
+        },
+        {
+          "output": "The letter whispered secrets in her ear, yet left her more puzzled than before. Devika read it twice, each time the words danced on the page like shadows, then she folded it back into its old creases, as if the act of folding could somehow unravel the mystery it contained.",
+          "byte_identical": false,
+          "text_similarity": 0.07109004739336493,
+          "content_similarity": 0.8311021184723292,
+          "lock_target_preserved": true
+        },
+        {
+          "output": "The envelope held secrets that whispered of the unknown, and Devika read it twice, as if each turn of the page might reveal something more. She folded it back along its old creases, hoping that the act alone could erase what she had just learned.",
+          "byte_identical": false,
+          "text_similarity": 0.060759493670886074,
+          "content_similarity": 0.814523874146141,
+          "lock_target_preserved": true
+        }
+      ],
+      "avg_text_similarity": 0.07086987869204249,
+      "avg_content_similarity": 0.8282215697413934,
+      "byte_identical_rate": 0.0,
+      "stdev_text_similarity": 0.01000211823530838,
+      "stdev_content_similarity": 0.012508698811141047
+    },
+    {
+      "passage_id": "gothic-4",
+      "genre": "gothic literary",
+      "transform_type": "age_adapt",
+      "target": "ya",
+      "trials": [
+        {
+          "output": "He always wore the key on a chain around his neck, even when he didn't think he'd need it. It wasn't that he expected to use it anytime soon; it was more about trust. Once you lock a door, it's hard to just leave it open again.",
+          "byte_identical": false,
+          "text_similarity": 0.14146341463414633,
+          "content_similarity": 0.8538014336746397,
+          "lock_target_preserved": null
+        },
+        {
+          "output": "He always wore the key on a chain around his neck, even when he didn't think he'd need it. It wasn't that he expected to use it anytime soon; it was more about trust. Once you lock a door, it's hard to get comfortable with leaving it wide open.",
+          "byte_identical": false,
+          "text_similarity": 0.1405152224824356,
+          "content_similarity": 0.8313745703377686,
+          "lock_target_preserved": null
+        },
+        {
+          "output": "He wore the key on a chain he never took off. Not because he thought he\u2019d need it again anytime soon, but because someone who\u2019s locked a door once finds it hard to trust leaving it unlocked.",
+          "byte_identical": false,
+          "text_similarity": 0.7024128686327078,
+          "content_similarity": 0.9365365896057131,
+          "lock_target_preserved": null
+        }
+      ],
+      "avg_text_similarity": 0.3281305019164299,
+      "avg_content_similarity": 0.8739041978727071,
+      "byte_identical_rate": 0.0,
+      "stdev_text_similarity": 0.324138384479751,
+      "stdev_content_similarity": 0.05538820651032317
+    },
+    {
+      "passage_id": "tech-1",
+      "genre": "near-future technical",
+      "transform_type": "style",
+      "target": "cinematic",
+      "trials": [
+        {
+          "output": "At 03:14, the sensor array registered a spike\u2014four minutes precocious compared to the established rhythm. Priya's fingers danced across the console, her eyes narrowing as she flagged the anomaly. She initiated the calibration sequence once more, her voice barely above a whisper. The machine hummed in response, but the result remained unchanged, a stubborn defiance against her meticulous recalibrations.",
+          "byte_identical": false,
+          "text_similarity": 0.09121621621621621,
+          "content_similarity": 0.8557420181807753,
+          "lock_target_preserved": null
+        },
+        {
+          "output": "At 03:14, the sensor array registered an abrupt spike\u2014four minutes ahead of schedule. Priya's keen eye spotted the anomaly; she initiated a secondary calibration protocol. The machine's response was resolute and unyielding\u2014the result remained unchanged.",
+          "byte_identical": false,
+          "text_similarity": 0.13636363636363635,
+          "content_similarity": 0.907942905632409,
+          "lock_target_preserved": null
+        },
+        {
+          "output": "At 03:14, the sensor array registered a spike\u2014four minutes prematurely compared to the established cycle. Priya's fingers flew across the console as she flagged the anomaly and initiated a recalibration. The screen flickered momentarily, but the result remained unchanged.",
+          "byte_identical": false,
+          "text_similarity": 0.2570806100217865,
+          "content_similarity": 0.8972009887392236,
+          "lock_target_preserved": null
+        }
+      ],
+      "avg_text_similarity": 0.16155348753387969,
+      "avg_content_similarity": 0.8869619708508026,
+      "byte_identical_rate": 0.0,
+      "stdev_text_similarity": 0.08575340071744433,
+      "stdev_content_similarity": 0.027565581404608252
+    },
+    {
+      "passage_id": "tech-2",
+      "genre": "near-future technical",
+      "transform_type": "style",
+      "target": "cinematic",
+      "trials": [
+        {
+          "output": "The lab's entry demanded two distinct badge scans, followed by a supervisor's override past 10:00 PM. Tonight, Priya had never before utilized the override mechanism.",
+          "byte_identical": false,
+          "text_similarity": 0.6535947712418301,
+          "content_similarity": 0.9604618441983558,
+          "lock_target_preserved": false
+        },
+        {
+          "output": "The lab's entry demanded two distinct badge scans, followed by a supervisor's override past 10:00 PM. Tonight, Priya had never before employed the override mechanism.",
+          "byte_identical": false,
+          "text_similarity": 0.6470588235294118,
+          "content_similarity": 0.9562216233567445,
+          "lock_target_preserved": false
+        },
+        {
+          "output": "Access to the lab demanded two separate badge scans, followed by a supervisor's override past 10:00 PM. Priya had never initiated this sequence before; tonight was her first time.",
+          "byte_identical": false,
+          "text_similarity": 0.7460815047021944,
+          "content_similarity": 0.9275853015793734,
+          "lock_target_preserved": false
+        }
+      ],
+      "avg_text_similarity": 0.682245033157812,
+      "avg_content_similarity": 0.9480895897114913,
+      "byte_identical_rate": 0.0,
+      "stdev_text_similarity": 0.05538051080978229,
+      "stdev_content_similarity": 0.017883350973743453
+    },
+    {
+      "passage_id": "tech-3",
+      "genre": "near-future technical",
+      "transform_type": "age_adapt",
+      "target": "adult",
+      "trials": [
+        {
+          "output": "The document spanned three pages, each filled with data that was technically precise but utterly devoid of any genuine insight into the implications of those figures.",
+          "byte_identical": false,
+          "text_similarity": 0.4738675958188153,
+          "content_similarity": 0.8539030337755072,
+          "lock_target_preserved": null
+        },
+        {
+          "output": "The document spanned three pages, each filled with data that was technically precise but utterly devoid of any genuine insight into the implications of those figures.",
+          "byte_identical": false,
+          "text_similarity": 0.4738675958188153,
+          "content_similarity": 0.8539030337755072,
+          "lock_target_preserved": null
+        },
+        {
+          "output": "The document spanned three pages, each filled with data that was technically precise but utterly devoid of any genuine insight into the implications of those figures.",
+          "byte_identical": false,
+          "text_similarity": 0.4738675958188153,
+          "content_similarity": 0.8539030337755072,
+          "lock_target_preserved": null
+        }
+      ],
+      "avg_text_similarity": 0.47386759581881527,
+      "avg_content_similarity": 0.8539030337755072,
+      "byte_identical_rate": 0.0,
+      "stdev_text_similarity": 0.0,
+      "stdev_content_similarity": 0.0
+    },
+    {
+      "passage_id": "tech-4",
+      "genre": "near-future technical",
+      "transform_type": "style",
+      "target": "cinematic",
+      "trials": [
+        {
+          "output": "By dawn's light, the enigma had claimed its moniker, its case file, and a quartet of investigators\u2014none privy to the true quarry they sought.",
+          "byte_identical": false,
+          "text_similarity": 0.4581818181818182,
+          "content_similarity": 0.7702447967762059,
+          "lock_target_preserved": null
+        },
+        {
+          "output": "By dawn's light, the enigma was christened with a moniker and assigned a dossier number, while a quartet of investigators, none privy to the true quarry, assembled under the shadow of the rising sun.",
+          "byte_identical": false,
+          "text_similarity": 0.3843843843843844,
+          "content_similarity": 0.7305889777883063,
+          "lock_target_preserved": null
+        },
+        {
+          "output": "By dawn's light, the enigma acquired a moniker, a dossier, and a quartet of investigators, none of whom were privy to the true quarry they were to unearth.",
+          "byte_identical": false,
+          "text_similarity": 0.4844290657439446,
+          "content_similarity": 0.7589623960688009,
+          "lock_target_preserved": null
+        }
+      ],
+      "avg_text_similarity": 0.4423317561033824,
+      "avg_content_similarity": 0.7532653902111043,
+      "byte_identical_rate": 0.0,
+      "stdev_text_similarity": 0.051871503911123364,
+      "stdev_content_similarity": 0.020432520689020135
+    },
+    {
+      "passage_id": "adventure-1",
+      "genre": "adventure",
+      "transform_type": "age_adapt",
+      "target": "children",
+      "trials": [
+        {
+          "output": "The bridge broke behind them with a loud noise. Kael didn't turn around. There was nothing behind that needed looking at.",
+          "byte_identical": false,
+          "text_similarity": 0.6185567010309279,
+          "content_similarity": 0.8603409296977143,
+          "lock_target_preserved": null
+        },
+        {
+          "output": "The bridge broke behind them with a loud noise. Kael didn't turn around. There was nothing behind that needed looking at. It would take too long.",
+          "byte_identical": false,
+          "text_similarity": 0.6158730158730159,
+          "content_similarity": 0.8601923056496464,
+          "lock_target_preserved": null
+        },
+        {
+          "output": "The bridge broke behind them with a loud noise. Kael didn't turn around. There was nothing behind to worry about. It would take too long to look back.",
+          "byte_identical": false,
+          "text_similarity": 0.6,
+          "content_similarity": 0.869958187692827,
+          "lock_target_preserved": null
+        }
+      ],
+      "avg_text_similarity": 0.6114765723013146,
+      "avg_content_similarity": 0.8634971410133959,
+      "byte_identical_rate": 0.0,
+      "stdev_text_similarity": 0.010029173712084928,
+      "stdev_content_similarity": 0.005595924000757739
+    },
+    {
+      "passage_id": "adventure-2",
+      "genre": "adventure",
+      "transform_type": "age_adapt",
+      "target": "children",
+      "trials": [
+        {
+          "output": "Aanya had three arrows, but she missed with all of them. Her quiver still had one arrow left. Aanya knew she only had one more chance.",
+          "byte_identical": false,
+          "text_similarity": 0.46511627906976744,
+          "content_similarity": 0.872919530580062,
+          "lock_target_preserved": false
+        },
+        {
+          "output": "Aanya had three arrows, but she missed with all of them. Her quiver still had one arrow left. Aanya knew she only had one more chance.",
+          "byte_identical": false,
+          "text_similarity": 0.46511627906976744,
+          "content_similarity": 0.872919530580062,
+          "lock_target_preserved": false
+        },
+        {
+          "output": "Aanya had three arrows, but she missed with all of them. She had one more arrow in her quiver. Aanya knew this was her last chance.",
+          "byte_identical": false,
+          "text_similarity": 0.5176470588235295,
+          "content_similarity": 0.8873841181412935,
+          "lock_target_preserved": false
+        }
+      ],
+      "avg_text_similarity": 0.4826265389876881,
+      "avg_content_similarity": 0.8777410597671391,
+      "byte_identical_rate": 0.0,
+      "stdev_text_similarity": 0.030328659831575448,
+      "stdev_content_similarity": 0.008351133522193906
+    },
+    {
+      "passage_id": "adventure-3",
+      "genre": "adventure",
+      "transform_type": "age_adapt",
+      "target": "children",
+      "trials": [
+        {
+          "output": "Mira thought it was better to leave out the part where nobody survived the first crossing. She felt it was nicer to keep things happy for the kids.",
+          "byte_identical": false,
+          "text_similarity": 0.657439446366782,
+          "content_similarity": 0.8663403246911817,
+          "lock_target_preserved": null
+        },
+        {
+          "output": "Mira thought it was better to leave out the part where nobody survived the first crossing. She felt it was nicer to keep things happy for the children.",
+          "byte_identical": false,
+          "text_similarity": 0.6484641638225256,
+          "content_similarity": 0.8705462460136703,
+          "lock_target_preserved": null
+        },
+        {
+          "output": "Mira thought it was better to leave out the part where nobody survived the first crossing. She felt it was nicer to keep things happy for the kids.",
+          "byte_identical": false,
+          "text_similarity": 0.657439446366782,
+          "content_similarity": 0.8663403246911817,
+          "lock_target_preserved": null
+        }
+      ],
+      "avg_text_similarity": 0.6544476855186966,
+      "avg_content_similarity": 0.8677422984653446,
+      "byte_identical_rate": 0.0,
+      "stdev_text_similarity": 0.005181881792979377,
+      "stdev_content_similarity": 0.0024282898077291437
+    },
+    {
+      "passage_id": "adventure-4",
+      "genre": "adventure",
+      "transform_type": "age_adapt",
+      "target": "children",
+      "trials": [
+        {
+          "output": "The old guide told them three things: be careful of the pass, watch the weather, and stay away from the wolves. He said this in a certain order, but it didn't really matter which came first.",
+          "byte_identical": false,
+          "text_similarity": 0.5836065573770491,
+          "content_similarity": 0.8551126313100416,
+          "lock_target_preserved": null
+        },
+        {
+          "output": "The old guide told them three things: be careful of the pass, watch the weather, and beware the wolves. He said it in that order, like it was important.",
+          "byte_identical": false,
+          "text_similarity": 0.6441947565543071,
+          "content_similarity": 0.8828971480455302,
+          "lock_target_preserved": null
+        },
+        {
+          "output": "The old guide told them about the pass first, then the weather, and finally the wolves. He said it in a special order, like it was important.",
+          "byte_identical": false,
+          "text_similarity": 0.671875,
+          "content_similarity": 0.8952994769317095,
+          "lock_target_preserved": null
+        }
+      ],
+      "avg_text_similarity": 0.6332254379771188,
+      "avg_content_similarity": 0.8777697520957605,
+      "byte_identical_rate": 0.0,
+      "stdev_text_similarity": 0.045145032432219824,
+      "stdev_content_similarity": 0.02057822349412675
+    }
+  ],
+  "consistency_summary": {
+    "mean_stdev_text_similarity": 0.0643,
+    "mean_stdev_content_similarity": 0.0163,
+    "max_stdev_text_similarity": 0.3241,
+    "max_stdev_content_similarity": 0.0554,
+    "n_scenarios": 12
+  }
+}

@@ -79,6 +79,7 @@ export const plotApi = {
     currentChapterText?: string,
     template?: string,
     chapterNumber?: number,
+    scope?: 'chapter' | 'full',
   ) =>
     api.post('/api/plot-assistant/', {
       story_id:               storyId,
@@ -86,23 +87,30 @@ export const plotApi = {
       current_chapter_text:   currentChapterText,
       template,
       current_chapter_number: chapterNumber ?? null,
+      scope:                  scope ?? 'chapter',
     }),
   markUsed: (sessionId: string, index: number) =>
     api.patch(`/api/plot-assistant/${sessionId}/use?suggestion_index=${index}`),
 }
 
 // ── AI Transforms ─────────────────────────────────────────────────────────────
+interface LockOpts { strength?: string; lockedRanges?: { start: number; end: number }[] }
+const lockBody = (lock?: LockOpts) =>
+  lock ? { strength: lock.strength, locked_ranges: lock.lockedRanges?.map((r) => ({ start: r.start, end: r.end })) } : {}
+
 export const aiApi = {
   refine: (text: string, mode = 'standard', storyId?: string, chapterId?: string) =>
     api.post('/api/ai/refine', { text, mode, story_id: storyId, chapter_id: chapterId }),
-  tone: (text: string, tone: string, storyId?: string) =>
-    api.post('/api/ai/tone', { text, tone, story_id: storyId }),
+  // `lock` (Stage 5 — strength + locked_ranges) is optional and only exists on the
+  // endpoints whose schema accepts it (schemas.StrengthMixin: tone/age-adapt/style).
+  tone: (text: string, tone: string, storyId?: string, lock?: LockOpts) =>
+    api.post('/api/ai/tone', { text, tone, story_id: storyId, ...lockBody(lock) }),
   emotion: (text: string, emotion: string, intensity = 'medium', storyId?: string) =>
     api.post('/api/ai/emotion', { text, emotion, intensity, story_id: storyId }),
-  ageAdapt: (text: string, targetAge: string, storyId?: string) =>
-    api.post('/api/ai/age-adapt', { text, target_age: targetAge, story_id: storyId }),
-  style: (text: string, style: string, storyId?: string) =>
-    api.post('/api/ai/style', { text, style, story_id: storyId }),
+  ageAdapt: (text: string, targetAge: string, storyId?: string, lock?: LockOpts) =>
+    api.post('/api/ai/age-adapt', { text, target_age: targetAge, story_id: storyId, ...lockBody(lock) }),
+  style: (text: string, style: string, storyId?: string, lock?: LockOpts) =>
+    api.post('/api/ai/style', { text, style, story_id: storyId, ...lockBody(lock) }),
   authorStyle: (text: string, author: string, storyId?: string, chapterId?: string) =>
     api.post('/api/ai/author-style', { text, author, story_id: storyId, chapter_id: chapterId }),
   authorStyles: () => api.get('/api/ai/author-styles'),
@@ -395,6 +403,11 @@ export const pacingApi = {
       target_chapter_count: targetChapterCount,
       target_words_per_chapter: targetWordsPerChapter,
     }),
+}
+
+// ── Stage 5 — Writing Analytics (task 5.15) ──────────────────────────────────
+export const analyticsApi = {
+  get: (storyId: string) => api.get(`/api/stories/${storyId}/analytics`),
 }
 
 // ── Phase 2 — Audio (P2-11) ──────────────────────────────────────────────────

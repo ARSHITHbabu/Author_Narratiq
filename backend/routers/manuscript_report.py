@@ -9,6 +9,7 @@ from models import Story, ChapterSummary
 from schemas import (
     CharacterArcEntry, PacingAnalysis, UnresolvedThread,
     StrengthEntry, ImprovementEntry, ManuscriptReport,
+    StakesAssessment, StakesEscalationPoint, ThemeEntry,
 )
 from routers.auth import get_current_user, User
 from services.ai_service import analyze_manuscript
@@ -90,6 +91,7 @@ async def get_manuscript_report(
             story_id = story_id,
             chapters = chapter_data,
             strategy = "summary_pass",
+            db       = db,
         )
     except (APIConnectionError, APIStatusError) as exc:
         raise HTTPException(
@@ -110,6 +112,11 @@ async def get_manuscript_report(
     if stale_count:
         note_parts.append(
             f"{stale_count} chapter(s) have stale summaries — re-sync for best accuracy."
+        )
+    if result.get("citations_suppressed"):
+        note_parts.append(
+            f"{result['citations_suppressed']} finding(s) were dropped for citing a chapter "
+            "number that doesn't exist in this manuscript."
         )
     analysis_note = " ".join(note_parts)
 
@@ -159,6 +166,29 @@ async def get_manuscript_report(
             ))
         except Exception as exc:
             logger.warning(f"[manuscript] skipping malformed improvement: {exc}")
+
+    stakes = None
+    raw_stakes = result.get("stakes")
+    if isinstance(raw_stakes, dict):
+        try:
+            stakes = StakesAssessment(
+                summary=raw_stakes.get("summary", ""),
+                escalation=[
+                    StakesEscalationPoint(chapter=e.get("chapter"), note=e.get("note", ""))
+                    for e in (raw_stakes.get("escalation") or [])
+                    if isinstance(e, dict) and e.get("chapter") is not None
+                ],
+            )
+        except Exception as exc:
+            logger.warning(f"[manuscript] skipping malformed stakes: {exc}")
+
+    themes: list[ThemeEntry] = []
+    for raw in result.get("themes", []):
+        try:
+            themes.append(ThemeEntry(theme=raw.get("theme", ""), chapters=raw.get("chapters", [])))
+        except Exception as exc:
+            logger.warning(f"[manuscript] skipping malformed theme: {exc}")
+
     wc_total = story.word_count or result.get("word_count_total", 0)
 
     return ManuscriptReport(
@@ -171,4 +201,9 @@ async def get_manuscript_report(
         strengths          = strengths,
         improvements       = improvements,
         analysis_note      = analysis_note,
+        stakes                     = stakes,
+        themes                     = themes,
+        chapter_plot_importance    = result.get("chapter_plot_importance", {}),
+        deterministic_open_threads = result.get("deterministic_open_threads", []),
+        citations_suppressed       = result.get("citations_suppressed", 0),
     )
