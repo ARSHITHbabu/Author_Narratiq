@@ -15,7 +15,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from services.voice import capabilities as cap
-from services.voice import catalog, normalize, reference, safety, planner, intent
+from services.voice import catalog, normalize, reference, safety, planner
 from services.voice.planner import TaskNode, ExecutionGraph
 
 

@@ -21,7 +21,10 @@ from services.character_names import (  # noqa: E402
 _results = []
 
 
-def test(fn):
+def _case(fn):
+    """Register a manual test case. Named `_case`, not `test`, so pytest's
+    default `test_*` collector never mistakes the decorator itself for a
+    test item (it previously did: `ERROR tests/test_character_hint_sync.py::test`)."""
     _results.append(fn)
     return fn
 
@@ -77,7 +80,7 @@ def dismiss(hints, names):
 
 # ── Normalisation ────────────────────────────────────────────────────────────
 
-@test
+@_case
 def test_normalisation_trims_collapses_and_casefolds():
     assert normalise_name("  Marek   Halvorsen ") == "marek halvorsen"
     assert normalise_name("MAREK") == "marek"
@@ -86,20 +89,20 @@ def test_normalisation_trims_collapses_and_casefolds():
     assert normalise_name("   ") == ""
 
 
-@test
+@_case
 def test_known_names_covers_names_and_aliases():
     chars = [FakeCharacter("Devika Rao", ["Dev", " THE  ARCHIVIST "])]
     assert known_names(chars) == {"devika rao", "dev", "the archivist"}
 
 
-@test
+@_case
 def test_names_of_returns_name_plus_aliases_and_drops_blanks():
     assert names_of(FakeCharacter("Ilse", ["", "  ", "Ilsa Vance"])) == ["Ilse", "Ilsa Vance"]
 
 
 # ── Reconciliation: the four required match forms ────────────────────────────
 
-@test
+@_case
 def test_exact_name_match_dismisses_the_hint():
     hints = [FakeHint("Marek")]
     _, dismissed = dismiss(hints, ["Marek"])
@@ -107,21 +110,21 @@ def test_exact_name_match_dismisses_the_hint():
     assert hints[0].is_dismissed is True
 
 
-@test
+@_case
 def test_case_insensitive_match_dismisses_the_hint():
     hints = [FakeHint("MAREK")]
     dismiss(hints, ["marek"])
     assert hints[0].is_dismissed is True
 
 
-@test
+@_case
 def test_whitespace_normalised_match_dismisses_the_hint():
     hints = [FakeHint("  Marek   Halvorsen  ")]
     dismiss(hints, ["Marek Halvorsen"])
     assert hints[0].is_dismissed is True
 
 
-@test
+@_case
 def test_alias_match_dismisses_the_hint():
     character = FakeCharacter("Devika Rao", ["The Archivist"])
     hints = [FakeHint("the archivist")]
@@ -131,7 +134,7 @@ def test_alias_match_dismisses_the_hint():
 
 # ── Reconciliation: what must NOT be dismissed ───────────────────────────────
 
-@test
+@_case
 def test_a_similar_but_distinct_name_is_never_dismissed():
     """The required negative case. 'Marekk' is 0.909 similar to 'Marek' — above the
     creation-time threshold — and must still survive reconciliation, because
@@ -147,7 +150,7 @@ def test_a_similar_but_distinct_name_is_never_dismissed():
     assert ratio >= HINT_SIMILARITY_THRESHOLD, ratio
 
 
-@test
+@_case
 def test_other_near_misses_survive_too():
     for hint_name, registered in [("Ilsa", "Ilse"), ("Devika Rao", "Devika Roy"),
                                   ("Teodor", "Teodora"), ("Cal", "Caleb")]:
@@ -156,7 +159,7 @@ def test_other_near_misses_survive_too():
         assert hints[0].is_dismissed is False, f"{hint_name} was wrongly dismissed by {registered}"
 
 
-@test
+@_case
 def test_an_unrelated_name_is_untouched():
     hints = [FakeHint("Halloran")]
     _, dismissed = dismiss(hints, ["Devika Rao"])
@@ -164,14 +167,14 @@ def test_an_unrelated_name_is_untouched():
     assert hints[0].is_dismissed is False
 
 
-@test
+@_case
 def test_already_dismissed_hints_are_not_revisited():
     hints = [FakeHint("Marek", dismissed=True)]
     _, dismissed = dismiss(hints, ["Marek"])
     assert dismissed == []
 
 
-@test
+@_case
 def test_blank_names_resolve_nothing():
     hints = [FakeHint("Marek")]
     for names in ([], [""], ["   "], [None]):
@@ -182,7 +185,7 @@ def test_blank_names_resolve_nothing():
 
 # ── Multiple hints for one name (the promote case) ───────────────────────────
 
-@test
+@_case
 def test_every_hint_for_the_same_name_is_resolved_at_once():
     hints = [FakeHint("Marek"), FakeHint("marek"), FakeHint("Ilse")]
     _, dismissed = dismiss(hints, ["Marek"])
@@ -191,7 +194,7 @@ def test_every_hint_for_the_same_name_is_resolved_at_once():
     assert hints[2].is_dismissed is False
 
 
-@test
+@_case
 def test_a_batch_of_names_resolves_all_of_them():
     hints = [FakeHint("Marek"), FakeHint("Ilse"), FakeHint("Halloran")]
     _, dismissed = dismiss(hints, ["Marek", "Ilse"])
@@ -201,7 +204,7 @@ def test_a_batch_of_names_resolves_all_of_them():
 
 # ── Transaction ownership ────────────────────────────────────────────────────
 
-@test
+@_case
 def test_reconciliation_never_commits_on_its_own():
     """The caller owns the transaction so the character mutation and the hint
     reconciliation land together — a half-applied state is exactly the defect."""
@@ -212,7 +215,7 @@ def test_reconciliation_never_commits_on_its_own():
 
 # ── Creation-side rules (the generous side) ──────────────────────────────────
 
-@test
+@_case
 def test_creation_suppresses_exact_and_near_identical_hints():
     known = {"marek", "devika rao"}
     assert hint_is_redundant("Marek", known) is True
@@ -221,7 +224,7 @@ def test_creation_suppresses_exact_and_near_identical_hints():
     assert hint_is_redundant("Halloran", known) is False
 
 
-@test
+@_case
 def test_creation_and_reconciliation_share_one_normalisation():
     """The rules may differ in strictness, but never in how a name is normalised."""
     known = {normalise_name("  Devika   Rao ")}

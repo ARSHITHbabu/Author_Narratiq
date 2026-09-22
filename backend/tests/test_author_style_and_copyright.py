@@ -83,10 +83,18 @@ async def test_analyze_copyright_risk_parses_json(monkeypatch):
         ' "note": "One notable similarity."}'
     )
 
-    async def fake_complete(system, user, **kw):
-        return payload
+    async def fake_complete_ex(system, user, **kw):
+        return payload, "stop"
 
-    monkeypatch.setattr(ai_service, "_complete", fake_complete)
+    # Bug found closing out Stage 6 (2026-09-22): analyze_copyright_risk() goes
+    # through complete_structured() -> _complete_ex(), never _complete() — the
+    # PLAIN wrapper this test used to mock. That mock silently never engaged;
+    # the test was making a REAL, uncontrolled vLLM call against the literal
+    # word "digest"/"text" as the "manuscript", and asserting on whatever the
+    # model happened to say about it. The production overall_risk-derivation
+    # logic itself was re-verified correct by hand and is NOT the bug — see
+    # docs/testing/ (Stage 6 closure report) for the full trace.
+    monkeypatch.setattr(ai_service, "_complete_ex", fake_complete_ex)
     result = await ai_service.analyze_copyright_risk("selection", "the boy with the scar")
 
     assert result["overall_risk"] == "medium"
@@ -108,10 +116,10 @@ async def test_analyze_copyright_risk_derives_overall_when_missing(monkeypatch):
         ' "problematic_excerpt": "", "is_generic_trope": true, "rewrite_suggestion": "y"}]}'
     )
 
-    async def fake_complete(system, user, **kw):
-        return payload
+    async def fake_complete_ex(system, user, **kw):
+        return payload, "stop"
 
-    monkeypatch.setattr(ai_service, "_complete", fake_complete)
+    monkeypatch.setattr(ai_service, "_complete_ex", fake_complete_ex)
     result = await ai_service.analyze_copyright_risk("project", "digest")
     # overall_risk absent in payload → derived from max finding level.
     assert result["overall_risk"] == "high"
@@ -119,10 +127,10 @@ async def test_analyze_copyright_risk_derives_overall_when_missing(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_analyze_copyright_risk_invalid_json_raises(monkeypatch):
-    async def fake_complete(system, user, **kw):
-        return "not json at all"
+    async def fake_complete_ex(system, user, **kw):
+        return "not json at all", "stop"
 
-    monkeypatch.setattr(ai_service, "_complete", fake_complete)
+    monkeypatch.setattr(ai_service, "_complete_ex", fake_complete_ex)
     with pytest.raises(ValueError):
         await ai_service.analyze_copyright_risk("selection", "text")
 

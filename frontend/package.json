@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "playwright test --project=unit",
+    "test:browser": "playwright test --project=browser"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.0.4",
