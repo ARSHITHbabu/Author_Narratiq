@@ -26,7 +26,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 _results = []
 
 
-def test(fn):
+def _case(fn):
+    """Register a manual test case. Named `_case`, not `test`, so pytest's
+    default `test_*` collector never mistakes the decorator itself for a
+    test item (it previously did: `ERROR tests/test_voice_recording_routes.py::test`)."""
     _results.append(fn)
     return fn
 
@@ -96,7 +99,7 @@ def _story(db, user_id):
 
 
 def _cleanup(db, user, story, cmd, wf, sess=None):
-    from models import VoiceTask, VoiceWorkflow, VoiceCommand, VoiceSession, Story, User
+    from models import VoiceTask, VoiceWorkflow, VoiceCommand, VoiceSession, Story
     db.query(VoiceTask).filter(VoiceTask.workflow_id == wf.workflow_id).delete()
     db.query(VoiceWorkflow).filter(VoiceWorkflow.workflow_id == wf.workflow_id).delete()
     db.query(VoiceCommand).filter(VoiceCommand.command_id == cmd.command_id).delete()
@@ -108,7 +111,7 @@ def _cleanup(db, user, story, cmd, wf, sess=None):
 
 # ── The defect that got through: a name that only fails at call time ─────────
 
-@test
+@_case
 def test_resync_workflow_resolves_every_name_it_uses():
     """`datetime` must be importable at module scope — the exact 500's cause."""
     import routers.voice_agent as va
@@ -116,7 +119,7 @@ def test_resync_workflow_resolves_every_name_it_uses():
     assert callable(va.datetime.utcnow)
 
 
-@test
+@_case
 def test_no_function_local_datetime_import_remains():
     """A local import inside one function masked the missing module-level one."""
     src = open(os.path.join(os.path.dirname(__file__), "..", "routers", "voice_agent.py")).read()
@@ -125,7 +128,7 @@ def test_no_function_local_datetime_import_remains():
 
 # ── The routes, driven through the real application ─────────────────────────
 
-@test
+@_case
 def test_confirm_and_result_routes_succeed_and_commit():
     from database import SessionLocal
     client = _app_client()
@@ -156,7 +159,7 @@ def test_confirm_and_result_routes_succeed_and_commit():
         db.close()
 
 
-@test
+@_case
 def test_a_failure_report_is_recorded_as_a_failure():
     from database import SessionLocal
     client = _app_client()
@@ -179,7 +182,7 @@ def test_a_failure_report_is_recorded_as_a_failure():
         db.close()
 
 
-@test
+@_case
 def test_declining_is_recorded_as_skipped_not_failed():
     from database import SessionLocal
     client = _app_client()
@@ -198,7 +201,7 @@ def test_declining_is_recorded_as_skipped_not_failed():
         db.close()
 
 
-@test
+@_case
 def test_a_late_duplicate_report_changes_nothing():
     from database import SessionLocal
     client = _app_client()
@@ -222,7 +225,7 @@ def test_a_late_duplicate_report_changes_nothing():
         db.close()
 
 
-@test
+@_case
 def test_another_users_command_is_refused():
     from database import SessionLocal
     client = _app_client()

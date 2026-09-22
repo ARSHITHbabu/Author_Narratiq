@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from config import settings
 from database import get_db
 from middleware.rate_limit import limiter, get_user_id
-from models import Story, Chapter, ChapterSummary, GenreProfile
+from models import Story, Chapter
 from schemas import (
     ContinuationRequest, ContinuationSuggestion, ContinuationResponse,
     OutlineRequest, OutlineBeat, OutlineResponse,

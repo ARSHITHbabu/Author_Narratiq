@@ -166,7 +166,7 @@ pip install \
   "sqlalchemy==2.0.30" \
   "psycopg2-binary>=2.9.9" \
   "pgvector>=0.3.0" \
-  "python-jose[cryptography]==3.3.0" \
+  "python-jose[cryptography]==3.4.0" \
   "bcrypt==4.0.1" \
   "aiofiles==23.2.1" \
   "httpx>=0.27.0,<0.28" \

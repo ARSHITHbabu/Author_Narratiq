@@ -15,7 +15,6 @@ determinism/special-character requirements against the same code path.
 
 Run:  cd backend && pytest tests/test_search_module.py -q
 """
-import os
 import sys
 from pathlib import Path
 

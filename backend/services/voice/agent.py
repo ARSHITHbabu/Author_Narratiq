@@ -16,7 +16,7 @@ from datetime import datetime
 from . import (analytics, catalog, clarify, normalize, orchestrator, planner,
                reference, safety, vocabulary)
 from . import lifecycle
-from .capabilities import CAPABILITY_REGISTRY, get_action
+from .capabilities import CAPABILITY_REGISTRY
 from .context import summarize_context
 from .session_memory import VoiceSessionContextManager
 
@@ -66,7 +66,7 @@ def _node_out(node) -> dict:
 async def interpret(db, user, transcript: str, context, session_id: str | None = None,
                     skip_clean: bool = False):
     """Run one voice turn. Returns a schemas.VoiceAgentResponse."""
-    from schemas import (VoiceAgentResponse, WorkflowOut, VoiceClarification)
+    from schemas import (VoiceClarification)
 
     t_start = time.monotonic()
     timings = {"stt_ms": 0, "llm_ms": 0, "route_ms": 0, "exec_ms": 0}

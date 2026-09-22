@@ -55,8 +55,7 @@ from models import (
     StoryTimelineEvent, StoryWorldProfile, gen_uuid,
 )
 from services.ai_service import (
-    _complete, embed_text, embed_text_sync, get_bge,
-    vector_distance, vector_similarity,
+    _complete, embed_text, embed_text_sync, vector_distance, vector_similarity,
 )
 
 logger = logging.getLogger(__name__)

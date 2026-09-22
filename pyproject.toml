@@ -1,0 +1,38 @@
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = ["backend/migrations/versions"]
+
+[tool.ruff.lint]
+# Conservative baseline for an existing large codebase: catch real errors
+# (unused imports/names, undefined names, obvious bugs), not style. Widen
+# this deliberately in a follow-up once the codebase is clean under it.
+#
+# F841 (unused local variable) is intentionally left OUT of the blocking set:
+# a Stage 6 audit found 7 of its 8 current hits are `story = get_story_...(...)`
+# -style lookups in routers/services (story_intel.py, writing_tools.py,
+# ai_service.py, story_intel_orchestrator.py, story_intel_service.py,
+# voice/orchestrator.py) where the call's side effect (ownership/404 check)
+# is likely the real intent, not the discarded return value. Editing core
+# AI/story service files as a drive-by test-setup change is exactly the kind
+# of unrelated scope this project's own history warns against (see Stage 5's
+# "two latent production bugs found while touching unrelated code" note).
+# Left as documented, visible pre-existing debt for dedicated review instead.
+select = ["E9", "F401", "F811", "F821"]
+ignore = []
+
+[tool.pytest.ini_options]
+testpaths = ["backend/tests"]
+markers = [
+    "known_stage5_defect: currently-open Stage 5 defect found in the author's 2026-09-22 manual review — deliberately excluded from the default local run (see backend/tests/test_known_stage5_defects.py's own docstring for the exact commands to run it separately).",
+]
+# Default per-test ceiling so a hung async call (a real vLLM/BGE-M3 call that
+# never returns) fails the test instead of hanging the whole suite
+# indefinitely. 180s, not something tighter, because
+# test_story_bible_quality.py's manuscript_a fixture (6 real chapters, each
+# through a real BGE-M3 embedding + summarization call) was measured taking
+# ~140s legitimately — verified directly rather than guessed, after an
+# initial 60s default broke that one real test. known_stage5_defect tests
+# override this explicitly to 180s too via AI_TIMEOUT for clarity, not
+# because the default was insufficient for them.
+timeout = 180

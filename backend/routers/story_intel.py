@@ -12,8 +12,7 @@ from sqlalchemy.orm import Session
 
 from database import get_db
 from models import (
-    Character, CharacterIntelligence, CharacterRelationship,
-    RelationshipIntelligence, Story, StoryAudienceProfile, StoryConflicts,
+    CharacterIntelligence, RelationshipIntelligence, Story, StoryAudienceProfile, StoryConflicts,
     StoryContinuityRisks, StoryDNA, StoryEmotionalArc, StoryForeshadowingRegistry,
     StoryGenreHierarchy, StoryGraphEdge, StoryGraphNode, StoryIntelJob,
     StoryMemoryEntry, StoryNarrativeStructure, StoryPacingMap, StoryRiskRegister,

@@ -120,9 +120,34 @@ Then:
 
 ```bash
 cd /workspace/narratiq-ai/backend      # ← REQUIRED, see note below
+python3 -c "
+import models
+from database import engine, Base, run_db_migrations
+Base.metadata.create_all(bind=engine)
+run_db_migrations(engine)
+"
 python3 -m alembic upgrade head
 python3 -m uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1 --no-access-log
 ```
+
+> **Found during Stage 6 CI closure (2026-09-22): `alembic upgrade head` alone
+> fails on a genuinely empty database** — confirmed directly, not assumed —
+> with `relation "chapter_chunks" does not exist` (migration 0001 creates an
+> HNSW index on a table it expects the ORM to have already created). The base
+> schema (`users`, `stories`, `chapters`, `chapter_chunks`, etc.) is created by
+> SQLAlchemy's `Base.metadata.create_all()`, NOT by any Alembic migration —
+> Alembic only manages the *delta* on top (indexes, later columns/tables).
+> `start-narratiq.sh` already does this correctly (`create_all()` then
+> `run_db_migrations()` then `alembic upgrade head` — see its own source); this
+> manual path previously skipped straight to `alembic upgrade head` and would
+> have failed the same way on a pod with no prior database. **This is not a
+> migration-architecture problem to redesign** — it is the correct, intended
+> division of responsibility (ORM owns the base schema, Alembic owns changes to
+> it) — the manual instructions here were just incomplete. Fixed above.
+> Verified separately: the full `alembic upgrade head → downgrade base →
+> upgrade head` round-trip is clean once the base schema exists, confirming
+> all 14 migrations in the current chain (0001→0002→0007…→0018) are genuinely
+> reversible.
 
 Wait for:
 ```

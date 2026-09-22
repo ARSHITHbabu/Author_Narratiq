@@ -848,7 +848,6 @@ def export_story_bible_docx(
     """Export the story bible as a formatted DOCX document."""
     import io
     from docx import Document as DocxDocument
-    from docx.shared import Pt, RGBColor
     from docx.enum.text import WD_ALIGN_PARAGRAPH
 
     story = _get_owned_story(story_id, current_user.user_id, db)

@@ -372,7 +372,6 @@ app.include_router(copyright_risk.router,    prefix="/api/stories")
 
 @app.get("/api/health")
 async def health():
-    import os
     vllm_status = "ready" if getattr(app.state, "llm_ready",       False) else "unavailable"
     bge_status  = "ready" if getattr(app.state, "embeddings_ready", False) else "loading"
 
