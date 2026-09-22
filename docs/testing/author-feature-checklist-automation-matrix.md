@@ -90,7 +90,7 @@ never per-commit), `manual` (documented reason it stays manual).
 - **40/40 rows accounted for.**
 - **21** already had existing coverage (referenced, not duplicated).
 - **16** now have new, passing automated tests (project CRUD, chapter creation, DOCX/PDF export, manuscript-upload backend, activity round-trip, JWT round-trip, style-transform regression guard, style drift, plot assistant, voice consistency, notes, note cards, pacing goals, autosave persistence [browser], story bible generation [browser], voice agent action [browser]).
-- **3** are `known_stage5_defect` — genuinely broken, deliberately failing, excluded from required CI, runnable on demand (narrative threads, plot holes, manuscript report persistence) — confirmed live: 2 reproduce deterministically (narrative threads, manuscript report persistence), 1 (plot holes) is real but sampling-dependent and did not reproduce in this run.
+- **3** are `known_stage5_defect` — genuinely broken, deliberately failing, excluded from the default local run, runnable on demand (narrative threads, plot holes, manuscript report persistence) — confirmed live: 2 reproduce deterministically (narrative threads, manuscript report persistence), 1 (plot holes) is real but sampling-dependent and did not reproduce in this run.
 - **2** are newly-found `xfail`/plainly-failing gaps, confirmed live, not worked around: chapter reorder (no API exists at all) and manuscript upload (no frontend UI exists at all, despite a working backend).
 - **1** is genuinely MANUAL with a documented justification and step-by-step procedure: audio transcription (no TTS tool available in this environment to generate a real speech fixture).
 - **1** (OCR) already has full, existing browser coverage.

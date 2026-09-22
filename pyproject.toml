@@ -14,7 +14,7 @@ extend-exclude = ["backend/migrations/versions"]
 # ai_service.py, story_intel_orchestrator.py, story_intel_service.py,
 # voice/orchestrator.py) where the call's side effect (ownership/404 check)
 # is likely the real intent, not the discarded return value. Editing core
-# AI/story service files as a drive-by CI-setup change is exactly the kind
+# AI/story service files as a drive-by test-setup change is exactly the kind
 # of unrelated scope this project's own history warns against (see Stage 5's
 # "two latent production bugs found while touching unrelated code" note).
 # Left as documented, visible pre-existing debt for dedicated review instead.
@@ -24,10 +24,10 @@ ignore = []
 [tool.pytest.ini_options]
 testpaths = ["backend/tests"]
 markers = [
-    "known_stage5_defect: currently-open Stage 5 defect found in the author's 2026-09-22 manual review — deliberately excluded from the default CI run (see backend/tests/test_known_stage5_defects.py's own docstring for the exact commands to run it separately).",
+    "known_stage5_defect: currently-open Stage 5 defect found in the author's 2026-09-22 manual review — deliberately excluded from the default local run (see backend/tests/test_known_stage5_defects.py's own docstring for the exact commands to run it separately).",
 ]
 # Default per-test ceiling so a hung async call (a real vLLM/BGE-M3 call that
-# never returns) fails the test instead of hanging the whole suite/CI job
+# never returns) fails the test instead of hanging the whole suite
 # indefinitely. 180s, not something tighter, because
 # test_story_bible_quality.py's manuscript_a fixture (6 real chapters, each
 # through a real BGE-M3 embedding + summarization call) was measured taking

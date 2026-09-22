@@ -7,14 +7,19 @@ unrelated incident discovered alongside them.
 
 These are deliberately NOT plain pytest.mark.xfail: xfail hides a failure
 inside a normal green run (reported as "xfailed", easy to stop noticing).
-Per explicit instruction, these must instead be excluded from the default/
-required CI run but remain runnable as a separate, honestly-red suite that
-proves the defects are still open. Do NOT relax an assertion here just to
-make a test pass — a passing test in this file means the defect is fixed,
-which should be discovered and handled as its own Stage 5 follow-up, not
-silently absorbed into Stage 6.
+Per explicit instruction, these must instead be excluded from the default
+local run but remain runnable as a separate, honestly-red suite that proves
+the defects are still open. Do NOT relax an assertion here just to make a
+test pass — a passing test in this file means the defect is fixed, which
+should be discovered and handled as its own Stage 5 follow-up, not silently
+absorbed into Stage 6.
 
-Default CI run (task 6.1) excludes this file:
+CI/GitHub Actions is intentionally deferred for this project (2026-09-22
+decision — priority is finishing core product features; CI will be
+reconsidered near final production readiness). The marker/exclusion pattern
+below is still useful for local runs regardless of CI.
+
+Default local run excludes this file:
     pytest tests/ -q -m "not known_stage5_defect"
 
 To see the defects themselves, still failing, on demand:

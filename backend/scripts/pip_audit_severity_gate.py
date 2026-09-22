@@ -1,27 +1,34 @@
 #!/usr/bin/env python3
 """
-Severity-aware wrapper around `pip-audit` (Stage 6 task 6.7).
+Severity-aware wrapper around `pip-audit` — a standalone LOCAL script, run by
+hand when you want a dependency-vulnerability check.
+
+Not wired into CI: GitHub Actions/CI was deliberately deferred for this
+project (2026-09-22 decision — priority is finishing core product features;
+CI will be reconsidered near final production readiness). This script is
+kept because it's useful on its own, independent of CI.
 
 pip-audit's own JSON output does NOT include a severity rating at all — this
 was verified directly against this project's real dependencies before
 writing this script, not assumed. Its findings carry only an id, aliases,
-fix_versions and description. To honour "High/Critical findings may gate
-after triage, while lower-severity findings should remain visible" as an
-honest, real gate (not a fabricated one), this script cross-references each
-finding's GHSA alias against the OSV.dev API, which DOES carry a qualitative
+fix_versions and description. To get a real, honest severity signal (not a
+fabricated one), this script cross-references each finding's GHSA alias
+against the OSV.dev API, which DOES carry a qualitative
 `database_specific.severity` rating for GitHub-reviewed advisories.
 
 Behaviour:
   - Every finding is always printed (visible, never silently dropped),
     grouped by resolved severity, including UNKNOWN when OSV has no rating
     or the id has no GHSA alias to look up.
-  - Exit code is non-zero ONLY if a CRITICAL or HIGH severity finding exists.
+  - Exit code is non-zero ONLY if a CRITICAL or HIGH severity finding exists
+    (useful if you ever want to script around this locally; nothing acts on
+    the exit code automatically right now).
   - A network failure while querying OSV degrades a finding's severity to
     UNKNOWN rather than crashing the scan or silently passing it as safe —
-    UNKNOWN findings are reported but do not gate the build, and the
+    UNKNOWN findings are reported but do not gate anything, and the
     degraded lookups are called out explicitly in the summary.
 
-Usage:
+Usage (run manually, whenever you want a check):
   pip-audit -r backend/requirements.txt --format json | \\
     python3 backend/scripts/pip_audit_severity_gate.py
 """

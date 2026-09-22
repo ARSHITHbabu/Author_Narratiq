@@ -2008,20 +2008,23 @@ Repository verification during checklist construction changed three things. Each
 >
 > **2026-09-22 — RESUMED.** Author reviewed the incident report, accepted it, and explicitly approved resuming Stage 6 implementation with the database-isolation safeguard (`backend/tests/conftest.py` + `backend/tests/db_safety_guard.py`, a positive allow-list, fail-closed at pytest session start) implemented and verified FIRST, before any further DB-touching test run. See the full consolidated Stage 6 implementation report for everything completed after this point.
 >
-> **Corrected here, a stale line kept accurate rather than left wrong across the whole pause/resume:** the line below ("5 backend test files, 2 frontend spec files, no CI") was already stale before this round even started — verified actual count at Stage 6 start was 30 backend test files and 11 frontend spec files (see the original Stage 6 plan's own "Repository state" section for the full discovery). It is now 34 backend test files and 16 frontend spec files, with `.github/workflows/ci.yml` in place. Left as a dated correction rather than silently rewritten, per this checklist's own editing discipline.
+> **Corrected here, a stale line kept accurate rather than left wrong across the whole pause/resume:** the line below ("5 backend test files, 2 frontend spec files, no CI") was already stale before this round even started — verified actual count at Stage 6 start was 30 backend test files and 11 frontend spec files (see the original Stage 6 plan's own "Repository state" section for the full discovery). It is now 35 backend test files and 16 frontend spec files.
+>
+> **2026-09-22 — CI/GitHub Actions intentionally DEFERRED by explicit author decision, after briefly being built and then removed.** A working `.github/workflows/ci.yml` + `dependency-scan.yml` + `dependabot.yml` were implemented, and CI's *local* equivalents (lint, full backend suite, migration round-trip, frontend lint/typecheck/unit specs) were all verified green — but GitHub Actions itself was never actually executed (this environment has no `git push` credentials), and the author decided the project's priority right now is finishing core product features, not CI infrastructure. **The GitHub-specific files were removed** (`.github/` deleted entirely) rather than left in an unused, untested state. Task 6.1 is recorded as **intentionally deferred, not failed and not required for Stage 6's completion gate** — to be reconsidered near final production readiness. Everything CI would have *exercised* remains available and green as plain local commands (see the Stage 6 closure report for the exact commands). All local testing/safety infrastructure built alongside 6.1 — the DB-isolation safety guard, the seeded fixture, the backend/frontend test suites, the AI-quality/invariant tests, the known-Stage-5-defect tracking, migration verification, and the dependency-scanning *scripts* (as opposed to their GitHub Actions wiring) — was kept, since it has real value independent of CI.
 
-**Current state:** 5 backend test files, 2 frontend spec files, no CI. *(stale — see the dated correction above)*
+**Current state:** 5 backend test files, 2 frontend spec files, no CI. *(stale — see the dated corrections above; CI itself remains intentionally absent by decision, not by gap)*
 
 ---
 
-- [ ] **6.1 — CI pipeline**
+- [ ] **6.1 — CI pipeline** — ***INTENTIONALLY DEFERRED, 2026-09-22, by explicit author decision — not attempted-and-failed.***
   - **Source:** Production gap **PG-01**
   - **Area:** Infrastructure / Testing
-  - **Priority:** Critical
+  - **Priority:** Critical → **downgraded to deferred** (product-feature completion takes priority over CI infrastructure right now; reconsider near final production readiness)
   - **Depends on:** None — **start during Stage 1**
   - **Blocked by:** None
   - **Can run in parallel:** Yes
-  - **Implementation checklist:**
+  - **What actually happened:** A working GitHub Actions workflow (backend lint + full suite + migration round-trip; frontend lint/typecheck/unit specs) was built and every step verified green as a **local** command. GitHub Actions itself was never executed (no push credentials in the implementation environment) before the author decided to defer CI entirely. The `.github/` directory (workflow + dependabot config) was **removed** rather than kept unused and unverified. Nothing below is ticked, because CI itself does not exist right now — this is a deliberate scope decision, not a gap in Stage 6.
+  - **Implementation checklist (not attempted — deferred before this was reached):**
     - [ ] Create `.github/workflows/` with a CI workflow
     - [ ] Run backend lint and the existing 5 test files
     - [ ] Run frontend lint, typecheck and the existing 2 spec files
@@ -2030,7 +2033,7 @@ Repository verification during checklist construction changed three things. Each
     - [ ] Make the workflow a required check on `main`
   - **Verification:**
     - [ ] A deliberately broken commit fails CI and cannot merge
-  - **Definition of done:** No change reaches `main` without passing tests.
+  - **Definition of done:** No change reaches `main` without passing tests. — **Deferred; the equivalent local checks (lint, full suite, migration round-trip) all pass on demand — see the Stage 6 closure report for exact commands.**
 
 - [ ] **6.2 — Seeded fixture manuscript and deterministic test user**
   - **Source:** Master Execution Plan §11.2; `docs/testing/author-feature-test-checklist.docx`
@@ -2126,26 +2129,29 @@ Repository verification during checklist construction changed three things. Each
     - [ ] Reintroducing any closed defect turns the suite red
   - **Definition of done:** No closed issue can silently reopen.
 
-- [ ] **6.7 — Dependency vulnerability scanning**
+- [ ] **6.7 — Dependency vulnerability scanning** — ***PARTIAL: local scanning + real triage done; CI-gating deferred with 6.1 (2026-09-22).***
   - **Source:** Production gap **PG-10**
   - **Area:** Security / Infrastructure
   - **Priority:** Medium
-  - **Depends on:** 6.1
+  - **Depends on:** 6.1 (deferred — see above)
   - **Blocked by:** None
   - **Can run in parallel:** Yes
-  - **Implementation checklist:**
-    - [ ] Add `pip-audit` for `backend/requirements.txt`, `requirements.setup.txt`, `requirements.vllm.txt`
-    - [ ] Add `npm audit` for the frontend
-    - [ ] Enable Dependabot or an equivalent
-    - [ ] Define the severity threshold that fails the build
-    - [ ] Triage the current findings
+  - **What actually happened:** `pip-audit` and `npm audit` were run for real against this project's actual dependencies (not simulated), and findings were genuinely triaged: a CRITICAL CVE in `python-jose` (GHSA-6c5p-j8vq-pqhj) was fixed and verified (3.3.0→3.4.0, full backend suite green after); a safe, non-major Next.js patch was applied and verified (14.2.3→14.2.35); the residual Next.js CRITICAL findings need a major 14→16 migration and were explicitly left unfixed as a recorded, pending risk decision — not silently ignored. `backend/scripts/pip_audit_severity_gate.py` (a real OSV-severity-aware wrapper, since pip-audit's own output carries no severity field) was kept as a standalone local script. Dependabot and "runs in CI, fails the build" are GitHub-specific and were removed with 6.1.
+  - **Implementation checklist (not ticked — awaiting the author's completion approval per this project's own workflow rule):**
+    - [ ] Add `pip-audit` for `backend/requirements.txt`, `requirements.setup.txt`, `requirements.vllm.txt` — done in substance, local script
+    - [ ] Add `npm audit` for the frontend — done in substance, run directly
+    - [ ] Enable Dependabot or an equivalent — deferred with 6.1 (GitHub-specific)
+    - [ ] Define the severity threshold that fails the build — defined in substance in `pip_audit_severity_gate.py` (CRITICAL/HIGH via OSV cross-reference); not wired to anything automatic since nothing runs it automatically right now
+    - [ ] Triage the current findings — done in substance, see above and the Stage 6 closure report
   - **Verification:**
-    - [ ] Scan runs in CI; a seeded vulnerable dependency fails the build
-  - **Definition of done:** Dependency risk is continuously monitored.
+    - [ ] Scan runs in CI; a seeded vulnerable dependency fails the build — **N/A, CI deferred.** The script itself was proven to correctly flag a real CRITICAL/HIGH set of findings and correctly stop flagging them once fixed (before/after pip-audit runs, both captured in the closure report)
+  - **Definition of done:** Dependency risk is continuously monitored. — **Not continuous (no CI/schedule exists); monitorable on demand via the retained local script.**
 
 ### Stage 6 Completion Gate
 
-- [ ] CI green and enforced as a required check on `main`
+> **2026-09-22 — read this before interpreting the unticked line below.** "CI green and enforced as a required check on `main`" cannot be satisfied and is not being attempted: CI/GitHub Actions is **intentionally deferred by explicit author decision** (see task 6.1's own note), not failed, not blocked, not a gap. It is left unticked here because it genuinely has not happened — marking it any other way would misrepresent Stage 6's actual state — but its absence is a scope decision, not something this gate should be read as blocking on. The equivalent *local* verification (full backend suite, frontend lint/typecheck/unit specs, migration round-trip) is green and reproducible on demand; see the Stage 6 closure report for the exact commands and evidence. This line should be revisited when CI is reconsidered near final production readiness, not chased further now.
+
+- [ ] CI green and enforced as a required check on `main` — **intentionally deferred (2026-09-22), not failed** — see the note above
 - [ ] Fixture manuscript and deterministic test user in place
 - [ ] Every author-checklist row automated or documented as manual
 - [ ] Playwright suite covering all critical journeys

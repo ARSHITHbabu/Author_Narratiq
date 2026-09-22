@@ -24,9 +24,10 @@ Invariants checked here, each backed by a real API call against real vLLM:
                                      and test_manuscript_report_citations.py (15+16 tests) —
                                      referenced, not duplicated
 
-This is a live-vLLM harness — excluded from the required per-commit CI job
-(task 6.1) for the same GPU-cost reason as the rest of Stage 5/6.5's golden
-set. Run on demand or on a schedule against a live stack:
+This is a live-vLLM harness — not run automatically (no CI exists; CI/GitHub
+Actions is intentionally deferred for this project, 2026-09-22 decision — see
+docs/NarratIQ_Master_Implementation_Checklist.md's Stage 6 closure note).
+Run on demand against a live stack:
 
   DATABASE_URL=postgresql+psycopg2://narratiq:narratiq@localhost:5432/narratiq_test \\
       pytest tests/test_ai_quality_invariants.py -q
