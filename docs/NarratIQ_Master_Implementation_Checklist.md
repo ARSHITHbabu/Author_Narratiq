@@ -45,14 +45,14 @@ Repository verification during checklist construction changed three things. Each
 | 3 — Phase 2 Production Defect Resolution | 13 | 13 | 0 | 0 | **Complete** |
 | 4 — Phase 1 Retrieval and Data Correctness | 16 | 16 | 0 | 0 | **Complete** |
 | 5 — Phase 1 AI Generation Quality | 16 | 15 | 1 | 0 | Implemented — **gate open**\*\* |
-| 6 — Test Automation and CI | 7 | 0 | 7 | 0 | Not Started |
+| 6 — Test Automation and CI | 7 | 3 | 4 | 0 | **Complete\*\*\*** (CI deferred by decision) |
 | 7 — Phase 3 Implementation | 15 | 0 | 15 | 0 | Not Started |
 | 8 — Editor UI and Workspace Redesign | 11 | 0 | 11 | 0 | Not Started |
 | 9 — Full Regression Testing and UAT | 7 | 0 | 7 | 0 | Not Started |
 | 10 — Production Readiness | 9 | 0 | 9 | 0 | Not Started |
 | 11 — Documentation Reconciliation | 9 | 0 | 9 | 0 | Not Started |
 | 12 — Release Validation | 3 | 0 | 3 | 0 | Not Started |
-| **Total** | **131** | **62** | **69** | **0** | **In Progress** |
+| **Total** | **131** | **65** | **66** | **0** | **In Progress** |
 
 > The stage table counts **main tasks**. Stage 1 shows 0 completed because task 1.1 is still open — six of its seven subtasks are done; the seventh, the off-pod copy, is deferred. The counts below track actionable checkboxes and are the authoritative progress measure. *(2026-09-21 — superseded for Stage 1: task 1.1 is now complete, the off-pod copy having actually been done. See the `*` below.)*
 >
@@ -63,6 +63,8 @@ Repository verification during checklist construction changed three things. Each
 > **\*\*Stage 5's "In Progress" label (2026-09-21, updated same day after a second continuous implementation pass):** 15 of 16 tasks are now fully done end-to-end, including frontend lock/strength UI controls (5.3, 5.4, 5.6 — E2E-verified in a real browser), 5.12's voice-convergence measurement, and 5.13's complete suggestions overhaul (category variety, narrative risk, prioritisation, adversarial pass, all measured before/after). Only **5.14** remains partially unticked — 8 of its 11 deeper Story Audit items are genuinely implemented and measured this round (character/relationship arcs, unresolved-thread cross-referencing, stakes, themes, plot importance, generic-recommendation replacement, developmental insight, surface-level detection depth), while 3 (dedicated timeline-reasoning logic, dedicated narrative-reasoning logic, relationship arc as its own distinct section) are honestly marked partial — real, measured improvement via a shared mechanism, not independently built further. Full per-task accounting is in the Stage 5 section below and its Completion Gate note — nothing here is a silent gap. The Stage 5 gate itself still requires the blind/manual author review, which only the author can close.
 >
 > **\*Stage 1's "Complete" label (2026-09-21):** the Stage 1 Completion Gate is closed — all seven of its own independent criteria are verified true — while 4 of Stage 1's 9 main-task checkboxes remain deliberately unticked (1.2, 1.3 not applicable to this pod; 1.5's literal "data intact" clause is permanently unsatisfiable now that the original manuscript is lost, though the task's stack-running half is verified; 1.6 has one item by-design deferred to Stage 11). This mirrors how Stage 3 closed with two open-by-design items — see the note under the Stage 1 Completion Gate for the full accounting. Nothing here is a silent gap.
+>
+> **\*\*\*Stage 6's "Complete" label (2026-09-22), approved under an explicitly revised scope, not fully done in the stage's original sense:** 3 of 7 main tasks are ticked (6.2, 6.3, 6.6). Task 6.1 (CI pipeline) is **intentionally deferred by explicit author decision** — a working GitHub Actions setup was built, verified locally, then removed, because the project's priority right now is finishing core product features, not CI infrastructure; it will be reconsidered near final production readiness. Task 6.6 closes under an **author-approved revised acceptance criterion** (Phase 2 fully mapped + Stage 5 at task granularity; Phase 1's 147 individual issue numbers explicitly deferred as a separate future task). Tasks 6.4, 6.5 and 6.7 stay unticked as parent tasks — each is substantially done (6.4: 7/9 journeys live-verified; 6.5: 6/7 sub-items; 6.7: 4/5 sub-items) with specific, honestly-open remainders (2 real product gaps in 6.4 — manuscript-upload frontend UI missing, audio transcription justified-manual; 6.5's scheduling is N/A while CI is deferred and its deliberate-regression proof wasn't performed; 6.7's Dependabot line is GitHub-specific and deferred with 6.1). The full backend suite is verified green (499 passed, 0 failed) both before and after the CI-file removal. See the Stage 6 Completion Gate note and the delivered Stage 6 closure report for the complete evidence trail. Nothing here is a silent gap — every open item is named in the Completion Gate's "carried forward" list.
 
 > *2026-07-26 — Stage 3 closed.* All 13 main tasks are ticked and the Stage 3 gate is closed. **Two checkboxes inside Stage 3 remain open by design, not by omission**: task 3.10's manual OCR end-to-end (its image→text half is blocked by a separate defect tracked outside Stage 3) and task 3.13's *"task 8.8 closes Phase 2 Issue 10"* (an assertion about future Stage 8 work). Both are annotated in place. The total rose from 1125 to 1134 with the addition of task **4.16**.
 
@@ -77,9 +79,9 @@ Repository verification during checklist construction changed three things. Each
 > **One new frontend defect was discovered during the author's own manual verification, not fixed under this task:** the Logout control disappears on pointer hover before it can be clicked, so logout could not be completed or confirmed working. Recorded under task 1.8; not yet triaged into a stage — see the note there.
 
 **Total actionable checkboxes:** 1146 (2026-09-21 Stage 5 closure evaluation: +3 new ticked sub-items at 5.4/5.6, recording manual author verification and the sidecar fix, over a **corrected** pre-edit base of **1143**. The previously recorded "1146 / 562" had been counted with a regex that also matched three prose mentions of the checkbox syntax on the Formula and Total lines. The true pre-edit figures were **1143 / 561**, verified by counting only list-item markers `^\s*- \[( |x)\]`.) *Earlier note, kept for traceability:* (whole-file; was 1138 before this Stage 5 pass began, 1143 after its first continuation — +8 net new sub-items total added while detailing per-task evidence across both passes; independently re-verified by direct regex count of every `- [x]`/`- [ ]` marker, per the same counting discipline used for the 1134→1135 reconciliation)
-**Currently completed:** 560 (2026-09-21 closure evaluation: from the corrected 561, +3 manual-verification/sidecar sub-items, −4 unticked because they were not actually complete: 5.14's three partial items and the "All 15 Story Audit issues closed or accepted" gate line. Stage 5 section: 156 of 172.) *Earlier note:* 562 (was 404 before this Stage 5 pass began — +158 boxes, all within the Stage 5 section: 157 of its 169 checkboxes are now checked, reflecting real delivered work verified with retained evidence, not a bulk-tick — see the per-task evidence above)
-**Remaining:** 586
-**Overall project completion:** 48.9% (560 ÷ 1146). The drop from the previously stated 49.0% reflects the corrected count and the removal of false ticks, not lost work
+**Currently completed:** 601 (2026-09-22 Stage 6 closure: +41 newly ticked checkboxes, all within the Stage 6 section — tasks 6.2, 6.3 and 6.6 fully complete [the latter under the author-approved revised acceptance criterion], plus genuinely-done sub-items within 6.4, 6.5 and 6.7. Independently verified by direct regex count of every `- [x]`/`- [ ]` marker, same counting discipline as prior reconciliations: 601 ticked, 545 unticked, 1146 total — no checkbox lines were added or removed, only converted.) *Earlier note:* 560 (2026-09-21 closure evaluation: from the corrected 561, +3 manual-verification/sidecar sub-items, −4 unticked because they were not actually complete: 5.14's three partial items and the "All 15 Story Audit issues closed or accepted" gate line. Stage 5 section: 156 of 172.)
+**Remaining:** 545
+**Overall project completion:** 52.4% (601 ÷ 1146), up from 48.9%. Stage 6 is the fourth stage, after Stage 0, Stage 3 and Stage 4, to close (under its explicitly revised scope — CI/GitHub Actions deferred by author decision, 6.6 under a revised, approved criterion). Stage 5's gate remains separately open (see its own Completion Gate note) — Stage 6 was entered via the author's explicit override of that dependency, recorded at the top of the Stage 6 section.
 
 > *Counting-basis note (2026-07-25):* the recorded total of 1125 is a **whole-file** checkbox count. The formula above says Stages 0–12, which counts **1111** — the 14-box difference is the Final Project Completion Checklist and the register sections. The existing basis is retained so the figures stay comparable across updates; the formula wording and the basis should be reconciled in Stage 11.
 
@@ -89,6 +91,12 @@ Repository verification during checklist construction changed three things. Each
 
 ## Next Task to Execute
 
+> ### ✅ 2026-09-22 — Stage 6 is COMPLETE under its explicitly revised scope (gate closed by author approval)
+>
+> Entered via the author's explicit override of the "Stage 5 gate passed" entry condition (Stage 5's own gate remains separately open — see its Completion Gate note). Tasks 6.2, 6.3 and 6.6 fully done (6.6 under an author-approved revised acceptance criterion). Task 6.1 (CI/GitHub Actions) intentionally deferred by explicit author decision — built, verified locally, then removed; reconsider near final production readiness. Tasks 6.4, 6.5, 6.7 substantially done with specific, named, carried-forward open items (see the Stage 6 Completion Gate's "carried forward" list) — none silently dropped. Full backend suite verified green (499 passed, 0 failed) both before and after the CI-file removal. **Per explicit author instruction, Stage 7 has NOT been analyzed, planned or started.**
+>
+> ⚑ Superseded — the Stage 4/5 note below is kept for traceability.
+>
 > ### ✅ 2026-09-21 — Stage 4 is COMPLETE (gate closed)
 >
 > All 16 main tasks are done and the **Stage 4 Completion Gate is closed** — the third stage to close fully, after Stage 0 and Stage 3. The one item left open after the initial implementation pass, task 4.16 (Story Bible quality), closed the same day once the author manually tested it against their own real manuscript: both automated fixes passed, and the author reported one further genuine, minor finding (a carried possession shown as a physical description). Investigating it surfaced a second, independent, more serious pre-existing defect — a formatting example in the prompt being hallucinated as an invented character. Both were fixed: the possession issue needed a deterministic post-processing safety net once prompt-only tuning was measured insufficiently reliable (5/9 → 9/9 after), the phantom-character issue needed only an unambiguous placeholder. 11 new regression tests added; 121/121 passing across the full Story Bible test surface, Stage 3's 89-test provenance suite unaffected.
@@ -2035,45 +2043,45 @@ Repository verification during checklist construction changed three things. Each
     - [ ] A deliberately broken commit fails CI and cannot merge
   - **Definition of done:** No change reaches `main` without passing tests. — **Deferred; the equivalent local checks (lint, full suite, migration round-trip) all pass on demand — see the Stage 6 closure report for exact commands.**
 
-- [ ] **6.2 — Seeded fixture manuscript and deterministic test user**
+- [x] **6.2 — Seeded fixture manuscript and deterministic test user**
   - **Source:** Master Execution Plan §11.2; `docs/testing/author-feature-test-checklist.docx`
   - **Area:** Testing
   - **Priority:** Critical
-  - **Depends on:** 6.1
+  - **Depends on:** 6.1 (deferred — did not block this; 6.2 does not need CI to function)
   - **Blocked by:** None
   - **Can run in parallel:** No — blocks 6.3–6.5
   - **Context:** The checklist references specific characters (Devika, Mara, Sant, Vance) — the fixture must contain them.
   - **Implementation checklist:**
-    - [ ] Author a multi-chapter fixture manuscript with documented ground truth
-    - [ ] Include the named cast, aliases, a timeline and a mystery thread
-    - [ ] Create a deterministic seeded test user with a known JWT
-    - [ ] Add a reset-to-fixture command
-    - [ ] Document the ground truth alongside the fixture
+    - [x] Author a multi-chapter fixture manuscript with documented ground truth — `backend/scripts/seed_fixture.py` + generated `backend/tests/fixtures/e2e_manuscript_ground_truth.md`
+    - [x] Include the named cast, aliases, a timeline and a mystery thread — Devika Rao, Mara Coste, Sant Okoro, Teodor Vance; a forged-contract mystery thread; a 3-chapter timeline
+    - [x] Create a deterministic seeded test user with a known JWT — fixed email, password from `FIXTURE_PASSWORD` env var (never hardcoded)
+    - [x] Add a reset-to-fixture command — `--reset` flag
+    - [x] Document the ground truth alongside the fixture — done
   - **Verification:**
-    - [ ] Reset restores identical state every time
-  - **Definition of done:** Every test runs against a known, reproducible manuscript.
+    - [x] Reset restores identical state every time — verified live: ran `--reset` twice against `narratiq_test`, exactly 1 fixture account both times, no accumulation
+  - **Definition of done:** Every test runs against a known, reproducible manuscript. — **Met.**
 
-- [ ] **6.3 — Automate the author feature test checklist**
+- [x] **6.3 — Automate the author feature test checklist**
   - **Source:** `docs/testing/author-feature-test-checklist.docx` — every row
   - **Area:** Testing
   - **Priority:** Critical
   - **Depends on:** 6.2
   - **Blocked by:** None
   - **Can run in parallel:** Yes
-  - **Implementation checklist:**
-    - [ ] Writing and editor rows — editor, project/story, chapter management, search/replace, DOCX/PDF export
-    - [ ] AI text transform rows — refine, tone, emotion, audience, style, author-style, translation, suggestions, continuation, outline
-    - [ ] Story intelligence rows — genre detection, emotional arc, continuity, style drift, duplicate scene, narrative threads, plot holes, plot assistant, editorial report, copyright risk
-    - [ ] Characters and world rows — character bible, profiles, relationship graph, arc timeline, voice consistency, story bible
-    - [ ] Input and ingestion rows — manuscript upload, OCR, audio transcription, notes/cards
-    - [ ] Productivity and platform rows — voice agent, pacing goals, analytics, activity timeline, JWT auth
-    - [ ] **Assert database state, not only HTTP 200** — several defects returned success while failing to persist
-    - [ ] Mark rows that must remain manual and document why
+  - **Implementation checklist — all 40 docx rows accounted for, see `docs/testing/author-feature-checklist-automation-matrix.md` for the full per-row table:**
+    - [x] Writing and editor rows — editor/autosave (browser, passing), project/story CRUD, chapter management (create passing; reorder `xfail` — real gap, no API exists), search/replace, DOCX/PDF export
+    - [x] AI text transform rows — covered via Stage 5's golden set + `test_transform_preservation.py` + this stage's invariant tests
+    - [x] Story intelligence rows — genre/continuity/duplicate-scene/copyright existing; style drift + plot assistant newly filled; narrative threads + plot holes + manuscript-report persistence tracked as `known_stage5_defect` (2 reproduce deterministically, 1 intermittent)
+    - [x] Characters and world rows — character bible/profiles/relationships/arc timeline existing; voice consistency newly filled; story bible generation verified live in a real browser
+    - [x] Input and ingestion rows — manuscript upload (backend passing; **frontend has no UI at all — real gap, documented**), OCR existing, audio transcription **MANUAL** (no TTS tool available in this environment — justified in `frontend/tests/browser/audio-transcription.spec.ts`), notes/cards newly filled
+    - [x] Productivity and platform rows — voice agent verified live (real routing + real result), pacing goals newly filled, analytics existing, activity timeline filled (persistence proven; the live database's own zero-`activity_events` state is a separate, tracked observability gap), JWT round-trip newly filled
+    - [x] **Assert database state, not only HTTP 200** — followed throughout (e.g. rename/delete verified via direct DB query, not just response echo)
+    - [x] Mark rows that must remain manual and document why — audio transcription, with a full manual procedure
   - **Verification:**
-    - [ ] Every checklist row maps to a test or a documented manual exception
-  - **Definition of done:** The manual checklist is an automated suite.
+    - [x] Every checklist row maps to a test or a documented manual exception — confirmed 40/40
+  - **Definition of done:** The manual checklist is an automated suite. — **Met.** Two rows now correctly FAIL, proving real product gaps rather than hiding them — that is this task working as intended, not a shortfall.
 
-- [ ] **6.4 — Playwright end-to-end suite**
+- [ ] **6.4 — Playwright end-to-end suite** — *7 of 9 journeys genuinely guarded; 2 correctly open (1 real product gap, 1 justified-manual) — not fully complete, honestly left unticked as a parent task.*
   - **Source:** Master Execution Plan §11.3
   - **Area:** Testing / Frontend
   - **Priority:** High
@@ -2081,20 +2089,20 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Login → project → chapter → autosave → reload persistence
-    - [ ] Select text → transform → apply
-    - [ ] Upload manuscript → chapters populate
-    - [ ] OCR upload → text injected
-    - [ ] Audio upload → transcript returned
-    - [ ] Generate story bible → five sections render with provenance
-    - [ ] Voice agent → action actually executes
-    - [ ] Selection toolbar lifecycle (guards task 3.8)
-    - [ ] Analytics scrolling (guards task 3.9)
+    - [x] Login → project → chapter → autosave → reload persistence — new spec, verified live (PASS)
+    - [x] Select text → transform → apply — existing (`lock-and-strength.spec.ts` 4/4, `sidecar-lock-and-strength.spec.ts` 3/3, per Stage 5's own verification)
+    - [ ] Upload manuscript → chapters populate — **real product gap, confirmed live**: no frontend UI calls `manuscriptApi.upload` anywhere (backend itself works, see 6.3); spec now documents this as a reproducible failing check
+    - [x] OCR upload → text injected — existing (`ocr-panel.spec.ts`)
+    - [ ] Audio upload → transcript returned — **MANUAL**, justified (no TTS tool available in this environment to generate a real speech fixture)
+    - [x] Generate story bible → five sections render with provenance — new spec, verified live against a genuinely fresh story (zero prior `story_bibles` rows, confirmed via direct DB query) (PASS)
+    - [x] Voice agent → action actually executes — new spec, verified live: real intent routing (`story_qa.ask` → `plot_assistant`) and a real, accurate chapter summary returned (PASS)
+    - [x] Selection toolbar lifecycle (guards task 3.8) — existing (`selection-toolbar.spec.ts` 17/17, per Stage 5's own verification)
+    - [x] Analytics scrolling (guards task 3.9) — existing (`analytics-scroll.spec.ts`)
   - **Verification:**
-    - [ ] Suite runs in CI against a live stack
-  - **Definition of done:** Critical author journeys are guarded end to end.
+    - [ ] Suite runs in CI against a live stack — **N/A, CI deferred.** Runs manually against a live stack instead, as demonstrated for every item above
+  - **Definition of done:** Critical author journeys are guarded end to end. — **7/9 met**, 1 correctly blocked by a real, now-documented product gap, 1 correctly manual.
 
-- [ ] **6.5 — AI quality evaluation harness in CI**
+- [ ] **6.5 — AI quality evaluation harness in CI** — *6 of 7 sub-items done; scheduling is N/A (CI deferred) and the harness's own regression-detection was not deliberately proven — honestly left unticked as a parent task.*
   - **Source:** Master Execution Plan §11.4; task 5.2
   - **Area:** AI / Testing
   - **Priority:** High
@@ -2102,18 +2110,18 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Package the golden set as a runnable suite
-    - [ ] Automate voice-preservation scoring
-    - [ ] Automate the unnecessary-change rate
-    - [ ] Automate continuity false-positive measurement
-    - [ ] Automate Story Bible provenance validation
-    - [ ] Alert on regression beyond an agreed threshold
-    - [ ] Run on a schedule rather than per-commit if GPU cost requires it
+    - [x] Package the golden set as a runnable suite — `backend/tests/test_ai_quality_invariants.py`, invariant-first per explicit instruction (similarity is supporting context only, not primary)
+    - [x] Automate voice-preservation scoring — via Stage 5's `measure_transform_golden_set.py`, referenced not duplicated
+    - [x] Automate the unnecessary-change rate — no-change/lock invariant tests, verified live (10/10 passing against real vLLM)
+    - [x] Automate continuity false-positive measurement — existing (`test_continuity_citation_validation.py`, `measure_continuity_depth.py`)
+    - [x] Automate Story Bible provenance validation — existing (`test_story_bible_outcomes.py`, 89 tests) + this stage's live browser citation check
+    - [x] Alert on regression beyond an agreed threshold — threshold-based sanity check against the recorded Stage 5 baseline, accounting for its own recorded run-to-run variance
+    - [ ] Run on a schedule rather than per-commit if GPU cost requires it — **N/A, CI deferred.** Runs on demand instead
   - **Verification:**
-    - [ ] A deliberate prompt regression is detected by the harness
-  - **Definition of done:** AI quality regressions are caught automatically.
+    - [ ] A deliberate prompt regression is detected by the harness — **not performed this round** (would require deliberately worsening a real prompt, confirming red, then reverting); honestly left open rather than assumed
+  - **Definition of done:** AI quality regressions are caught automatically. — **Harness exists and passes for real** (verified against live vLLM); "automatically" (on a schedule) is N/A while CI is deferred, and the deliberate-regression proof is still open.
 
-- [ ] **6.6 — Regression tests for every closed issue**
+- [x] **6.6 — Regression tests for every closed issue** — *Complete under the author-approved revised acceptance criterion (2026-09-22): Phase 2 fully individually mapped; Stage 5 mapped at task granularity; Phase 1's 147 individual issue numbers explicitly deferred as a separate future QA/traceability task, not silently treated as done. See `docs/testing/issue-to-test-traceability.md` for the full proposal and evidence (the 147 count was verified by direct enumeration, not estimated). Mirrors this document's own precedent for closing a stage/task with specific, clearly-annotated open items (e.g. Stage 1).*
   - **Source:** Master Execution Plan §11.5
   - **Area:** Testing
   - **Priority:** High
@@ -2121,13 +2129,13 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Convert every closed Phase 2 issue into a permanent test
-    - [ ] Convert every closed Phase 1 issue into a permanent test or a golden-set case
-    - [ ] Make both QA reports re-runnable as suites so closure is demonstrable
-    - [ ] Link each test to its issue ID
+    - [x] Convert every closed Phase 2 issue into a permanent test — 14/14 individually mapped
+    - [ ] Convert every closed Phase 1 issue into a permanent test or a golden-set case — **deferred by the approved revised criterion above** (147 issues, Stage-5-task-level coverage only; not individually re-derived)
+    - [x] Make both QA reports re-runnable as suites so closure is demonstrable — the backend suite itself (499 tests) is this
+    - [x] Link each test to its issue ID — done for Phase 2; Stage 5 linked at task level
   - **Verification:**
-    - [ ] Reintroducing any closed defect turns the suite red
-  - **Definition of done:** No closed issue can silently reopen.
+    - [ ] Reintroducing any closed defect turns the suite red — **not performed this round**, left open rather than assumed
+  - **Definition of done:** No closed issue can silently reopen. — **Met for Phase 2 and Stage 5's task-level closures, under the approved revised criterion.** Phase 1's issue-level granularity and the deliberate-reintroduction proof remain open, tracked, not silently dropped.
 
 - [ ] **6.7 — Dependency vulnerability scanning** — ***PARTIAL: local scanning + real triage done; CI-gating deferred with 6.1 (2026-09-22).***
   - **Source:** Production gap **PG-10**
@@ -2137,28 +2145,30 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None
   - **Can run in parallel:** Yes
   - **What actually happened:** `pip-audit` and `npm audit` were run for real against this project's actual dependencies (not simulated), and findings were genuinely triaged: a CRITICAL CVE in `python-jose` (GHSA-6c5p-j8vq-pqhj) was fixed and verified (3.3.0→3.4.0, full backend suite green after); a safe, non-major Next.js patch was applied and verified (14.2.3→14.2.35); the residual Next.js CRITICAL findings need a major 14→16 migration and were explicitly left unfixed as a recorded, pending risk decision — not silently ignored. `backend/scripts/pip_audit_severity_gate.py` (a real OSV-severity-aware wrapper, since pip-audit's own output carries no severity field) was kept as a standalone local script. Dependabot and "runs in CI, fails the build" are GitHub-specific and were removed with 6.1.
-  - **Implementation checklist (not ticked — awaiting the author's completion approval per this project's own workflow rule):**
-    - [ ] Add `pip-audit` for `backend/requirements.txt`, `requirements.setup.txt`, `requirements.vllm.txt` — done in substance, local script
-    - [ ] Add `npm audit` for the frontend — done in substance, run directly
-    - [ ] Enable Dependabot or an equivalent — deferred with 6.1 (GitHub-specific)
-    - [ ] Define the severity threshold that fails the build — defined in substance in `pip_audit_severity_gate.py` (CRITICAL/HIGH via OSV cross-reference); not wired to anything automatic since nothing runs it automatically right now
-    - [ ] Triage the current findings — done in substance, see above and the Stage 6 closure report
+  - **Implementation checklist:**
+    - [x] Add `pip-audit` for `backend/requirements.txt`, `requirements.setup.txt`, `requirements.vllm.txt` — done, local script, run for real against actual dependencies
+    - [x] Add `npm audit` for the frontend — done, run directly
+    - [ ] Enable Dependabot or an equivalent — **deferred with 6.1** (GitHub-specific)
+    - [x] Define the severity threshold that fails the build — `pip_audit_severity_gate.py` (CRITICAL/HIGH via real OSV cross-reference, since pip-audit's own output carries no severity field); not wired to anything automatic since nothing runs it automatically right now
+    - [x] Triage the current findings — real triage done: backend CRITICAL (`python-jose`, GHSA-6c5p-j8vq-pqhj) fixed and verified (3.3.0→3.4.0, full suite green); frontend safe patch applied and verified (Next.js 14.2.3→14.2.35); residual Next.js CRITICAL findings recorded as an explicit, unresolved risk decision requiring a future major-version migration — not silently ignored
   - **Verification:**
-    - [ ] Scan runs in CI; a seeded vulnerable dependency fails the build — **N/A, CI deferred.** The script itself was proven to correctly flag a real CRITICAL/HIGH set of findings and correctly stop flagging them once fixed (before/after pip-audit runs, both captured in the closure report)
-  - **Definition of done:** Dependency risk is continuously monitored. — **Not continuous (no CI/schedule exists); monitorable on demand via the retained local script.**
+    - [ ] Scan runs in CI; a seeded vulnerable dependency fails the build — **N/A, CI deferred.** The script itself was proven to correctly flag a real CRITICAL/HIGH set of findings and correctly stop flagging the fixed one once resolved (before/after pip-audit runs, both captured in the closure report)
+  - **Definition of done:** Dependency risk is continuously monitored. — **Not continuous (no CI/schedule exists); real scanning, triage and one real fix done on demand via the retained local script.**
 
-### Stage 6 Completion Gate
+### Stage 6 Completion Gate — **CLOSED BY EXPLICIT AUTHOR APPROVAL, 2026-09-22, under revised scope**
 
-> **2026-09-22 — read this before interpreting the unticked line below.** "CI green and enforced as a required check on `main`" cannot be satisfied and is not being attempted: CI/GitHub Actions is **intentionally deferred by explicit author decision** (see task 6.1's own note), not failed, not blocked, not a gap. It is left unticked here because it genuinely has not happened — marking it any other way would misrepresent Stage 6's actual state — but its absence is a scope decision, not something this gate should be read as blocking on. The equivalent *local* verification (full backend suite, frontend lint/typecheck/unit specs, migration round-trip) is green and reproducible on demand; see the Stage 6 closure report for the exact commands and evidence. This line should be revisited when CI is reconsidered near final production readiness, not chased further now.
+> **Read this before interpreting the lines below.** The author explicitly changed Stage 6's scope on 2026-09-22: CI/GitHub Actions is **intentionally deferred** (priority is finishing core product features; CI will be reconsidered near final production readiness), and 6.6's acceptance criterion was **explicitly revised and approved** (Phase 2 + Stage 5 task-level mapping is sufficient; Phase 1's 147 individual issue numbers are a separate, deferred future task). Under that approved revised scope, the author gave **APPROVE COMPLETION**. This mirrors how Stage 1 and Stage 3 closed in this same document — with specific, clearly-annotated open items, not by pretending everything was done. Three lines below stay honestly unticked because they are genuinely incomplete even under the revised scope (2 real product gaps + 1 unverified harness claim in 6.4/6.5), not because the gate is blocked — the author approved closing the stage with them carried forward. See the Stage 6 closure report (delivered to the author) for full evidence.
 
-- [ ] CI green and enforced as a required check on `main` — **intentionally deferred (2026-09-22), not failed** — see the note above
-- [ ] Fixture manuscript and deterministic test user in place
-- [ ] Every author-checklist row automated or documented as manual
-- [ ] Playwright suite covering all critical journeys
-- [ ] AI quality harness running and alerting
-- [ ] Every closed issue guarded by a regression test
-- [ ] Dependency scanning active
-- [ ] **Gate 6 — End-to-end tests passed** (initial pass; re-confirmed in Stage 9)
+- [ ] CI green and enforced as a required check on `main` — **intentionally deferred by explicit decision, not failed.** Local-equivalent checks (full backend suite, frontend lint/typecheck/unit specs, migration round-trip) are green and reproducible on demand
+- [x] Fixture manuscript and deterministic test user in place — 6.2 complete
+- [x] Every author-checklist row automated or documented as manual — 6.3 complete, 40/40 rows accounted for
+- [ ] Playwright suite covering all critical journeys — 7/9 journeys guarded live; 2 correctly open (manuscript-upload UI is a real, newly-found product gap; audio transcription is justified-manual) — **carried forward, not silently dropped**
+- [ ] AI quality harness running and alerting — harness exists and passes against real vLLM; scheduling is N/A (CI deferred) and the deliberate-regression proof was not performed this round — **carried forward**
+- [x] Every closed issue guarded by a regression test — met under the approved revised criterion (6.6); Phase 1's 147-issue individual mapping explicitly deferred, not silently treated as done
+- [ ] Dependency scanning active — **not continuous** (no CI/schedule); real scanning + triage + 1 real CVE fix done on demand via the retained local script — **carried forward as "on demand," not "active"**
+- [ ] **Gate 6 — End-to-end tests passed** — **not fully met**, for the same honest reasons as the two lines above; the author approved closing Stage 6 with this explicitly carried forward rather than claiming it passed
+
+**Carried forward to later stages, tracked, not to be silently dropped** (per explicit author instruction): manuscript-upload frontend UI missing; chapter-reorder backend API missing; Narrative Threads structural defect; Manuscript Report persistence defect; intermittent Plot Hole Detection failure; intermittent/weak Style Transform behaviour; audio-transcription E2E remains manual; `activity_events` observability gap; residual Next.js dependency findings (major-version migration needed); Phase 1's 147-issue individual traceability mapping; CI/GitHub Actions itself (reconsider near final production readiness).
 
 ---
 
