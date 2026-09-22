@@ -1,20 +1,24 @@
 import { test, expect, type APIRequestContext, type Page } from '@playwright/test'
 
 // Stage 6 task 6.4 — critical journey: voice agent -> the correct tool
-// actually executes (not just "a command was heard"). Same conventions/
-// caveats as autosave-persistence.spec.ts (written 2026-09-22, not executed
-// against a live browser render as part of this change).
+// actually executes (not just "a command was heard").
 //
-// Voice input itself cannot be simulated through a real microphone in a
-// headless browser. This test instead drives the agent's REST command path
-// directly (the same path the real mic flow calls into once speech-to-text
-// has produced text — see routers/voice_agent.py), which is the part that
-// actually matters for "the correct tool runs": intent routing and action
-// execution, not audio capture.
+// Real audio input cannot be simulated through a real microphone in this
+// environment. Checked live during Stage 6 closure (2026-09-22):
+// components/voice/VoiceAgentPanel.tsx has NO text-command fallback input at
+// all (confirmed by reading the component source — only a Mic button; the
+// original spec's getByPlaceholder guess was wrong, there is nothing to find).
+// So this test drives the same REST endpoint the real mic flow calls into
+// once speech-to-text has produced a transcript (POST /api/voice/interpret —
+// see routers/voice_agent.py), using the REAL logged-in browser page's own
+// auth context (not a bare API test) — this validates intent routing and
+// action execution end to end, which is what "the correct tool runs" is
+// actually about; it does not validate microphone capture itself, and this
+// test does not claim to.
 //
 //   E2E_EMAIL=… E2E_PASSWORD=… E2E_STORY_ID=… (a story with a chapter that
 //   has content, so "summarize this chapter" has something to summarize)
-//   npx playwright test --project=browser
+//   npx playwright test tests/browser/voice-agent-action.spec.ts --project=browser
 
 const EMAIL = process.env.E2E_EMAIL
 const PASSWORD = process.env.E2E_PASSWORD
@@ -37,29 +41,43 @@ async function authSession(request: APIRequestContext) {
   return { token: cachedToken!, user: cachedUser! }
 }
 
-test('a text-driven "summarize this chapter" command executes and shows a result in the UI', async ({ page, request }) => {
+async function openProject(page: Page, request: APIRequestContext) {
   const { token, user } = await authSession(request)
   await page.addInitScript(([t, u]) => {
     window.localStorage.setItem('narratiq_token', t)
     window.localStorage.setItem('narratiq_user', u)
   }, [token, user])
   await page.goto(`/projects/${STORY_ID}`)
+  await page.locator('.ProseMirror').first().waitFor({ state: 'visible' })
+}
 
-  const voiceTab = page.getByTitle(/voice/i).first()
-  if (await voiceTab.count()) {
-    await voiceTab.click()
-  }
+test('a "summarize this chapter" command routes to the correct tool and executes', async ({ page, request }) => {
+  test.setTimeout(90_000)
+  await openProject(page, request)
 
-  // Best-effort: the voice panel exposes a mic button (Mic icon,
-  // components/voice/VoiceAgentPanel.tsx) with no confirmed accessible name
-  // for text-command entry as an alternative to real audio. If the UI has
-  // no such text-entry fallback, this line is the one to update once that's
-  // confirmed on a real run — the REST-level routing itself is verified
-  // separately in the backend voice tests (test_voice_unit.py, test_voice_execution.py).
-  const textCommandInput = page.getByPlaceholder(/type a command|say something/i)
-  await expect(textCommandInput).toBeVisible({ timeout: 10_000 })
-  await textCommandInput.fill('Summarize this chapter')
-  await textCommandInput.press('Enter')
+  const { token } = await authSession(request)
+  const chaptersRes = await request.get(`${API_URL}/api/stories/${STORY_ID}/chapters`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  expect(chaptersRes.ok()).toBe(true)
+  const chapters = await chaptersRes.json()
+  expect(chapters.length, 'fixture story needs at least one chapter').toBeGreaterThan(0)
+  const chapterId = chapters[0].chapter_id
 
-  await expect(page.getByText(/summary|summarized/i).first()).toBeVisible({ timeout: 60_000 })
+  const interpretRes = await page.request.post(`${API_URL}/api/voice/interpret`, {
+    headers: { Authorization: `Bearer ${token}` },
+    data: {
+      transcript: 'Summarize this chapter',
+      context: { story_id: STORY_ID, chapter_id: chapterId },
+    },
+  })
+  expect(interpretRes.ok(), await interpretRes.text()).toBe(true)
+  const result = await interpretRes.json()
+
+  // Found live (2026-09-22): the real success value is "succeeded", not
+  // "success" as VoiceAgentResponse's docstring default implied.
+  expect(result.status, JSON.stringify(result)).toBe('succeeded')
+  expect(result.target_router || result.capability, 'no tool was routed to').toBeTruthy()
+  expect(result.user_message || Object.keys(result.result || {}).length > 0,
+    'no user-facing result and no result payload — looks unexecuted').toBeTruthy()
 })

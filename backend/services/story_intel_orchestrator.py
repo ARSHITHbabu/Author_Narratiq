@@ -38,7 +38,7 @@ from typing import Any, Dict, List, Optional, Set
 from sqlalchemy.orm import Session
 
 from models import (
-    Chapter, Character, CharacterRelationship, Story, StoryIntelJob, gen_uuid,
+    Story, StoryIntelJob, gen_uuid,
 )
 from services.story_intel_service import (
     _analyze_chapter_batch,

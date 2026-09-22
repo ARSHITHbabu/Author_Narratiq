@@ -43,11 +43,11 @@ never per-commit), `manual` (documented reason it stays manual).
 | 1 | Genre detection | `backend` | `test_genre_detection.py` | Existing coverage |
 | 2 | Emotional arc | `backend` | Covered indirectly via Stage 4 story-intelligence tests | Existing coverage |
 | 3 | Continuity check | `backend` | `test_continuity_citation_validation.py`, `measure_continuity_depth.py` | Existing coverage |
-| 4 | Style drift | `backend` | Deterministic centroid math — no dedicated test file found; classified as a **gap**, not fixed this round | **Gap, tracked, not filled** — deterministic (non-AI) logic, low risk, lowest priority of the found gaps |
+| 4 | Style drift | `backend` | `test_e2e_checklist_gaps_2.py::test_style_drift_handles_a_short_manuscript_without_crashing` | **Filled (2026-09-22 closure).** Asserts honest degradation (not a crash) below the endpoint's own documented 6-chapter minimum for a real drift computation |
 | 5 | Duplicate scene | `backend` | `test_semantic_dedup.py` | Existing coverage |
 | 6 | Narrative threads | `backend` | `test_known_stage5_defects.py::test_narrative_threads_scan_detects_the_manuscripts_mystery_thread` | **New — `known_stage5_defect`, currently failing on purpose.** Scan completes but detects 0 threads on a manuscript with a clear one |
 | 7 | Plot hole detection | `backend` | `test_known_stage5_defects.py::test_plot_hole_detection_returns_a_parseable_result` | **New — `known_stage5_defect`, currently failing on purpose.** Model output fails to parse as JSON on both the initial call and the retry |
-| 8 | Plot assistant | `backend` | No existing dedicated test found | **Gap, tracked, not filled** — the feature was live-verified working during the author's 2026-09-22 review; not urgent |
+| 8 | Plot assistant | `backend` | `test_e2e_checklist_gaps_2.py::test_plot_assistant_answers_a_question_about_the_manuscript` | **Filled (2026-09-22 closure).** Real vLLM call, asserts a real answer/suggestions payload |
 | 9 | Editorial report (manuscript report) | `backend` | `test_manuscript_report_citations.py` (citation validity); `test_known_stage5_defects.py::test_manuscript_report_persists_across_a_refetch` | Citation logic: existing coverage. Persistence: **new — `known_stage5_defect`, currently failing on purpose.** No `db.add`/`db.commit` anywhere in `routers/manuscript_report.py` |
 | 10 | Copyright risk | `backend` | `test_author_style_and_copyright.py` | Existing coverage — **includes the 3 pre-existing, already-documented failures** (overall-risk derivation bug in `analyze_copyright_risk`), unrelated to Stage 6, unchanged by it |
 
@@ -59,24 +59,24 @@ never per-commit), `manual` (documented reason it stays manual).
 | 2 | Character profiles | `backend` | `test_character_hint_sync.py`, `test_character_merge.py` | Existing coverage |
 | 3 | Relationship graph | `backend` | `test_character_merge.py` (relationship reassignment on merge) | Existing coverage |
 | 4 | Character arc timeline | `backend` | `test_chapter_arc_fields.py` | Existing coverage |
-| 5 | Voice consistency | `backend` | No existing test found for `characters.py::check_dialogue_consistency` specifically (note: distinct from the Voice Agent, per CLAUDE.md's explicit warning not to confuse the two) | **Gap, tracked, not filled** |
+| 5 | Voice consistency | `backend` | `test_e2e_checklist_gaps_2.py::test_voice_consistency_check_handles_sparse_dialogue_without_crashing` (note: distinct from the Voice Agent, per CLAUDE.md's explicit warning not to confuse the two) | **Filled (2026-09-22 closure).** Asserts honest degradation below the endpoint's own documented 3-dialogue-passage minimum |
 | 6 | Story Bible generator | `backend` | `test_story_bible_outcomes.py` (89 tests), `test_story_bible_quality.py` | Existing, extensive coverage |
 
 ## Table 4 — Input and ingestion
 
 | # | Feature | Layer | Where | Status |
 |---|---|---|---|---|
-| 1 | Manuscript upload | `backend` | `test_e2e_checklist_gaps.py::test_manuscript_docx_upload_creates_chapters_from_content` | **New, passing** — builds a real DOCX in-memory, uploads it, asserts chapters were actually persisted |
+| 1 | Manuscript upload | `backend` + `browser` | Backend: `test_e2e_checklist_gaps.py::test_manuscript_docx_upload_creates_chapters_from_content` (passing). Browser: `frontend/tests/browser/manuscript-upload.spec.ts` | **Split result, corrected 2026-09-22 closure.** Backend endpoint fully works. **Real frontend gap found executing the browser spec live:** `manuscriptApi.upload` (lib/api.ts) is never called from any component — confirmed via exhaustive `grep -rln "manuscriptApi\."` across `app/` and `components/` (zero results) and by opening every workspace tab live. An author cannot upload a manuscript through the UI at all today. The browser spec now documents this as a reproducible, plainly-failing check |
 | 2 | OCR | `browser` | `frontend/tests/browser/ocr-panel.spec.ts` | Existing coverage |
-| 3 | Audio transcription | `backend` (real faster-whisper inference — slow, not GPU-dependent but CPU/model-load heavy) | No existing dedicated test found | **Gap, tracked, not filled** — a real audio fixture + faster-whisper run is a meaningfully larger addition than this round's scope |
-| 4 | Notes/cards | `backend` | `routers/ocr.py`'s note endpoints — no dedicated test found | **Gap, tracked, not filled** |
+| 3 | Audio transcription | `manual` | `frontend/tests/browser/audio-transcription.spec.ts` (full justification + manual procedure in its own docstring) | **MANUAL, justified (2026-09-22 closure).** No TTS tool available in this environment to generate a real speech fixture (checked: espeak/espeak-ng/festival, gtts/pyttsx3, ffmpeg — all absent); a silent/tone fixture would only prove upload plumbing, not real transcription, risking a false pass |
+| 4 | Notes/cards | `backend` | `test_e2e_checklist_gaps_2.py::test_note_create_and_list_persists` + `::test_note_card_create_and_list_persists` (routes are under `/api/ocr/`, not `/api/stories/` — found while writing this test) | **Filled (2026-09-22 closure)** |
 
 ## Table 5 — Productivity and platform
 
 | # | Feature | Layer | Where | Status |
 |---|---|---|---|---|
 | 1 | Voice agent | `browser` | new spec, 6.4 (`voice-agent-action.spec.ts`) | Planned — see 6.4 section of the Stage 6 report |
-| 2 | Pacing goals | `backend` | No dedicated test found (deterministic, no AI per CLAUDE.md) | **Gap, tracked, not filled** — lowest risk of the found gaps (no AI involved) |
+| 2 | Pacing goals | `backend` | `test_e2e_checklist_gaps_2.py::test_pacing_goal_set_and_persists` | **Filled (2026-09-22 closure)** |
 | 3 | Writing analytics | `backend` | `test_analytics_service.py` (22 tests) | Existing, extensive coverage |
 | 4 | Activity timeline | `backend` | `test_e2e_checklist_gaps.py::test_activity_event_record_and_list_round_trip` | **New, passing at the API level.** Separately and importantly: the live database was found to have **zero** `activity_events` rows despite real author usage during the 2026-09-22 session, even though a frontend caller (`StoryContextEngine.tsx`) exists. This test proves the record/list endpoints themselves work; it does not explain why the real trigger path produced nothing. Per explicit instruction, this is recorded as a documented open observability gap, not expanded into an audit-logging investigation |
 | 5 | JWT auth (register/logout/login/persistence) | `backend` | `test_e2e_checklist_gaps.py::test_register_then_login_again_sees_the_same_projects` | **New, passing** — a real register → create project → re-login → list projects round trip |
@@ -85,11 +85,14 @@ never per-commit), `manual` (documented reason it stays manual).
 
 ## Summary
 
+**As of the 2026-09-22 closure pass** (all 5 new Playwright browser specs executed live against a real stack; all 6 previously-documented backend gaps filled or explicitly justified as manual):
+
 - **40/40 rows accounted for.**
 - **21** already had existing coverage (referenced, not duplicated).
-- **10** got new passing tests this round (project CRUD, chapter creation, DOCX/PDF export, manuscript upload, activity round-trip, JWT round-trip, style-transform regression guard — some rows share one new test).
-- **3** are `known_stage5_defect` — genuinely broken, deliberately failing, excluded from required CI, runnable on demand (narrative threads, plot holes, manuscript report persistence).
-- **1** is a newly-found `xfail(strict=True)` gap (chapter reorder — no API exists at all).
-- **7** are documented, tracked, unfilled gaps (style drift test, plot assistant test, voice consistency test, audio transcription test, notes/cards test, pacing goals test) — real absences, honestly recorded rather than silently left unaccounted for, not fixed this round to keep Stage 6's scope bounded.
-- **2** (rich text/autosave, voice agent) are planned as new Playwright browser specs under task 6.4.
-- **1** (OCR) already has full browser coverage.
+- **16** now have new, passing automated tests (project CRUD, chapter creation, DOCX/PDF export, manuscript-upload backend, activity round-trip, JWT round-trip, style-transform regression guard, style drift, plot assistant, voice consistency, notes, note cards, pacing goals, autosave persistence [browser], story bible generation [browser], voice agent action [browser]).
+- **3** are `known_stage5_defect` — genuinely broken, deliberately failing, excluded from required CI, runnable on demand (narrative threads, plot holes, manuscript report persistence) — confirmed live: 2 reproduce deterministically (narrative threads, manuscript report persistence), 1 (plot holes) is real but sampling-dependent and did not reproduce in this run.
+- **2** are newly-found `xfail`/plainly-failing gaps, confirmed live, not worked around: chapter reorder (no API exists at all) and manuscript upload (no frontend UI exists at all, despite a working backend).
+- **1** is genuinely MANUAL with a documented justification and step-by-step procedure: audio transcription (no TTS tool available in this environment to generate a real speech fixture).
+- **1** (OCR) already has full, existing browser coverage.
+
+**6.4's 5 new Playwright browser specs — final live results:** autosave persistence **PASS**, story bible generation **PASS**, voice agent action **PASS**, manuscript upload **FAIL** (real product gap, not a selector bug), audio transcription **MANUAL** (justified above). 3 real selector/timing bugs were found and fixed in the FIRST three specs while executing them live (documented in each file's own comments) — none were product bugs.

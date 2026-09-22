@@ -16,7 +16,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from . import catalog
-from .capabilities import CAPABILITY_REGISTRY, get_action, disambiguate_action
+from .capabilities import CAPABILITY_REGISTRY, disambiguate_action
 
 logger = logging.getLogger(__name__)
 

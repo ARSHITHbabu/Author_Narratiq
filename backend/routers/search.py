@@ -16,7 +16,6 @@ Safety rules enforced here:
 
 import re
 from html import unescape
-from typing import Optional
 
 import logging
 

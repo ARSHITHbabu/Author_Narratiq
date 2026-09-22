@@ -6,7 +6,6 @@ All endpoints are story-scoped and enforce ownership via _get_owned_story().
 """
 import asyncio
 import logging
-from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy import text
@@ -27,8 +26,6 @@ from services.ai_service import (
     get_arc_assessment,
     check_continuity,
     describe_style_drift,
-    get_bge,
-    vector_distance,
 )
 
 logger = logging.getLogger(__name__)

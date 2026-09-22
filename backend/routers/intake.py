@@ -1,7 +1,6 @@
 import asyncio
 import json
 import logging
-import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session

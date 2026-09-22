@@ -4,15 +4,35 @@ Stage 6 task 6.6 — links closed issues to the specific test(s) that guard
 against them reopening. Built by cross-referencing `docs/issues-and-bugs/triage-register.md`
 and the Stage 3/5 checklist entries against the actual test suite.
 
-**Scope note, stated honestly rather than silently:** this round covers the
-14 Phase 2 issues (fully enumerated, all individually mapped below) and the
-16 Stage 5 tasks (mapped at task level, matching the granularity the
-checklist itself already records evidence at). The ~154 individual Phase 1
-issue numbers (48 AI Writing Tools + 16 Plot Assistant + 16 Suggestions +
-14 Cast/Character + 15 Story Audit + 6 Analytics + 14 Search + 18 Editor UI)
-are addressed by Stage 5's task-level closures but are **not** individually
-enumerated issue-by-issue here — doing so exhaustively is a large, separable
-effort or the same order of size as this checklist itself, and forcing it
+## Proposed acceptance criterion for 6.6 (requires author approval — see below)
+
+The Stage 6 plan's original Definition of Done for 6.6 was "every closed
+issue maps to a named regression test." Evidence gathered during the
+2026-09-22 closure pass shows this is not achievable at full granularity
+within Stage 6 without materially expanding its scope:
+
+- **Phase 2: 14/14 issues, fully enumerated, individually mapped.** Done — see the table below.
+- **Phase 1: exactly 147 individual issue numbers** (48 AI Writing Tools + 16
+  Plot Assistant + 16 Suggestions + 14 Cast/Character + 15 Story Audit + 6
+  Analytics + 14 Search + 18 Editor UI — counted directly from
+  `docs/issues-and-bugs/triage-register.md`, not estimated). Stage 5 closed
+  these at **task** granularity (16 tasks, each closing a named cluster of
+  issues, evidenced in the checklist itself with specific test files per
+  task). Individually re-deriving which of the 147 numbers each test
+  actually covers — the same rigor already applied to Phase 2's 14 — is
+  itself an undertaking on the order of a full checklist stage, not a
+  closure-pass task.
+
+**Proposed revised criterion:** 6.6's Definition of Done is met when (a)
+every Phase 2 issue is individually mapped [done], AND (b) every Stage 5
+task is mapped to its guarding test(s) at task granularity with the
+originating issue cluster named [done, table below], with Phase 1's
+147-issue individual-level mapping tracked as an explicit, separate
+follow-up item — not silently treated as equivalent to full closure, and
+not part of Stage 6. **This is a proposal, not a decision already made** —
+recorded here for the author's explicit approval or a directed alternative.
+
+---
 into this round would be exactly the kind of scope expansion Stage 6 was
 told not to take on unless a Stage 6 requirement genuinely needs it. Task
 6.6's own "Definition of done" (no closed issue can silently reopen) is met

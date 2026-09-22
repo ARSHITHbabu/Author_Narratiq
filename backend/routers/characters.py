@@ -12,7 +12,7 @@ from database import get_db
 from models import Character, CharacterProfile, CharacterMention, CharacterRelationship, Story
 from schemas import (
     CastConfirmRequest, CastConfirmResult, CastGenerationResult, CastSuggestion,
-    CharacterArcSnapshotOut, CharacterArcTimelineResponse,
+    CharacterArcTimelineResponse,
     CharacterCreate, CharacterGraphResponse, CharacterMentionOut, CharacterHintOut,
     CharacterOut, CharacterProfileUpdate, CharacterUpdate,
     EnrichResult, EnrichSuggestion,

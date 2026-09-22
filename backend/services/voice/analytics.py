@@ -127,7 +127,6 @@ def rollup_daily(day: str | None = None) -> dict:
     user_id=None). Idempotent upsert. Returns the computed global metrics."""
     from database import SessionLocal
     from models import VoiceCommand, VoiceSession, VoiceUsageDaily
-    from sqlalchemy import func
 
     day = day or datetime.utcnow().strftime("%Y-%m-%d")
     start = datetime.strptime(day, "%Y-%m-%d")
