@@ -616,7 +616,10 @@ rm -rf "$FRONTEND_DIR/.next"
 rm -rf "$FRONTEND_DIR/node_modules/.cache" 2>/dev/null || true
 
 echo "  Building cleanly (~30-60s)..."
-if ! npm run build > "$LOG_DIR/frontend-build.log" 2>&1; then
+# Pass the computed URL explicitly: Next.js gives an OS-level NEXT_PUBLIC_API_URL
+# precedence over .env.local (demonstrated 2026-09-25, runpod-environment-variables.md
+# §11 item 2), so a stale value left in the RunPod UI would otherwise be baked in.
+if ! NEXT_PUBLIC_API_URL="${BACKEND_PUBLIC_URL}" npm run build > "$LOG_DIR/frontend-build.log" 2>&1; then
   echo "  ERROR: Frontend build FAILED. Check: tail -40 $LOG_DIR/frontend-build.log"
   tail -20 "$LOG_DIR/frontend-build.log" || true
   exit 1
