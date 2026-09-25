@@ -77,6 +77,15 @@ export async function mockApi(page: Page, extra: Handler[] = []): Promise<ApiLog
     if (method === 'GET' && path === `/api/stories/${STORY_ID}/characters`) return json(route, [])
     if (method === 'GET' && path.endsWith('/genre-profile')) return json(route, null)
 
+    // ── Stage 5 (merged from main): scan status and the saved report ────────
+    if (method === 'GET' && path === `/api/stories/${STORY_ID}/narrative-threads/scan-status`) {
+      return json(route, { scan_id: null, status: 'none', threads_written: 0, chapters_scanned: 0,
+        batches_degraded: 0, error_code: null, started_at: null, finished_at: null })
+    }
+    if (method === 'GET' && path === `/api/stories/${STORY_ID}/manuscript-report`) {
+      return json(route, { detail: 'No saved report for this story yet.' }, 404)
+    }
+
     // Generic fallback: an empty but well-formed body. GETs of collections get [],
     // everything else {}. Recorded so a spec can assert nothing unexpected fired.
     log.unmatched.push(`${method} ${path}`)

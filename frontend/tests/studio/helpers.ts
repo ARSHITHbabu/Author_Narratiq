@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test'
+import { expect, type Page } from '@playwright/test'
 
 /** Visible, enabled interactive controls on the page (the 8.4 disclosure metric).
  *  Per-chapter binder entries are excluded: they scale with the manuscript, not
@@ -29,4 +29,17 @@ export async function countVisibleControls(page: Page): Promise<{ count: number;
 /** True when the document scrolls horizontally. */
 export async function hasHorizontalScroll(page: Page): Promise<boolean> {
   return page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1)
+}
+
+/** Open the Command Palette. Right after a navigation the page may not be
+ *  hydrated yet, and a Ctrl+K pressed before the shell's key listener exists is
+ *  simply lost (seen once under full-suite load). Retry the key until the
+ *  palette's input appears. */
+export async function openPalette(page: Page) {
+  const input = page.getByPlaceholder(/Search workspaces/)
+  await expect(async () => {
+    await page.keyboard.press('Control+k')
+    await expect(input).toBeVisible({ timeout: 1000 })
+  }).toPass({ timeout: 15000 })
+  return input
 }

@@ -150,7 +150,16 @@ export default function WriteWorkspace() {
   // same words: the editor stays silent if the range did not change, so the
   // gesture is republished here as a new object. That is what lets an Escape-
   // dismissed toolbar come back on re-selection (review M2; see isDismissedFor).
+  // Only a gesture that started in the manuscript text can make a new selection.
+  // Anything else (e.g. releasing the editor's scrollbar) must not bring back a
+  // toolbar the author dismissed with Escape (Stage 8 review R1).
+  const pressStartedInTextRef = useRef(false)
+  const notePressStart = useCallback((e: { target: EventTarget }) => {
+    pressStartedInTextRef.current = !!(e.target as HTMLElement).closest?.('.ProseMirror')
+  }, [])
   const republishSelection = useCallback(() => {
+    if (!pressStartedInTextRef.current) return
+    pressStartedInTextRef.current = false
     requestAnimationFrame(() => {
       const m = methodsRef.current
       const range = m?.getSelectionRange()
@@ -216,7 +225,7 @@ export default function WriteWorkspace() {
 
           <Panel id="editor" order={2} className="min-w-0 relative">
             <div ref={editorAreaRef} className={`h-full overflow-y-auto relative ${store.typewriter ? 'pb-[40vh]' : ''}`}
-              onMouseUp={republishSelection}>
+              onMouseDown={notePressStart} onMouseUp={republishSelection}>
               <EditorWithMethods
                 storyId={storyId}
                 chapter={activeChapter}

@@ -131,8 +131,13 @@ class Settings(BaseSettings):
     # had already been captured against v1, per the required capture-before-
     # change ordering. Fallback stays "v1" (the frozen baseline) so an
     # unknown/misconfigured version never silently falls forward to v2.
-    prompt_version:          str = "v2"
-    prompt_version_fallback: str = "v1"
+    # v3 (Stage 5 live-review fix D4) changes only the style prompt and adds the
+    # continuity signals; every other transform resolves to its v2 builder
+    # under v3. Fallback is "v2" so a misconfigured version lands on the
+    # Stage 5 prompts, not on the pre-Stage-5 v1 baseline. PROMPT_VERSION=v2
+    # restores the previous behaviour exactly (rollback by config).
+    prompt_version:          str = "v3"
+    prompt_version_fallback: str = "v2"
 
     # Streaming STT runs faster-whisper on CPU behind a bounded worker pool so it
     # never contends with vLLM/BGE-M3 on the GPU. Scale out via CPU replicas.

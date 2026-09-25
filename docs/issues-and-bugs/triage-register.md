@@ -56,7 +56,7 @@ below as cross-references, not counted twice.
 | P2-7 | Notes module loads inconsistently | Medium–High | Resolved | 3.11 | 2026-07-26 |
 | P2-8 | Story Bible hallucinates content outside the manuscript | Critical | Resolved | 3.2, 3.3 | 2026-07-26 |
 | P2-9 | Character recognition not synced with added profiles | Medium–High | Resolved | 3.12 | 2026-07-26 |
-| P2-10 | Notes/Threads duplicated across navigation | Medium | Resolved (Stage 8, branch `claude/stage-8-studio-workspaces`, not merged) | 8.8 | 2026-09-25 |
+| P2-10 | Notes/Threads duplicated across navigation | Medium | Resolved (Stage 8, branch `claude/stage-8-studio-workspaces`, not yet on `main`) | 8.8 | 2026-09-25 |
 | P2-11 | Floating toolbar appears when AI sidebar is open | Medium | Resolved | 3.8 | 2026-07-26 |
 | P2-12 | Scene outline generation produces nothing | High | Resolved | 3.1 | 2026-07-24 |
 | P2-13 | Chapter continuation generation fails | High | Resolved | 3.1 | 2026-07-24 |

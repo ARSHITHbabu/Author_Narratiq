@@ -3,11 +3,11 @@
 | | |
 |---|---|
 | Stage | 8 — Editor UI and Author Workspace Redesign (the Studio) |
-| Branch | `claude/stage-8-studio-workspaces` (cut from `main` at `06850cf`; not merged) |
+| Branch | `claude/stage-8-studio-workspaces`: cut from `main` at `06850cf`; its first commit (the pins-router fix) reached `main` in PR #3; `main` at `abbb4f1` (which adds Stage 2 and Stage 5 from PR #2) was merged back in on 2026-09-25. The Stage 8 work itself is not on `main` |
 | Created | 2026-09-25 |
 | Status | **PENDING MANUAL VERIFICATION** |
 | Checklist | [`docs/NarratIQ_Master_Implementation_Checklist.md`](../../NarratIQ_Master_Implementation_Checklist.md), Stage 8 and its Completion Gate |
-| Why this exists | The cloud has no pod, no vLLM, no real author and no screen reader. Stage 8 was verified there with a mocked-API Playwright suite (`frontend/tests/studio/`, 61 tests) plus unit tests. Everything that needs the real stack, real AI output or a person's judgement is listed here instead of being ticked. |
+| Why this exists | The cloud has no pod, no vLLM, no real author and no screen reader. Stage 8 was verified there with a mocked-API Playwright suite (`frontend/tests/studio/`, 65 tests) plus unit tests. Everything that needs the real stack, real AI output or a person's judgement is listed here instead of being ticked. |
 
 **Safety rules for every item:** take the backup in MV-8.0 first. Never stop or restart the pod (restarting the frontend or backend *process* is fine). Use the disposable fixture story (`backend/scripts/seed_fixture.py`) for anything that writes. Do not paste manuscript text into any external tool. Do not print `SECRET_KEY`.
 
@@ -35,7 +35,8 @@
 | 8.10 Viewport matrix 1920→768 | 8.10 | VERIFIED IN CLOUD |
 | 8.11 Multi-hour author session | 8.11 | IMPLEMENTED — MANUAL VERIFICATION REQUIRED (MV-8.7) |
 | Stage 7 carry-forward: selection-toolbar test 9 | 7.15 | Fixed; VERIFIED IN CLOUD; live re-run MV-8.3 |
-| Pins router startup fix (`f387d1d`) | — | VERIFIED IN CLOUD (`import main` loads 163 routes) |
+| Pins router startup fix (`f387d1d`, now also on `main`) | — | VERIFIED IN CLOUD (`import main` loads 165 routes after the merge) |
+| Stage 5 surfaces inside the Studio (merged from `main`): scan outcome, saved report, near-no-op result | — | VERIFIED IN CLOUD (`tests/studio/stage5.spec.ts`, mocked); live behaviour is the Stage 5 guide's MV-5.D1, MV-5.D2 and MV-5.D4, now done from Analyze and the Write AI panel |
 
 No item is FAILED. Nothing in this stage touches the database schema; there is no migration.
 
@@ -49,8 +50,8 @@ No item is FAILED. Nothing in this stage touches the database schema; there is n
 | Requirement | The pod serves the Stage 8 frontend and backend without data loss |
 | Why the cloud could not verify it | The cloud built the app against a mock API only |
 | Required environment | RunPod pod terminal |
-| Preconditions | No author work in progress; you have decided to test this branch on the pod (it is not merged) |
-| Procedure | 1. `bash scripts/backup_database.sh` (note the path)  2. `git fetch origin claude/stage-8-studio-workspaces && git checkout claude/stage-8-studio-workspaces`  3. `cd backend && python3 -c "import main; print(len(main.app.routes))"` (expect about 163 and no error)  4. Compare dependencies: `pip freeze > /tmp/freeze.txt` and check every package in `backend/requirements.txt` is present at a compatible version (Stage 8 adds no Python dependency; this confirms the pod still matches)  5. `cd ../frontend && npm install && npm run build` (NEXT_PUBLIC_API_URL comes from `.env.local`, which `start-narratiq.sh` writes)  6. Restart the backend and frontend processes (or re-run `bash start-narratiq.sh`)  7. `curl -s http://localhost:8000/api/health` |
+| Preconditions | No author work in progress; you have decided to test this branch on the pod (Stage 8 is not on `main`) |
+| Procedure | 1. `bash scripts/backup_database.sh` (note the path)  2. `git fetch origin claude/stage-8-studio-workspaces && git checkout claude/stage-8-studio-workspaces`  3. `cd backend && python3 -c "import main; print(len(main.app.routes))"` (expect about 165 and no error)  4. Compare dependencies: `pip freeze > /tmp/freeze.txt` and check every package in `backend/requirements.txt` is present at a compatible version (Stage 8 adds no Python dependency; this confirms the pod still matches)  5. `cd ../frontend && npm install && npm run build` (NEXT_PUBLIC_API_URL comes from `.env.local`, which `start-narratiq.sh` writes)  6. Restart the backend and frontend processes (or re-run `bash start-narratiq.sh`)  7. `curl -s http://localhost:8000/api/health` |
 | Expected result | Steps 3, 5 and 7 succeed; the build prints `/projects/[id]/write` around 128 kB / 290 kB; the app opens on the workspace rail |
 | Failure indicators | Import error in step 3; a missing or mismatched package in step 4; build failure |
 | Evidence to capture | Backup path; route count; any mismatched packages; the build's route table line for `/write` |
@@ -63,7 +64,7 @@ No item is FAILED. Nothing in this stage touches the database schema; there is n
 |---|---|
 | Requirement | The cloud results reproduce on the pod's machine |
 | Procedure | `cd frontend && npm run test:studio` then `npx playwright test --project=unit` |
-| Expected result | 61 studio tests (3 variant-only tests skipped), 98 unit tests, all passing |
+| Expected result | 65 studio tests (3 variant-only tests skipped), 99 unit tests, all passing |
 | Evidence to capture | The two summary lines |
 | Status | **PENDING MANUAL VERIFICATION** |
 
@@ -80,6 +81,7 @@ No item is FAILED. Nothing in this stage touches the database schema; there is n
 | Expected result | All pass (tests that `skip` on a missing precondition are listed as skipped, not failed) |
 | Failure indicators | A locator timeout in one of the seven updated specs usually means the spec and UI disagree; send the test name and the error |
 | Evidence to capture | `/tmp/stage8-browser.txt` summary and any failures |
+| Stage 5 note | The Stage 5 guide's MV-5.D1 (Narrative Threads scan), MV-5.D2 (saved Manuscript Report) and MV-5.D4 (near-no-op Style result) now start from Analyze → Narrative Threads, Analyze → Manuscript Report and Write → AI assistant → Rewrite tool. Run them in this layout |
 | Checklist affected | 8.6 "Every Phase 3 capability is reachable and usable"; Stage 8 gate |
 | Status | **PENDING MANUAL VERIFICATION** |
 
@@ -117,7 +119,7 @@ No item is FAILED. Nothing in this stage touches the database schema; there is n
 | Related task | 8.3, 8.4, 8.5 author-review boxes; Stage 8 prerequisite "a named design owner" |
 | Requirement | The author judges the redesign on its own terms |
 | Why the cloud could not verify it | These are judgements only the author can make |
-| Procedure | Using the fixture story or a real manuscript: 1. **Focal point (8.3):** open Write with the AI panel closed. Is the manuscript clearly the main thing on screen? Try Reading, Focus and Zen (View menu; Escape leaves them)  2. **Discoverability (8.4):** without help, find: Story Bible, Notes, the Idea Shelf, Search & replace, Pacing, Continuity, Compare versions. Note any you could not find within 30 s, and try Ctrl/⌘K for them  3. **Drafting session (8.5):** 20+ minutes in Draft mode writing new text. Did anything distract?  4. **Editing session (8.5):** 20+ minutes in Edit mode revising with the AI panel and selection toolbar  5. **Design owner:** confirm or name the design owner for Stage 8 (currently recorded as Arshith, pending confirmation) |
+| Procedure | Using the fixture story or a real manuscript: 1. **Focal point (8.3):** open Write with the AI panel closed. Is the manuscript clearly the main thing on screen? Try Reading, Focus and Zen (View menu; Escape leaves them)  2. **Discoverability (8.4):** without help, find: Story Bible, Notes, the Idea Shelf, Search & replace, Pacing, Continuity, Compare versions, and the voice agent (its buttons in the header and the AI panel were removed as duplicates; it lives in Assistant and in Ctrl/⌘K). Note any you could not find within 30 s, and try Ctrl/⌘K for them  3. **Drafting session (8.5):** 20+ minutes in Draft mode writing new text. Did anything distract?  4. **Editing session (8.5):** 20+ minutes in Edit mode revising with the AI panel and selection toolbar  5. **Design owner:** confirm or name the design owner for Stage 8 (currently recorded as Arshith, pending confirmation) |
 | Expected result | A yes / no with a sentence for each of 1–4; any tool not found in step 2 is recorded |
 | Evidence to capture | Answers to 1–5 |
 | Checklist affected | 8.3, 8.4, 8.5 author-review boxes; the design-owner note in the Stage 8 header |

@@ -88,6 +88,9 @@ class Story(Base):
     narrative_threads        = relationship("NarrativeThread",           back_populates="story", cascade="all, delete-orphan")
     pacing_goal              = relationship("PacingGoal",                back_populates="story", uselist=False, cascade="all, delete-orphan")
     audio_uploads            = relationship("AudioUpload",               back_populates="story", cascade="all, delete-orphan")
+    # Stage 5 (migration 0023)
+    narrative_thread_scan    = relationship("NarrativeThreadScan",       back_populates="story", uselist=False, cascade="all, delete-orphan")
+    manuscript_report        = relationship("ManuscriptReportRecord",    back_populates="story", uselist=False, cascade="all, delete-orphan")
 
 
 class Chapter(Base):
@@ -1173,6 +1176,55 @@ class NarrativeThread(Base):
     updated_at          = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     story = relationship("Story", back_populates="narrative_threads")
+
+
+class NarrativeThreadScan(Base):
+    """Latest narrative-thread scan for a story (Stage 5, D1) — one row per story.
+
+    Makes the background scan observable: the UI polls this instead of guessing
+    how long a scan takes, and a failed or empty scan is reported instead of
+    leaving the panel waiting forever. status: pending | running | completed |
+    completed_empty | failed. A second scan while one is pending/running reuses
+    this row rather than starting a concurrent one.
+    """
+    __tablename__ = "narrative_thread_scans"
+    __table_args__ = (UniqueConstraint("story_id", name="uq_narrative_thread_scans_story_id"),)
+    scan_id           = Column(String,   primary_key=True, default=gen_uuid)
+    story_id          = Column(String,   ForeignKey("stories.story_id", ondelete="CASCADE"), nullable=False)
+    user_id           = Column(String,   ForeignKey("users.user_id"),    nullable=False)
+    status            = Column(String,   nullable=False, default="pending")
+    threads_written   = Column(Integer,  default=0)
+    chapters_scanned  = Column(Integer,  default=0)
+    batches_degraded  = Column(Integer,  default=0)
+    error_code        = Column(String,   nullable=True)   # author-safe code, never exception text
+    started_at        = Column(DateTime, default=datetime.utcnow)
+    finished_at       = Column(DateTime, nullable=True)
+    updated_at        = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    story = relationship("Story", back_populates="narrative_thread_scan")
+
+
+class ManuscriptReportRecord(Base):
+    """Latest saved /manuscript-report for a story (Stage 5, D2) — one row per story.
+
+    Stores only the validated report (after citation validation). Regenerating
+    replaces it. source_fingerprint lets the API tell the author when chapters
+    have changed since the report was generated. Author work product: included
+    in logical backups (unlike ai_generation_pins, decision D9).
+    """
+    __tablename__ = "manuscript_reports"
+    __table_args__ = (UniqueConstraint("story_id", name="uq_manuscript_reports_story_id"),)
+    report_id          = Column(String,   primary_key=True, default=gen_uuid)
+    story_id           = Column(String,   ForeignKey("stories.story_id", ondelete="CASCADE"), nullable=False)
+    user_id            = Column(String,   ForeignKey("users.user_id"),    nullable=False)
+    content_json       = Column(Text,     nullable=False, default="{}")
+    chapters_analyzed  = Column(Integer,  default=0)
+    source_fingerprint = Column(String(64), nullable=False, default="")
+    degraded           = Column(Boolean,  default=False)
+    created_at         = Column(DateTime, default=datetime.utcnow)
+    updated_at         = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    story = relationship("Story", back_populates="manuscript_report")
 
 
 class PacingGoal(Base):

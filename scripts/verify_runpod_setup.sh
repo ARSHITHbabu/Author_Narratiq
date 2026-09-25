@@ -15,9 +15,41 @@
 # restarts any service.
 #
 # Usage:
-#   bash scripts/verify_runpod_setup.sh
+#   bash scripts/verify_runpod_setup.sh                    # pre-start or any time
+#   bash scripts/verify_runpod_setup.sh --expect-running   # after start-narratiq.sh
+#
+# Modes:
+#   default           A service that is not listening is reported NOT STARTED as a
+#                     warning, so the script is useful before the stack is up.
+#   --expect-running  (or EXPECT_RUNNING=1) For checking a stack that should be up.
+#                     A service that is not listening, and an exposed-but-dead proxy
+#                     port (HTTP 502), count as FAILURES, so a crashed service can
+#                     never produce "All checks passed".
+#
+# Optional environment:
+#   RUNPOD_API_KEY    Injected by RunPod into every pod. When set together with
+#                     RUNPOD_POD_ID, the pod's exposed-port list is read from the
+#                     RunPod API to confirm 3000/8000 are exposed. The key is sent
+#                     on stdin as a header — never in a URL, argv, or output.
+#   RUNPOD_API_URL, RUNPOD_PROXY_URL_TEMPLATE
+#                     TEST-ONLY seams used by scripts/tests/test_verify_runpod_setup.py
+#                     to point the RunPod checks at local stubs. Only https:// or
+#                     http://127.0.0.1 values are accepted. Do not set in production.
 
 set -uo pipefail
+
+EXPECT_RUNNING="${EXPECT_RUNNING:-0}"
+for arg in "$@"; do
+    case "${arg}" in
+        --expect-running) EXPECT_RUNNING=1 ;;
+        -h|--help) sed -n '2,40p' "$0"; exit 0 ;;
+        *) echo "Unknown argument: ${arg} (see --help)" >&2; exit 2 ;;
+    esac
+done
+[ "${EXPECT_RUNNING}" = "1" ] || EXPECT_RUNNING=0
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 MODEL_BASE_DIR="${MODEL_BASE_DIR:-/workspace/models}"
 LLM_MODEL_PATH="${LLM_MODEL_PATH:-${MODEL_BASE_DIR}/Qwen2.5-7B-Instruct}"
@@ -35,9 +67,30 @@ ok()   { echo "  [OK]  $1"; PASS=$((PASS+1)); }
 fail() { echo "  [FAIL] $1"; FAIL=$((FAIL+1)); }
 warn() { echo "  [WARN] $1"; }
 hdr()  { echo ""; echo "── $1"; }
+# A service that isn't up: informational before start, a failure in --expect-running mode.
+not_started() {
+    if [ "${EXPECT_RUNNING}" -eq 1 ]; then
+        fail "$1 — NOT RUNNING, but --expect-running was given (check: bash start-narratiq.sh, /tmp/narratiq-logs/)"
+    else
+        warn "$1 — NOT STARTED (run: bash start-narratiq.sh)"
+    fi
+}
+# Accept only https:// or loopback http:// for the test seams, so a stray value can
+# never send the RunPod key in plaintext to an arbitrary host.
+url_allowed() {
+    case "$1" in
+        https://*|http://127.0.0.1:*|http://127.0.0.1/*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
 
 echo "======================================================"
 echo " NarratIQ AI — RunPod Setup Verification"
+if [ "${EXPECT_RUNNING}" -eq 1 ]; then
+    echo " Mode: --expect-running (a service that is down is a FAILURE)"
+else
+    echo " Mode: default (a service that is down is NOT STARTED, a warning)"
+fi
 echo "======================================================"
 
 # ── Python ────────────────────────────────────────────────────────────────────
@@ -191,20 +244,27 @@ fi
 # occupancy, so a stuck/broken service is caught rather than mistaken for healthy.
 hdr "Service Health"
 
+# ss, then netstat, then a direct loopback connect via bash's /dev/tcp — each tried
+# in turn, so a missing or restricted tool falls through to the next. Before the
+# /dev/tcp fallback existed, a host with neither ss nor netstat reported every
+# running service as NOT STARTED and could exit 0 without checking a single service.
 port_listening() {
-    ss -tln 2>/dev/null | grep -q ":$1 " || netstat -tln 2>/dev/null | grep -q ":$1 "
+    { command -v ss &>/dev/null && ss -tln 2>/dev/null | grep -q ":$1 "; } ||
+    { command -v netstat &>/dev/null && netstat -tln 2>/dev/null | grep -q ":$1 "; } ||
+    timeout 2 bash -c "exec 3<>/dev/tcp/127.0.0.1/$1" 2>/dev/null
 }
 
 VLLM_UP=0
 if port_listening "${VLLM_PORT}"; then
-    if curl -s -m 5 "http://localhost:${VLLM_PORT}/health" &>/dev/null; then
+    # -f: an HTTP error status (e.g. 500) is not "healthy".
+    if curl -sf -m 5 "http://localhost:${VLLM_PORT}/health" &>/dev/null; then
         ok "vLLM is listening on ${VLLM_PORT} and reports healthy"
         VLLM_UP=1
     else
-        fail "vLLM is listening on ${VLLM_PORT} but /health did not respond — check tail -50 /tmp/narratiq-logs/vllm.log"
+        fail "vLLM is listening on ${VLLM_PORT} but /health did not respond with success — check tail -50 /tmp/narratiq-logs/vllm.log"
     fi
 else
-    warn "vLLM (port ${VLLM_PORT}) — NOT STARTED (run: bash start-narratiq.sh)"
+    not_started "vLLM (port ${VLLM_PORT})"
 fi
 
 BACKEND_UP=0
@@ -228,7 +288,7 @@ if port_listening "${BACKEND_PORT}"; then
         fail "Backend is listening on ${BACKEND_PORT} but /api/health did not report ok — check tail -50 /tmp/narratiq-logs/backend.log"
     fi
 else
-    warn "Backend (port ${BACKEND_PORT}) — NOT STARTED (run: bash start-narratiq.sh)"
+    not_started "Backend (port ${BACKEND_PORT})"
 fi
 
 FRONTEND_UP=0
@@ -240,7 +300,7 @@ if port_listening "${FRONTEND_PORT}"; then
         fail "Frontend is listening on ${FRONTEND_PORT} but did not return HTTP 200 — check tail -50 /tmp/narratiq-logs/frontend.log"
     fi
 else
-    warn "Frontend (port ${FRONTEND_PORT}) — NOT STARTED (run: bash start-narratiq.sh)"
+    not_started "Frontend (port ${FRONTEND_PORT})"
 fi
 
 # ── External proxy reachability (RunPod only; skipped in local/non-RunPod dev) ─
@@ -249,16 +309,30 @@ if [ -n "${RUNPOD_POD_ID:-}" ]; then
     # Hits each service's own known-good path, not just "/" — a bare "/" on the
     # backend is a legitimate FastAPI 404 (JSON body {"detail":"Not Found"}) that
     # must not be confused with RunPod's own unexposed-port 404 (empty body).
+    # {port} is replaced per check. (Not written as ${VAR:-default}: the literal
+    # "}" of {port} would end that expansion early.)
+    PROXY_TEMPLATE="https://${RUNPOD_POD_ID}-{port}.proxy.runpod.net"
+    [ -n "${RUNPOD_PROXY_URL_TEMPLATE:-}" ] && PROXY_TEMPLATE="${RUNPOD_PROXY_URL_TEMPLATE}"
     check_proxy() {
         local port="$1" label="$2" path="$3"
-        local url="https://${RUNPOD_POD_ID}-${port}.proxy.runpod.net${path}"
+        if ! url_allowed "${PROXY_TEMPLATE}"; then
+            fail "RUNPOD_PROXY_URL_TEMPLATE must be https:// or http://127.0.0.1 — refusing to use it"
+            return
+        fi
+        local url="${PROXY_TEMPLATE//\{port\}/${port}}${path}"
         local resp code body
         resp=$(curl -s -m 8 -w "\n%{http_code}" "${url}" 2>/dev/null)
         code=$(echo "${resp}" | tail -1)
         body=$(echo "${resp}" | sed '$d')
         case "${code}" in
             200) ok "${label} proxy (${port}) reachable — HTTP 200" ;;
-            502) warn "${label} proxy (${port}) exposed but nothing listening yet (HTTP 502) — expected if the service hasn't started" ;;
+            502)
+                if [ "${EXPECT_RUNNING}" -eq 1 ]; then
+                    fail "${label} proxy (${port}) is exposed but nothing answers behind it (HTTP 502) — the service is down"
+                else
+                    warn "${label} proxy (${port}) exposed but nothing listening yet (HTTP 502) — expected if the service hasn't started"
+                fi
+                ;;
             404)
                 if [ -z "${body}" ]; then
                     fail "${label} proxy (${port}) returned an EMPTY-BODY 404 — port likely NOT EXPOSED at pod creation (see docs/operations/runpod-deployment.md, pod-creation prerequisite). This is never an application fault"
@@ -266,7 +340,8 @@ if [ -n "${RUNPOD_POD_ID:-}" ]; then
                     fail "${label} proxy (${port}) returned HTTP 404 with a response body (${body}) — this is an APPLICATION 404 (wrong path), not the unexposed-port signature. Port exposure looks fine; check the path/route instead"
                 fi
                 ;;
-            "") fail "${label} proxy (${port}) — no response (timeout or connection failure)" ;;
+            # curl reports 000 (not an empty string) when it gets no HTTP response at all.
+            ""|000) fail "${label} proxy (${port}) — no response (timeout or connection failure)" ;;
             *) warn "${label} proxy (${port}) returned unexpected HTTP ${code}" ;;
         esac
     }
@@ -274,6 +349,83 @@ if [ -n "${RUNPOD_POD_ID:-}" ]; then
     check_proxy "${BACKEND_PORT}"  "Backend"  "/api/health"
 else
     warn "RUNPOD_POD_ID not set — skipping external proxy checks (not a RunPod pod, or run from outside it)"
+fi
+
+# ── RunPod exposed-port list (RunPod only; needs RUNPOD_API_KEY) ──────────────
+# Root cause of the 2026-07 port-3000 404 incident: 3000/8000 were never exposed
+# at pod creation. The proxy check above can only infer that from an empty-body
+# 404; this reads the pod's port table directly. The query shape
+# (runtime { ports { privatePort type } }) is the one used live in
+# docs/incidents/runpod-port-3000-404-incident-report.md. An API error, a missing
+# permission or an unexpected response is a WARN ("could not determine"), never a
+# FAIL — only a successful answer that lacks a port is a failure.
+hdr "RunPod Port Exposure"
+if [ -z "${RUNPOD_POD_ID:-}" ] || [ -z "${RUNPOD_API_KEY:-}" ]; then
+    warn "RUNPOD_POD_ID or RUNPOD_API_KEY not set — skipping the RunPod port-list check"
+else
+    RUNPOD_API="${RUNPOD_API_URL:-https://api.runpod.io/graphql}"
+    if ! url_allowed "${RUNPOD_API}"; then
+        warn "RUNPOD_API_URL must be https:// or http://127.0.0.1 — refusing to send the API key there; port-list check skipped"
+    else
+        PORT_QUERY=$(python3 -c 'import json,sys; print(json.dumps({"query": "query($id: String!) { pod(input: {podId: $id}) { id runtime { ports { privatePort publicPort type } } } }", "variables": {"id": sys.argv[1]}}))' "${RUNPOD_POD_ID}")
+        # The key goes in on stdin (-H @-): not in the URL, not in argv, not in output.
+        PORT_RESP=$(printf 'Authorization: Bearer %s\n' "${RUNPOD_API_KEY}" | curl -s -m 10 -X POST \
+            -H @- -H "Content-Type: application/json" --data "${PORT_QUERY}" \
+            -w "\n%{http_code}" "${RUNPOD_API}" 2>/dev/null)
+        PORT_CODE=$(echo "${PORT_RESP}" | tail -1)
+        PORT_BODY=$(echo "${PORT_RESP}" | sed '$d')
+        if [ "${PORT_CODE}" != "200" ]; then
+            warn "RunPod API answered HTTP ${PORT_CODE:-none} — could not determine the exposed-port list (the proxy check above still applies)"
+        else
+            PORT_VERDICT=$(printf '%s' "${PORT_BODY}" | python3 -c '
+import json, sys
+wanted = [int(p) for p in sys.argv[1:]]
+try:
+    doc = json.load(sys.stdin)
+except Exception:
+    print("UNKNOWN response was not JSON"); sys.exit()
+if not isinstance(doc, dict) or doc.get("errors"):
+    print("UNKNOWN the API returned an error (possibly a key without pod-read permission)"); sys.exit()
+pod = (doc.get("data") or {}).get("pod")
+runtime = pod.get("runtime") if isinstance(pod, dict) else None
+ports = runtime.get("ports") if isinstance(runtime, dict) else None
+if not isinstance(ports, list):
+    print("UNKNOWN no runtime port table (pod not running, or unexpected response shape)"); sys.exit()
+exposed = {(p.get("privatePort"), str(p.get("type", "")).lower()) for p in ports if isinstance(p, dict)}
+for w in wanted:
+    print(("PRESENT " if (w, "http") in exposed else "MISSING ") + str(w))
+' "${FRONTEND_PORT}" "${BACKEND_PORT}")
+            while read -r verdict detail; do
+                case "${verdict}" in
+                    PRESENT) ok "Port ${detail} is exposed as an HTTP port on pod ${RUNPOD_POD_ID}" ;;
+                    MISSING) fail "Port ${detail} is NOT exposed as an HTTP port on pod ${RUNPOD_POD_ID} — ports are fixed at pod creation; add it via Edit Pod (see docs/operations/runpod-deployment.md, pod-creation prerequisite)" ;;
+                    UNKNOWN) warn "Could not determine the exposed-port list — ${detail} (the proxy check above still applies)" ;;
+                    *) warn "Could not determine the exposed-port list — unexpected parser output" ;;
+                esac
+            done <<< "${PORT_VERDICT}"
+        fi
+    fi
+fi
+
+# ── Frontend API URL drift ────────────────────────────────────────────────────
+# Next.js gives an OS-level NEXT_PUBLIC_API_URL precedence over frontend/.env.local
+# (demonstrated 2026-09-25, runpod-environment-variables.md §11 item 2), so a stale
+# value left in the RunPod UI would be baked into any manual `npm run build`.
+# start-narratiq.sh passes the computed value explicitly, so its own build is safe.
+hdr "Frontend API URL"
+ENV_LOCAL_FILE="${REPO_DIR}/frontend/.env.local"
+ENV_LOCAL_URL=""
+if [ -f "${ENV_LOCAL_FILE}" ]; then
+    ENV_LOCAL_URL=$(grep -E '^NEXT_PUBLIC_API_URL=' "${ENV_LOCAL_FILE}" | tail -1 | cut -d= -f2-)
+fi
+if [ -n "${NEXT_PUBLIC_API_URL:-}" ]; then
+    if [ "${NEXT_PUBLIC_API_URL}" != "${ENV_LOCAL_URL}" ]; then
+        warn "NEXT_PUBLIC_API_URL is set in the OS environment (${NEXT_PUBLIC_API_URL}) and differs from frontend/.env.local (${ENV_LOCAL_URL:-<not set>}). It wins over .env.local in any manual 'npm run build'. Remove it from the RunPod UI unless intended"
+    else
+        ok "OS NEXT_PUBLIC_API_URL matches frontend/.env.local"
+    fi
+else
+    ok "No OS-level NEXT_PUBLIC_API_URL override (frontend/.env.local governs builds)"
 fi
 
 # ── Smoke tests (real but throwaway requests; read-only w.r.t. application data) ─

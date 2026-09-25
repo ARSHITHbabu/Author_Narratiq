@@ -66,6 +66,7 @@ Also see the **Known Issues** summary in the [root README](../README.md#known-is
 ## Testing
 
 - [Author feature test checklist](./testing/author-feature-test-checklist.docx) — one manual test per feature, covering editor, transforms, story intelligence, characters, ingestion and platform
+- [Stage manual verification guides](./testing/manual-verification/) — per-stage lists of checks that need the pod, a browser or the author, with exact steps ([Stage 2](./testing/manual-verification/stage-02-manual-verification-guide.md))
 
 ## Incidents
 

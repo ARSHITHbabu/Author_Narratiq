@@ -80,6 +80,29 @@ test('Focus hides rail, binder and sidecar; Zen hides all chrome and Esc exits',
   await expect(page.locator('header')).toBeVisible()
 })
 
+test('R1: a press that did not start in the text (e.g. the scrollbar) keeps a dismissed toolbar hidden', async ({ page }) => {
+  await mockApi(page); await openWrite(page)
+  await firstPara(page).click()
+  await page.keyboard.press('Home')
+  await page.keyboard.press('Shift+End')
+  await expect(toolbar(page)).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(toolbar(page)).toHaveCount(0)
+  // A scrollbar drag fires mousedown/mouseup on the scroll container and leaves
+  // the selection untouched — exactly what these synthetic events do.
+  await page.evaluate(() => {
+    const area = document.querySelector('.ProseMirror')!.closest('.overflow-y-auto')!
+    for (const type of ['mousedown', 'mouseup']) area.dispatchEvent(new MouseEvent(type, { bubbles: true }))
+  })
+  await page.waitForTimeout(150)
+  await expect(toolbar(page)).toHaveCount(0)
+  // A real new selection in the text still brings it back.
+  await firstPara(page).click()
+  await page.keyboard.press('Home')
+  await page.keyboard.press('Shift+End')
+  await expect(toolbar(page)).toBeVisible()
+})
+
 test('M2: Escape hides the toolbar, and re-selecting the same words always brings it back', async ({ page }) => {
   await mockApi(page); await openWrite(page)
   // Same gesture as live selection-toolbar test 9: click, Home, Shift+End —

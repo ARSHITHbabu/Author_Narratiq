@@ -11,7 +11,7 @@ import { TransformResponse, ContinuationSuggestion, OutlineBeat, GenreProfile } 
 import { toast } from 'sonner'
 // Shared transform option config — single source of truth (also powers the
 // Selection Toolbar). No duplicated option lists across components.
-import { TONES, EMOTIONS, STYLES, LANGUAGES, REFINE_MODES, AUDIENCES, AUTHOR_STYLES, STRENGTH_LEVELS, splitSentences, type StrengthLevel } from '@/lib/transforms'
+import { TONES, EMOTIONS, STYLES, LANGUAGES, REFINE_MODES, AUDIENCES, AUTHOR_STYLES, STRENGTH_LEVELS, splitSentences, noChangeMessage, type StrengthLevel } from '@/lib/transforms'
 import { deriveToolDefaults, NEUTRAL_DEFAULTS, hasGenreProfile } from '@/lib/genreDefaults'
 import { P3_ENABLED, buildControls } from '@/lib/generationControls'
 import { useGenerationStore } from '@/lib/generationStore'
@@ -113,11 +113,19 @@ function ResultPanel({
             {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
             {copied ? 'Copied' : 'Copy'}
           </button>
-          <button onClick={onClose} className="text-[#8e94bd] hover:text-[#9da3c8]">
+          <button onClick={onClose} aria-label="Close result" className="text-[#8e94bd] hover:text-[#9da3c8]">
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
+
+      {result.no_change && (
+        // Stage 5 (D4): an unchanged result is never presented as a rewrite.
+        <p data-testid="sidebar-no-change" role="status"
+           className="mx-3 mt-3 text-[11px] text-sky-200 bg-sky-500/10 border border-sky-500/30 rounded px-2 py-1.5">
+          {noChangeMessage(result.reason)}
+        </p>
+      )}
 
       <div className="p-3 bg-[#0d0f1a]">
         <p className="text-xs text-[#9da3c8] leading-relaxed font-serif whitespace-pre-wrap">
@@ -142,7 +150,7 @@ function ResultPanel({
 
       <div className="px-3 py-2.5 border-t border-[#1f2440] flex items-center justify-between gap-2">
         <span className="text-xs text-[#8a90ba]">{result.tokens_used} tokens</span>
-        {onInsert && (
+        {onInsert && !result.no_change && (
           <button
             onClick={insert}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-black rounded-lg text-xs font-semibold transition-colors"

@@ -55,13 +55,13 @@ async def content_similarity(a: str, b: str) -> float:
     return float(ea @ eb / (np.linalg.norm(ea) * np.linalg.norm(eb)))
 
 
-async def _run_scenario(passage: dict, transform_type: str, target: str) -> dict:
+async def _run_scenario(passage: dict, transform_type: str, target: str, strength: str = "light") -> dict:
     trials = []
     for _ in range(N_TRIALS):
         if transform_type == "tone":
             result = await transform_tone(passage["text"], target)
         elif transform_type == "style":
-            result = await transform_style(passage["text"], target)
+            result = await transform_style(passage["text"], target, strength=strength)
         elif transform_type == "age_adapt":
             result = await adapt_for_age(passage["text"], target)
         else:
@@ -91,7 +91,7 @@ async def _run_scenario(passage: dict, transform_type: str, target: str) -> dict
     stdev = lambda key: statistics.stdev(t[key] for t in trials) if len(trials) > 1 else 0.0
     return {
         "passage_id": passage["id"], "genre": passage["genre"],
-        "transform_type": transform_type, "target": target,
+        "transform_type": transform_type, "target": target, "strength": strength,
         "trials": trials,
         "avg_text_similarity": avg("text_similarity"),
         "avg_content_similarity": avg("content_similarity"),
@@ -99,6 +99,23 @@ async def _run_scenario(passage: dict, transform_type: str, target: str) -> dict
         "stdev_content_similarity": stdev("content_similarity"),
         "byte_identical_rate": sum(1 for t in trials if t["byte_identical"]) / len(trials),
     }
+
+
+# Stage 5 live-review defect D4: Style "Thriller" came back unchanged. Opt-in
+# (--d4-thriller) so the standard scenario set, and every earlier report it is
+# compared with, stays exactly as it was.
+D4_THRILLER_STRENGTHS = ("moderate", "strong")
+
+
+async def run_d4_thriller() -> list[dict]:
+    results = []
+    for p in PASSAGES:
+        if "plain_register" not in p["tags"]:
+            continue
+        for strength in D4_THRILLER_STRENGTHS:
+            print(f"  running {p['id']} / style -> thriller @ {strength} ({N_TRIALS} trials)...", flush=True)
+            results.append(await _run_scenario(p, "style", "thriller", strength=strength))
+    return results
 
 
 async def run_all() -> list[dict]:
@@ -159,6 +176,8 @@ def summarize_consistency(report_path: Path) -> dict:
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--label", help="e.g. baseline_v1 or after_v2")
+    parser.add_argument("--d4-thriller", action="store_true",
+                        help="also run the Stage 5 D4 Thriller scenarios (moderate/strong)")
     parser.add_argument("--summarize-consistency", metavar="REPORT_JSON",
                          help="Recompute the 5.12-G consistency summary from an existing report, no new generation.")
     args = parser.parse_args()
@@ -173,6 +192,8 @@ def main():
 
     print(f"Golden-set measurement — prompt_version={settings.prompt_version}, label={args.label}")
     results = asyncio.run(run_all())
+    if args.d4_thriller:
+        results += asyncio.run(run_d4_thriller())
 
     out_path = Path(__file__).resolve().parents[1] / "tests" / "fixtures" / f"transform_golden_{args.label}.json"
     report = {

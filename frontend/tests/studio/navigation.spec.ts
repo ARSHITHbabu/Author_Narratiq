@@ -2,6 +2,7 @@
 // in its one home, sub-routes belong to their parent, Notes/Threads not duplicated.
 import { test, expect } from '@playwright/test'
 import { mockApi, signIn, workspaceUrl, STORY_ID } from './mockApi'
+import { openPalette } from './helpers'
 
 const RAIL = [
   ['write', 'Write'], ['plan', 'Plan'], ['characters', 'Characters'], ['world', 'World'],
@@ -85,8 +86,7 @@ test('Search & replace opens in Write with Ctrl+F and from the palette', async (
   await expect(page.getByPlaceholder(/search/i).first()).toBeVisible()
   await page.keyboard.press('Escape')
   await page.goto(workspaceUrl('plan'))
-  await page.keyboard.press('Control+k')
-  await page.getByPlaceholder(/Search workspaces/).fill('search & replace')
+  await (await openPalette(page)).fill('search & replace')
   await page.keyboard.press('Enter')
   await expect(page).toHaveURL(/\/write/)
   await expect(page.getByPlaceholder(/search/i).first()).toBeVisible()
@@ -100,8 +100,7 @@ test('palette deep links open a tool in its home', async ({ page }) => {
     ['Go to Pacing', /plan\?section=pacing/, 'Pacing'],
     ['Go to Story Bible', /world\?section=bible/, 'Story Bible'],
   ] as const) {
-    await page.keyboard.press('Control+k')
-    await page.getByPlaceholder(/Search workspaces/).fill(query)
+    await (await openPalette(page)).fill(query)
     await page.keyboard.press('Enter')
     await expect(page).toHaveURL(url)
     await expect(page.getByRole('tab', { name: tab, exact: true })).toHaveAttribute('aria-selected', 'true')

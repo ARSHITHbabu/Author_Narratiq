@@ -89,6 +89,8 @@ st = json.load(open("/tmp/.narratiq_roundtrip.json"))
 insp = inspect(eng)
 fails = []
 if insp.has_table("ai_generation_pins"): fails.append("ai_generation_pins still exists after downgrade")
+for t in ("narrative_thread_scans", "manuscript_reports"):   # 0023 (Stage 5)
+    if insp.has_table(t): fails.append(f"{t} still exists after downgrade")
 cols = {c["name"] for c in insp.get_columns("note_cards")}
 if cols & {"target_chapter_id", "tags", "status", "source_pin_id"}: fails.append(f"note_cards Phase 3 columns remain: {cols}")
 if "plan" in {c["name"] for c in insp.get_columns("users")}: fails.append("users.plan remains")
@@ -133,10 +135,14 @@ idx = {i["name"] for i in insp.get_indexes("ai_generation_pins")}
 need = {"ix_ai_generation_pins_expires_at","ix_ai_generation_pins_user_story","ix_ai_generation_pins_chapter",
         "ix_ai_generation_pins_content_sha","ix_ai_generation_pins_root"}
 if need - idx: fails.append(f"missing indexes: {need - idx}")
+for t, uq in (("narrative_thread_scans", "uq_narrative_thread_scans_story_id"),
+              ("manuscript_reports", "uq_manuscript_reports_story_id")):   # 0023 (Stage 5)
+    if not insp.has_table(t): fails.append(f"{t} missing after re-upgrade")
+    elif uq not in {u["name"] for u in insp.get_unique_constraints(t)}: fails.append(f"{uq} missing")
 with eng.begin() as c:
     ver = c.execute(text("SELECT version_num FROM alembic_version")).scalar()
     card = c.execute(text("SELECT status FROM note_cards WHERE card_id = :i"), dict(i=st["card_id"])).first()
-    if ver != "0022": fails.append(f"alembic version {ver} != 0022")
+    if ver != "0023": fails.append(f"alembic version {ver} != 0023")
     if card is None or card.status != "open": fails.append("idea card not readable as open after re-upgrade")
     c.execute(text("DELETE FROM note_cards WHERE card_id = :i"), dict(i=st["card_id"]))
     c.execute(text("UPDATE users SET plan = NULL WHERE user_id = :u"), dict(u=st["uid"]))

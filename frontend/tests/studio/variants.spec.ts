@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test'
 import { readdirSync, readFileSync, statSync, existsSync } from 'fs'
 import { join } from 'path'
 import { mockApi, signIn, workspaceUrl } from './mockApi'
-import { hasHorizontalScroll } from './helpers'
+import { hasHorizontalScroll, openPalette } from './helpers'
 
 const VARIANT = process.env.STUDIO_VARIANT ?? 'default'
 const MARKER = 'narratiq-e2e-mock-tool-7f3a'
@@ -74,8 +74,7 @@ test.describe('p3-off build', () => {
     await page.goto(workspaceUrl('world', 'section=notes&tab=ideas'))
     await expect(page.getByRole('tablist', { name: 'Notes views' }).getByRole('tab')).toHaveText(['Story Notes', 'Note Cards'])
     await expect(page.getByRole('tab', { name: 'Story Notes' })).toHaveAttribute('aria-selected', 'true')
-    await page.keyboard.press('Control+k')
-    await page.getByPlaceholder(/Search workspaces/).fill('Idea Shelf')
+    await (await openPalette(page)).fill('Idea Shelf')
     await expect(page.getByRole('option', { name: /Go to Idea Shelf/ })).toHaveCount(0)
   })
 })
