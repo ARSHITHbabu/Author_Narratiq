@@ -105,6 +105,22 @@ export async function mockApi(page: Page, extra: Handler[] = []): Promise<ApiLog
  *  writes. Only on the first document of the test (sessionStorage marker), so a
  *  later logout in the same test is not undone by the next navigation. */
 export async function signIn(page: Page, user: MockUser = USER_A) {
+  // STUDIO_LATE_SELECTIONCHANGE_MS delivers the editor's selectionchange events
+  // late, so ProseMirror's 20 ms post-focus selection sync lands in the window
+  // a fast test gesture can hit. Used to prove the F1 second-cause fix.
+  const late = Number(process.env.STUDIO_LATE_SELECTIONCHANGE_MS || 0)
+  if (late > 0) {
+    await page.addInitScript((ms) => {
+      const add = Document.prototype.addEventListener
+      Document.prototype.addEventListener = function (this: Document, type: string, fn: any, opts?: any) {
+        if (type === 'selectionchange' && typeof fn === 'function') {
+          const self = this
+          return add.call(self, type, (e: Event) => { setTimeout(() => fn.call(self, e), ms) }, opts)
+        }
+        return add.call(this, type, fn, opts)
+      } as typeof Document.prototype.addEventListener
+    }, late)
+  }
   await page.addInitScript((u) => {
     if (!sessionStorage.getItem('mock-signed-in')) {
       sessionStorage.setItem('mock-signed-in', '1')

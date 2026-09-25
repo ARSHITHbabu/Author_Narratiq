@@ -52,3 +52,21 @@ export async function openPalette(page: Page) {
 export async function waitForChapterContent(page: Page) {
   await expect(page.locator('[data-content-loaded="true"]')).toHaveCount(1, { timeout: 15000 })
 }
+
+/** Put the caret in the editor and let ProseMirror finish settling focus before a
+ *  selection gesture starts (review F1, second cause).
+ *
+ *  On the first focus, prosemirror-view schedules a selection sync 20 ms later
+ *  (`handlers.focus` → `selectionToDOM`). If a key such as Home has moved the DOM
+ *  caret in that window and the browser's selectionchange has not been read yet,
+ *  the sync writes ProseMirror's older caret back, so Home is undone and the
+ *  following Shift+End selects nothing. A person cannot press a key within 20 ms
+ *  of clicking; a test can. Waiting here makes the click → Home → Shift+End
+ *  gesture start on an already-focused editor. The wait is on a condition: the
+ *  editor reports focus, and the sync's window has passed since that moment. */
+export async function focusEditorSettled(page: Page) {
+  const pm = page.locator('.ProseMirror').first()
+  await pm.evaluate((el: HTMLElement) => { el.focus(); (window as any).__pmFocusedAt = performance.now() })
+  await expect(pm).toHaveClass(/ProseMirror-focused/)
+  await page.waitForFunction(() => performance.now() - (window as any).__pmFocusedAt > 40)
+}

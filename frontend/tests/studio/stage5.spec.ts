@@ -4,7 +4,7 @@
 import { test, expect, type Page, type Route } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
 import { mockApi, signIn, workspaceUrl, STORY_ID } from './mockApi'
-import { waitForChapterContent } from './helpers'
+import { waitForChapterContent, focusEditorSettled } from './helpers'
 
 const json = (r: Route, b: unknown, status = 200) =>
   r.fulfill({ status, contentType: 'application/json', body: JSON.stringify(b) }).then(() => true)
@@ -60,6 +60,7 @@ test('D4: a near-no-op rewrite in the grouped sidecar is shown as unchanged, wit
   await waitForChapterContent(page)
   await page.getByRole('button', { name: 'AI assistant', exact: true }).click()
   await page.getByRole('combobox', { name: 'Rewrite tool' }).selectOption('tone')
+  await focusEditorSettled(page)
   await page.locator('.ProseMirror p').first().click({ clickCount: 3 })
   await page.locator('#ai-tool-panel').getByRole('button', { name: /Apply|Change|Transform|Rewrite/ }).last().click()
   await expect(page.getByTestId('sidebar-no-change')).toHaveText(reason)

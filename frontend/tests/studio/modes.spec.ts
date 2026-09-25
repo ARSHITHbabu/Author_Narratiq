@@ -3,7 +3,7 @@
 // measured control reduction, and the Stage 7 toolbar-Escape carry-forward (M2).
 import { test, expect, type Page } from '@playwright/test'
 import { mockApi, signIn, workspaceUrl } from './mockApi'
-import { countVisibleControls, waitForChapterContent } from './helpers'
+import { countVisibleControls, waitForChapterContent, focusEditorSettled } from './helpers'
 
 const toolbar = (page: Page) => page.getByRole('toolbar', { name: 'AI actions for the selected text' })
 const firstPara = (page: Page) => page.locator('.ProseMirror p').first()
@@ -24,6 +24,7 @@ test('Edit is the default mode: selection toolbar and AI assistant are available
   await mockApi(page); await openWrite(page)
   await expect(page.getByRole('radio', { name: 'Edit' })).toHaveAttribute('aria-checked', 'true')
   await expect(aiToggle(page)).toBeVisible()
+  await focusEditorSettled(page)
   await firstPara(page).click({ clickCount: 3 })
   await expect(toolbar(page)).toBeVisible()
 })
@@ -82,6 +83,7 @@ test('Focus hides rail, binder and sidecar; Zen hides all chrome and Esc exits',
 
 test('R1: a press that did not start in the text (e.g. the scrollbar) keeps a dismissed toolbar hidden', async ({ page }) => {
   await mockApi(page); await openWrite(page)
+  await focusEditorSettled(page)
   await firstPara(page).click()
   await page.keyboard.press('Home')
   await page.keyboard.press('Shift+End')
@@ -108,6 +110,7 @@ test('M2: Escape hides the toolbar, and re-selecting the same words always bring
   // Same gesture as live selection-toolbar test 9: click, Home, Shift+End —
   // the identical range every round. Before the fix, whether the toolbar came
   // back depended on React rendering the momentary collapsed selection.
+  await focusEditorSettled(page)
   for (let i = 0; i < 10; i++) {
     await firstPara(page).click()
     await page.keyboard.press('Home')
