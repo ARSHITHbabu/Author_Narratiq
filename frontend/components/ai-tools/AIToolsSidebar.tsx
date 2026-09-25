@@ -113,7 +113,7 @@ function ResultPanel({
             {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
             {copied ? 'Copied' : 'Copy'}
           </button>
-          <button onClick={onClose} className="text-[#5c6391] hover:text-[#9da3c8]">
+          <button onClick={onClose} className="text-[#8e94bd] hover:text-[#9da3c8]">
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -141,7 +141,7 @@ function ResultPanel({
       )}
 
       <div className="px-3 py-2.5 border-t border-[#1f2440] flex items-center justify-between gap-2">
-        <span className="text-xs text-[#3d4466]">{result.tokens_used} tokens</span>
+        <span className="text-xs text-[#8a90ba]">{result.tokens_used} tokens</span>
         {onInsert && (
           <button
             onClick={insert}
@@ -385,7 +385,7 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
           ) : (
             <span
               title="No genre profile — defaults are neutral. Complete Story Intake to make tools genre-aware."
-              className="ml-auto px-2 py-0.5 rounded-full bg-[#1a1e36] border border-[#2e3454] text-[10px] text-[#5c6391]"
+              className="ml-auto px-2 py-0.5 rounded-full bg-[#1a1e36] border border-[#2e3454] text-[10px] text-[#8e94bd]"
             >
               No genre profile
             </span>
@@ -401,7 +401,7 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
         ) : (
           <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#1a1e36] rounded-lg">
             <div className="w-1.5 h-1.5 rounded-full bg-[#5c6391] flex-shrink-0" />
-            <span className="text-xs text-[#5c6391]">No selection — using full chapter</span>
+            <span className="text-xs text-[#8e94bd]">No selection — using full chapter</span>
           </div>
         )}
       </div>
@@ -475,7 +475,7 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
         {LOCKABLE_TABS.includes(activeTab) && (
           <div data-testid="sidebar-lock-strength" className="mb-4 space-y-3 rounded-xl border border-[#1f2440] p-3">
             <div className="flex items-center gap-1">
-              <span className="text-[10px] text-[#5c6391] mr-1">Strength</span>
+              <span className="text-[10px] text-[#8e94bd] mr-1">Strength</span>
               {STRENGTH_LEVELS.map((s) => (
                 <button key={s} type="button" onClick={() => setStrength(s)}
                   aria-pressed={strength === s}
@@ -490,8 +490,8 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
             {sentenceSpans.length > 1 ? (
               <div>
                 <div className="flex items-center gap-1 mb-1">
-                  <Lock className="w-2.5 h-2.5 text-[#5c6391]" />
-                  <span className="text-[10px] text-[#5c6391]">
+                  <Lock className="w-2.5 h-2.5 text-[#8e94bd]" />
+                  <span className="text-[10px] text-[#8e94bd]">
                     Lock sentences to keep unchanged{lockedIdx.size > 0 ? ` (${lockedIdx.size})` : ''}
                   </span>
                 </div>
@@ -511,7 +511,7 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
                 </div>
               </div>
             ) : (
-              <p className="text-[10px] text-[#5c6391]">Select two or more sentences in the editor to lock individual sentences.</p>
+              <p className="text-[10px] text-[#8e94bd]">Select two or more sentences in the editor to lock individual sentences.</p>
             )}
           </div>
         )}
@@ -534,7 +534,7 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
 
         {activeTab === 'tone' && (
           <div className="space-y-2">
-            <p className="text-xs text-[#5c6391] mb-3">Pick a tone and the AI rewrites your prose to match.</p>
+            <p className="text-xs text-[#8e94bd] mb-3">Pick a tone and the AI rewrites your prose to match.</p>
             {TONES.map((tone) => (
               <button
                 key={tone.id}
@@ -555,9 +555,9 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
 
         {activeTab === 'emotion' && (
           <div className="space-y-4">
-            <p className="text-xs text-[#5c6391]">Inject specific emotional depth into your prose.</p>
+            <p className="text-xs text-[#8e94bd]">Inject specific emotional depth into your prose.</p>
             <div>
-              <label className="text-xs text-[#5c6391] mb-2 block">Emotion</label>
+              <label className="text-xs text-[#8e94bd] mb-2 block">Emotion</label>
               <div className="grid grid-cols-2 gap-1.5">
                 {EMOTIONS.map((em) => (
                   <button
@@ -577,7 +577,7 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
               </div>
             </div>
             <div>
-              <label className="text-xs text-[#5c6391] mb-2 block">Intensity</label>
+              <label className="text-xs text-[#8e94bd] mb-2 block">Intensity</label>
               <div className="grid grid-cols-3 gap-2">
                 {(['low', 'medium', 'high'] as const).map((i) => (
                   <button
@@ -599,7 +599,7 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
 
         {activeTab === 'age' && (
           <div className="space-y-2">
-            <p className="text-xs text-[#5c6391] mb-3">Adapt your prose for a specific reader age group.</p>
+            <p className="text-xs text-[#8e94bd] mb-3">Adapt your prose for a specific reader age group.</p>
             {AUDIENCES.map((a) => (
               <button
                 key={a.id}
@@ -615,9 +615,9 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
                     {a.label}
                     {rec && a.id.toLowerCase() === rec.age.toLowerCase() && <RecBadge />}
                   </span>
-                  <span className="text-xs text-[#3d4466]">{a.age}</span>
+                  <span className="text-xs text-[#8a90ba]">{a.age}</span>
                 </div>
-                <div className="text-xs text-[#5c6391] mt-0.5">{a.desc}</div>
+                <div className="text-xs text-[#8e94bd] mt-0.5">{a.desc}</div>
               </button>
             ))}
           </div>
@@ -625,7 +625,7 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
 
         {activeTab === 'style' && (
           <div className="space-y-1.5">
-            <p className="text-xs text-[#5c6391] mb-3">Rewrite in a genre-inspired literary style.</p>
+            <p className="text-xs text-[#8e94bd] mb-3">Rewrite in a genre-inspired literary style.</p>
             {STYLES.map((s) => (
               <button
                 key={s.id}
@@ -640,7 +640,7 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
                   {s.id}
                   {rec && s.id.toLowerCase() === rec.style.toLowerCase() && <RecBadge />}
                 </span>
-                <span className={`text-xs ${selectedStyle === s.id ? 'text-amber-400/70' : 'text-[#3d4466]'}`}>{s.desc}</span>
+                <span className={`text-xs ${selectedStyle === s.id ? 'text-amber-400/70' : 'text-[#8a90ba]'}`}>{s.desc}</span>
               </button>
             ))}
           </div>
@@ -648,7 +648,7 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
 
         {activeTab === 'author' && (
           <div className="space-y-2">
-            <p className="text-xs text-[#5c6391]">Rewrite in a style <span className="text-amber-400/90">inspired by</span> an author — meaning, plot and characters preserved.</p>
+            <p className="text-xs text-[#8e94bd]">Rewrite in a style <span className="text-amber-400/90">inspired by</span> an author — meaning, plot and characters preserved.</p>
             <div className="flex items-start gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#1a1e36] border border-[#2e3454]">
               <Sparkles className="w-3 h-3 text-amber-400 mt-0.5 flex-shrink-0" />
               <p className="text-[10px] text-[#9da3c8] leading-relaxed">
@@ -656,7 +656,7 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
               </p>
             </div>
 
-            <label className="text-[10px] text-[#5c6391] block pt-1">Public-domain authors</label>
+            <label className="text-[10px] text-[#8e94bd] block pt-1">Public-domain authors</label>
             {AUTHOR_STYLES.filter(a => a.group === 'public_domain').map((a) => (
               <button
                 key={a.id}
@@ -668,11 +668,11 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
                 }`}
               >
                 <span className="text-sm font-medium">{a.label}</span>
-                <span className={`text-[10px] ${selectedAuthor === a.id ? 'text-amber-400/70' : 'text-[#3d4466]'}`}>{a.desc}</span>
+                <span className={`text-[10px] ${selectedAuthor === a.id ? 'text-amber-400/70' : 'text-[#8a90ba]'}`}>{a.desc}</span>
               </button>
             ))}
 
-            <label className="text-[10px] text-[#5c6391] block pt-2">Generic styles (always safe)</label>
+            <label className="text-[10px] text-[#8e94bd] block pt-2">Generic styles (always safe)</label>
             <div className="grid grid-cols-2 gap-1.5">
               {AUTHOR_STYLES.filter(a => a.group === 'generic').map((a) => (
                 <button
@@ -685,7 +685,7 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
                   }`}
                 >
                   <div className="text-xs font-medium">{a.label}</div>
-                  <div className="text-[10px] text-[#3d4466] mt-0.5">{a.desc}</div>
+                  <div className="text-[10px] text-[#8a90ba] mt-0.5">{a.desc}</div>
                 </button>
               ))}
             </div>
@@ -694,7 +694,7 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
 
         {activeTab === 'translate' && (
           <div className="space-y-1.5">
-            <p className="text-xs text-[#5c6391] mb-3">Literary-quality translation preserving your narrative voice.</p>
+            <p className="text-xs text-[#8e94bd] mb-3">Literary-quality translation preserving your narrative voice.</p>
             <div className="flex flex-col gap-1 max-h-72 overflow-y-auto pr-1">
               {LANGUAGES.map((lang) => (
                 <button
@@ -716,9 +716,9 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
         {/* ── Continue Tab ─────────────────────────────────────────────────── */}
         {activeTab === 'continue' && (
           <div className="space-y-3">
-            <p className="text-xs text-[#5c6391]">Generate 3 possible continuations based on your chapter's tail text and story context.</p>
+            <p className="text-xs text-[#8e94bd]">Generate 3 possible continuations based on your chapter's tail text and story context.</p>
             <div>
-              <label className="text-[10px] text-[#5c6391] block mb-1.5">Length</label>
+              <label className="text-[10px] text-[#8e94bd] block mb-1.5">Length</label>
               <div className="grid grid-cols-3 gap-1.5">
                 {(['short', 'medium', 'long'] as const).map(l => (
                   <button
@@ -748,13 +748,13 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
                   <span className="text-[10px] font-medium text-amber-400">Option {i + 1} · {c.direction}</span>
                   <button
                     onClick={() => { insertText?.(c.text); toast.success('Inserted at cursor') }}
-                    className="text-[10px] text-[#5c6391] hover:text-amber-400 flex items-center gap-1"
+                    className="text-[10px] text-[#8e94bd] hover:text-amber-400 flex items-center gap-1"
                   >
                     <ArrowDownToLine className="w-3 h-3" />Insert
                   </button>
                 </div>
                 <p className="text-xs text-[#9da3c8] leading-relaxed line-clamp-5 font-serif">{c.text}</p>
-                {c.rationale && <p className="text-[10px] text-[#5c6391] mt-1.5 italic">{c.rationale}</p>}
+                {c.rationale && <p className="text-[10px] text-[#8e94bd] mt-1.5 italic">{c.rationale}</p>}
               </div>
             ))}
           </div>
@@ -763,9 +763,9 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
         {/* ── Outline Tab ──────────────────────────────────────────────────── */}
         {activeTab === 'outline' && (
           <div className="space-y-3">
-            <p className="text-xs text-[#5c6391]">Generate a scene-by-scene outline for this chapter based on your story context.</p>
+            <p className="text-xs text-[#8e94bd]">Generate a scene-by-scene outline for this chapter based on your story context.</p>
             <div>
-              <label className="text-[10px] text-[#5c6391] block mb-1.5">Chapter goal (what must happen)</label>
+              <label className="text-[10px] text-[#8e94bd] block mb-1.5">Chapter goal (what must happen)</label>
               <textarea
                 value={chapterGoal}
                 onChange={e => setChapterGoal(e.target.value)}
@@ -775,13 +775,13 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
               />
             </div>
             <div>
-              <label className="text-[10px] text-[#5c6391] block mb-1.5">Number of scenes: {sceneCount}</label>
+              <label className="text-[10px] text-[#8e94bd] block mb-1.5">Number of scenes: {sceneCount}</label>
               <input
                 type="range" min={2} max={8} value={sceneCount}
                 onChange={e => setSceneCount(Number(e.target.value))}
                 className="w-full accent-amber-500"
               />
-              <div className="flex justify-between text-[10px] text-[#3d4466] mt-0.5">
+              <div className="flex justify-between text-[10px] text-[#8a90ba] mt-0.5">
                 <span>2</span><span>8</span>
               </div>
             </div>
@@ -796,12 +796,12 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
               <div key={i} className="bg-[#0d0f1a] border border-[#1f2440] rounded-xl p-3">
                 <div className="flex items-center justify-between mb-1.5">
                   <span className="text-[10px] font-medium text-amber-400">Scene {beat.scene_number}</span>
-                  {beat.pacing_note && <span className="text-[10px] text-[#5c6391]">{beat.pacing_note}</span>}
+                  {beat.pacing_note && <span className="text-[10px] text-[#8e94bd]">{beat.pacing_note}</span>}
                 </div>
                 <p className="text-xs text-[#c8cce8] font-medium mb-1">{beat.beat_description}</p>
-                {beat.location && <p className="text-[10px] text-[#5c6391] mt-0.5">@ {beat.location}</p>}
+                {beat.location && <p className="text-[10px] text-[#8e94bd] mt-0.5">@ {beat.location}</p>}
                 {beat.characters_present?.length > 0 && (
-                  <p className="text-[10px] text-[#5c6391] mt-0.5">{beat.characters_present.join(', ')}</p>
+                  <p className="text-[10px] text-[#8e94bd] mt-0.5">{beat.characters_present.join(', ')}</p>
                 )}
               </div>
             ))}

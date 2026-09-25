@@ -23,7 +23,7 @@ function ChapterBar({ chapter, max }: { chapter: ChapterWordCount; max: number }
   const width = max > 0 ? (chapter.word_count / max) * 100 : 0
   return (
     <div className="flex items-center gap-2 text-[10px]">
-      <span className="text-[#3d4466] w-6 text-right flex-shrink-0">{chapter.chapter_number}</span>
+      <span className="text-[#8a90ba] w-6 text-right flex-shrink-0">{chapter.chapter_number}</span>
       <div className="flex-1 h-3 bg-[#1f2440] rounded-sm overflow-hidden">
         <div
           className="h-full rounded-sm"
@@ -31,7 +31,7 @@ function ChapterBar({ chapter, max }: { chapter: ChapterWordCount; max: number }
           title={`${chapter.word_count.toLocaleString()} words`}
         />
       </div>
-      <span className="text-[#5c6391] w-12 text-right flex-shrink-0">{chapter.word_count.toLocaleString()}</span>
+      <span className="text-[#8e94bd] w-12 text-right flex-shrink-0">{chapter.word_count.toLocaleString()}</span>
     </div>
   )
 }
@@ -84,7 +84,7 @@ export default function PacingGoalPanel({ storyId }: Props) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full gap-2 text-[#5c6391]">
+      <div className="flex items-center justify-center h-full gap-2 text-[#8e94bd]">
         <Loader2 className="w-4 h-4 animate-spin" />
         <span className="text-xs">Loading pacing data…</span>
       </div>
@@ -103,7 +103,7 @@ export default function PacingGoalPanel({ storyId }: Props) {
         </div>
         <button
           onClick={() => setEditMode(v => !v)}
-          className="text-[10px] text-[#5c6391] hover:text-amber-400 border border-[#2e3454] px-2 py-0.5 rounded"
+          className="text-[10px] text-[#8e94bd] hover:text-amber-400 border border-[#2e3454] px-2 py-0.5 rounded"
         >
           {editMode ? 'Cancel' : 'Edit'}
         </button>
@@ -117,7 +117,7 @@ export default function PacingGoalPanel({ storyId }: Props) {
             { label: 'Target words per chapter',   val: targetWPC, set: setTargetWPC, placeholder: 'e.g. 2500'   },
           ].map(({ label, val, set, placeholder }) => (
             <div key={label}>
-              <label className="text-[10px] text-[#5c6391] block mb-1">{label}</label>
+              <label className="text-[10px] text-[#8e94bd] block mb-1">{label}</label>
               <input
                 type="number"
                 value={val}
@@ -147,7 +147,7 @@ export default function PacingGoalPanel({ storyId }: Props) {
                   <span className="text-amber-400">{d.progress_pct.toFixed(1)}%</span>
                 </div>
                 <ProgressBar value={d.progress_pct} />
-                <div className="flex justify-between text-[10px] text-[#5c6391] mt-1">
+                <div className="flex justify-between text-[10px] text-[#8e94bd] mt-1">
                   <span>{d.actual_word_count.toLocaleString()} words</span>
                   <span>goal: {d.target_word_count.toLocaleString()}</span>
                 </div>
@@ -160,10 +160,10 @@ export default function PacingGoalPanel({ storyId }: Props) {
                 { label: 'Avg per chapter', val: d.avg_words_per_chapter,       target: d.target_words_per_chapter,    unit: 'w' },
               ].map(({ label, val, target, unit }) => (
                 <div key={label} className="bg-[#0d0f1a] border border-[#1f2440] rounded-xl p-2.5">
-                  <div className="text-[10px] text-[#5c6391] mb-1">{label}</div>
+                  <div className="text-[10px] text-[#8e94bd] mb-1">{label}</div>
                   <div className="text-sm font-bold text-[#e8eaf6]">{val.toLocaleString()}{unit}</div>
                   {target > 0 && (
-                    <div className="text-[10px] text-[#5c6391]">goal: {target.toLocaleString()}{unit}</div>
+                    <div className="text-[10px] text-[#8e94bd]">goal: {target.toLocaleString()}{unit}</div>
                   )}
                 </div>
               ))}
@@ -180,8 +180,8 @@ export default function PacingGoalPanel({ storyId }: Props) {
           {d.chapter_distribution.length > 0 && (
             <div className="px-3 pb-4">
               <div className="flex items-center gap-1.5 mb-2">
-                <BarChart2 className="w-3 h-3 text-[#5c6391]" />
-                <span className="text-[10px] text-[#5c6391] font-medium uppercase tracking-wider">Chapter Distribution</span>
+                <BarChart2 className="w-3 h-3 text-[#8e94bd]" />
+                <span className="text-[10px] text-[#8e94bd] font-medium uppercase tracking-wider">Chapter Distribution</span>
               </div>
               <div className="flex flex-col gap-1.5">
                 {d.chapter_distribution.map(ch => (

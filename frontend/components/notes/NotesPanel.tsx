@@ -132,7 +132,7 @@ export default function NotesPanel({ storyId, reloadKey, initialTab }: Props) {
   if (neverLoaded) {
     return (
       <div data-testid="notes-loading" className="flex items-center justify-center h-full">
-        <Loader2 className="w-4 h-4 animate-spin text-[#5c6391]" />
+        <Loader2 className="w-4 h-4 animate-spin text-[#8e94bd]" />
       </div>
     )
   }
@@ -207,7 +207,7 @@ export default function NotesPanel({ storyId, reloadKey, initialTab }: Props) {
             ) : (
               <button
                 onClick={() => setCreating('note')}
-                className="w-full flex items-center justify-center gap-1.5 py-1.5 text-xs text-[#5c6391] hover:text-amber-400 border border-dashed border-[#2e3454] hover:border-amber-500/40 rounded-lg transition-colors"
+                className="w-full flex items-center justify-center gap-1.5 py-1.5 text-xs text-[#8e94bd] hover:text-amber-400 border border-dashed border-[#2e3454] hover:border-amber-500/40 rounded-lg transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" />
                 New Note
@@ -220,11 +220,11 @@ export default function NotesPanel({ storyId, reloadKey, initialTab }: Props) {
               sectionError('notes')
             ) : notesSection.status === 'loading' ? (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-4 h-4 animate-spin text-[#5c6391]" />
+                <Loader2 className="w-4 h-4 animate-spin text-[#8e94bd]" />
               </div>
             ) : notes.length === 0 ? (
               <div data-testid="notes-empty" className="flex flex-col items-center justify-center h-full gap-2 text-center py-8">
-                <p className="text-xs text-[#5c6391] leading-relaxed">
+                <p className="text-xs text-[#8e94bd] leading-relaxed">
                   No story notes yet.<br />
                   Create one above or scan handwritten notes with the OCR panel.
                 </p>
@@ -255,7 +255,7 @@ export default function NotesPanel({ storyId, reloadKey, initialTab }: Props) {
             ) : (
               <button
                 onClick={() => setCreating('card')}
-                className="w-full flex items-center justify-center gap-1.5 py-1.5 text-xs text-[#5c6391] hover:text-amber-400 border border-dashed border-[#2e3454] hover:border-amber-500/40 rounded-lg transition-colors"
+                className="w-full flex items-center justify-center gap-1.5 py-1.5 text-xs text-[#8e94bd] hover:text-amber-400 border border-dashed border-[#2e3454] hover:border-amber-500/40 rounded-lg transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" />
                 New Card
@@ -273,7 +273,7 @@ export default function NotesPanel({ storyId, reloadKey, initialTab }: Props) {
                   className={`px-2 py-0.5 rounded text-[10px] font-medium border transition-colors capitalize ${
                     cardFilter === type
                       ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
-                      : 'bg-[#0d0f1a] text-[#5c6391] border-[#1f2440] hover:text-[#9da3c8]'
+                      : 'bg-[#0d0f1a] text-[#8e94bd] border-[#1f2440] hover:text-[#9da3c8]'
                   }`}
                 >
                   {type}
@@ -287,11 +287,11 @@ export default function NotesPanel({ storyId, reloadKey, initialTab }: Props) {
               sectionError('cards')
             ) : cardsSection.status === 'loading' ? (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-4 h-4 animate-spin text-[#5c6391]" />
+                <Loader2 className="w-4 h-4 animate-spin text-[#8e94bd]" />
               </div>
             ) : filteredCards.length === 0 ? (
               <div data-testid="cards-empty" className="flex flex-col items-center justify-center h-full gap-2 text-center py-8">
-                <p className="text-xs text-[#5c6391] leading-relaxed">
+                <p className="text-xs text-[#8e94bd] leading-relaxed">
                   {noteCards.length === 0
                     ? 'No note cards yet.\nCreate one above or use the OCR panel.'
                     : `No ${cardFilter} cards.`}
@@ -377,14 +377,14 @@ function NoteItem({ note, onUpdated, onDeleted }: {
             {title.trim() || 'Untitled Note'}
           </div>
           {!expanded && (
-            <div className="text-[10px] text-[#5c6391] mt-0.5 line-clamp-2 leading-relaxed">
+            <div className="text-[10px] text-[#8e94bd] mt-0.5 line-clamp-2 leading-relaxed">
               {content || 'Empty note'}
             </div>
           )}
         </div>
         {expanded
-          ? <ChevronUp   className="w-3 h-3 text-[#5c6391] flex-shrink-0 mt-0.5" />
-          : <ChevronDown className="w-3 h-3 text-[#5c6391] flex-shrink-0 mt-0.5" />}
+          ? <ChevronUp   className="w-3 h-3 text-[#8e94bd] flex-shrink-0 mt-0.5" />
+          : <ChevronDown className="w-3 h-3 text-[#8e94bd] flex-shrink-0 mt-0.5" />}
       </button>
 
       {expanded && (
@@ -403,7 +403,7 @@ function NoteItem({ note, onUpdated, onDeleted }: {
             className="w-full bg-[#1a1e36] border border-[#2e3454] rounded-lg px-2.5 py-1.5 text-xs text-[#e8eaf6] resize-none focus:outline-none focus:border-amber-500/50 leading-relaxed"
           />
           <div className="flex items-center justify-between">
-            <span className="text-[10px] text-[#3d4466]">
+            <span className="text-[10px] text-[#8a90ba]">
               {saving ? 'Saving…' : 'Auto-saved'}
             </span>
             {confirmDelete ? (
@@ -418,7 +418,7 @@ function NoteItem({ note, onUpdated, onDeleted }: {
                 </button>
                 <button
                   onClick={() => setConfirmDelete(false)}
-                  className="px-2 py-0.5 text-[10px] text-[#5c6391] hover:text-[#9da3c8] transition-colors"
+                  className="px-2 py-0.5 text-[10px] text-[#8e94bd] hover:text-[#9da3c8] transition-colors"
                 >
                   No
                 </button>
@@ -426,7 +426,7 @@ function NoteItem({ note, onUpdated, onDeleted }: {
             ) : (
               <button
                 onClick={() => setConfirmDelete(true)}
-                className="flex items-center gap-1 text-[10px] text-[#3d4466] hover:text-red-400 transition-colors"
+                className="flex items-center gap-1 text-[10px] text-[#8a90ba] hover:text-red-400 transition-colors"
               >
                 <Trash2 className="w-3 h-3" />
                 Delete
@@ -518,14 +518,14 @@ function NoteCardItem({ card, onUpdated, onDeleted }: {
             {title.trim() || 'Untitled Card'}
           </div>
           {!expanded && (
-            <div className="text-[10px] text-[#5c6391] mt-0.5 line-clamp-2 leading-relaxed">
+            <div className="text-[10px] text-[#8e94bd] mt-0.5 line-clamp-2 leading-relaxed">
               {content || 'Empty card'}
             </div>
           )}
         </div>
         {expanded
-          ? <ChevronUp   className="w-3 h-3 text-[#5c6391] flex-shrink-0 mt-0.5" />
-          : <ChevronDown className="w-3 h-3 text-[#5c6391] flex-shrink-0 mt-0.5" />}
+          ? <ChevronUp   className="w-3 h-3 text-[#8e94bd] flex-shrink-0 mt-0.5" />
+          : <ChevronDown className="w-3 h-3 text-[#8e94bd] flex-shrink-0 mt-0.5" />}
       </button>
 
       {expanded && (
@@ -553,7 +553,7 @@ function NoteCardItem({ card, onUpdated, onDeleted }: {
             className="w-full bg-[#1a1e36] border border-[#2e3454] rounded-lg px-2.5 py-1.5 text-xs text-[#e8eaf6] resize-none focus:outline-none focus:border-amber-500/50 leading-relaxed"
           />
           <div className="flex items-center justify-between">
-            <span className="text-[10px] text-[#3d4466]">
+            <span className="text-[10px] text-[#8a90ba]">
               {saving ? 'Saving…' : 'Auto-saved'}
             </span>
             {confirmDelete ? (
@@ -568,7 +568,7 @@ function NoteCardItem({ card, onUpdated, onDeleted }: {
                 </button>
                 <button
                   onClick={() => setConfirmDelete(false)}
-                  className="px-2 py-0.5 text-[10px] text-[#5c6391] hover:text-[#9da3c8] transition-colors"
+                  className="px-2 py-0.5 text-[10px] text-[#8e94bd] hover:text-[#9da3c8] transition-colors"
                 >
                   No
                 </button>
@@ -576,7 +576,7 @@ function NoteCardItem({ card, onUpdated, onDeleted }: {
             ) : (
               <button
                 onClick={() => setConfirmDelete(true)}
-                className="flex items-center gap-1 text-[10px] text-[#3d4466] hover:text-red-400 transition-colors"
+                className="flex items-center gap-1 text-[10px] text-[#8a90ba] hover:text-red-400 transition-colors"
               >
                 <Trash2 className="w-3 h-3" />
                 Delete
@@ -639,7 +639,7 @@ function CreateNoteForm({ storyId, onCreated, onCancel }: {
         </button>
         <button
           onClick={onCancel}
-          className="px-3 py-1.5 text-xs text-[#5c6391] hover:text-[#9da3c8] transition-colors"
+          className="px-3 py-1.5 text-xs text-[#8e94bd] hover:text-[#9da3c8] transition-colors"
         >
           Cancel
         </button>
@@ -706,7 +706,7 @@ function CreateCardForm({ storyId, onCreated, onCancel }: {
         </button>
         <button
           onClick={onCancel}
-          className="px-3 py-1.5 text-xs text-[#5c6391] hover:text-[#9da3c8] transition-colors"
+          className="px-3 py-1.5 text-xs text-[#8e94bd] hover:text-[#9da3c8] transition-colors"
         >
           Cancel
         </button>

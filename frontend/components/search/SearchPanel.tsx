@@ -291,7 +291,7 @@ export default function SearchPanel({
     <button
       onClick={onClick}
       className={`px-2 py-0.5 rounded text-xs font-mono transition-colors ${
-        active ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'text-[#5c6391] border border-[#2e3454] hover:text-[#9da3c8]'
+        active ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'text-[#8e94bd] border border-[#2e3454] hover:text-[#9da3c8]'
       }`}
     >
       {label}
@@ -312,7 +312,7 @@ export default function SearchPanel({
           <button
             onClick={() => setMode('exact')}
             className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-              mode === 'exact' ? 'bg-[#1f2440] text-[#e8eaf6]' : 'text-[#5c6391] hover:text-[#9da3c8]'
+              mode === 'exact' ? 'bg-[#1f2440] text-[#e8eaf6]' : 'text-[#8e94bd] hover:text-[#9da3c8]'
             }`}
           >
             Exact
@@ -320,7 +320,7 @@ export default function SearchPanel({
           <button
             onClick={() => setMode('semantic')}
             className={`flex items-center gap-1 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-              mode === 'semantic' ? 'bg-[#1f2440] text-[#e8eaf6]' : 'text-[#5c6391] hover:text-[#9da3c8]'
+              mode === 'semantic' ? 'bg-[#1f2440] text-[#e8eaf6]' : 'text-[#8e94bd] hover:text-[#9da3c8]'
             }`}
           >
             <Sparkles className="w-3 h-3" /> Semantic
@@ -331,7 +331,7 @@ export default function SearchPanel({
 
         <button
           onClick={onClose}
-          className="p-1 rounded text-[#5c6391] hover:text-[#e8eaf6] hover:bg-[#1f2440] transition-colors"
+          className="p-1 rounded text-[#8e94bd] hover:text-[#e8eaf6] hover:bg-[#1f2440] transition-colors"
         >
           <X className="w-4 h-4" />
         </button>
@@ -340,7 +340,7 @@ export default function SearchPanel({
       {/* Search input */}
       <div className="px-4 py-3 border-b border-[#1f2440] flex-shrink-0 space-y-2">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#5c6391]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#8e94bd]" />
           <input
             ref={queryRef}
             value={query}
@@ -374,13 +374,13 @@ export default function SearchPanel({
             <div className="w-px h-4 bg-[#2e3454]" />
             <button
               onClick={() => { setScope('all'); if (query) runSearch(query, { sc: 'all' }) }}
-              className={`text-xs px-2 py-0.5 rounded transition-colors ${scope === 'all' ? 'text-amber-400' : 'text-[#5c6391] hover:text-[#9da3c8]'}`}
+              className={`text-xs px-2 py-0.5 rounded transition-colors ${scope === 'all' ? 'text-amber-400' : 'text-[#8e94bd] hover:text-[#9da3c8]'}`}
             >
               All chapters
             </button>
             <button
               onClick={() => { setScope('current'); if (query) runSearch(query, { sc: 'current' }) }}
-              className={`text-xs px-2 py-0.5 rounded transition-colors ${scope === 'current' ? 'text-amber-400' : 'text-[#5c6391] hover:text-[#9da3c8]'}`}
+              className={`text-xs px-2 py-0.5 rounded transition-colors ${scope === 'current' ? 'text-amber-400' : 'text-[#8e94bd] hover:text-[#9da3c8]'}`}
             >
               Current chapter
             </button>
@@ -391,25 +391,25 @@ export default function SearchPanel({
       {/* Results summary + navigation */}
       {mode === 'exact' && query.trim() && !loading && (
         <div className="flex items-center justify-between px-4 py-2 border-b border-[#1f2440] flex-shrink-0 bg-[#0d0f1a]">
-          <span className="text-xs text-[#5c6391]">
+          <span className="text-xs text-[#8e94bd]">
             {totalMatches === 0
               ? 'No matches'
               : `${totalMatches} match${totalMatches !== 1 ? 'es' : ''} across ${chaptersHit} chapter${chaptersHit !== 1 ? 's' : ''}`}
           </span>
           {totalMatches > 0 && (
             <div className="flex items-center gap-1">
-              <span className="text-xs text-[#5c6391] mr-1">
+              <span className="text-xs text-[#8e94bd] mr-1">
                 {globalIndex + 1} / {totalMatches}
               </span>
               <button
                 onClick={() => navigate(-1)}
-                className="p-1 rounded text-[#5c6391] hover:text-[#e8eaf6] hover:bg-[#1f2440] transition-colors"
+                className="p-1 rounded text-[#8e94bd] hover:text-[#e8eaf6] hover:bg-[#1f2440] transition-colors"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => navigate(1)}
-                className="p-1 rounded text-[#5c6391] hover:text-[#e8eaf6] hover:bg-[#1f2440] transition-colors"
+                className="p-1 rounded text-[#8e94bd] hover:text-[#e8eaf6] hover:bg-[#1f2440] transition-colors"
               >
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
@@ -420,7 +420,7 @@ export default function SearchPanel({
 
       {mode === 'semantic' && !loading && semanticResults.length > 0 && (
         <div className="px-4 py-2 border-b border-[#1f2440] flex-shrink-0 bg-[#0d0f1a]">
-          <span className="text-xs text-[#5c6391]">
+          <span className="text-xs text-[#8e94bd]">
             {semanticResults.length} passage{semanticResults.length !== 1 ? 's' : ''} found
           </span>
         </div>
@@ -438,11 +438,11 @@ export default function SearchPanel({
                 onClick={() => toggleCollapse(chRes.chapter_id)}
                 className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-[#1a1e36] transition-colors text-left"
               >
-                {isCollapsed ? <ChevronRight className="w-3.5 h-3.5 text-[#5c6391]" /> : <ChevronDown className="w-3.5 h-3.5 text-[#5c6391]" />}
+                {isCollapsed ? <ChevronRight className="w-3.5 h-3.5 text-[#8e94bd]" /> : <ChevronDown className="w-3.5 h-3.5 text-[#8e94bd]" />}
                 <span className="text-xs font-medium text-[#9da3c8] flex-1 truncate">
                   Ch.{chRes.chapter_number} — {chRes.chapter_title}
                 </span>
-                <span className="text-xs text-[#5c6391] flex-shrink-0">
+                <span className="text-xs text-[#8e94bd] flex-shrink-0">
                   {chRes.match_count} match{chRes.match_count !== 1 ? 'es' : ''}
                 </span>
               </button>
@@ -461,7 +461,7 @@ export default function SearchPanel({
                         : 'border-transparent hover:bg-[#1a1e36] hover:border-[#2e3454]'
                     }`}
                   >
-                    <span className="text-[#5c6391]">{m.context_before}</span>
+                    <span className="text-[#8e94bd]">{m.context_before}</span>
                     <span
                       className="font-semibold rounded px-0.5"
                       style={{
@@ -471,7 +471,7 @@ export default function SearchPanel({
                     >
                       {m.match_text}
                     </span>
-                    <span className="text-[#5c6391]">{m.context_after}</span>
+                    <span className="text-[#8e94bd]">{m.context_after}</span>
                   </button>
                 )
               })}
@@ -488,13 +488,13 @@ export default function SearchPanel({
               </span>
               <span
                 className={`text-xs font-medium ${
-                  r.score > 0.85 ? 'text-green-400' : r.score > 0.70 ? 'text-amber-400' : 'text-[#5c6391]'
+                  r.score > 0.85 ? 'text-green-400' : r.score > 0.70 ? 'text-amber-400' : 'text-[#8e94bd]'
                 }`}
               >
                 {Math.round(r.score * 100)}% match
               </span>
             </div>
-            <p className="text-xs text-[#5c6391] leading-relaxed line-clamp-3">{r.chunk_text}</p>
+            <p className="text-xs text-[#8e94bd] leading-relaxed line-clamp-3">{r.chunk_text}</p>
           </div>
         ))}
 
@@ -502,25 +502,25 @@ export default function SearchPanel({
         {!loading && query.trim() && mode === 'exact' && exactResults.length === 0 && (
           <div className="flex flex-col items-center justify-center py-10 text-center px-6">
             <Search className="w-8 h-8 text-[#2e3454] mb-2" />
-            <p className="text-sm text-[#5c6391]">No matches found</p>
-            <p className="text-xs text-[#3d4466] mt-1">Try different keywords or disable case-sensitive / whole-word</p>
+            <p className="text-sm text-[#8e94bd]">No matches found</p>
+            <p className="text-xs text-[#8a90ba] mt-1">Try different keywords or disable case-sensitive / whole-word</p>
           </div>
         )}
         {!loading && query.trim() && mode === 'semantic' && semanticResults.length === 0 && (
           <div className="flex flex-col items-center justify-center py-10 text-center px-6">
             <Sparkles className="w-8 h-8 text-[#2e3454] mb-2" />
-            <p className="text-sm text-[#5c6391]">No passages found</p>
-            <p className="text-xs text-[#3d4466] mt-1">Make sure you have indexed chapters (sync summaries)</p>
+            <p className="text-sm text-[#8e94bd]">No passages found</p>
+            <p className="text-xs text-[#8a90ba] mt-1">Make sure you have indexed chapters (sync summaries)</p>
           </div>
         )}
         {!query.trim() && (
           <div className="flex flex-col items-center justify-center py-10 text-center px-6">
             <Search className="w-8 h-8 text-[#2e3454] mb-2" />
-            <p className="text-sm text-[#5c6391]">
+            <p className="text-sm text-[#8e94bd]">
               {mode === 'exact' ? 'Type to search across all chapters' : 'Describe what you\'re looking for'}
             </p>
             {mode === 'exact' && (
-              <p className="text-xs text-[#3d4466] mt-1">Keyboard: Enter to search · ← → to navigate · Esc to close</p>
+              <p className="text-xs text-[#8a90ba] mt-1">Keyboard: Enter to search · ← → to navigate · Esc to close</p>
             )}
           </div>
         )}
@@ -531,7 +531,7 @@ export default function SearchPanel({
         <div className="border-t border-[#1f2440] flex-shrink-0">
           <button
             onClick={() => setShowReplace(v => !v)}
-            className="w-full flex items-center gap-2 px-4 py-2.5 text-xs text-[#5c6391] hover:text-[#9da3c8] hover:bg-[#1a1e36] transition-colors"
+            className="w-full flex items-center gap-2 px-4 py-2.5 text-xs text-[#8e94bd] hover:text-[#9da3c8] hover:bg-[#1a1e36] transition-colors"
           >
             <Replace className="w-3.5 h-3.5" />
             <span>Replace</span>
@@ -578,12 +578,12 @@ export default function SearchPanel({
               <span className="text-sm font-medium text-[#e8eaf6]">Confirm Replace All</span>
             </div>
 
-            <div className="px-4 py-3 text-xs text-[#5c6391] border-b border-[#1f2440]">
+            <div className="px-4 py-3 text-xs text-[#8e94bd] border-b border-[#1f2440]">
               <p>
                 Replace <span className="text-amber-400 font-mono">"{query}"</span> with{' '}
                 <span className="text-green-400 font-mono">"{replacement}"</span>
               </p>
-              <p className="mt-1 text-[#3d4466]">
+              <p className="mt-1 text-[#8a90ba]">
                 Version snapshots will be created before replacing. Select chapters to include:
               </p>
             </div>

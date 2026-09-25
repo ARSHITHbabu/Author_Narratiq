@@ -66,7 +66,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShow(!show)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5c6391] hover:text-[#9da3c8]"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8e94bd] hover:text-[#9da3c8]"
                 >
                   {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -83,7 +83,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="text-center text-sm text-[#5c6391] mt-6">
+          <p className="text-center text-sm text-[#8e94bd] mt-6">
             Don&apos;t have an account?{' '}
             <Link href="/register" className="text-amber-400 hover:text-amber-300">
               Create one

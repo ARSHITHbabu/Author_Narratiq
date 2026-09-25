@@ -21,7 +21,7 @@ const SECTIONS: { key: BibleSection; label: string; icon: React.ElementType }[] 
 ]
 
 function SectionContent({ text }: { text: string }) {
-  if (!text) return <p className="text-xs text-[#5c6391] italic">Not yet generated.</p>
+  if (!text) return <p className="text-xs text-[#8e94bd] italic">Not yet generated.</p>
   return <div className="text-xs text-[#9da3c8] leading-relaxed whitespace-pre-wrap">{text}</div>
 }
 
@@ -45,7 +45,7 @@ function SectionFailure({
           ? <><Loader2 className="w-3 h-3 animate-spin inline mr-1" />Writing this section…</>
           : 'Regenerate this section'}
       </button>
-      <p className="text-[10px] text-[#3d4466]">Only this section is rewritten — the rest of your bible is kept.</p>
+      <p className="text-[10px] text-[#8a90ba]">Only this section is rewritten — the rest of your bible is kept.</p>
     </div>
   )
 }
@@ -115,7 +115,7 @@ export default function StoryBiblePanel({ storyId }: Props) {
   // ── Loading the initial status ──────────────────────────────────────────────
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 p-6 h-full text-[#5c6391]">
+      <div className="flex flex-col items-center justify-center gap-3 p-6 h-full text-[#8e94bd]">
         <Loader2 className="w-5 h-5 animate-spin" />
         <p className="text-xs">Loading story bible…</p>
       </div>
@@ -140,7 +140,7 @@ export default function StoryBiblePanel({ storyId }: Props) {
       <div className="flex flex-col items-center justify-center gap-4 p-6 h-full text-center">
         <Loader2 className="w-9 h-9 text-amber-400 animate-spin" />
         <p className="text-sm text-[#e8eaf6] font-medium">Story Bible generation is in progress</p>
-        <p className="text-xs text-[#5c6391] max-w-xs">
+        <p className="text-xs text-[#8e94bd] max-w-xs">
           You can continue working — we’ll notify you when it’s ready. This usually takes 1–3 minutes.
         </p>
       </div>
@@ -153,7 +153,7 @@ export default function StoryBiblePanel({ storyId }: Props) {
       <div className="flex flex-col items-center justify-center gap-4 p-6 h-full text-center">
         <AlertCircle className="w-9 h-9 text-red-300" />
         <p className="text-sm text-[#e8eaf6] font-medium">Story Bible generation failed</p>
-        <p className="text-xs text-[#5c6391] max-w-xs">Something interrupted generation. You can try again.</p>
+        <p className="text-xs text-[#8e94bd] max-w-xs">Something interrupted generation. You can try again.</p>
         <button
           onClick={triggerGenerate}
           disabled={genMutation.isPending}
@@ -170,7 +170,7 @@ export default function StoryBiblePanel({ storyId }: Props) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 p-6 h-full">
         <BookOpen className="w-10 h-10 text-[#2e3454]" />
-        <p className="text-xs text-[#5c6391] text-center">
+        <p className="text-xs text-[#8e94bd] text-center">
           Generate a comprehensive story bible: characters, locations, timeline, world rules, and themes
         </p>
         <button
@@ -182,7 +182,7 @@ export default function StoryBiblePanel({ storyId }: Props) {
             ? <><Loader2 className="w-3 h-3 animate-spin inline mr-1" />Starting…</>
             : 'Generate Story Bible'}
         </button>
-        <p className="text-[10px] text-[#3d4466] text-center">Takes 1–3 min depending on manuscript size</p>
+        <p className="text-[10px] text-[#8a90ba] text-center">Takes 1–3 min depending on manuscript size</p>
       </div>
     )
   }
@@ -201,10 +201,10 @@ export default function StoryBiblePanel({ storyId }: Props) {
           >
             {genMutation.isPending ? '…' : 'Regenerate'}
           </button>
-          <button onClick={downloadDocx} className="text-[#5c6391] hover:text-amber-400 transition-colors" title="Download DOCX">
+          <button onClick={downloadDocx} className="text-[#8e94bd] hover:text-amber-400 transition-colors" title="Download DOCX">
             <Download className="w-3.5 h-3.5" />
           </button>
-          <button onClick={() => refetch()} className="text-[#5c6391] hover:text-amber-400 transition-colors" title="Refresh">
+          <button onClick={() => refetch()} className="text-[#8e94bd] hover:text-amber-400 transition-colors" title="Refresh">
             <RefreshCw className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -219,7 +219,7 @@ export default function StoryBiblePanel({ storyId }: Props) {
               ? 'One section couldn’t be written. Everything else is ready.'
               : `${failedSections.length} sections couldn’t be written. Everything else is ready.`}
           </p>
-          <p className="text-[10px] text-[#5c6391] mt-0.5">
+          <p className="text-[10px] text-[#8e94bd] mt-0.5">
             Open {failedSections.length === 1 ? 'it' : 'them'} below to see what happened and try again.
           </p>
         </div>
@@ -238,7 +238,7 @@ export default function StoryBiblePanel({ storyId }: Props) {
                   ? 'text-amber-400 bg-amber-500/10 border-amber-500/20'
                   : failed
                     ? 'text-amber-300/70 border-amber-500/20 hover:text-amber-300'
-                    : 'text-[#5c6391] border-[#2e3454] hover:text-[#9da3c8]'
+                    : 'text-[#8e94bd] border-[#2e3454] hover:text-[#9da3c8]'
               }`}
             >
               <Icon className="w-2.5 h-2.5" />

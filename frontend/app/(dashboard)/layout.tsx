@@ -19,7 +19,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="min-h-screen bg-[#0d0f1a] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
-          <span className="text-[#5c6391] text-sm">Loading NarratIQ...</span>
+          <span className="text-[#8e94bd] text-sm">Loading NarratIQ...</span>
         </div>
       </div>
     )

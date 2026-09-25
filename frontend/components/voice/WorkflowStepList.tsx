@@ -24,7 +24,7 @@ function StepIcon({ node, run }: { node: WorkflowNode; run?: NodeRun }) {
   if (node.status === 'done') return <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
   if (node.status === 'running') return <Loader2 className="w-3.5 h-3.5 text-sky-400 animate-spin" />
   if (node.status === 'failed') return <AlertCircle className="w-3.5 h-3.5 text-red-400" />
-  return <Circle className="w-3.5 h-3.5 text-[#5c6391]" />
+  return <Circle className="w-3.5 h-3.5 text-[#8e94bd]" />
 }
 
 export default function WorkflowStepList({
@@ -38,7 +38,7 @@ export default function WorkflowStepList({
   return (
     <div className="space-y-1.5">
       {multiStep && (
-        <p className="text-[10px] uppercase tracking-wide text-[#5c6391]">
+        <p className="text-[10px] uppercase tracking-wide text-[#8e94bd]">
           {nodes.length}-step workflow
         </p>
       )}
@@ -48,7 +48,7 @@ export default function WorkflowStepList({
           <div key={n.node_key} className="rounded-md border border-[#1f2440] bg-[#11152b] px-2.5 py-2">
             <div className="flex items-center gap-2">
               <StepIcon node={n} run={run} />
-              {multiStep && <span className="text-[10px] text-[#5c6391]">{i + 1}.</span>}
+              {multiStep && <span className="text-[10px] text-[#8e94bd]">{i + 1}.</span>}
               <span className="text-xs text-[#cdd2f0] flex-1">
                 {n.capability.replace(/_/g, ' ')} · {n.action.replace(/_/g, ' ')}
               </span>

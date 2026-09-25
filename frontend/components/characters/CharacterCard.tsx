@@ -7,7 +7,7 @@ const ROLE_CONFIG: Record<string, { label: string; color: string; icon: typeof U
   protagonist: { label: 'Protagonist', color: 'text-amber-400 bg-amber-500/10 border-amber-500/20', icon: Crown },
   antagonist:  { label: 'Antagonist',  color: 'text-red-400 bg-red-500/10 border-red-500/20',     icon: Sword },
   supporting:  { label: 'Supporting',  color: 'text-sky-400 bg-sky-500/10 border-sky-500/20',     icon: Users },
-  minor:       { label: 'Minor',       color: 'text-[#5c6391] bg-[#1f2440] border-[#2e3454]',     icon: Eye  },
+  minor:       { label: 'Minor',       color: 'text-[#8e94bd] bg-[#1f2440] border-[#2e3454]',     icon: Eye  },
 }
 
 const STATUS_COLOR: Record<string, string> = {
@@ -38,7 +38,7 @@ export default function CharacterCard({ character, onClick }: Props) {
       <div className="flex items-start gap-2.5">
         {/* Avatar placeholder */}
         <div className="w-8 h-8 rounded-full bg-[#1f2440] flex items-center justify-center flex-shrink-0 group-hover:bg-amber-500/10 transition-colors">
-          <User className="w-4 h-4 text-[#5c6391] group-hover:text-amber-500" />
+          <User className="w-4 h-4 text-[#8e94bd] group-hover:text-amber-500" />
         </div>
 
         <div className="flex-1 min-w-0">
@@ -57,14 +57,14 @@ export default function CharacterCard({ character, onClick }: Props) {
               {role.label}
             </span>
             {character.profile?.traits && character.profile.traits.length > 0 && (
-              <span className="text-[10px] text-[#3d4466] truncate">
+              <span className="text-[10px] text-[#8a90ba] truncate">
                 {character.profile.traits.slice(0, 2).join(', ')}
               </span>
             )}
           </div>
 
           {blurb && (
-            <p className="text-[11px] text-[#3d4466] line-clamp-1">{blurb}</p>
+            <p className="text-[11px] text-[#8a90ba] line-clamp-1">{blurb}</p>
           )}
 
           {/* Profile completeness bar */}

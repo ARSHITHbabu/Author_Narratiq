@@ -36,39 +36,39 @@ function ProfileReadout({ profile }: { profile: GenreProfile }) {
     <div className="grid sm:grid-cols-2 gap-5">
       {baseFields.map((item) => (
         <div key={item.label} className="bg-[#0d0f1a] rounded-xl p-4 border border-[#1f2440]">
-          <div className="text-xs text-[#5c6391] mb-1">{item.label}</div>
+          <div className="text-xs text-[#8e94bd] mb-1">{item.label}</div>
           <div className="text-sm font-medium text-[#e8eaf6]">{item.value || '—'}</div>
         </div>
       ))}
 
       <div className="sm:col-span-2 bg-[#0d0f1a] rounded-xl p-4 border border-[#1f2440]">
-        <div className="text-xs text-[#5c6391] mb-2">Tone</div>
+        <div className="text-xs text-[#8e94bd] mb-2">Tone</div>
         <div className="flex flex-wrap gap-2">
           {(profile.tone || []).length
             ? profile.tone.map((t) => (
                 <span key={t} className="px-3 py-1 bg-amber-500/10 border border-amber-500/30 rounded-full text-xs text-amber-400">{t}</span>
               ))
-            : <span className="text-sm text-[#5c6391]">—</span>}
+            : <span className="text-sm text-[#8e94bd]">—</span>}
         </div>
       </div>
 
       {profile.structure && (
         <div className="sm:col-span-2 bg-[#0d0f1a] rounded-xl p-4 border border-[#1f2440]">
-          <div className="text-xs text-[#5c6391] mb-1">Suggested Structure</div>
+          <div className="text-xs text-[#8e94bd] mb-1">Suggested Structure</div>
           <p className="text-sm text-[#e8eaf6]">{profile.structure}</p>
         </div>
       )}
 
       {profile.writing_direction && (
         <div className="sm:col-span-2 bg-[#0d0f1a] rounded-xl p-4 border border-[#1f2440]">
-          <div className="text-xs text-[#5c6391] mb-1">Writing Direction Notes</div>
+          <div className="text-xs text-[#8e94bd] mb-1">Writing Direction Notes</div>
           <p className="text-sm text-[#9da3c8] italic">{profile.writing_direction}</p>
         </div>
       )}
 
       {(profile.themes || []).length > 0 && (
         <div className="sm:col-span-2 bg-[#0d0f1a] rounded-xl p-4 border border-[#1f2440]">
-          <div className="text-xs text-[#5c6391] mb-2">Theme Hints</div>
+          <div className="text-xs text-[#8e94bd] mb-2">Theme Hints</div>
           <div className="flex flex-wrap gap-2">
             {profile.themes.map((t) => (
               <span key={t} className="px-3 py-1 bg-[#1f2440] rounded-full text-xs text-[#9da3c8]">{t}</span>
@@ -82,7 +82,7 @@ function ProfileReadout({ profile }: { profile: GenreProfile }) {
         if (!value) return null
         return (
           <div key={key} className="bg-[#0d0f1a] rounded-xl p-4 border border-[#1f2440]">
-            <div className="text-xs text-[#5c6391] mb-1">{label}</div>
+            <div className="text-xs text-[#8e94bd] mb-1">{label}</div>
             <p className="text-sm text-[#e8eaf6]">{value}</p>
           </div>
         )
@@ -93,7 +93,7 @@ function ProfileReadout({ profile }: { profile: GenreProfile }) {
         if (!list.length) return null
         return (
           <div key={key} className="sm:col-span-2 bg-[#0d0f1a] rounded-xl p-4 border border-[#1f2440]">
-            <div className="text-xs text-[#5c6391] mb-2">{label}</div>
+            <div className="text-xs text-[#8e94bd] mb-2">{label}</div>
             <div className="flex flex-wrap gap-2">
               {list.map((t) => (
                 <span key={t} className={`px-3 py-1 rounded-full text-xs border ${danger ? 'bg-red-500/10 border-red-500/30 text-red-300' : 'bg-[#1f2440] border-transparent text-[#9da3c8]'}`}>{t}</span>
@@ -227,7 +227,7 @@ export default function StoryIntakePage({ params }: { params: { id: string } }) 
             <Feather className="w-5 h-5 text-amber-500" />
             <span className="font-semibold text-sm">Story Intake</span>
           </div>
-          <button onClick={skip} className="text-sm text-[#5c6391] hover:text-[#9da3c8]">
+          <button onClick={skip} className="text-sm text-[#8e94bd] hover:text-[#9da3c8]">
             {mode === 'view' ? 'Back to editor →' : 'Skip for now →'}
           </button>
         </div>
@@ -236,7 +236,7 @@ export default function StoryIntakePage({ params }: { params: { id: string } }) 
       <div className="max-w-4xl mx-auto px-6 pt-10 pb-16">
         {/* ── Loading saved report ─────────────────────────────────────────── */}
         {loadingReport ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-24 text-[#5c6391]">
+          <div className="flex flex-col items-center justify-center gap-3 py-24 text-[#8e94bd]">
             <Loader2 className="w-6 h-6 animate-spin" />
             <p className="text-sm">Loading your genre profile…</p>
           </div>
@@ -267,7 +267,7 @@ export default function StoryIntakePage({ params }: { params: { id: string } }) 
                 <Sparkles className="w-4 h-4" />
                 <span className="text-sm font-medium">Genre Detection {report.confirmed ? 'Confirmed' : 'Saved'}</span>
                 {typeof report.genre_profile.confidence === 'number' && (
-                  <span className="text-xs text-[#5c6391] ml-auto">
+                  <span className="text-xs text-[#8e94bd] ml-auto">
                     Confidence: {Math.round((report.genre_profile.confidence || 0.85) * 100)}%
                   </span>
                 )}
@@ -322,8 +322,8 @@ export default function StoryIntakePage({ params }: { params: { id: string } }) 
                     className="w-full bg-[#0d0f1a] border border-[#2e3454] rounded-xl px-4 py-3 text-sm text-[#e8eaf6] placeholder-[#3d4466] focus:outline-none focus:border-amber-500 transition-colors resize-none font-serif"
                   />
                   <div className="flex justify-between mt-1">
-                    <span className="text-xs text-[#3d4466]">Minimum 20 characters</span>
-                    <span className={`text-xs ${description.length >= 20 ? 'text-amber-400' : 'text-[#3d4466]'}`}>
+                    <span className="text-xs text-[#8a90ba]">Minimum 20 characters</span>
+                    <span className={`text-xs ${description.length >= 20 ? 'text-amber-400' : 'text-[#8a90ba]'}`}>
                       {description.length} chars
                     </span>
                   </div>
@@ -331,7 +331,7 @@ export default function StoryIntakePage({ params }: { params: { id: string } }) 
 
                 <div className="mb-8">
                   <label className="block text-sm font-medium text-[#9da3c8] mb-2">
-                    Target Audience <span className="text-[#3d4466]">(optional)</span>
+                    Target Audience <span className="text-[#8a90ba]">(optional)</span>
                   </label>
                   <div className="flex gap-3 flex-wrap">
                     {['', 'children', 'ya', 'adult'].map((a) => (
@@ -341,7 +341,7 @@ export default function StoryIntakePage({ params }: { params: { id: string } }) 
                         className={`px-4 py-2 rounded-lg text-sm border transition-colors ${
                           audienceHint === a
                             ? 'border-amber-500 bg-amber-500/10 text-amber-400'
-                            : 'border-[#2e3454] text-[#5c6391] hover:border-[#3d4466]'
+                            : 'border-[#2e3454] text-[#8e94bd] hover:border-[#3d4466]'
                         }`}
                       >
                         {a === '' ? 'Let AI Decide' : a === 'ya' ? 'Young Adult' : a.charAt(0).toUpperCase() + a.slice(1)}
@@ -376,7 +376,7 @@ export default function StoryIntakePage({ params }: { params: { id: string } }) 
                   <div className="flex items-center gap-2 text-amber-400 mb-6">
                     <Sparkles className="w-4 h-4" />
                     <span className="text-sm font-medium">AI Genre Detection Complete</span>
-                    <span className="text-xs text-[#5c6391] ml-auto">
+                    <span className="text-xs text-[#8e94bd] ml-auto">
                       Confidence: {Math.round((result.genre_profile.confidence || 0.85) * 100)}%
                     </span>
                   </div>
@@ -389,7 +389,7 @@ export default function StoryIntakePage({ params }: { params: { id: string } }) 
                       { label: 'Emotional Direction', field: 'conflict', value: profile?.conflict },
                     ].map((item) => (
                       <div key={item.field} className="bg-[#0d0f1a] rounded-xl p-4 border border-[#1f2440]">
-                        <div className="text-xs text-[#5c6391] mb-1">{item.label}</div>
+                        <div className="text-xs text-[#8e94bd] mb-1">{item.label}</div>
                         <input
                           value={(overrides as any)[item.field] ?? item.value ?? ''}
                           onChange={(e) => setOverrides((o) => ({ ...o, [item.field]: e.target.value }))}
@@ -405,7 +405,7 @@ export default function StoryIntakePage({ params }: { params: { id: string } }) 
                     ))}
 
                     <div className="sm:col-span-2 bg-[#0d0f1a] rounded-xl p-4 border border-[#1f2440]">
-                      <div className="text-xs text-[#5c6391] mb-2">Tone</div>
+                      <div className="text-xs text-[#8e94bd] mb-2">Tone</div>
                       <div className="flex flex-wrap gap-2">
                         {(profile?.tone || []).map((t: string) => (
                           <span key={t} className="px-3 py-1 bg-amber-500/10 border border-amber-500/30 rounded-full text-xs text-amber-400">{t}</span>
@@ -414,19 +414,19 @@ export default function StoryIntakePage({ params }: { params: { id: string } }) 
                     </div>
 
                     <div className="sm:col-span-2 bg-[#0d0f1a] rounded-xl p-4 border border-[#1f2440]">
-                      <div className="text-xs text-[#5c6391] mb-1">Suggested Structure</div>
+                      <div className="text-xs text-[#8e94bd] mb-1">Suggested Structure</div>
                       <p className="text-sm text-[#e8eaf6]">{profile?.structure}</p>
                     </div>
 
                     {profile?.writing_direction && (
                       <div className="sm:col-span-2 bg-[#0d0f1a] rounded-xl p-4 border border-[#1f2440]">
-                        <div className="text-xs text-[#5c6391] mb-1">Writing Direction Notes</div>
+                        <div className="text-xs text-[#8e94bd] mb-1">Writing Direction Notes</div>
                         <p className="text-sm text-[#9da3c8] italic">{profile.writing_direction}</p>
                       </div>
                     )}
 
                     <div className="sm:col-span-2 bg-[#0d0f1a] rounded-xl p-4 border border-[#1f2440]">
-                      <div className="text-xs text-[#5c6391] mb-2">Theme Hints</div>
+                      <div className="text-xs text-[#8e94bd] mb-2">Theme Hints</div>
                       <div className="flex flex-wrap gap-2">
                         {(profile?.themes || []).map((t: string) => (
                           <span key={t} className="px-3 py-1 bg-[#1f2440] rounded-full text-xs text-[#9da3c8]">{t}</span>
@@ -439,7 +439,7 @@ export default function StoryIntakePage({ params }: { params: { id: string } }) 
                       if (!value) return null
                       return (
                         <div key={key} className="bg-[#0d0f1a] rounded-xl p-4 border border-[#1f2440]">
-                          <div className="text-xs text-[#5c6391] mb-1">{label}</div>
+                          <div className="text-xs text-[#8e94bd] mb-1">{label}</div>
                           <p className="text-sm text-[#e8eaf6]">{value}</p>
                         </div>
                       )
@@ -450,7 +450,7 @@ export default function StoryIntakePage({ params }: { params: { id: string } }) 
                       if (!list.length) return null
                       return (
                         <div key={key} className="sm:col-span-2 bg-[#0d0f1a] rounded-xl p-4 border border-[#1f2440]">
-                          <div className="text-xs text-[#5c6391] mb-2">{label}</div>
+                          <div className="text-xs text-[#8e94bd] mb-2">{label}</div>
                           <div className="flex flex-wrap gap-2">
                             {list.map((t) => (
                               <span key={t} className={`px-3 py-1 rounded-full text-xs border ${danger ? 'bg-red-500/10 border-red-500/30 text-red-300' : 'bg-[#1f2440] border-transparent text-[#9da3c8]'}`}>{t}</span>
@@ -471,7 +471,7 @@ export default function StoryIntakePage({ params }: { params: { id: string } }) 
                     )}
                   </div>
 
-                  <p className="text-xs text-[#5c6391] mt-4 flex items-center gap-1">
+                  <p className="text-xs text-[#8e94bd] mt-4 flex items-center gap-1">
                     <Edit3 className="w-3 h-3" />
                     Click any field to edit. AI suggestions are starting points — you have full control.
                   </p>

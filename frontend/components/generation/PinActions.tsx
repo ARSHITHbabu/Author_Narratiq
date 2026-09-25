@@ -143,7 +143,7 @@ export default function PinActions({ source, compact }: { source: PinSource; com
         )}
       </div>
       {!compact && !pinned && (
-        <p className="text-[10px] text-[#5c6391]">Only pinned versions are kept. Everything else disappears when you refresh.</p>
+        <p className="text-[10px] text-[#8e94bd]">Only pinned versions are kept. Everything else disappears when you refresh.</p>
       )}
       {cap && (
         <div role="alertdialog" aria-label="Pin limit reached" className="text-[11px] rounded border border-amber-500/30 bg-amber-500/10 p-2 space-y-1.5">
@@ -161,14 +161,14 @@ export default function PinActions({ source, compact }: { source: PinSource; com
         <div className="rounded border border-[#2e3454] bg-[#0d0f1a] p-2 space-y-1.5 text-[11px]">
           <p className="text-[#9da3c8]">Ideas are kept permanently in Notes → Ideas{pinned ? ' (the pin is released)' : ''}.</p>
           <label className="flex items-center gap-2">
-            <span className="w-16 text-[#5c6391]">Type</span>
+            <span className="w-16 text-[#8e94bd]">Type</span>
             <select value={ideaType} onChange={(e) => setIdeaType(e.target.value)}
               className="flex-1 bg-[#13162a] border border-[#2e3454] rounded px-1.5 py-1 text-[#e8eaf6]">
               {IDEA_TYPES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
             </select>
           </label>
           <label className="flex items-center gap-2">
-            <span className="w-16 text-[#5c6391]">For chapter</span>
+            <span className="w-16 text-[#8e94bd]">For chapter</span>
             <select value={ideaChapter} onChange={(e) => setIdeaChapter(e.target.value)}
               className="flex-1 bg-[#13162a] border border-[#2e3454] rounded px-1.5 py-1 text-[#e8eaf6]">
               <option value="">Unassigned</option>

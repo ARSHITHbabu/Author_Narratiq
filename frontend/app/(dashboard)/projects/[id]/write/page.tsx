@@ -183,7 +183,7 @@ export default function WriteWorkspace() {
 
   if (!chapters.length || !activeChapter) {
     return (
-      <div className="h-full flex flex-col items-center justify-center text-center text-[#5c6391] gap-3">
+      <div className="h-full flex flex-col items-center justify-center text-center text-[#8e94bd] gap-3">
         <PenLine className="w-8 h-8" />
         <p className="text-sm">No chapters yet.</p>
       </div>
@@ -295,7 +295,7 @@ export default function WriteWorkspace() {
               )}
             </>
           )}
-          <DropdownMenu.Root>
+          <DropdownMenu.Root modal={false}>
             <DropdownMenu.Trigger asChild>
               <button aria-label="View options" title="View: reading, focus, zen, typewriter, fullscreen"
                 className="p-1 rounded hover:bg-[#1f2440] flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/70">

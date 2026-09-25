@@ -79,7 +79,7 @@ export default function IdeaShelfTab({ storyId }: { storyId: string }) {
   return (
     <div className="flex flex-col h-full overflow-hidden" data-testid="idea-shelf">
       <div className="p-3 border-b border-[#1f2440] space-y-2 flex-shrink-0">
-        <p className="text-[11px] text-[#5c6391]">Ideas are kept permanently. Pinned AI versions expire — send the good ones here.</p>
+        <p className="text-[11px] text-[#8e94bd]">Ideas are kept permanently. Pinned AI versions expire — send the good ones here.</p>
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search ideas…" aria-label="Search ideas"
           className="w-full bg-[#0d0f1a] border border-[#2e3454] rounded-lg px-2.5 py-1.5 text-xs text-[#e8eaf6]" />
         <div className="grid grid-cols-2 gap-1.5">
@@ -99,7 +99,7 @@ export default function IdeaShelfTab({ storyId }: { storyId: string }) {
             {allTags.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
         </div>
-        <div className="flex items-center gap-1 text-[10px] text-[#5c6391]">
+        <div className="flex items-center gap-1 text-[10px] text-[#8e94bd]">
           Group by
           {(['type', 'chapter', 'date'] as Grouping[]).map((g) => (
             <button key={g} onClick={() => setGrouping(g)} aria-pressed={grouping === g}
@@ -111,7 +111,7 @@ export default function IdeaShelfTab({ storyId }: { storyId: string }) {
       </div>
 
       <div className="flex-1 overflow-y-auto p-3 space-y-3">
-        {status === 'loading' && <div className="flex justify-center py-6"><Loader2 className="w-4 h-4 animate-spin text-[#5c6391]" /></div>}
+        {status === 'loading' && <div className="flex justify-center py-6"><Loader2 className="w-4 h-4 animate-spin text-[#8e94bd]" /></div>}
         {status === 'error' && (
           <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs">
             Your ideas could not be loaded. Nothing has been lost.
@@ -119,24 +119,24 @@ export default function IdeaShelfTab({ storyId }: { storyId: string }) {
           </div>
         )}
         {status === 'ready' && ideas.length === 0 && (
-          <p data-testid="ideas-empty" className="text-xs text-[#5c6391] text-center py-6">No ideas here yet. Use “Send to Idea Shelf” on any AI result or pinned version.</p>
+          <p data-testid="ideas-empty" className="text-xs text-[#8e94bd] text-center py-6">No ideas here yet. Use “Send to Idea Shelf” on any AI result or pinned version.</p>
         )}
         {status === 'ready' && groups.map(([name, cards]) => (
           <section key={name} aria-label={name}>
-            <h3 className="text-[10px] uppercase tracking-wide text-[#5c6391] mb-1">{name} · {cards.length}</h3>
+            <h3 className="text-[10px] uppercase tracking-wide text-[#8e94bd] mb-1">{name} · {cards.length}</h3>
             <ul className="space-y-1.5">
               {cards.map((c) => (
                 <li key={c.card_id} data-testid="idea-card" draggable
                   onDragStart={(e) => e.dataTransfer.setData('text/plain', c.content)}
                   className="rounded-lg border border-[#1f2440] bg-[#0d0f1a] p-2 space-y-1">
-                  <div className="flex items-center gap-1.5 text-[10px] text-[#5c6391]">
+                  <div className="flex items-center gap-1.5 text-[10px] text-[#8e94bd]">
                     <span className="px-1.5 py-px rounded bg-[#1a1e36] text-[#9da3c8]">{typeLabel(c.card_type)}</span>
                     <span className="truncate">{chapterName(c.target_chapter_id)}</span>
                     {c.status !== 'open' && <span className="ml-auto">{c.status}</span>}
                   </div>
                   {c.title && <p className="text-xs font-medium text-[#e8eaf6]">{c.title}</p>}
                   <p className="text-xs text-[#9da3c8] font-serif whitespace-pre-wrap line-clamp-4">{c.content}</p>
-                  {c.tags?.length ? <p className="text-[10px] text-[#5c6391] flex items-center gap-1"><Tag className="w-2.5 h-2.5" />{c.tags.join(', ')}</p> : null}
+                  {c.tags?.length ? <p className="text-[10px] text-[#8e94bd] flex items-center gap-1"><Tag className="w-2.5 h-2.5" />{c.tags.join(', ')}</p> : null}
                   <div className="flex flex-wrap gap-1 pt-0.5">
                     <select aria-label="Assign to chapter" value={c.target_chapter_id ?? ''} className={sel}
                       onChange={(e) => update(c, e.target.value ? { target_chapter_id: e.target.value } : { clear_target_chapter: true }, 'Chapter updated')}>

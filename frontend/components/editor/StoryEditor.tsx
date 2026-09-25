@@ -193,7 +193,7 @@ export default function StoryEditor({ storyId, chapter, onWordCountChange, onEdi
         <ToolbarBtn onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} active={editor.isActive('heading', { level: 1 })} title="Heading 1"><Heading1 className="w-3.5 h-3.5" aria-hidden="true" /></ToolbarBtn>
         <ToolbarBtn onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} active={editor.isActive('heading', { level: 2 })} title="Heading 2"><Heading2 className="w-3.5 h-3.5" aria-hidden="true" /></ToolbarBtn>
 
-        <DropdownMenu.Root>
+        <DropdownMenu.Root modal={false}>
           <DropdownMenu.Trigger asChild>
             <button type="button" aria-label="More formatting" title="More formatting"
               className="p-1.5 rounded text-[#9da3c8] hover:text-[#e8eaf6] hover:bg-[#1f2440] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/70">

@@ -34,6 +34,7 @@ export function ChapterIdeasMarker({ count, open, onToggle }: { count: number; o
   return (
     <button type="button" onClick={(e) => { e.stopPropagation(); onToggle() }} aria-expanded={open}
       data-testid="chapter-ideas-marker"
+      aria-label={`${count} idea${count === 1 ? "" : "s"} waiting for this chapter`}
       title={`${count} idea${count === 1 ? '' : 's'} waiting for this chapter`}
       className="flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
       <Lightbulb className="w-2.5 h-2.5" /> {count}
@@ -53,7 +54,7 @@ export function ChapterIdeasList({ ideas, onUsed }: { ideas: IdeaCard[]; onUsed:
 
   return (
     <ul className="mx-4 mb-2 space-y-1" data-testid="chapter-ideas-list" aria-label="Ideas waiting for this chapter">
-      <li className="text-[10px] text-[#5c6391]">{ideas.length} idea{ideas.length === 1 ? '' : 's'} waiting here — drag into the text, or insert at the cursor.</li>
+      <li className="text-[10px] text-[#8e94bd]">{ideas.length} idea{ideas.length === 1 ? '' : 's'} waiting here — drag into the text, or insert at the cursor.</li>
       {ideas.map((c) => (
         <li key={c.card_id} draggable
           onDragStart={(e) => e.dataTransfer.setData('text/plain', c.content)}

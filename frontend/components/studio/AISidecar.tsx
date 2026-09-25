@@ -11,6 +11,7 @@
 // author abandoning their selection.
 
 import dynamic from 'next/dynamic'
+import { useEffect } from 'react'
 import { X, Maximize2, Minimize2 } from 'lucide-react'
 import { useStoryContext } from './StoryContextEngine'
 import { useStudioStore } from '@/lib/studioStore'
@@ -22,10 +23,19 @@ export default function AISidecar({ selection = null }: { selection?: OwnedSelec
   const store = useStudioStore()
   const { storyId, activeChapterId, editor, genreProfile } = useStoryContext()
 
+  // Focus management (8.9): a keyboard or screen-reader user who opens the panel
+  // lands on its heading; closing it returns focus to where they were. Moving
+  // focus does not touch the selection this panel owns (it is React state).
+  useEffect(() => {
+    const from = document.activeElement as HTMLElement | null
+    document.getElementById('ai-sidecar-title')?.focus({ preventScroll: true })
+    return () => { if (from && document.contains(from)) from.focus({ preventScroll: true }) }
+  }, [])
+
   return (
     <aside aria-labelledby="ai-sidecar-title" className="h-full flex flex-col bg-[#0f1220] border-l border-[#1f2440]" {...selectionSafeProps()}>
       <div className="h-10 flex items-center justify-between px-3 border-b border-[#1f2440] flex-shrink-0">
-        <h2 id="ai-sidecar-title" className="text-xs font-medium text-[#e8eaf6]" tabIndex={-1}>AI Assistant</h2>
+        <h2 id="ai-sidecar-title" className="text-xs font-medium text-[#e8eaf6] focus:outline-none" tabIndex={-1}>AI Assistant</h2>
         <div className="flex items-center gap-1">
           {/* The voice agent has one entry point: the mic in the context bar. */}
           <button onClick={() => store.setSidecarExpanded(!store.sidecarExpanded)}

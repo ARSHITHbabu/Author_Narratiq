@@ -46,7 +46,7 @@ function FindingCard({ f }: { f: CopyrightRiskFinding }) {
             <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${styles.badge}`}>
               {f.risk_score.toUpperCase()}
             </span>
-            <span className="text-[10px] text-[#5c6391] px-1.5 py-0.5 rounded bg-[#0f1220] border border-[#1f2440]">
+            <span className="text-[10px] text-[#8e94bd] px-1.5 py-0.5 rounded bg-[#0f1220] border border-[#1f2440]">
               {typeLabel}
             </span>
             {f.is_generic_trope && (
@@ -55,7 +55,7 @@ function FindingCard({ f }: { f: CopyrightRiskFinding }) {
           </div>
           <p className="text-xs text-[#c8cce8] leading-relaxed line-clamp-2">{f.description}</p>
         </div>
-        <div className="flex-shrink-0 text-[#3d4466] mt-0.5">
+        <div className="flex-shrink-0 text-[#8a90ba] mt-0.5">
           {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
         </div>
       </button>
@@ -65,7 +65,7 @@ function FindingCard({ f }: { f: CopyrightRiskFinding }) {
           <p className="text-xs text-[#9da3c8] leading-relaxed">{f.description}</p>
           {f.problematic_excerpt && (
             <div className="bg-[#0f1220] border border-[#1f2440] rounded-lg p-2.5">
-              <p className="text-[10px] text-[#5c6391] font-medium mb-1">Implicated passage</p>
+              <p className="text-[10px] text-[#8e94bd] font-medium mb-1">Implicated passage</p>
               <p className="text-xs text-[#c8cce8] leading-relaxed italic font-serif">“{f.problematic_excerpt}”</p>
             </div>
           )}
@@ -133,7 +133,7 @@ export default function CopyrightRiskPanel({ storyId }: Props) {
 
       {/* Scope selector */}
       <div>
-        <label className="text-[10px] text-[#5c6391] block mb-1.5">Scope</label>
+        <label className="text-[10px] text-[#8e94bd] block mb-1.5">Scope</label>
         <div className="grid grid-cols-3 gap-1.5">
           {([
             { id: 'selection', label: 'Selection' },
@@ -172,7 +172,7 @@ export default function CopyrightRiskPanel({ storyId }: Props) {
         <div className="flex flex-col items-center gap-2 py-4 text-center">
           <Info className="w-6 h-6 text-amber-400/60" />
           <p className="text-xs text-[#9da3c8] font-medium">Nothing to analyze yet</p>
-          <p className="text-xs text-[#5c6391] leading-relaxed">
+          <p className="text-xs text-[#8e94bd] leading-relaxed">
             {scope === 'project'
               ? 'Sync at least 1 chapter using Sync Summaries in the chapter list.'
               : 'Add some text first, then try again.'}
@@ -189,11 +189,11 @@ export default function CopyrightRiskPanel({ storyId }: Props) {
                 ? <ShieldCheck className={`w-5 h-5 ${overallStyles.text}`} />
                 : <ShieldAlert className={`w-5 h-5 ${overallStyles.text}`} />}
               <div>
-                <p className="text-xs text-[#5c6391]">Overall risk</p>
+                <p className="text-xs text-[#8e94bd]">Overall risk</p>
                 <p className={`text-sm font-semibold ${overallStyles.text}`}>{result.overall_risk.toUpperCase()}</p>
               </div>
             </div>
-            <span className="text-[10px] text-[#5c6391]">
+            <span className="text-[10px] text-[#8e94bd]">
               {result.units_analyzed} {result.scope === 'project' ? 'chapter(s)' : 'passage'} · {result.findings_count} finding(s)
             </span>
           </div>
@@ -202,20 +202,20 @@ export default function CopyrightRiskPanel({ storyId }: Props) {
             <div className="flex flex-col items-center gap-2 py-4 text-center">
               <ShieldCheck className="w-7 h-7 text-emerald-500/60" />
               <p className="text-xs text-[#9da3c8] font-medium">No notable similarity detected</p>
-              <p className="text-xs text-[#5c6391]">This content reads as original within the analyzed scope.</p>
+              <p className="text-xs text-[#8e94bd]">This content reads as original within the analyzed scope.</p>
             </div>
           )}
 
           {sorted.map((f) => <FindingCard key={f.finding_id} f={f} />)}
 
           {result.note && (
-            <p className="text-[10px] text-[#3d4466] leading-relaxed border-t border-[#1f2440] pt-2">{result.note}</p>
+            <p className="text-[10px] text-[#8a90ba] leading-relaxed border-t border-[#1f2440] pt-2">{result.note}</p>
           )}
 
           {/* Non-legal-advice disclaimer */}
           <div className="flex items-start gap-1.5 rounded-lg bg-[#1a1e36] border border-[#2e3454] p-2.5">
-            <Info className="w-3 h-3 text-[#5c6391] mt-0.5 flex-shrink-0" />
-            <p className="text-[10px] text-[#5c6391] leading-relaxed">{result.disclaimer}</p>
+            <Info className="w-3 h-3 text-[#8e94bd] mt-0.5 flex-shrink-0" />
+            <p className="text-[10px] text-[#8e94bd] leading-relaxed">{result.disclaimer}</p>
           </div>
         </div>
       )}
@@ -225,8 +225,8 @@ export default function CopyrightRiskPanel({ storyId }: Props) {
         <div className="flex flex-col items-center gap-3 py-6 text-center">
           <ShieldAlert className="w-8 h-8 text-[#2e3454]" />
           <div>
-            <p className="text-xs text-[#5c6391] font-medium">Check for copyright / plagiarism risk</p>
-            <p className="text-xs text-[#3d4466] mt-1 leading-relaxed">
+            <p className="text-xs text-[#8e94bd] font-medium">Check for copyright / plagiarism risk</p>
+            <p className="text-xs text-[#8a90ba] mt-1 leading-relaxed">
               Flags text, plot, character, world,<br />scene, style and trope similarity.
             </p>
           </div>

@@ -92,7 +92,7 @@ export default function VersionCompareView() {
           className="fixed z-50 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(96vw,64rem)] max-h-[90vh] overflow-y-auto rounded-xl border border-[#2e3454] bg-[#0f1220] p-4 space-y-3 text-[#e8eaf6]">
           <div className="flex items-center gap-2">
             <Dialog.Title className="text-sm font-medium">Compare versions</Dialog.Title>
-            <span className="text-[11px] text-[#5c6391]">
+            <span className="text-[11px] text-[#8e94bd]">
               +{counts.added} words · −{counts.removed} words · {counts.unchanged} unchanged{diff.sentenceLevel ? ' · long texts are compared sentence by sentence' : ''}
             </span>
             <div className="ml-auto flex items-center gap-1" role="tablist" aria-label="Comparison view">
@@ -108,9 +108,9 @@ export default function VersionCompareView() {
 
           {view === 'side' && (
             <div className="grid grid-cols-2 gap-3 text-xs font-serif leading-relaxed">
-              <div><p className="text-[10px] uppercase text-[#5c6391] mb-1">{left.label}</p>
+              <div><p className="text-[10px] uppercase text-[#8e94bd] mb-1">{left.label}</p>
                 <div className="whitespace-pre-wrap rounded border border-[#1f2440] p-2">{diff.ops.filter((o) => o.kind !== 'insert').map((o, i) => seg(o.kind, o.text, i))}</div></div>
-              <div><p className="text-[10px] uppercase text-[#5c6391] mb-1">{right.label}</p>
+              <div><p className="text-[10px] uppercase text-[#8e94bd] mb-1">{right.label}</p>
                 <div className="whitespace-pre-wrap rounded border border-[#1f2440] p-2">{diff.ops.filter((o) => o.kind !== 'delete').map((o, i) => seg(o.kind, o.text, i))}</div></div>
             </div>
           )}
@@ -121,11 +121,11 @@ export default function VersionCompareView() {
             <ul className="space-y-1 text-xs font-serif">
               {blocks.filter((b) => b.changed).map((b, i) => (
                 <li key={i} className="rounded border border-[#1f2440] p-2 grid grid-cols-2 gap-2">
-                  <span className="text-rose-200">{b.a || <em className="text-[#5c6391]">(nothing)</em>}</span>
-                  <span className="text-emerald-200">{b.b || <em className="text-[#5c6391]">(nothing)</em>}</span>
+                  <span className="text-rose-200">{b.a || <em className="text-[#8e94bd]">(nothing)</em>}</span>
+                  <span className="text-emerald-200">{b.b || <em className="text-[#8e94bd]">(nothing)</em>}</span>
                 </li>
               ))}
-              {!blocks.some((b) => b.changed) && <li className="text-[#5c6391]">The two versions are identical.</li>}
+              {!blocks.some((b) => b.changed) && <li className="text-[#8e94bd]">The two versions are identical.</li>}
             </ul>
           )}
 
@@ -135,7 +135,7 @@ export default function VersionCompareView() {
               <button onClick={describe} disabled={summaryState === 'loading'} className="text-[11px] px-2 py-0.5 rounded border border-[#2e3454] hover:bg-[#1f2440] inline-flex items-center gap-1">
                 {summaryState === 'loading' ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />} Describe with AI
               </button>
-              {summaryState === 'unavailable' && <span className="text-[11px] text-[#5c6391]">A description could not be produced this time — the comparison above is complete without it.</span>}
+              {summaryState === 'unavailable' && <span className="text-[11px] text-[#8e94bd]">A description could not be produced this time — the comparison above is complete without it.</span>}
             </div>
             {summary && (
               <div className="text-[11px] text-[#cdd2f0] space-y-1">
@@ -157,15 +157,15 @@ export default function VersionCompareView() {
                       <button key={side} type="button" aria-pressed={choice[i] === side}
                         onClick={() => { setChoice((c) => c.map((x, k) => (k === i ? side : x))); setMerged(null) }}
                         className={`text-left rounded border p-1.5 ${choice[i] === side ? 'border-amber-500/60 bg-amber-500/10' : 'border-[#1f2440] opacity-70 hover:opacity-100'}`}>
-                        <span className="block text-[9px] uppercase text-[#5c6391]">{side === 'a' ? left.label : right.label}</span>
-                        {(side === 'a' ? b.a : b.b) || <em className="text-[#5c6391]">(leave out)</em>}
+                        <span className="block text-[9px] uppercase text-[#8e94bd]">{side === 'a' ? left.label : right.label}</span>
+                        {(side === 'a' ? b.a : b.b) || <em className="text-[#8e94bd]">(leave out)</em>}
                       </button>
                     ))}
                   </li>
                 ) : null)}
               </ol>
               <div className="rounded border border-[#1f2440] p-2">
-                <p className="text-[10px] uppercase text-[#5c6391] mb-1">Merged result {merged?.smoothed ? '· joins smoothed' : ''}</p>
+                <p className="text-[10px] uppercase text-[#8e94bd] mb-1">Merged result {merged?.smoothed ? '· joins smoothed' : ''}</p>
                 <p className="text-xs font-serif whitespace-pre-wrap" data-testid="merged-text">{finalText}</p>
               </div>
               {merged && <GenerationWarnings warnings={merged.warnings} compact />}

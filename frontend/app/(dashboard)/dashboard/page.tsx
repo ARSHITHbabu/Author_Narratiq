@@ -15,7 +15,7 @@ import { formatDistanceToNow } from 'date-fns'
 
 function WordCountBadge({ count }: { count: number }) {
   const k = count >= 1000 ? `${(count / 1000).toFixed(1)}k` : count.toString()
-  return <span className="text-xs text-[#5c6391]">{k} words</span>
+  return <span className="text-xs text-[#8e94bd]">{k} words</span>
 }
 
 export default function DashboardPage() {
@@ -92,7 +92,7 @@ export default function DashboardPage() {
             </span>
             <button
               onClick={logout}
-              className="text-[#5c6391] hover:text-[#9da3c8] p-2 rounded-lg transition-colors"
+              className="text-[#8e94bd] hover:text-[#9da3c8] p-2 rounded-lg transition-colors"
               title="Sign out"
             >
               <LogOut className="w-4 h-4" />
@@ -106,7 +106,7 @@ export default function DashboardPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-2xl font-bold">Your Manuscripts</h1>
-            <p className="text-sm text-[#5c6391] mt-1">
+            <p className="text-sm text-[#8e94bd] mt-1">
               {stories.length} {stories.length === 1 ? 'project' : 'projects'} ·{' '}
               {totalWords >= 1000 ? `${(totalWords / 1000).toFixed(1)}k` : totalWords} total words
             </p>
@@ -128,7 +128,7 @@ export default function DashboardPage() {
             { label: 'Archived', value: stories.filter((s) => s.status === 'archived').length, icon: Clock },
           ].map((stat) => (
             <div key={stat.label} className="bg-[#13162a] border border-[#1f2440] rounded-xl p-4">
-              <div className="flex items-center gap-2 text-[#5c6391] mb-1">
+              <div className="flex items-center gap-2 text-[#8e94bd] mb-1">
                 <stat.icon className="w-3.5 h-3.5" />
                 <span className="text-xs">{stat.label}</span>
               </div>
@@ -139,7 +139,7 @@ export default function DashboardPage() {
 
         {/* Search */}
         <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5c6391]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8e94bd]" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -156,7 +156,7 @@ export default function DashboardPage() {
         ) : filtered.length === 0 ? (
           <div className="text-center py-20">
             <BookOpen className="w-12 h-12 text-[#2e3454] mx-auto mb-4" />
-            <p className="text-[#5c6391] mb-2">
+            <p className="text-[#8e94bd] mb-2">
               {search ? 'No manuscripts match your search' : 'No manuscripts yet'}
             </p>
             {!search && (
@@ -182,7 +182,7 @@ export default function DashboardPage() {
                   <div className="relative">
                     <button
                       onClick={() => setMenuOpen(menuOpen === story.story_id ? null : story.story_id)}
-                      className="p-1.5 text-[#5c6391] hover:text-[#9da3c8] rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                      className="p-1.5 text-[#8e94bd] hover:text-[#9da3c8] rounded-lg opacity-0 group-hover:opacity-100 transition-all"
                     >
                       <MoreVertical className="w-4 h-4" />
                     </button>
@@ -212,13 +212,13 @@ export default function DashboardPage() {
                 </Link>
 
                 {story.description && (
-                  <p className="text-xs text-[#5c6391] mb-3 line-clamp-2">{story.description}</p>
+                  <p className="text-xs text-[#8e94bd] mb-3 line-clamp-2">{story.description}</p>
                 )}
 
                 <div className="flex items-center justify-between mt-4 pt-4 border-t border-[#1f2440]">
                   <WordCountBadge count={story.word_count} />
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-[#5c6391]">
+                    <span className="text-xs text-[#8e94bd]">
                       {formatDistanceToNow(new Date(story.updated_at), { addSuffix: true })}
                     </span>
                     <Link

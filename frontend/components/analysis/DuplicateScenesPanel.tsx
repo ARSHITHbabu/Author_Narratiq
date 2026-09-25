@@ -40,7 +40,7 @@ export default function DuplicateScenesPanel({ storyId }: Props) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 p-6 h-full">
         <Copy className="w-10 h-10 text-[#2e3454]" />
-        <p className="text-xs text-[#5c6391] text-center">Find chapters with highly similar content using semantic search</p>
+        <p className="text-xs text-[#8e94bd] text-center">Find chapters with highly similar content using semantic search</p>
         <button
           onClick={detect}
           className="px-3 py-1.5 rounded-lg text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-all"
@@ -53,7 +53,7 @@ export default function DuplicateScenesPanel({ storyId }: Props) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full gap-2 text-[#5c6391]">
+      <div className="flex items-center justify-center h-full gap-2 text-[#8e94bd]">
         <Loader2 className="w-4 h-4 animate-spin" />
         <span className="text-xs">Scanning chapters…</span>
       </div>
@@ -65,7 +65,7 @@ export default function DuplicateScenesPanel({ storyId }: Props) {
     <div className="flex flex-col h-full overflow-y-auto">
       <div className="px-4 pt-3 pb-2 flex items-center justify-between flex-shrink-0">
         <span className="text-xs text-[#9da3c8]">{pairs.length} duplicate pair(s) found</span>
-        <button onClick={detect} className="text-[#5c6391] hover:text-amber-400" title="Refresh">
+        <button onClick={detect} className="text-[#8e94bd] hover:text-amber-400" title="Refresh">
           <RefreshCw className="w-3.5 h-3.5" />
         </button>
       </div>
@@ -73,7 +73,7 @@ export default function DuplicateScenesPanel({ storyId }: Props) {
       {pairs.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-3 p-6">
           <AlertCircle className="w-8 h-8 text-emerald-500/40" />
-          <p className="text-xs text-[#5c6391] text-center">No highly similar chapters detected. Your content is unique.</p>
+          <p className="text-xs text-[#8e94bd] text-center">No highly similar chapters detected. Your content is unique.</p>
         </div>
       ) : (
         <div className="flex flex-col gap-3 px-3 pb-4">
@@ -87,11 +87,11 @@ export default function DuplicateScenesPanel({ storyId }: Props) {
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <div className="text-[10px] text-[#5c6391] mb-1 truncate">{pair.a_title}</div>
+                  <div className="text-[10px] text-[#8e94bd] mb-1 truncate">{pair.a_title}</div>
                   <p className="text-[11px] text-[#9da3c8] leading-relaxed line-clamp-3 italic">"{pair.a_snippet}"</p>
                 </div>
                 <div>
-                  <div className="text-[10px] text-[#5c6391] mb-1 truncate">{pair.b_title}</div>
+                  <div className="text-[10px] text-[#8e94bd] mb-1 truncate">{pair.b_title}</div>
                   <p className="text-[11px] text-[#9da3c8] leading-relaxed line-clamp-3 italic">"{pair.b_snippet}"</p>
                 </div>
               </div>

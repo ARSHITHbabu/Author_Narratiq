@@ -52,9 +52,9 @@ export default function CommandPalette({ open, onOpenChange }: { open: boolean; 
         <Command.Input autoFocus placeholder="Search workspaces, chapters, characters, actions…"
           className="w-full px-4 py-3 bg-transparent text-[#e8eaf6] placeholder-[#5c6391] outline-none border-b border-[#1f2440]" />
         <Command.List className="max-h-[55vh] overflow-y-auto p-2 text-sm">
-          <Command.Empty className="px-3 py-6 text-center text-[#5c6391]">No results.</Command.Empty>
+          <Command.Empty className="px-3 py-6 text-center text-[#8e94bd]">No results.</Command.Empty>
 
-          <Command.Group heading="Navigate" className="text-[10px] uppercase tracking-wide text-[#5c6391] [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1">
+          <Command.Group heading="Navigate" className="text-[10px] uppercase tracking-wide text-[#8e94bd] [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1">
             {WORKSPACES.map((w) => (
               <Command.Item key={w.id} value={`go ${w.label} ${w.description}`} onSelect={() => run(() => ctx.go(w.id))}
                 className="flex items-center gap-2 px-2 py-1.5 rounded text-[#cdd2f0] aria-selected:bg-[#1f2440] cursor-pointer">
@@ -70,19 +70,19 @@ export default function CommandPalette({ open, onOpenChange }: { open: boolean; 
           </Command.Group>
 
           {chapters.length > 0 && (
-            <Command.Group heading="Chapters" className="text-[10px] uppercase tracking-wide text-[#5c6391] [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1">
+            <Command.Group heading="Chapters" className="text-[10px] uppercase tracking-wide text-[#8e94bd] [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1">
               {chapters.map((c) => (
                 <Command.Item key={c.chapter_id} value={`chapter ${c.chapter_number} ${c.title}`}
                   onSelect={() => run(() => { setActiveChapter(c.chapter_id); router.push(workspacePath(storyId, 'write')) })}
                   className="flex items-center gap-2 px-2 py-1.5 rounded text-[#cdd2f0] aria-selected:bg-[#1f2440] cursor-pointer">
-                  <span className="text-[#5c6391] text-xs">Ch {c.chapter_number}</span> {c.title || 'Untitled'}
+                  <span className="text-[#8e94bd] text-xs">Ch {c.chapter_number}</span> {c.title || 'Untitled'}
                 </Command.Item>
               ))}
             </Command.Group>
           )}
 
           {characters.length > 0 && (
-            <Command.Group heading="Characters" className="text-[10px] uppercase tracking-wide text-[#5c6391] [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1">
+            <Command.Group heading="Characters" className="text-[10px] uppercase tracking-wide text-[#8e94bd] [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1">
               {characters.map((c) => (
                 <Command.Item key={c.character_id} value={`character ${c.name}`}
                   onSelect={() => run(() => { setActiveCharacter(c.character_id); router.push(workspacePath(storyId, 'characters')) })}
@@ -94,7 +94,7 @@ export default function CommandPalette({ open, onOpenChange }: { open: boolean; 
           )}
 
           {(['Run', 'Export', 'AI', 'View'] as const).map((grp) => (
-            <Command.Group key={grp} heading={grp} className="text-[10px] uppercase tracking-wide text-[#5c6391] [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1">
+            <Command.Group key={grp} heading={grp} className="text-[10px] uppercase tracking-wide text-[#8e94bd] [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1">
               {ACTIONS.filter((a) => a.group === grp && (P3_ENABLED || !a.phase3)).map((a) => (
                 <Command.Item key={a.id} value={`${a.label} ${a.keywords ?? ''}`} onSelect={() => run(() => a.run(ctx))}
                   className="px-2 py-1.5 rounded text-[#cdd2f0] aria-selected:bg-[#1f2440] cursor-pointer">

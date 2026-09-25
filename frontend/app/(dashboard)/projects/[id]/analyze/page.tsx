@@ -5,6 +5,7 @@
 // level as a card grid, plus genre intelligence & writing metrics. Panels are reused
 // as-is from the Panel Registry. Deep-linkable via the engine's activeAnalysis memory.
 
+import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Sparkles, BarChart3 } from 'lucide-react'
 import { PANELS, panelById } from '@/lib/registries/panels'
@@ -15,15 +16,24 @@ export default function AnalyzeWorkspace() {
   const { storyId, activeAnalysis, setActiveAnalysis } = useStoryContext()
 
   const open = activeAnalysis ? panelById(activeAnalysis) : undefined
+  // Focus management (8.9): opening a panel moves focus to its heading; going
+  // back returns it to the card the author came from.
+  const headingRef = useRef<HTMLHeadingElement | null>(null)
+  const lastCard = useRef<string | null>(null)
+  useEffect(() => {
+    if (open) headingRef.current?.focus()
+    else if (lastCard.current) document.querySelector<HTMLElement>(`[data-panel-card="${lastCard.current}"]`)?.focus()
+  }, [open])
 
   if (open) {
     const Panel = open.component
     return (
       <div className="h-full flex flex-col bg-[#0d0f1a]">
         <div className="h-10 flex items-center gap-2 px-3 border-b border-[#1f2440] flex-shrink-0">
-          <button onClick={() => setActiveAnalysis(null)} className="p-1.5 rounded text-[#9da3c8] hover:text-white hover:bg-[#1f2440]"><ArrowLeft className="w-4 h-4" /></button>
-          <open.icon className="w-4 h-4 text-amber-400" />
-          <span className="text-sm text-[#e8eaf6]">{open.title}</span>
+          <button onClick={() => setActiveAnalysis(null)} aria-label="Back to all analyses"
+            className="p-1.5 rounded text-[#9da3c8] hover:text-white hover:bg-[#1f2440] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/70"><ArrowLeft className="w-4 h-4" aria-hidden="true" /></button>
+          <open.icon className="w-4 h-4 text-amber-400" aria-hidden="true" />
+          <h1 ref={headingRef} tabIndex={-1} className="text-sm text-[#e8eaf6] focus:outline-none">{open.title}</h1>
         </div>
         <div className="flex-1 overflow-y-auto"><Panel storyId={storyId} /></div>
       </div>
@@ -41,7 +51,7 @@ export default function AnalyzeWorkspace() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {PANELS.map((p) => (
-            <button key={p.id} onClick={() => setActiveAnalysis(p.id)}
+            <button key={p.id} data-panel-card={p.id} onClick={() => { lastCard.current = p.id; setActiveAnalysis(p.id) }}
               className="text-left rounded-lg border border-[#1f2440] bg-[#13162a] hover:border-[#3d4466] hover:bg-[#1a1e36] transition p-4">
               <div className="flex items-center gap-2 mb-1.5">
                 <span className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center"><p.icon className="w-4 h-4 text-amber-400" /></span>

@@ -22,16 +22,16 @@ function IssueCard({ issue }: { issue: ContinuityIssue }) {
         className="w-full flex items-start gap-2 p-3 text-left"
         onClick={() => setOpen(v => !v)}
       >
-        {open ? <ChevronDown className="w-3.5 h-3.5 text-[#5c6391] mt-0.5 flex-shrink-0" /> : <ChevronRight className="w-3.5 h-3.5 text-[#5c6391] mt-0.5 flex-shrink-0" />}
+        {open ? <ChevronDown className="w-3.5 h-3.5 text-[#8e94bd] mt-0.5 flex-shrink-0" /> : <ChevronRight className="w-3.5 h-3.5 text-[#8e94bd] mt-0.5 flex-shrink-0" />}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
             <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${SEVERITY_STYLES[issue.severity] ?? SEVERITY_STYLES.low}`}>
               {issue.severity}
             </span>
-            <span className="text-[10px] text-[#5c6391] font-medium">{issue.type.replace(/_/g, ' ')}</span>
+            <span className="text-[10px] text-[#8e94bd] font-medium">{issue.type.replace(/_/g, ' ')}</span>
           </div>
           <p className="text-xs text-[#c8cce8] leading-snug line-clamp-2">{issue.description}</p>
-          <p className="text-[10px] text-[#5c6391] mt-1">
+          <p className="text-[10px] text-[#8e94bd] mt-1">
             Ch {issue.chapter_refs.join(', ')}
           </p>
         </div>
@@ -66,21 +66,21 @@ export default function ContinuityPanel({ storyId }: Props) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 p-6 h-full">
         <Link2 className="w-10 h-10 text-[#2e3454]" />
-        <p className="text-xs text-[#5c6391] text-center">Scan for continuity errors, character inconsistencies, and world-building contradictions</p>
+        <p className="text-xs text-[#8e94bd] text-center">Scan for continuity errors, character inconsistencies, and world-building contradictions</p>
         <button
           onClick={scan}
           className="px-3 py-1.5 rounded-lg text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-all"
         >
           Run Continuity Scan
         </button>
-        <p className="text-[10px] text-[#3d4466] text-center">For large manuscripts this may take 30–60 s</p>
+        <p className="text-[10px] text-[#8a90ba] text-center">For large manuscripts this may take 30–60 s</p>
       </div>
     )
   }
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-2 text-[#5c6391]">
+      <div className="flex flex-col items-center justify-center h-full gap-2 text-[#8e94bd]">
         <Loader2 className="w-4 h-4 animate-spin" />
         <span className="text-xs">Scanning all chapters…</span>
       </div>
@@ -101,7 +101,7 @@ export default function ContinuityPanel({ storyId }: Props) {
           {high.length > 0 && <span className="text-[10px] text-red-400">{high.length} high</span>}
           {medium.length > 0 && <span className="text-[10px] text-orange-400">{medium.length} med</span>}
         </div>
-        <button onClick={scan} className="text-[#5c6391] hover:text-amber-400" title="Refresh">
+        <button onClick={scan} className="text-[#8e94bd] hover:text-amber-400" title="Refresh">
           <RefreshCw className="w-3.5 h-3.5" />
         </button>
       </div>
@@ -113,7 +113,7 @@ export default function ContinuityPanel({ storyId }: Props) {
           <p className="text-[11px] text-amber-300/90 leading-relaxed">
             {data!.degraded_reason ?? 'This check is incomplete — part of the AI response could not be read.'}
           </p>
-          <p className="text-[10px] text-[#5c6391] mt-0.5">
+          <p className="text-[10px] text-[#8e94bd] mt-0.5">
             Anything listed below is real, but this is not a full check. Please run it again.
           </p>
         </div>
@@ -121,14 +121,14 @@ export default function ContinuityPanel({ storyId }: Props) {
 
       {issues.length === 0 && degraded ? (
         <div className="flex flex-col items-center justify-center gap-3 p-6">
-          <p className="text-xs text-[#5c6391] text-center">
+          <p className="text-xs text-[#8e94bd] text-center">
             No issues could be read from this check.
           </p>
         </div>
       ) : issues.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-3 p-6">
           <CheckCircle2 className="w-8 h-8 text-emerald-500/60" />
-          <p className="text-xs text-[#5c6391] text-center">No continuity issues detected. Great consistency!</p>
+          <p className="text-xs text-[#8e94bd] text-center">No continuity issues detected. Great consistency!</p>
         </div>
       ) : (
         <div className="flex flex-col gap-2 px-3 pb-4">

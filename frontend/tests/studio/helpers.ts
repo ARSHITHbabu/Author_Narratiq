@@ -1,12 +1,16 @@
 import type { Page } from '@playwright/test'
 
-/** Visible, enabled interactive controls on the page (the 8.4 disclosure metric). */
+/** Visible, enabled interactive controls on the page (the 8.4 disclosure metric).
+ *  Per-chapter binder entries are excluded: they scale with the manuscript, not
+ *  the interface, and before Stage 8 they were click-only divs the metric could
+ *  not see — excluding them keeps the before/after comparison like for like. */
 export async function countVisibleControls(page: Page): Promise<{ count: number; names: string[] }> {
   return page.evaluate(() => {
     const sel = 'button, a[href], input, select, textarea, [role="button"], [role="tab"], [role="menuitem"], [role="link"]'
     const names: string[] = []
     for (const el of Array.from(document.querySelectorAll<HTMLElement>(sel))) {
       if ((el as HTMLButtonElement).disabled) continue
+      if (el.closest('[data-binder-item]')) continue
       const r = el.getBoundingClientRect()
       if (r.width === 0 || r.height === 0) continue
       const cs = getComputedStyle(el)

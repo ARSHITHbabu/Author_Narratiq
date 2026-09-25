@@ -17,7 +17,7 @@ export default function StoryIndex({ params }: { params: { id: string } }) {
   }, [params.id, router])
 
   return (
-    <div className="h-full flex items-center justify-center text-[#5c6391] text-sm">
+    <div className="h-full flex items-center justify-center text-[#8e94bd] text-sm">
       Opening studio…
     </div>
   )

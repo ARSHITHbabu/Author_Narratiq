@@ -50,7 +50,7 @@ export default function ActivityTimeline({ open, onClose }: { open: boolean; onC
         </div>
         <div className="p-3 space-y-2 border-b border-[#1f2440]">
           <div className="flex items-center gap-2 px-2 py-1.5 rounded bg-[#13162a] border border-[#1f2440]">
-            <Search className="w-3.5 h-3.5 text-[#5c6391]" />
+            <Search className="w-3.5 h-3.5 text-[#8e94bd]" />
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search activity…"
               className="flex-1 bg-transparent text-xs text-[#e8eaf6] placeholder-[#5c6391] outline-none" />
           </div>
@@ -64,9 +64,9 @@ export default function ActivityTimeline({ open, onClose }: { open: boolean; onC
           </div>
         </div>
         <div className="flex-1 overflow-y-auto p-3 space-y-2">
-          {isLoading && <p className="text-xs text-[#5c6391] text-center py-6">Loading…</p>}
+          {isLoading && <p className="text-xs text-[#8e94bd] text-center py-6">Loading…</p>}
           {!isLoading && (data?.length ?? 0) === 0 && (
-            <p className="text-xs text-[#5c6391] text-center py-10">No activity yet. Your AI actions, analyses, exports and edits will appear here.</p>
+            <p className="text-xs text-[#8e94bd] text-center py-10">No activity yet. Your AI actions, analyses, exports and edits will appear here.</p>
           )}
           {(data ?? []).map((e) => {
             const Icon = ICONS[e.category] ?? Sparkles
@@ -76,7 +76,7 @@ export default function ActivityTimeline({ open, onClose }: { open: boolean; onC
                 <div className="min-w-0">
                   <p className="text-xs text-[#cdd2f0]">{e.title || e.type}</p>
                   {e.summary && <p className="text-[11px] text-[#9da3c8] mt-0.5 line-clamp-2">{e.summary}</p>}
-                  <p className="text-[10px] text-[#5c6391] mt-0.5">
+                  <p className="text-[10px] text-[#8e94bd] mt-0.5">
                     {e.created_at ? formatDistanceToNow(new Date(e.created_at), { addSuffix: true }) : ''} · {e.category}
                   </p>
                 </div>

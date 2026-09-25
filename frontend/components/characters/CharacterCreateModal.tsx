@@ -75,7 +75,7 @@ export default function CharacterCreateModal({ storyId, onCreated, onClose }: Pr
             <User className="w-4 h-4 text-amber-500" />
             <span className="text-sm font-semibold text-[#e8eaf6]">New Character</span>
           </div>
-          <button onClick={onClose} className="text-[#5c6391] hover:text-[#9da3c8] transition-colors">
+          <button onClick={onClose} className="text-[#8e94bd] hover:text-[#9da3c8] transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -83,7 +83,7 @@ export default function CharacterCreateModal({ storyId, onCreated, onClose }: Pr
         <form onSubmit={submit} className="p-5 flex flex-col gap-4">
           {/* Name */}
           <div>
-            <label className="text-xs text-[#5c6391] mb-1.5 block">
+            <label className="text-xs text-[#8e94bd] mb-1.5 block">
               Character name <span className="text-red-400">*</span>
             </label>
             <input
@@ -101,7 +101,7 @@ export default function CharacterCreateModal({ storyId, onCreated, onClose }: Pr
 
           {/* Role */}
           <div>
-            <label className="text-xs text-[#5c6391] mb-1.5 block">Role</label>
+            <label className="text-xs text-[#8e94bd] mb-1.5 block">Role</label>
             <div className="grid grid-cols-2 gap-1.5">
               {ROLES.map(r => (
                 <button
@@ -122,7 +122,7 @@ export default function CharacterCreateModal({ storyId, onCreated, onClose }: Pr
 
           {/* Status */}
           <div>
-            <label className="text-xs text-[#5c6391] mb-1.5 block">Status</label>
+            <label className="text-xs text-[#8e94bd] mb-1.5 block">Status</label>
             <div className="grid grid-cols-3 gap-1.5">
               {STATUSES.map(s => (
                 <button
@@ -143,8 +143,8 @@ export default function CharacterCreateModal({ storyId, onCreated, onClose }: Pr
 
           {/* Aliases */}
           <div>
-            <label className="text-xs text-[#5c6391] mb-1.5 block">
-              Aliases <span className="text-[#3d4466]">(comma-separated, optional)</span>
+            <label className="text-xs text-[#8e94bd] mb-1.5 block">
+              Aliases <span className="text-[#8a90ba]">(comma-separated, optional)</span>
             </label>
             <input
               type="text"

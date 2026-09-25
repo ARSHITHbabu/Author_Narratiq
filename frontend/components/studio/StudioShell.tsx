@@ -64,27 +64,33 @@ export default function StudioShell({ children }: { children: React.ReactNode })
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-[#0d0f1a] text-[#e8eaf6]">
+      <a href="#studio-main" className="skip-link px-3 py-1.5 rounded bg-amber-500 text-black text-sm font-medium"
+        onClick={(e) => { e.preventDefault(); document.getElementById('studio-main')?.focus() }}>
+        Skip to content
+      </a>
       {/* ── Context Bar ─────────────────────────────────────────────────────── */}
       {!chromeHidden && (
         <header className="h-11 flex-shrink-0 flex items-center gap-2 px-3 border-b border-[#1f2440] bg-[#0f1220]">
-          <button onClick={() => store.toggleRail()} className="p-1.5 rounded text-[#9da3c8] hover:text-white hover:bg-[#1f2440]" title="Toggle rail">
-            {store.railCollapsed ? <PanelLeft className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+          <button onClick={() => store.toggleRail()} className="p-1.5 rounded text-[#9da3c8] hover:text-white hover:bg-[#1f2440]" title="Toggle rail"
+            aria-label={store.railCollapsed ? 'Show workspace rail' : 'Hide workspace rail'} aria-expanded={!store.railCollapsed}>
+            {store.railCollapsed ? <PanelLeft className="w-4 h-4" aria-hidden="true" /> : <PanelLeftClose className="w-4 h-4" aria-hidden="true" />}
           </button>
 
           {/* Story switcher */}
           <div className="relative">
-            <button onClick={() => setSwitcherOpen((o) => !o)}
+            <button onClick={() => setSwitcherOpen((o) => !o)} aria-expanded={switcherOpen} aria-haspopup="true"
+              aria-label={`Switch manuscript (current: ${story?.title ?? 'loading'})`}
               className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-[#1f2440] max-w-[260px]">
               <span className="text-amber-500 font-semibold text-sm">NarratIQ</span>
-              <span className="text-[#3d4466]">/</span>
+              <span className="text-[#8a90ba]">/</span>
               <span className="text-sm text-[#e8eaf6] truncate">{story?.title ?? '…'}</span>
-              <ChevronDown className="w-3.5 h-3.5 text-[#5c6391]" />
+              <ChevronDown className="w-3.5 h-3.5 text-[#8e94bd]" />
             </button>
             {switcherOpen && (
               <>
                 <div className="fixed inset-0 z-20" onClick={() => setSwitcherOpen(false)} />
                 <div className="absolute left-0 top-full mt-1 w-72 z-30 rounded-lg border border-[#2e3454] bg-[#13162a] shadow-xl py-1 max-h-80 overflow-y-auto">
-                  <p className="px-3 py-1 text-[10px] uppercase tracking-wide text-[#5c6391]">Switch manuscript</p>
+                  <p className="px-3 py-1 text-[10px] uppercase tracking-wide text-[#8e94bd]">Switch manuscript</p>
                   {(storiesQ.data ?? []).map((s) => (
                     <button key={s.story_id} onClick={() => { setSwitcherOpen(false); router.push(workspacePath(s.story_id, store.getStory(s.story_id).lastWorkspace)) }}
                       className={`w-full text-left px-3 py-1.5 text-sm hover:bg-[#1f2440] truncate ${s.story_id === storyId ? 'text-amber-400' : 'text-[#cdd2f0]'}`}>
@@ -101,22 +107,22 @@ export default function StudioShell({ children }: { children: React.ReactNode })
             )}
           </div>
 
-          <span className="text-[#3d4466] text-sm">›</span>
+          <span className="text-[#8a90ba] text-sm">›</span>
           <span className="text-sm text-[#9da3c8] capitalize">{WORKSPACES.find((w) => w.id === ws)?.label}</span>
 
           <div className="flex-1" />
 
-          <button onClick={() => setPaletteOpen(true)}
+          <button onClick={() => setPaletteOpen(true)} aria-label="Command palette (Ctrl+K)"
             className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded border border-[#2e3454] text-[11px] text-[#9da3c8] hover:text-white hover:border-[#3d4466]">
-            <CommandIcon className="w-3 h-3" /> <span>⌘K</span>
+            <CommandIcon className="w-3 h-3" aria-hidden="true" /> <span>⌘K</span>
           </button>
           {/* The voice agent's one home is the Assistant workspace in the rail
               (Stage 8.8); a second header button to the same place was removed. */}
-          <button onClick={() => setActivityOpen(true)} className="p-1.5 rounded text-[#9da3c8] hover:text-white hover:bg-[#1f2440]" title="Activity timeline">
-            <History className="w-4 h-4" />
+          <button onClick={() => setActivityOpen(true)} aria-label="Activity timeline" className="p-1.5 rounded text-[#9da3c8] hover:text-white hover:bg-[#1f2440]" title="Activity timeline">
+            <History className="w-4 h-4" aria-hidden="true" />
           </button>
           <div className="w-px h-5 bg-[#2e3454] mx-1" />
-          <DropdownMenu.Root>
+          <DropdownMenu.Root modal={false}>
             <DropdownMenu.Trigger asChild>
               <button
                 className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-[#1f2440] focus:outline-none focus-visible:ring-1 focus-visible:ring-amber-500/60"
@@ -166,17 +172,17 @@ export default function StudioShell({ children }: { children: React.ReactNode })
               )
             })}
             <div className="flex-1" />
-            <button onClick={() => router.push(PROJECTS_WORKSPACE.route)} title={PROJECTS_WORKSPACE.description}
-              className="w-full flex flex-col items-center gap-0.5 py-2 text-[#5c6391] hover:text-[#9da3c8]">
+            <button onClick={() => router.push(PROJECTS_WORKSPACE.route)} title={PROJECTS_WORKSPACE.description} aria-label="Manuscript library" 
+              className="w-full flex flex-col items-center gap-0.5 py-2 text-[#8e94bd] hover:text-[#9da3c8]">
               <span className="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-[#1f2440]">
-                <PROJECTS_WORKSPACE.icon className="w-[18px] h-[18px]" />
+                <PROJECTS_WORKSPACE.icon className="w-[18px] h-[18px]" aria-hidden="true" />
               </span>
               <span className="text-[9px]">Library</span>
             </button>
           </nav>
         )}
 
-        <main className="flex-1 min-w-0 overflow-hidden">{children}</main>
+        <main id="studio-main" tabIndex={-1} className="flex-1 min-w-0 overflow-hidden focus:outline-none">{children}</main>
       </div>
 
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />

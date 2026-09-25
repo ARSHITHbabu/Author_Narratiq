@@ -19,7 +19,7 @@ const ROLE_COLORS: Record<string, string> = {
   protagonist: 'text-amber-400 border-amber-500/40 bg-amber-500/10',
   antagonist:  'text-red-400   border-red-500/40   bg-red-500/10',
   supporting:  'text-blue-400  border-blue-500/40  bg-blue-500/10',
-  minor:       'text-[#5c6391] border-[#2e3454]    bg-transparent',
+  minor:       'text-[#8e94bd] border-[#2e3454]    bg-transparent',
 }
 
 // Rich profile fields the model may extract. Rendered dynamically — only fields
@@ -133,7 +133,7 @@ export default function CastGenerationModal({ storyId, onClose, onConfirmed }: P
         <div className="flex items-center gap-2.5 px-5 py-4 border-b border-[#1f2440] flex-shrink-0">
           <Sparkles className="w-4 h-4 text-amber-400" />
           <span className="text-sm font-semibold text-[#e8eaf6] flex-1">Generate Cast from Story</span>
-          <button onClick={onClose} className="text-[#3d4466] hover:text-[#9da3c8] transition-colors">
+          <button onClick={onClose} className="text-[#8a90ba] hover:text-[#9da3c8] transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -145,7 +145,7 @@ export default function CastGenerationModal({ storyId, onClose, onConfirmed }: P
           {phase === 'loading' && (
             <div className="flex flex-col items-center justify-center py-16 gap-3">
               <Loader2 className="w-6 h-6 text-amber-400 animate-spin" />
-              <p className="text-xs text-[#5c6391]">Scanning chapters for characters…</p>
+              <p className="text-xs text-[#8e94bd]">Scanning chapters for characters…</p>
             </div>
           )}
 
@@ -153,7 +153,7 @@ export default function CastGenerationModal({ storyId, onClose, onConfirmed }: P
           {phase === 'confirming' && (
             <div className="flex flex-col items-center justify-center py-16 gap-3">
               <Loader2 className="w-6 h-6 text-amber-400 animate-spin" />
-              <p className="text-xs text-[#5c6391]">Adding characters to cast…</p>
+              <p className="text-xs text-[#8e94bd]">Adding characters to cast…</p>
             </div>
           )}
 
@@ -176,7 +176,7 @@ export default function CastGenerationModal({ storyId, onClose, onConfirmed }: P
             <div className="p-4 flex flex-col gap-4">
 
               {/* Summary bar */}
-              <div className="flex items-center gap-2 text-[10px] text-[#5c6391]">
+              <div className="flex items-center gap-2 text-[10px] text-[#8e94bd]">
                 <Users className="w-3 h-3" />
                 <span>
                   Found <span className="text-[#9da3c8]">{result.suggestions.length}</span> characters
@@ -191,7 +191,7 @@ export default function CastGenerationModal({ storyId, onClose, onConfirmed }: P
               {newSuggestions.length === 0 && (
                 <div className="flex flex-col items-center gap-2 py-6">
                   <CheckCircle2 className="w-6 h-6 text-green-400" />
-                  <p className="text-xs text-[#5c6391] text-center">
+                  <p className="text-xs text-[#8e94bd] text-center">
                     All detected characters are already in your cast.
                   </p>
                 </div>
@@ -200,7 +200,7 @@ export default function CastGenerationModal({ storyId, onClose, onConfirmed }: P
               {/* New suggestions */}
               {newSuggestions.length > 0 && (
                 <div className="flex flex-col gap-1.5">
-                  <p className="text-[10px] font-semibold text-[#5c6391] uppercase tracking-wider">
+                  <p className="text-[10px] font-semibold text-[#8e94bd] uppercase tracking-wider">
                     New characters ({newSuggestions.length})
                   </p>
                   {newSuggestions.map(s => (
@@ -219,7 +219,7 @@ export default function CastGenerationModal({ storyId, onClose, onConfirmed }: P
               {/* Already in cast */}
               {existingSuggestions.length > 0 && (
                 <div className="flex flex-col gap-1.5">
-                  <p className="text-[10px] font-semibold text-[#3d4466] uppercase tracking-wider">
+                  <p className="text-[10px] font-semibold text-[#8a90ba] uppercase tracking-wider">
                     Already in cast ({existingSuggestions.length})
                   </p>
                   {existingSuggestions.map(s => (
@@ -244,7 +244,7 @@ export default function CastGenerationModal({ storyId, onClose, onConfirmed }: P
           <div className="flex items-center justify-between gap-3 px-5 py-4 border-t border-[#1f2440] flex-shrink-0">
             <button
               onClick={onClose}
-              className="text-xs px-3 py-1.5 rounded-lg border border-[#2e3454] text-[#5c6391] hover:text-[#9da3c8] hover:border-[#3d4466] transition-all"
+              className="text-xs px-3 py-1.5 rounded-lg border border-[#2e3454] text-[#8e94bd] hover:text-[#9da3c8] hover:border-[#3d4466] transition-all"
             >
               Cancel
             </button>
@@ -256,7 +256,7 @@ export default function CastGenerationModal({ storyId, onClose, onConfirmed }: P
                       ? new Set()
                       : new Set(newSuggestions.map(s => s.name))
                   )}
-                  className="text-[10px] text-[#5c6391] hover:text-[#9da3c8] transition-colors"
+                  className="text-[10px] text-[#8e94bd] hover:text-[#9da3c8] transition-colors"
                 >
                   {selected.size === newSuggestions.length ? 'Deselect all' : 'Select all'}
                 </button>
@@ -337,12 +337,12 @@ function SuggestionRow({ suggestion: s, checked, expanded, disabled, onToggle, o
             )}
           </div>
           {s.description && (
-            <p className="text-[10px] text-[#5c6391] mt-0.5 leading-relaxed line-clamp-2">
+            <p className="text-[10px] text-[#8e94bd] mt-0.5 leading-relaxed line-clamp-2">
               {s.description}
             </p>
           )}
           {s.aliases.length > 0 && (
-            <p className="text-[9px] text-[#3d4466] mt-0.5">
+            <p className="text-[9px] text-[#8a90ba] mt-0.5">
               Also: {s.aliases.join(', ')}
             </p>
           )}
@@ -352,7 +352,7 @@ function SuggestionRow({ suggestion: s, checked, expanded, disabled, onToggle, o
         {(s.evidence_snippet || hasDetail(s)) && (
           <button
             onClick={onExpand}
-            className="flex-shrink-0 text-[#3d4466] hover:text-[#5c6391] transition-colors mt-0.5"
+            className="flex-shrink-0 text-[#8a90ba] hover:text-[#8e94bd] transition-colors mt-0.5"
             title="Show extracted detail"
           >
             {expanded
@@ -374,7 +374,7 @@ function SuggestionRow({ suggestion: s, checked, expanded, disabled, onToggle, o
                 if (!text) return null
                 return (
                   <div key={key} className="flex gap-1.5 text-[9px] leading-relaxed">
-                    <span className="text-[#3d4466] flex-shrink-0 w-20">{label}</span>
+                    <span className="text-[#8a90ba] flex-shrink-0 w-20">{label}</span>
                     <span className="text-[#9da3c8]">{text}</span>
                   </div>
                 )
@@ -384,11 +384,11 @@ function SuggestionRow({ suggestion: s, checked, expanded, disabled, onToggle, o
 
           {s.evidence_snippet && (
             <div className="border-l-2 border-[#2e3454] pl-2.5">
-              <p className="text-[9px] text-[#5c6391] leading-relaxed italic">
+              <p className="text-[9px] text-[#8e94bd] leading-relaxed italic">
                 &ldquo;{s.evidence_snippet}&rdquo;
               </p>
               {s.first_appearance && (
-                <p className="text-[9px] text-[#3d4466] mt-0.5">
+                <p className="text-[9px] text-[#8a90ba] mt-0.5">
                   First appears: {s.first_appearance}
                 </p>
               )}
