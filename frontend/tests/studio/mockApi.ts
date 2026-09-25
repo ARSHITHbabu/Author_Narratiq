@@ -71,7 +71,13 @@ export async function mockApi(page: Page, extra: Handler[] = []): Promise<ApiLog
     const ch = path.match(/^\/api\/stories\/[^/]+\/chapters\/([^/]+)$/)
     if (ch) {
       const found = chapters.find((c) => c.chapter_id === ch[1])
-      if (found && method === 'GET') return json(route, found)
+      if (found && method === 'GET') {
+        // STUDIO_CHAPTER_DELAY_MS slows the chapter body so readiness bugs in
+        // specs show up every time instead of only under heavy load (review F1).
+        const delay = Number(process.env.STUDIO_CHAPTER_DELAY_MS || 0)
+        if (delay > 0) await new Promise((r) => setTimeout(r, delay))
+        return json(route, found)
+      }
       if (found && (method === 'PUT' || method === 'PATCH')) { log.saves.push(`${method} ${path}`); return json(route, found) }
     }
     if (method === 'GET' && path === `/api/stories/${STORY_ID}/characters`) return json(route, [])

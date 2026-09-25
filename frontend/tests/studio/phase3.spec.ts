@@ -3,6 +3,7 @@
 // compare, sentence locks, preservation rules. Mocked API; no model involved.
 import { test, expect, type Page, type Route } from '@playwright/test'
 import { mockApi, signIn, workspaceUrl, STORY_ID, CHAPTER_IDS } from './mockApi'
+import { waitForChapterContent } from './helpers'
 
 const now = '2026-09-25T00:00:00Z'
 const pin = (id: string, label: string) => ({
@@ -50,7 +51,7 @@ async function phase3Api(page: Page) {
 
 async function openWrite(page: Page) {
   await page.goto(workspaceUrl('write'))
-  await page.locator('.ProseMirror').first().waitFor()
+  await waitForChapterContent(page)
   await page.getByRole('button', { name: 'AI assistant', exact: true }).click()
 }
 

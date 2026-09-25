@@ -43,3 +43,12 @@ export async function openPalette(page: Page) {
   }).toPass({ timeout: 15000 })
   return input
 }
+
+/** Wait until the open chapter's content is really in the editor. `.ProseMirror`
+ *  exists (with an empty paragraph) before the chapter GET returns, and the
+ *  setContent that follows wipes any selection made in between (review F1).
+ *  StoryEditor marks its scroll area data-content-loaded="true" once the
+ *  content for the current chapter is set. */
+export async function waitForChapterContent(page: Page) {
+  await expect(page.locator('[data-content-loaded="true"]')).toHaveCount(1, { timeout: 15000 })
+}

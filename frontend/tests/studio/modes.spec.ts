@@ -3,7 +3,7 @@
 // measured control reduction, and the Stage 7 toolbar-Escape carry-forward (M2).
 import { test, expect, type Page } from '@playwright/test'
 import { mockApi, signIn, workspaceUrl } from './mockApi'
-import { countVisibleControls } from './helpers'
+import { countVisibleControls, waitForChapterContent } from './helpers'
 
 const toolbar = (page: Page) => page.getByRole('toolbar', { name: 'AI actions for the selected text' })
 const firstPara = (page: Page) => page.locator('.ProseMirror p').first()
@@ -11,7 +11,7 @@ const aiToggle = (page: Page) => page.getByRole('button', { name: 'AI assistant'
 const rail = (page: Page) => page.getByRole('navigation', { name: 'Workspaces' })
 async function openWrite(page: Page) {
   await page.goto(workspaceUrl('write'))
-  await page.locator('.ProseMirror').first().waitFor()
+  await waitForChapterContent(page)
 }
 async function view(page: Page, item: string) {
   await page.getByRole('button', { name: 'View options' }).click()
@@ -40,7 +40,7 @@ test('Draft hides every AI surface, is remembered per story, and Edit brings the
   await page.keyboard.press('Control+\\')
   await expect(page.getByRole('complementary', { name: 'AI Assistant' })).toHaveCount(0)
 
-  await page.reload(); await page.locator('.ProseMirror').first().waitFor()
+  await page.reload(); await waitForChapterContent(page)
   await expect(page.getByRole('radio', { name: 'Draft' })).toHaveAttribute('aria-checked', 'true')
 
   await page.getByRole('radio', { name: 'Edit' }).click()

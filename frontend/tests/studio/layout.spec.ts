@@ -1,6 +1,7 @@
 // Stage 8.2 — resizable, expandable panels whose layout persists per user.
 import { test, expect, type Page } from '@playwright/test'
 import { mockApi, signIn, workspaceUrl, USER_A, USER_B } from './mockApi'
+import { waitForChapterContent } from './helpers'
 
 const sidecar = (page: Page) => page.getByRole('complementary', { name: 'AI Assistant' })
 const openSidecar = async (page: Page) => {
@@ -11,7 +12,7 @@ const widthPct = async (page: Page) => {
   const box = (await sidecar(page).boundingBox())!
   return (box.width / page.viewportSize()!.width) * 100
 }
-const editorReady = (page: Page) => page.locator('.ProseMirror').first().waitFor()
+const editorReady = (page: Page) => waitForChapterContent(page)
 
 async function logout(page: Page) {
   await page.getByRole('button', { name: 'User menu' }).click()
