@@ -313,3 +313,12 @@ def test_style_v3_has_levers_for_every_style_the_picker_offers():
     block = src[src.index("export const STYLES"):src.index("\n]", src.index("export const STYLES"))]
     ids = {m.lower() for m in re.findall(r"id: '([^']+)'", block)}
     assert ids and ids <= set(_STYLE_LEVERS_V3), ids - set(_STYLE_LEVERS_V3)
+
+
+def test_plot_hole_coerce_accepts_object_root_and_bare_array():
+    """Review L2: the 400 fallback runs unguided, so both shapes must parse."""
+    finding = {"description": "The key is lost in ch 2 but used in ch 3", "severity": "high", "chapters": [2, 3]}
+    obj, _ = ai_service.coerce_plot_hole_result({"issues": [finding]})
+    arr, _ = ai_service.coerce_plot_hole_result([finding])
+    assert obj is not None and arr is not None
+    assert obj["issues"][0]["description"] == arr["issues"][0]["description"] == finding["description"]
