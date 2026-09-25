@@ -6,6 +6,13 @@ const nextConfig = {
   // can never overwrite the real `.next` build that start-narratiq.sh serves.
   distDir: process.env.NEXT_DIST_DIR || '.next',
 
+  // Always defined, so the build folds `=== 'true'` to a constant and drops the
+  // test-only mock tool from normal builds (an undefined NEXT_PUBLIC_ variable
+  // is left as a runtime lookup and its branch would be bundled).
+  env: {
+    NEXT_PUBLIC_E2E_MOCK_TOOL: process.env.NEXT_PUBLIC_E2E_MOCK_TOOL === 'true' ? 'true' : 'false',
+  },
+
   // ── Cache strategy — prevents stale HTML → ChunkLoadError ──────────────
   // The bug: after a rebuild, the browser (or a CDN/proxy like the RunPod
   // proxy) served an OLD cached HTML document that referenced JS chunk hashes

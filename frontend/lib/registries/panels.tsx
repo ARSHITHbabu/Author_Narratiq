@@ -6,10 +6,10 @@
 
 import dynamic from 'next/dynamic'
 import {
-  Activity, AlertTriangle, GitBranch, Palette, Copy, Heart, FileText, Sparkles, ShieldAlert,
+  Activity, AlertTriangle, GitBranch, Palette, Copy, Heart, FileText, Sparkles, ShieldAlert, FlaskConical,
   type LucideIcon,
 } from 'lucide-react'
-import type { ComponentType } from 'react'
+import { useEffect, useState, type ComponentType } from 'react'
 import type { WorkspaceId } from './workspaces'
 
 export type PanelSurface = 'dock' | 'sheet' | 'float' | 'page'
@@ -63,6 +63,26 @@ export const PANELS: PanelDef[] = [
     category: 'analysis', needs: ['storyId'], component: CopyrightRisk,
     blurb: 'Plagiarism / copyright risk — text, plot, character, world and trope similarity.' },
 ]
+
+// Stage 8.7 scalability check: a build with NEXT_PUBLIC_E2E_MOCK_TOOL=true adds
+// one extra tool exactly the way a real one is added (one row). next.config.js
+// always defines the variable, so Next inlines it and in a normal build this
+// branch is `if (false)` and
+// webpack never follows the import() inside it. Plain import() rather than
+// next/dynamic on purpose: next/dynamic's compile step registers its module
+// even in a dead branch (verified by grepping the build output — L3).
+if (process.env.NEXT_PUBLIC_E2E_MOCK_TOOL === 'true') {
+  const MockTool = (props: Record<string, unknown>) => {
+    const [C, setC] = useState<ComponentType<any> | null>(null)
+    useEffect(() => { import('@/components/studio/testing/MockToolPanel').then((m) => setC(() => m.default)) }, [])
+    return C ? <C {...props} /> : null
+  }
+  PANELS.push({
+    id: 'mock_tool', title: 'Mock Tool', icon: FlaskConical, workspace: 'analyze', surface: 'page',
+    category: 'analysis', needs: ['storyId'], component: MockTool,
+    blurb: 'Test-only tool proving a new tool needs no layout change.',
+  })
+}
 
 export function panelsForWorkspace(ws: WorkspaceId): PanelDef[] {
   return PANELS.filter((p) => p.workspace === ws)

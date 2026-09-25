@@ -52,6 +52,7 @@ test('Notes and the Idea Shelf have one home: World', async ({ page }) => {
   await page.goto(workspaceUrl('world'))
   const tabs = page.getByRole('tablist', { name: 'World sections' }).getByRole('tab')
   await expect(tabs).toHaveText([/Story Bible/, /Notes/, /Scan \(OCR\)/])
+  if (process.env.STUDIO_VARIANT === 'p3-off') return      // no Idea Shelf in the rollback build
   await page.goto(workspaceUrl('world', 'section=notes&tab=ideas'))
   await expect(page.getByRole('tab', { name: 'Ideas' })).toHaveAttribute('aria-selected', 'true')
 })

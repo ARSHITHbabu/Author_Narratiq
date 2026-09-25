@@ -73,6 +73,11 @@ export const TOOL_HOMES: ToolHome[] = [
 
   // ── Publish ───────────────────────────────────────────────────────────────
   { id: 'export', label: 'Export (DOCX / PDF)', workspace: 'publish' },
+
+  // Test-only (Stage 8.7): present only in a NEXT_PUBLIC_E2E_MOCK_TOOL=true build.
+  ...(process.env.NEXT_PUBLIC_E2E_MOCK_TOOL === 'true'
+    ? [{ id: 'mock_tool', label: 'Mock Tool', workspace: 'analyze' as const, section: 'mock_tool' }]
+    : []),
 ]
 
 /** Sections each multi-section workspace offers, in display order. */

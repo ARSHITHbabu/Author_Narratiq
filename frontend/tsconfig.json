@@ -16,6 +16,6 @@
     "plugins": [{ "name": "next" }],
     "paths": { "@/*": ["./*"] }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", ".next-studio/types/**/*.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", ".next-studio/types/**/*.ts", ".next-studio-mock-tool/types/**/*.ts", ".next-studio-p3-off/types/**/*.ts"],
   "exclude": ["node_modules"]
 }

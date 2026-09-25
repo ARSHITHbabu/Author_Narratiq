@@ -134,5 +134,5 @@ docs/**/*.pyc
 
 
 # Stage 8 mocked-API studio suite: separate build dir and results
-frontend/.next-studio/
+frontend/.next-studio*/
 frontend/.studio-results/

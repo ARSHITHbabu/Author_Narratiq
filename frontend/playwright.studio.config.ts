@@ -9,12 +9,25 @@ import { defineConfig, devices } from '@playwright/test'
 // The build lands in .next-studio (NEXT_DIST_DIR), never in the real .next that
 // start-narratiq.sh serves. PW_CHROMIUM_PATH optionally points at a preinstalled
 // Chromium (e.g. /opt/pw-browsers/chromium) instead of `playwright install`.
-// STUDIO_SKIP_BUILD=1 reuses an existing .next-studio build.
+// STUDIO_SKIP_BUILD=1 reuses an existing build.
+//
+// Build variants (STUDIO_VARIANT), each in its own directory:
+//   default    — the product as shipped
+//   mock-tool  — NEXT_PUBLIC_E2E_MOCK_TOOL=true: one extra test-only tool (8.7)
+//   p3-off     — NEXT_PUBLIC_P3_ENABLED=false: the Phase 3 rollback build (L5)
+// Specs that need a variant skip themselves in the others.
 const PORT = Number(process.env.STUDIO_PORT ?? 3100)
+const VARIANT = process.env.STUDIO_VARIANT ?? 'default'
+const VARIANT_ENV: Record<string, Record<string, string>> = {
+  default: {},
+  'mock-tool': { NEXT_PUBLIC_E2E_MOCK_TOOL: 'true' },
+  'p3-off': { NEXT_PUBLIC_P3_ENABLED: 'false' },
+}
 const env = {
   NEXT_PUBLIC_API_URL: 'http://mock-api.test',
-  NEXT_DIST_DIR: '.next-studio',
+  NEXT_DIST_DIR: VARIANT === 'default' ? '.next-studio' : `.next-studio-${VARIANT}`,
   NEXT_TELEMETRY_DISABLED: '1',
+  ...VARIANT_ENV[VARIANT],
 }
 
 export default defineConfig({
