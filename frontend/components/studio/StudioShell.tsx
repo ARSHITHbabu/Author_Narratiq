@@ -10,7 +10,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import {
-  Command as CommandIcon, Mic, History, ChevronDown, PanelLeftClose, PanelLeft, LogOut,
+  Command as CommandIcon, History, ChevronDown, PanelLeftClose, PanelLeft, LogOut,
 } from 'lucide-react'
 import { WORKSPACES, PROJECTS_WORKSPACE, workspacePath, workspaceForSegment, type WorkspaceId } from '@/lib/registries/workspaces'
 import { useStudioStore } from '@/lib/studioStore'
@@ -58,7 +58,7 @@ export default function StudioShell({ children }: { children: React.ReactNode })
   }, [storyId, router, store])
 
   const chromeHidden = store.zenMode
-  const railHidden = store.zenMode || store.focusMode || store.railCollapsed
+  const railHidden = store.zenMode || store.focusMode || store.readingMode || store.railCollapsed
 
   const go = (id: WorkspaceId) => router.push(workspacePath(storyId, id))
 
@@ -110,9 +110,8 @@ export default function StudioShell({ children }: { children: React.ReactNode })
             className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded border border-[#2e3454] text-[11px] text-[#9da3c8] hover:text-white hover:border-[#3d4466]">
             <CommandIcon className="w-3 h-3" /> <span>⌘K</span>
           </button>
-          <button onClick={() => go('assistant')} className="p-1.5 rounded text-[#9da3c8] hover:text-white hover:bg-[#1f2440]" title="Voice assistant">
-            <Mic className="w-4 h-4" />
-          </button>
+          {/* The voice agent's one home is the Assistant workspace in the rail
+              (Stage 8.8); a second header button to the same place was removed. */}
           <button onClick={() => setActivityOpen(true)} className="p-1.5 rounded text-[#9da3c8] hover:text-white hover:bg-[#1f2440]" title="Activity timeline">
             <History className="w-4 h-4" />
           </button>

@@ -8,7 +8,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Panel, PanelGroup, PanelResizeHandle, type ImperativePanelHandle } from 'react-resizable-panels'
-import { PenLine, Sparkles, Focus, Maximize2, AlignVerticalSpaceAround, PanelRightOpen } from 'lucide-react'
+import { PenLine, Sparkles, Focus, Maximize2, AlignVerticalSpaceAround, PanelRightOpen, Eye, BookOpenText } from 'lucide-react'
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import ChapterSidebar from '@/components/editor/ChapterSidebar'
 import EditorWithMethods, { type EditorMethods, type LiveSelection } from '@/components/editor/EditorWithMethods'
 import type { EditorSearchFunctions } from '@/components/editor/StoryEditor'
@@ -29,6 +30,7 @@ const VersionCompareView = dynamic(() => import('@/components/generation/Version
 const SearchPanel = dynamic(() => import('@/components/search/SearchPanel'), { ssr: false })
 
 const EXPANDED_SIDECAR = 65
+const viewItemCls = 'w-full text-left px-3 py-1.5 text-xs text-[#cdd2f0] hover:bg-[#1f2440] focus:bg-[#1f2440] outline-none cursor-pointer flex items-center gap-2 data-[state=checked]:text-amber-400'
 
 export default function WriteWorkspace() {
   const { storyId, story, chapters, activeChapter, activeChapterId, setActiveChapter, reloadChapters, registerEditor, updateChapterWordCount } = useStoryContext()
@@ -65,18 +67,29 @@ export default function WriteWorkspace() {
         store.setSearchOpen(true)
       } else if ((e.ctrlKey || e.metaKey) && e.key === '\\') {
         // ⌘\ / Ctrl+\ — the sidecar shortcut its buttons have always advertised.
+        // Draft and Reading keep AI out of the way, so it does nothing there.
         e.preventDefault()
-        store.toggleSidecar()
-      } else if (e.key === 'Escape' && useStudioStore.getState().searchOpen) {
-        closeSearch()
+        const st = useStudioStore.getState()
+        if ((st.getStory(storyId).writeMode ?? 'edit') === 'edit' && !st.readingMode) store.toggleSidecar()
+      } else if (e.key === 'Escape') {
+        const st = useStudioStore.getState()
+        if (st.searchOpen) { closeSearch(); return }
+        // A live text selection belongs to the selection toolbar's Escape.
+        if (window.getSelection()?.toString().trim()) return
+        if (st.zenMode) st.setZenMode(false)
+        else if (st.readingMode) st.setReadingMode(false)
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [store, closeSearch])
+  }, [store, closeSearch, storyId])
 
   // Leaving Write closes the panel so it does not reappear unexpectedly later.
-  useEffect(() => () => { useStudioStore.getState().setSearchOpen(false) }, [])
+  useEffect(() => () => {
+    const st = useStudioStore.getState()
+    st.setSearchOpen(false)
+    st.setReadingMode(false)
+  }, [])
 
   const handleJumpToMatch = useCallback(
     (chapterId: string, localIndex: number, query: string, caseSensitive: boolean, wholeWord: boolean) => {
@@ -133,12 +146,30 @@ export default function WriteWorkspace() {
 
   useEffect(() => { setSelection(null) }, [activeChapterId])
 
-  const showSidecar = store.sidecarOpen && !store.focusMode && !store.zenMode
+  // Every select gesture is a fresh selection event, even when it lands on the
+  // same words: the editor stays silent if the range did not change, so the
+  // gesture is republished here as a new object. That is what lets an Escape-
+  // dismissed toolbar come back on re-selection (review M2; see isDismissedFor).
+  const republishSelection = useCallback(() => {
+    requestAnimationFrame(() => {
+      const m = methodsRef.current
+      const range = m?.getSelectionRange()
+      if (!m || !range || !activeChapterId) return
+      setSelection({ text: m.getTextInRange(range.from, range.to), from: range.from, to: range.to, chapterId: activeChapterId })
+    })
+  }, [activeChapterId])
+
+  // Modes (Stage 8.5): Edit is the default; Draft hides every AI surface.
+  // Reading (8.3) is read-only with all chrome hidden.
+  const writeMode = store.getStory(storyId).writeMode ?? 'edit'
+  const reading = store.readingMode
+  const editing = writeMode === 'edit' && !reading
+  const showSidecar = editing && store.sidecarOpen && !store.focusMode && !store.zenMode
   // Expanded sidecar (8.2 / 8.6): room for detailed AI work — the binder steps
   // aside and the sidecar takes most of the width. Its size is not saved as the
   // normal sidecar size, so collapsing returns to the author's own width.
   const expanded = showSidecar && store.sidecarExpanded
-  const showBinder = !store.binderCollapsed && !store.focusMode && !store.zenMode && !expanded
+  const showBinder = !store.binderCollapsed && !store.focusMode && !store.zenMode && !reading && !expanded
   const sidecarRef = useRef<ImperativePanelHandle | null>(null)
   useEffect(() => {
     if (!showSidecar) return
@@ -184,13 +215,15 @@ export default function WriteWorkspace() {
           )}
 
           <Panel id="editor" order={2} className="min-w-0 relative">
-            <div ref={editorAreaRef} className={`h-full overflow-y-auto relative ${store.typewriter ? 'pb-[40vh]' : ''}`}>
+            <div ref={editorAreaRef} className={`h-full overflow-y-auto relative ${store.typewriter ? 'pb-[40vh]' : ''}`}
+              onMouseUp={republishSelection}>
               <EditorWithMethods
                 storyId={storyId}
                 chapter={activeChapter}
                 onWordCountChange={handleWordCountChange}
                 onMethodsReady={onMethodsReady}
                 onSelectionChange={setSelection}
+                readOnly={reading}
                 onSearchReady={(fns) => { searchFnsRef.current = fns }}
                 onContentLoaded={handleContentLoaded}
                 reloadTrigger={editorReloadKey}
@@ -201,7 +234,7 @@ export default function WriteWorkspace() {
                 stable box to be dragged and clamped inside. Placed after the editor
                 in the DOM so a keyboard-only author reaches it with one Tab from the
                 text they just selected. */}
-            <SelectionToolbar selection={selection} sidebarVisible={showSidecar} />
+            {editing && <SelectionToolbar selection={selection} sidebarVisible={showSidecar} />}
           </Panel>
 
           {showSidecar && (
@@ -217,23 +250,79 @@ export default function WriteWorkspace() {
         </PanelGroup>
       </div>
 
-      {/* Status bar / mode controls */}
+      {/* Status bar / mode controls (Stage 8.3 / 8.5). Few controls on screen:
+          the writing mode, the AI assistant (Edit only) and one View menu. */}
       {!store.zenMode && (
         <div className="h-8 flex-shrink-0 flex items-center px-3 gap-3 border-t border-[#1f2440] bg-[#0f1220] text-xs text-[#9da3c8]">
-          <span>Ch {activeChapter.chapter_number}: <span className="text-[#cdd2f0]">{activeChapter.title || 'Untitled'}</span></span>
-          <span className="text-[#5c6391]">·</span>
-          <span>{wordCount.toLocaleString()} words</span>
-          <span className="text-[#5c6391]">·</span>
-          <span>Story {(story?.word_count ?? 0).toLocaleString()}</span>
+          <span className="truncate min-w-0">Ch {activeChapter.chapter_number}: <span className="text-[#cdd2f0]">{activeChapter.title || 'Untitled'}</span></span>
+          <span className="text-[#8e94bd] hidden sm:inline" aria-hidden="true">·</span>
+          <span className="whitespace-nowrap">{wordCount.toLocaleString()} words</span>
+          <span className="text-[#8e94bd] hidden md:inline" aria-hidden="true">·</span>
+          <span className="whitespace-nowrap hidden md:inline">Story {(story?.word_count ?? 0).toLocaleString()}</span>
           <div className="flex-1" />
-          {/* Selection-safe: this button hands the selection to the sidebar, so
-              pressing it is not the author walking away from their selection. */}
-          <button onClick={() => store.toggleSidecar()} {...selectionSafeProps()}
-            className={`p-1 rounded hover:bg-[#1f2440] ${store.sidecarOpen ? 'text-amber-400' : ''}`} title="AI assistant (⌘\\)" aria-label="AI assistant" aria-pressed={store.sidecarOpen}><PanelRightOpen className="w-3.5 h-3.5" aria-hidden="true" /></button>
-          <button onClick={() => store.toggleTypewriter()} className={`p-1 rounded hover:bg-[#1f2440] ${store.typewriter ? 'text-amber-400' : ''}`} title="Typewriter"><AlignVerticalSpaceAround className="w-3.5 h-3.5" /></button>
-          <button onClick={() => store.setFocusMode(!store.focusMode)} className={`p-1 rounded hover:bg-[#1f2440] ${store.focusMode ? 'text-amber-400' : ''}`} title="Focus (⌘.)"><Focus className="w-3.5 h-3.5" /></button>
-          <button onClick={() => store.setZenMode(true)} className="p-1 rounded hover:bg-[#1f2440]" title="Zen mode"><Sparkles className="w-3.5 h-3.5" /></button>
-          <button onClick={toggleFullscreen} className="p-1 rounded hover:bg-[#1f2440]" title="Fullscreen"><Maximize2 className="w-3.5 h-3.5" /></button>
+          {reading ? (
+            <button onClick={() => store.setReadingMode(false)}
+              className="px-2 py-0.5 rounded border border-[#2e3454] hover:bg-[#1f2440] text-[#cdd2f0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/70">
+              Exit reading (Esc)
+            </button>
+          ) : (
+            <>
+              <div role="radiogroup" aria-label="Writing mode" className="flex rounded border border-[#2e3454] overflow-hidden"
+                onKeyDown={(e) => {
+                  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
+                  e.preventDefault()
+                  const next = writeMode === 'draft' ? 'edit' : 'draft'
+                  store.setWriteMode(storyId, next)
+                  ;(e.currentTarget.querySelector<HTMLElement>(`[data-mode="${next}"]`))?.focus()
+                }}>
+                {(['draft', 'edit'] as const).map((m) => (
+                  <button key={m} role="radio" aria-checked={writeMode === m} tabIndex={writeMode === m ? 0 : -1} data-mode={m}
+                    onClick={() => store.setWriteMode(storyId, m)}
+                    title={m === 'draft' ? 'Draft: just you and the page — AI tools step aside' : 'Edit: AI tools, selection toolbar and versions'}
+                    className={`px-2 py-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-500/70 ${writeMode === m ? 'bg-amber-500/15 text-amber-300' : 'hover:bg-[#1f2440]'}`}>
+                    {m === 'draft' ? 'Draft' : 'Edit'}
+                  </button>
+                ))}
+              </div>
+              {editing && (
+                /* Selection-safe: this button hands the selection to the sidebar, so
+                   pressing it is not the author walking away from their selection. */
+                <button onClick={() => store.toggleSidecar()} {...selectionSafeProps()}
+                  className={`p-1 rounded hover:bg-[#1f2440] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/70 ${store.sidecarOpen ? 'text-amber-400' : ''}`}
+                  title="AI assistant (⌘\\)" aria-label="AI assistant" aria-pressed={store.sidecarOpen}>
+                  <PanelRightOpen className="w-3.5 h-3.5" aria-hidden="true" />
+                </button>
+              )}
+            </>
+          )}
+          <DropdownMenu.Root>
+            <DropdownMenu.Trigger asChild>
+              <button aria-label="View options" title="View: reading, focus, zen, typewriter, fullscreen"
+                className="p-1 rounded hover:bg-[#1f2440] flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/70">
+                <Eye className="w-3.5 h-3.5" aria-hidden="true" /><span className="hidden sm:inline">View</span>
+              </button>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Portal>
+              <DropdownMenu.Content align="end" side="top" sideOffset={6}
+                className="w-56 rounded-lg border border-[#2e3454] bg-[#13162a] shadow-xl py-1 z-50">
+                <DropdownMenu.CheckboxItem checked={reading} onSelect={() => store.setReadingMode(!reading)} className={viewItemCls}>
+                  <BookOpenText className="w-3.5 h-3.5" aria-hidden="true" /> Reading mode
+                </DropdownMenu.CheckboxItem>
+                <DropdownMenu.CheckboxItem checked={store.focusMode} onSelect={() => store.setFocusMode(!store.focusMode)} className={viewItemCls}>
+                  <Focus className="w-3.5 h-3.5" aria-hidden="true" /> Focus mode <span className="ml-auto text-[#8e94bd]">⌘.</span>
+                </DropdownMenu.CheckboxItem>
+                <DropdownMenu.CheckboxItem checked={store.zenMode} onSelect={() => store.setZenMode(true)} className={viewItemCls}>
+                  <Sparkles className="w-3.5 h-3.5" aria-hidden="true" /> Zen mode
+                </DropdownMenu.CheckboxItem>
+                <DropdownMenu.CheckboxItem checked={store.typewriter} onSelect={() => store.toggleTypewriter()} className={viewItemCls}>
+                  <AlignVerticalSpaceAround className="w-3.5 h-3.5" aria-hidden="true" /> Typewriter scrolling
+                </DropdownMenu.CheckboxItem>
+                <DropdownMenu.Item onSelect={toggleFullscreen} className={viewItemCls}>
+                  <Maximize2 className="w-3.5 h-3.5" aria-hidden="true" /> Fullscreen
+                </DropdownMenu.Item>
+              </DropdownMenu.Content>
+            </DropdownMenu.Portal>
+          </DropdownMenu.Root>
         </div>
       )}
       {/* Phase 3 compare/merge dialog — mounted once for the workspace; opened

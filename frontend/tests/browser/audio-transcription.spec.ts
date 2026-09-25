@@ -14,12 +14,12 @@ import { test, expect, type APIRequestContext, type Page } from '@playwright/tes
 // `gtts`/`pyttsx3` Python packages, and `ffmpeg` are all absent), so no real
 // speech fixture could be generated. AudioPanel.tsx is imported by
 // VoiceAgentPanel.tsx (not mounted as its own top-level workspace tab), so
-// the upload control is reached via the "Voice assistant" header button.
+// the upload control is reached via the Assistant workspace in the left rail.
 //
 // Manual verification procedure (reproducible, for the author or a future
 // session with TTS/microphone access):
 //   1. Log in, open any story with at least one chapter.
-//   2. Click "Voice assistant" in the top header.
+//   2. Click "Assistant" in the left workspace rail.
 //   3. Find the audio-upload control within that panel (Audio/Recordings
 //      section) and upload a short (5-30s) real speech recording — a phone
 //      voice memo works.

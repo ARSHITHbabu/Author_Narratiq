@@ -24,7 +24,12 @@ export interface PerStoryMemory {
   lastNoteId: string | null
   /** last open section per multi-section workspace (Plan, World) */
   lastSections?: Partial<Record<WorkspaceId, string>>
+  /** Write mode for this story (Stage 8.5). Edit is the default everywhere;
+   *  Draft is opt-in and hides the AI surfaces while the author drafts. */
+  writeMode?: WriteMode
 }
+
+export type WriteMode = 'draft' | 'edit'
 
 export const LEGACY_STUDIO_KEY = 'narratiq_studio'
 export const studioKeyFor = (userId: string | null) => `${LEGACY_STUDIO_KEY}:${userId ?? 'anon'}`
@@ -40,6 +45,7 @@ interface LayoutState {
   zenMode: boolean        // hides everything (paragraph focus)
   typewriter: boolean
   searchOpen: boolean     // manuscript search & replace (session-only)
+  readingMode: boolean    // read-only, chrome hidden (session-only)
 }
 
 interface StudioState extends LayoutState {
@@ -56,6 +62,7 @@ interface StudioState extends LayoutState {
   setAnalysis: (storyId: string, analysis: string | null) => void
   setNote: (storyId: string, noteId: string | null) => void
   setSection: (storyId: string, ws: WorkspaceId, section: string) => void
+  setWriteMode: (storyId: string, mode: WriteMode) => void
   getStory: (storyId: string) => PerStoryMemory
 
   // layout writers
@@ -69,6 +76,7 @@ interface StudioState extends LayoutState {
   setZenMode: (on: boolean) => void
   toggleTypewriter: () => void
   setSearchOpen: (open: boolean) => void
+  setReadingMode: (on: boolean) => void
 }
 
 const DEFAULT_PER_STORY: PerStoryMemory = {
@@ -93,6 +101,7 @@ const DEFAULT_DATA = {
   zenMode: false,
   typewriter: false,
   searchOpen: false,
+  readingMode: false,
 }
 
 export const useStudioStore = create<StudioState>()(
@@ -126,16 +135,20 @@ export const useStudioStore = create<StudioState>()(
           return { byStory: { ...s.byStory, [storyId]: { ...prev, lastSections: { ...prev.lastSections, [ws]: section } } } }
         }),
 
+      setWriteMode: (storyId, mode) =>
+        set((s) => ({ byStory: { ...s.byStory, [storyId]: { ...DEFAULT_PER_STORY, ...s.byStory[storyId], writeMode: mode } } })),
+
       toggleRail: () => set((s) => ({ railCollapsed: !s.railCollapsed })),
       toggleBinder: () => set((s) => ({ binderCollapsed: !s.binderCollapsed })),
       toggleSidecar: (open) => set((s) => ({ sidecarOpen: open ?? !s.sidecarOpen })),
       setSidecarExpanded: (on) => set({ sidecarExpanded: on }),
       setBinderSize: (n) => set({ binderSize: n }),
       setSidecarSize: (n) => set({ sidecarSize: n }),
-      setFocusMode: (on) => set({ focusMode: on, zenMode: on ? false : get().zenMode }),
-      setZenMode: (on) => set({ zenMode: on, focusMode: on ? false : get().focusMode }),
+      setFocusMode: (on) => set({ focusMode: on, zenMode: on ? false : get().zenMode, readingMode: on ? false : get().readingMode }),
+      setZenMode: (on) => set({ zenMode: on, focusMode: on ? false : get().focusMode, readingMode: on ? false : get().readingMode }),
       toggleTypewriter: () => set((s) => ({ typewriter: !s.typewriter })),
       setSearchOpen: (open) => set({ searchOpen: open }),
+      setReadingMode: (on) => set({ readingMode: on, ...(on ? { focusMode: false, zenMode: false, searchOpen: false } : {}) }),
     }),
     {
       name: studioKeyFor(null),
@@ -193,5 +206,5 @@ export async function bindStudioStoreToUser(userId: string | null): Promise<void
   if (userId && typeof window !== 'undefined') migrateLegacyLayout(key)
   useStudioStore.persist.setOptions({ name: key })
   await useStudioStore.persist.rehydrate()
-  useStudioStore.setState({ boundKey: key, focusMode: false, zenMode: false, searchOpen: false })
+  useStudioStore.setState({ boundKey: key, focusMode: false, zenMode: false, searchOpen: false, readingMode: false })
 }

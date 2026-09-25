@@ -255,7 +255,9 @@ test('11: Focus mode hides the sidebar, so the toolbar takes the selection back'
 })
 
 test('11: in Zen mode the toolbar still owns a selection', async ({ page }) => {
-  await page.getByTitle('Zen mode').click()
+  // Stage 8.3: Zen lives in the status bar's View menu.
+  await page.getByRole('button', { name: 'View options' }).click()
+  await page.getByRole('menuitemcheckbox', { name: 'Zen mode' }).click()
   await expect(page.getByText('Exit Zen (Esc)')).toBeVisible()
   // Entering a mode re-lays out the panel group and the editor reloads its content.
   // That reload can land just after a selection and collapse it — a pre-existing

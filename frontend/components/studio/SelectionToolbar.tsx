@@ -31,7 +31,7 @@ import {
 import { useStoryContext } from './StoryContextEngine'
 import { deriveToolDefaults, hasGenreProfile } from '@/lib/genreDefaults'
 import {
-  previewInvalidReason, resolveToolbarMode, selectionKey, selectionSafeProps,
+  isDismissedFor, previewInvalidReason, resolveToolbarMode, selectionKey, selectionSafeProps,
   type PreviewIdentity,
 } from '@/lib/selectionOwnership'
 import {
@@ -83,8 +83,10 @@ export default function SelectionToolbar({ selection, sidebarVisible }: Props) {
   // marked locked for the NEXT transform run on this selection.
   const [lockedIdx, setLockedIdx] = useState<Set<number>>(new Set())
   const [preview, setPreview] = useState<Preview | null>(null)
-  // Escape hides the toolbar until the author makes a different selection.
-  const [dismissed, setDismissed] = useState(false)
+  // Escape hides the toolbar for the selection it was pressed on; the author's
+  // next selection — even of the same words — brings it back (isDismissedFor).
+  const [dismissedFor, setDismissedFor] = useState<LiveSelection | null>(null)
+  const dismissed = isDismissedFor(dismissedFor, selection)
   // Only the newest transform may produce a preview; older ones resolve into nothing.
   const requestSeq = useRef(0)
 
@@ -110,7 +112,6 @@ export default function SelectionToolbar({ selection, sidebarVisible }: Props) {
     if (selKey === prevKeyRef.current) return
     prevKeyRef.current = selKey
     setOpenGroup(null)
-    setDismissed(false)
     if (selKey) setPreview(null)
     // A new selection is a new set of sentences — stale locked indices would
     // point at the wrong spans (or none at all) in different prose.
@@ -145,11 +146,11 @@ export default function SelectionToolbar({ selection, sidebarVisible }: Props) {
       if (e.key !== 'Escape') return
       if (openGroup) { setOpenGroup(null); return }
       if (preview) { setPreview(null); return }
-      setDismissed(true)
+      setDismissedFor(selection)
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-  }, [mode, openGroup, preview])
+  }, [mode, openGroup, preview, selection])
 
   // ── Position: measured, clamped, draggable ─────────────────────────────────
   const containerRef = useRef<HTMLDivElement | null>(null)

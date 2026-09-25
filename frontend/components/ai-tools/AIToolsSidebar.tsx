@@ -518,23 +518,17 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
 
         {activeTab === 'refine' && (
           <div className="space-y-3">
-            <p className="text-xs text-[#5c6391]">Fix grammar, elevate prose, or polish dialogue — pick the mode that fits.</p>
-            <div className="grid grid-cols-2 gap-2">
-              {REFINE_MODES.map((m) => (
-                <button
-                  key={m.id}
-                  onClick={() => setRefineMode(m.id)}
-                  className={`p-2.5 rounded-xl border text-left transition-all ${
-                    refineMode === m.id
-                      ? 'border-amber-500/50 bg-amber-500/10'
-                      : 'border-[#2e3454] hover:border-[#3d4466]'
-                  }`}
-                >
-                  <div className={`text-xs font-medium ${refineMode === m.id ? 'text-amber-400' : 'text-[#e8eaf6]'}`}>{m.label}</div>
-                  <div className="text-xs text-[#5c6391] mt-0.5">{m.desc}</div>
-                </button>
-              ))}
-            </div>
+            <p className="text-xs text-[#aeb3d6]">Fix grammar, elevate prose, or polish dialogue — pick the mode that fits.</p>
+            {/* One chooser instead of four cards (8.4); the chosen mode's
+                description stays on screen, so nothing is lost. */}
+            <label className="block text-[11px] text-[#aeb3d6]">
+              Refine mode
+              <select aria-label="Refine mode" value={refineMode} onChange={(e) => setRefineMode(e.target.value)}
+                className="mt-1 w-full bg-[#0d0f1a] border border-[#2e3454] rounded-lg px-2 py-1.5 text-xs text-[#e8eaf6] focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/70">
+                {REFINE_MODES.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}
+              </select>
+            </label>
+            <p className="text-xs text-[#aeb3d6]">{REFINE_MODES.find((m) => m.id === refineMode)?.desc}</p>
           </div>
         )}
 
