@@ -94,7 +94,7 @@ test('P3-01/P3-04: Versions lists pins; two versions compare and merge block by 
   await page.keyboard.press('Escape')
 
   await page.getByRole('button', { name: 'AI assistant', exact: true }).click()
-  await page.getByRole('button', { name: 'Versions' }).click()
+  await page.getByRole('tab', { name: 'Versions' }).click()
   const cards = page.getByTestId('pin-card')
   await expect(cards).toHaveCount(2, { timeout: 15_000 })
   await expect(page.getByTestId('versions-panel')).toContainText(/2 of 20 pins · free plan · kept 7 days/)

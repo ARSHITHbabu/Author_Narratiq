@@ -45,7 +45,8 @@ async function openWithSidecar(page: Page) {
   await page.getByText('Fixture', { exact: true }).first().click()
   await expect(firstParagraph(page)).toContainText('sensor reported')
   await page.getByRole('button', { name: 'AI assistant', exact: true }).click()
-  await page.getByRole('button', { name: 'Tone', exact: true }).click()
+  // Stage 8.4: sidebar tools are grouped; Tone is chosen from the Rewrite chooser.
+  await page.getByRole('combobox', { name: 'Rewrite tool' }).selectOption('tone')
 }
 
 test.beforeEach(async ({ page, request }) => {
@@ -71,7 +72,7 @@ test('sidecar Tone tab shows strength selector (default light) and, with a selec
 })
 
 test('sidecar Emotion tab does NOT offer strength/locks', async ({ page }) => {
-  await page.getByRole('button', { name: 'Emotion', exact: true }).click()
+  await page.getByRole('combobox', { name: 'Rewrite tool' }).selectOption('emotion')
   await expect(sidecar(page)).toHaveCount(0)
 })
 

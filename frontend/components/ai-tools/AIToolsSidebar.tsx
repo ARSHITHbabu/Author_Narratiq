@@ -61,6 +61,19 @@ const TABS = [
   ...(P3_ENABLED ? [{ id: 'versions' as TabId, label: 'Versions', icon: PinIcon }] : []),
 ]
 
+// Stage 8.4 — progressive disclosure. The ten tools are grouped by what the
+// author is doing: Rewrite (change the selected text — one tool at a time from a
+// chooser), Generate (new text) and Versions (Phase 3 pins / compare / rules).
+// Only the group row and the current tool are on screen at once.
+type GroupId = 'rewrite' | 'generate' | 'versions'
+const GROUPS: { id: GroupId; label: string; tools: TabId[] }[] = [
+  { id: 'rewrite', label: 'Rewrite', tools: ['refine', 'tone', 'emotion', 'age', 'style', 'author', 'translate'] },
+  { id: 'generate', label: 'Generate', tools: ['continue', 'outline'] },
+  ...(P3_ENABLED ? [{ id: 'versions' as GroupId, label: 'Versions', tools: ['versions'] as TabId[] }] : []),
+]
+const groupOf = (t: TabId): GroupId => GROUPS.find((g) => g.tools.includes(t))?.id ?? 'rewrite'
+const tabLabel = (t: TabId) => TABS.find((x) => x.id === t)?.label ?? t
+
 function ResultPanel({
   result,
   hasSelection,
@@ -145,6 +158,10 @@ function ResultPanel({
 
 export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, getFullText, insertText, genreProfile, liveSelection }: Props) {
   const [activeTab, setActiveTab] = useState<TabId>('refine')
+  // Each group remembers its last tool, so switching groups and back is lossless.
+  const lastInGroup = useRef<Record<GroupId, TabId>>({ rewrite: 'refine', generate: 'continue', versions: 'versions' })
+  useEffect(() => { lastInGroup.current[groupOf(activeTab)] = activeTab }, [activeTab])
+  const selectGroup = (g: GroupId) => { setActiveTab(lastInGroup.current[g]); setResult(null) }
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<TransformResponse | null>(null)
   const [pinSource, setPinSource] = useState<PinSource | null>(null)
@@ -389,26 +406,56 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
         )}
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 p-2 border-b border-[#1f2440] flex-wrap">
-        {TABS.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => { setActiveTab(tab.id); setResult(null) }}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-all ${
-              activeTab === tab.id
-                ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
-                : 'text-[#5c6391] hover:text-[#9da3c8] hover:bg-[#1f2440]'
-            }`}
-          >
-            <tab.icon className="w-3 h-3" />
-            {tab.label}
-          </button>
-        ))}
+      {/* Tool groups (8.4): a tablist of three, then one chooser for Rewrite. */}
+      <div className="p-2 border-b border-[#1f2440] space-y-2">
+        <div role="tablist" aria-label="AI tool groups" className="flex gap-1"
+          onKeyDown={(e) => {
+            const i = GROUPS.findIndex((g) => g.id === groupOf(activeTab))
+            const n = e.key === 'ArrowRight' ? (i + 1) % GROUPS.length : e.key === 'ArrowLeft' ? (i - 1 + GROUPS.length) % GROUPS.length : -1
+            if (n < 0) return
+            e.preventDefault(); selectGroup(GROUPS[n].id)
+            ;(e.currentTarget.querySelectorAll<HTMLElement>('[role="tab"]')[n])?.focus()
+          }}>
+          {GROUPS.map((g) => {
+            const selected = groupOf(activeTab) === g.id
+            return (
+              <button key={g.id} role="tab" aria-selected={selected} tabIndex={selected ? 0 : -1}
+                aria-controls="ai-tool-panel" id={`ai-group-${g.id}`}
+                onClick={() => selectGroup(g.id)}
+                className={`flex-1 px-2.5 py-1.5 rounded-lg text-xs transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/70 ${
+                  selected ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30' : 'text-[#aeb3d6] hover:text-white hover:bg-[#1f2440] border border-transparent'
+                }`}>
+                {g.label}
+              </button>
+            )
+          })}
+        </div>
+        {groupOf(activeTab) === 'rewrite' && (
+          <label className="flex items-center gap-2 text-[11px] text-[#aeb3d6]">
+            <span className="flex-shrink-0">Tool</span>
+            <select aria-label="Rewrite tool" value={activeTab}
+              onChange={(e) => { setActiveTab(e.target.value as TabId); setResult(null) }}
+              className="flex-1 bg-[#0d0f1a] border border-[#2e3454] rounded-lg px-2 py-1.5 text-xs text-[#e8eaf6] focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/70">
+              {GROUPS[0].tools.map((t) => <option key={t} value={t}>{tabLabel(t)}</option>)}
+            </select>
+          </label>
+        )}
+        {groupOf(activeTab) === 'generate' && (
+          <div role="radiogroup" aria-label="Generate tool" className="flex gap-1">
+            {GROUPS[1].tools.map((t) => (
+              <button key={t} role="radio" aria-checked={activeTab === t}
+                onClick={() => { setActiveTab(t); setResult(null) }}
+                className={`flex-1 px-2 py-1 rounded text-[11px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/70 ${activeTab === t ? 'bg-[#1f2440] text-white' : 'text-[#aeb3d6] hover:text-white'}`}>
+                {tabLabel(t)}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Tab Content */}
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-4" role="tabpanel" id="ai-tool-panel"
+        aria-labelledby={`ai-group-${groupOf(activeTab)}`}>
 
         {P3_ENABLED && CONTROLLABLE_TABS.includes(activeTab) && (
           <div className="mb-4 space-y-2">
