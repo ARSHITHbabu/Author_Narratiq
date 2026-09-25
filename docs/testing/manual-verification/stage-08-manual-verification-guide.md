@@ -112,17 +112,17 @@ No item is FAILED. Nothing in this stage touches the database schema; there is n
 | Checklist affected | 8.9 screen-reader box; Stage 8 gate "Accessibility baseline met" (with the CI item still deferred) |
 | Status | **PENDING MANUAL VERIFICATION** |
 
-## MV-8.5 — Author reviews (8.3, 8.4, 8.5) and design owner
+## MV-8.5 — Author reviews (8.3, 8.4, 8.5)
 
 | Field | Value |
 |---|---|
-| Related task | 8.3, 8.4, 8.5 author-review boxes; Stage 8 prerequisite "a named design owner" |
+| Related task | 8.3, 8.4, 8.5 author-review boxes; the design owner (Arshith Babu, confirmed) runs or approves these reviews |
 | Requirement | The author judges the redesign on its own terms |
 | Why the cloud could not verify it | These are judgements only the author can make |
-| Procedure | Using the fixture story or a real manuscript: 1. **Focal point (8.3):** open Write with the AI panel closed. Is the manuscript clearly the main thing on screen? Try Reading, Focus and Zen (View menu; Escape leaves them)  2. **Discoverability (8.4):** without help, find: Story Bible, Notes, the Idea Shelf, Search & replace, Pacing, Continuity, Compare versions, and the voice agent (its buttons in the header and the AI panel were removed as duplicates; it lives in Assistant and in Ctrl/⌘K). Note any you could not find within 30 s, and try Ctrl/⌘K for them  3. **Drafting session (8.5):** 20+ minutes in Draft mode writing new text. Did anything distract?  4. **Editing session (8.5):** 20+ minutes in Edit mode revising with the AI panel and selection toolbar  5. **Design owner:** confirm or name the design owner for Stage 8 (currently recorded as Arshith, pending confirmation) |
+| Procedure | Using the fixture story or a real manuscript: 1. **Focal point (8.3):** open Write with the AI panel closed. Is the manuscript clearly the main thing on screen? Try Reading, Focus and Zen (View menu; Escape leaves them)  2. **Discoverability (8.4):** without help, find: Story Bible, Notes, the Idea Shelf, Search & replace, Pacing, Continuity, Compare versions, and the voice agent (its buttons in the header and the AI panel were removed as duplicates; it lives in Assistant and in Ctrl/⌘K). Note any you could not find within 30 s, and try Ctrl/⌘K for them  3. **Drafting session (8.5):** 20+ minutes in Draft mode writing new text. Did anything distract?  4. **Editing session (8.5):** 20+ minutes in Edit mode revising with the AI panel and selection toolbar  5. **Design owner:** already confirmed (Arshith Babu, 2026-09-25); nothing to do |
 | Expected result | A yes / no with a sentence for each of 1–4; any tool not found in step 2 is recorded |
-| Evidence to capture | Answers to 1–5 |
-| Checklist affected | 8.3, 8.4, 8.5 author-review boxes; the design-owner note in the Stage 8 header |
+| Evidence to capture | Answers to 1–4 |
+| Checklist affected | 8.3, 8.4, 8.5 author-review boxes |
 | Status | **PENDING MANUAL VERIFICATION** |
 
 ## MV-8.6 — Real-browser layout checks
