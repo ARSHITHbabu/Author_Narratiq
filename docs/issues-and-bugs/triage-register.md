@@ -56,17 +56,20 @@ below as cross-references, not counted twice.
 | P2-7 | Notes module loads inconsistently | Medium–High | Resolved | 3.11 | 2026-07-26 |
 | P2-8 | Story Bible hallucinates content outside the manuscript | Critical | Resolved | 3.2, 3.3 | 2026-07-26 |
 | P2-9 | Character recognition not synced with added profiles | Medium–High | Resolved | 3.12 | 2026-07-26 |
-| P2-10 | Notes/Threads duplicated across navigation | Medium | **Deferred** (recorded destination, not yet fixed) | 8.8 | Traceability closed 2026-07-26; fix pending |
+| P2-10 | Notes/Threads duplicated across navigation | Medium | Resolved (Stage 8, branch `claude/stage-8-studio-workspaces`, not merged) | 8.8 | 2026-09-25 |
 | P2-11 | Floating toolbar appears when AI sidebar is open | Medium | Resolved | 3.8 | 2026-07-26 |
 | P2-12 | Scene outline generation produces nothing | High | Resolved | 3.1 | 2026-07-24 |
 | P2-13 | Chapter continuation generation fails | High | Resolved | 3.1 | 2026-07-24 |
 | P2-14 | Continuity analysis not functional | High | Resolved | 3.4 | 2026-07-26 |
 
-**Note on P2-10:** listed as Resolved-by-deferral above is inaccurate — correcting here: P2-10 is **not
-yet fixed**. Its destination (task 8.8) is recorded and traceable, but the navigation duplication
-itself still exists. Classification: **release-blocking**, tracked against task 8.8, per the default
-rule (originally Medium severity, but it blocks Stage 8's own gate, which is scheduled before release
-validation).
+**Note on P2-10 (updated 2026-09-25, Stage 8 task 8.8):** fixed. Notes, note cards and the Idea
+Shelf now live only in World → Notes; Narrative Threads lives only in Analyze. The one remaining
+second view (per-chapter "ideas waiting" markers in the Write binder) is read-only and recorded with
+its reason (decision D10) in `frontend/lib/registries/toolHomes.ts`. Evidence: `frontend/tests/tool-homes.spec.ts`
+("Notes and Narrative Threads are no longer duplicated") and `frontend/tests/studio/navigation.spec.ts`.
+Until 2026-09-25 this row wrongly read "Resolved" in the summary count while the duplication still
+existed; the count is now accurate. The fix is on the Stage 8 branch and reaches production only when
+that branch is merged.
 
 ---
 
@@ -265,6 +268,11 @@ already works correctly and is cited by both reports as evidence that the Plot A
 *Note on UI-M16:* also carries Phase 2 Issue 10 (Notes/Threads navigation duplication) via task 8.8 —
 see the Phase 2 table above, which classifies the combined item as release-blocking despite this row's
 Medium source severity, since it gates Stage 8's own completion gate.
+
+*Stage 8 status (2026-09-25, branch `claude/stage-8-studio-workspaces`):* all 18 have an implemented
+fix and cloud tests on a mocked API. C3, C4, C5, C7, C8, M16 and M18 are verified in the cloud. C1, C2,
+C6, H9–H15 and M17 are implemented but stay open until the author reviews named in checklist tasks
+8.3–8.6 and the 8.11 usability session. See `docs/testing/manual-verification/stage-08-manual-verification-guide.md`.
 
 ---
 

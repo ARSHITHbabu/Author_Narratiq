@@ -47,12 +47,12 @@ Repository verification during checklist construction changed three things. Each
 | 5 — Phase 1 AI Generation Quality | 16 | 15 | 1 | 0 | Implemented — **gate open**\*\* |
 | 6 — Test Automation and CI | 7 | 3 | 4 | 0 | **Complete\*\*\*** (CI deferred by decision) |
 | 7 — Phase 3 Implementation | 15 | 10 | 5 | 0 | Implemented — **gate open**† |
-| 8 — Editor UI and Workspace Redesign | 11 | 0 | 11 | 0 | Not Started |
+| 8 — Editor UI and Workspace Redesign | 11 | 5 | 6 | 0 | Implemented — **gate open**‡ |
 | 9 — Full Regression Testing and UAT | 7 | 0 | 7 | 0 | Not Started |
 | 10 — Production Readiness | 9 | 0 | 9 | 0 | Not Started |
 | 11 — Documentation Reconciliation | 9 | 0 | 9 | 0 | Not Started |
 | 12 — Release Validation | 3 | 0 | 3 | 0 | Not Started |
-| **Total** | **131** | **75** | **56** | **0** | **In Progress** |
+| **Total** | **131** | **80** | **51** | **0** | **In Progress** |
 
 > The stage table counts **main tasks**. Stage 1 shows 0 completed because task 1.1 is still open — six of its seven subtasks are done; the seventh, the off-pod copy, is deferred. The counts below track actionable checkboxes and are the authoritative progress measure. *(2026-09-21 — superseded for Stage 1: task 1.1 is now complete, the off-pod copy having actually been done. See the `*` below.)*
 >
@@ -65,6 +65,8 @@ Repository verification during checklist construction changed three things. Each
 > **\*Stage 1's "Complete" label (2026-09-21):** the Stage 1 Completion Gate is closed — all seven of its own independent criteria are verified true — while 4 of Stage 1's 9 main-task checkboxes remain deliberately unticked (1.2, 1.3 not applicable to this pod; 1.5's literal "data intact" clause is permanently unsatisfiable now that the original manuscript is lost, though the task's stack-running half is verified; 1.6 has one item by-design deferred to Stage 11). This mirrors how Stage 3 closed with two open-by-design items — see the note under the Stage 1 Completion Gate for the full accounting. Nothing here is a silent gap.
 >
 > **†Stage 7 (2026-09-25) — implemented and accepted by the author (APPROVE COMPLETION); gate NOT fully closed.** 10 of 15 main tasks ticked. 7.3, 7.4, 7.10, 7.12 and 7.15 are implemented and verified but held open on named items: ⌘Z single-step undo browser re-check (author manual), migration test in CI (CI deferred), Tier-2 warning-text quality, golden-set author review of voice matching, real day-8 cleanup verification, and the intermittent selection-toolbar test 9. UAT remains Stage 9. Full evidence, approved deviations and the carried-forward list are in the note under the Stage 7 Completion Gate. Nothing here is a silent gap.
+>
+> **‡Stage 8 (2026-09-25) — implemented on branch `claude/stage-8-studio-workspaces`, not merged; gate NOT closed.** 5 of 11 main tasks ticked (8.1, 8.2, 8.7, 8.8, 8.10), verified in the cloud with a mocked-API Playwright suite. 8.3, 8.4 and 8.5 are implemented and wait on author review; 8.6 waits on a live pod browser run; 8.9 waits on a screen-reader pass (its CI item is deferred with 6.1); 8.11 needs real authors. Entered on the product owner's explicit override while the Stage 7 gate is open. Phase 2 Issue 10 is closed. See the Stage 8 section and `docs/testing/manual-verification/stage-08-manual-verification-guide.md`.
 >
 > **\*\*\*Stage 6's "Complete" label (2026-09-22), approved under an explicitly revised scope, not fully done in the stage's original sense:** 3 of 7 main tasks are ticked (6.2, 6.3, 6.6). Task 6.1 (CI pipeline) is **intentionally deferred by explicit author decision** — a working GitHub Actions setup was built, verified locally, then removed, because the project's priority right now is finishing core product features, not CI infrastructure; it will be reconsidered near final production readiness. Task 6.6 closes under an **author-approved revised acceptance criterion** (Phase 2 fully mapped + Stage 5 at task granularity; Phase 1's 147 individual issue numbers explicitly deferred as a separate future task). Tasks 6.4, 6.5 and 6.7 stay unticked as parent tasks — each is substantially done (6.4: 7/9 journeys live-verified; 6.5: 6/7 sub-items; 6.7: 4/5 sub-items) with specific, honestly-open remainders (2 real product gaps in 6.4 — manuscript-upload frontend UI missing, audio transcription justified-manual; 6.5's scheduling is N/A while CI is deferred and its deliberate-regression proof wasn't performed; 6.7's Dependabot line is GitHub-specific and deferred with 6.1). The full backend suite is verified green (499 passed, 0 failed) both before and after the CI-file removal. See the Stage 6 Completion Gate note and the delivered Stage 6 closure report for the complete evidence trail. Nothing here is a silent gap — every open item is named in the Completion Gate's "carried forward" list.
 
@@ -81,7 +83,7 @@ Repository verification during checklist construction changed three things. Each
 > **One new frontend defect was discovered during the author's own manual verification, not fixed under this task:** the Logout control disappears on pointer hover before it can be clicked, so logout could not be completed or confirmed working. Recorded under task 1.8; not yet triaged into a stage — see the note there.
 
 **Total actionable checkboxes:** 1150 (2026-09-25 Stage 7 update: +4 new, deliberately UNTICKED carried-forward sub-items added under 7.3, 7.10 and 7.15 so open work stays visible. Independently re-verified by direct regex count of list-item markers `^\s*- \[( |x)\]` before (1146 / 601) and after (1150 / 725) the edit.) *Earlier note:* 1146 (2026-09-21 Stage 5 closure evaluation: +3 new ticked sub-items at 5.4/5.6, recording manual author verification and the sidecar fix, over a **corrected** pre-edit base of **1143**. The previously recorded "1146 / 562" had been counted with a regex that also matched three prose mentions of the checkbox syntax on the Formula and Total lines. The true pre-edit figures were **1143 / 561**, verified by counting only list-item markers `^\s*- \[( |x)\]`.) *Earlier note, kept for traceability:* (whole-file; was 1138 before this Stage 5 pass began, 1143 after its first continuation — +8 net new sub-items total added while detailing per-task evidence across both passes; independently re-verified by direct regex count of every `- [x]`/`- [ ]` marker, per the same counting discipline used for the 1134→1135 reconciliation)
-**Currently completed:** 725 (2026-09-25 Stage 7: +124 newly ticked checkboxes, all within the Stage 7 section — 124 of Stage 7's 140; the 16 still open are named carry-forwards, not silent gaps.) *Earlier note:* 601 (2026-09-22 Stage 6 closure: +41 newly ticked checkboxes, all within the Stage 6 section — tasks 6.2, 6.3 and 6.6 fully complete [the latter under the author-approved revised acceptance criterion], plus genuinely-done sub-items within 6.4, 6.5 and 6.7. Independently verified by direct regex count of every `- [x]`/`- [ ]` marker, same counting discipline as prior reconciliations: 601 ticked, 545 unticked, 1146 total — no checkbox lines were added or removed, only converted.) *Earlier note:* 560 (2026-09-21 closure evaluation: from the corrected 561, +3 manual-verification/sidecar sub-items, −4 unticked because they were not actually complete: 5.14's three partial items and the "All 15 Story Audit issues closed or accepted" gate line. Stage 5 section: 156 of 172.)
+**Currently completed:** 779 (2026-09-25 Stage 8: +54 newly ticked — 53 within the Stage 8 section and task 3.13's Issue 10 box; no checkbox lines added or removed; verified by regex count of list-item markers.) *Earlier note:* 725 (2026-09-25 Stage 7: +124 newly ticked checkboxes, all within the Stage 7 section — 124 of Stage 7's 140; the 16 still open are named carry-forwards, not silent gaps.) *Earlier note:* 601 (2026-09-22 Stage 6 closure: +41 newly ticked checkboxes, all within the Stage 6 section — tasks 6.2, 6.3 and 6.6 fully complete [the latter under the author-approved revised acceptance criterion], plus genuinely-done sub-items within 6.4, 6.5 and 6.7. Independently verified by direct regex count of every `- [x]`/`- [ ]` marker, same counting discipline as prior reconciliations: 601 ticked, 545 unticked, 1146 total — no checkbox lines were added or removed, only converted.) *Earlier note:* 560 (2026-09-21 closure evaluation: from the corrected 561, +3 manual-verification/sidecar sub-items, −4 unticked because they were not actually complete: 5.14's three partial items and the "All 15 Story Audit issues closed or accepted" gate line. Stage 5 section: 156 of 172.)
 **Remaining:** 425
 **Overall project completion:** 63.0% (725 ÷ 1150), up from 52.4% (601 ÷ 1146). Stage 7 is implemented and accepted but its gate is not fully closed (see † above). *Earlier:* 52.4% (601 ÷ 1146), up from 48.9%. Stage 6 is the fourth stage, after Stage 0, Stage 3 and Stage 4, to close (under its explicitly revised scope — CI/GitHub Actions deferred by author decision, 6.6 under a revised, approved criterion). Stage 5's gate remains separately open (see its own Completion Gate note) — Stage 6 was entered via the author's explicit override of that dependency, recorded at the top of the Stage 6 section.
 
@@ -1259,7 +1261,7 @@ Repository verification during checklist construction changed three things. Each
   - **Implementation checklist:**
     - [x] Confirm the issue is carried into task 8.8 with both source references — *2026-07-26; **traceability re-verified end to end**, see the audit below. No product code, tests, builds or service work performed — the definition of done forbids them.*
   - **Verification:**
-    - [ ] Task 8.8 explicitly closes Phase 2 Issue 10 — *⏳ **intentionally open and future-dependent — not blocked, not forgotten.** This asserts an event in Stage 8; it can only be ticked when task 8.8 is actually implemented. Ticking it now would claim a future outcome. Task 8.8's own verification list carries the matching item, and its gate (Stage 8, line ~2354) repeats it.*
+    - [x] Task 8.8 explicitly closes Phase 2 Issue 10 — *2026-09-25: closed by task 8.8 on branch `claude/stage-8-studio-workspaces` (not merged). Original note follows.* *⏳ **intentionally open and future-dependent — not blocked, not forgotten.** This asserts an event in Stage 8; it can only be ticked when task 8.8 is actually implemented. Ticking it now would claim a future outcome. Task 8.8's own verification list carries the matching item, and its gate (Stage 8, line ~2354) repeats it.*
   - **Definition of done:** Deferral is recorded and traceable; no work performed in this stage. — **MET 2026-07-26.**
   - **Progress notes:**
     - *2026-07-26 — traceability audit, documentation only.* **Task 8.8 carries all six required references:** Phase 2 Issue **10**; Editor UI Medium **16** and **17**; the back-reference *"(deferred from task 3.13)"*; Phase 3 decision **D10**; the implementation item *"Remove the Notes and Narrative Threads navigation duplication"*; and the verification item *"**Phase 2 Issue 10 explicitly closed here**"*. The Stage 8 gate repeats "Phase 2 Issue 10 closed" independently.
@@ -2491,6 +2493,8 @@ Repository verification during checklist construction changed three things. Each
 > **Approved deviations (Stage 7 plan, C7-1…C7-8):** migrations renumbered 0019–0022; per-story preferences extend `story_preservation_settings` (no `story_ai_preferences` table); autogenerate used only as a drift check; no `/api/ai/regenerate-segments` — partial regeneration stays on the Stage 5 `locked_ranges` engine; cross-user `story_id` leak on `/api/ai/*` fixed (foreign ≡ non-existent 404); pin rows excluded from backups; Phase 3 UI behind `NEXT_PUBLIC_P3_ENABLED`. **Further documented deviations:** `controls` accepted by tone/emotion/age-adapt/style only; heuristic checks (tense/POV/dialogue/timeline) warn by default and are enforced only when the author sets "Keep"; compare summary / strict check use `complete_structured()` (one retry); 30 settings (spec 29 + `dialogue_similarity_min`); shared first-load +0.1 kB (spec target 0); no Command Palette entries added; the live DB was provisioned directly at `0022` during bring-up (empty — no data at risk); retrieval log lines no longer include manuscript text.
 >
 > **Carried forward, tracked, not silently dropped:** golden-set author review of voice matching (7.12); ⌘Z single-step undo browser re-check (7.3, author manual); migration test in CI (7.4, CI deferred); Tier-2 warning-text quality (7.10); real day-8 cleanup verification (7.15); intermittent selection-toolbar test 9 (7.15, recommended for Stage 8); UAT (Stage 9).
+>
+> *2026-09-25 — Stage 8 update on toolbar test 9:* root cause found and fixed in Stage 8 (review M2). Escape dismissal was tracked by selection range, so re-selecting the same words raced the dismissal. It is now tracked per selection event (`isDismissedFor()` in `lib/selectionOwnership.ts`). The old code failed 2 of 5 runs of the new studio test; the fix passed every run, and a pure unit test pins the rule. The live `tests/browser/selection-toolbar.spec.ts` test 9 still needs a pod re-run (Stage 8 MV guide); the 7.15 item stays open until then.
 
 ---
 
@@ -2501,9 +2505,11 @@ Repository verification during checklist construction changed three things. Each
 **Source:** `docs/issues-and-bugs/open/phase-1-ai-writing-tools-qa-issues.docx` — Editor UI sub-report (**18** issues); Phase 2 Issue 10 (deferred from task 3.13); production gap PG-09
 **Prerequisite:** A named design owner. This is a UX programme, not a ticket queue.
 
+> **2026-09-25 — entry override and design owner.** The Stage 7 gate is still open (see its carried-forward list). Stage 8 was entered on the product owner's explicit instruction of 2026-09-25 11:08 UTC: *"STAGES 0–7 = HISTORICAL / ALREADY PROCESSED; STAGE 8 = NEXT IMPLEMENTATION STAGE"*. That instruction is the entry override; it does not close any Stage 7 item. **Design owner:** recorded as Arshith (product owner) pending his confirmation. Work is on branch `claude/stage-8-studio-workspaces`, cut from `main` at `06850cf`; nothing is merged. Evidence below marked *cloud* comes from the mocked-API Playwright studio suite (`frontend/tests/studio/`, 61 tests) and unit tests; nothing here was run against a live pod. The live checks are in `docs/testing/manual-verification/stage-08-manual-verification-guide.md`.
+
 ---
 
-- [ ] **8.1 — Workspace-based navigation**
+- [x] **8.1 — Workspace-based navigation** — *2026-09-25: cloud*
   - **Source:** Editor UI Critical **3**, **4**, **7**
   - **Area:** Frontend
   - **Priority:** High
@@ -2511,15 +2517,15 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Replace the overloaded right-panel tab strip with workspace navigation
-    - [ ] Stop treating major tools as small tabs
-    - [ ] Define workspaces: writing, planning, analysis, AI assistance
-    - [ ] Map all Phase 1, 2 and 3 tools to a workspace
+    - [x] Replace the overloaded right-panel tab strip with workspace navigation — *2026-09-25: 7 workspaces on the rail; the right panel is now only the AI sidecar*
+    - [x] Stop treating major tools as small tabs — *2026-09-25: Plan/World sections are full-page ARIA tabs; analyses open full width*
+    - [x] Define workspaces: writing, planning, analysis, AI assistance — *2026-09-25: Write, Plan, Characters, World, Analyze, Assistant, Publish*
+    - [x] Map all Phase 1, 2 and 3 tools to a workspace — *2026-09-25: `lib/registries/toolHomes.ts`, 31 rows*
   - **Verification:**
-    - [ ] Every tool has exactly one home; Playwright navigation tests pass
+    - [x] Every tool has exactly one home; Playwright navigation tests pass — *2026-09-25: `tests/tool-homes.spec.ts` + `tests/studio/navigation.spec.ts`*
   - **Definition of done:** Navigation reflects author workflow, not the feature list.
 
-- [ ] **8.2 — Resizable and expandable panels**
+- [x] **8.2 — Resizable and expandable panels** — *2026-09-25: cloud*
   - **Source:** Editor UI Critical **8**
   - **Area:** Frontend
   - **Priority:** High
@@ -2527,14 +2533,14 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Make the side panel resizable by drag
-    - [ ] Allow panels to expand to full width for detailed work
-    - [ ] Persist panel sizes per user
+    - [x] Make the side panel resizable by drag — *2026-09-25*
+    - [x] Allow panels to expand to full width for detailed work — *2026-09-25: AI sidecar expands to 65 % with the binder hidden (Ctrl+\\); Analyze tools open full width*
+    - [x] Persist panel sizes per user — *2026-09-25: scope decision: per user per browser (localStorage key `narratiq_studio:<user_id>`), accepted at plan review; server-side sync not built*
   - **Verification:**
-    - [ ] Playwright test: resize persists across reload
+    - [x] Playwright test: resize persists across reload — *2026-09-25: `tests/studio/layout.spec.ts`, incl. user A/B/A isolation and legacy-key migration*
   - **Definition of done:** The author controls the workspace layout.
 
-- [ ] **8.3 — Writing-first visual hierarchy**
+- [ ] **8.3 — Writing-first visual hierarchy** — *2026-09-25: implemented; open on author review*
   - **Source:** Editor UI Critical **1**, **2**; High **9**, **14**
   - **Area:** Frontend
   - **Priority:** High
@@ -2542,15 +2548,15 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Give the manuscript visual primacy
-    - [ ] Stop AI tools competing visually with the text
-    - [ ] Reduce congestion for long-session use
-    - [ ] Provide a focused reading and writing mode
+    - [x] Give the manuscript visual primacy — *2026-09-25: header voice button and duplicate controls removed; AI toggle only in Edit mode*
+    - [x] Stop AI tools competing visually with the text — *2026-09-25: sidecar closed by default, grouped tools, quieter colours*
+    - [x] Reduce congestion for long-session use — *2026-09-25: visible Write controls 36→27 (panel closed), 53→35 (open)*
+    - [x] Provide a focused reading and writing mode — *2026-09-25: Reading mode (read-only, sends no saves), Focus, Zen, Typewriter; `tests/studio/modes.spec.ts`*
   - **Verification:**
-    - [ ] Author review confirms the manuscript is the focal point
+    - [ ] Author review confirms the manuscript is the focal point — *open — author review, MV guide §5*
   - **Definition of done:** The interface reads as a writing tool first.
 
-- [ ] **8.4 — Progressive disclosure**
+- [ ] **8.4 — Progressive disclosure** — *2026-09-25: implemented; open on author review*
   - **Source:** Editor UI Critical **6**; High **10**, **13**
   - **Area:** Frontend
   - **Priority:** Medium
@@ -2558,16 +2564,16 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Show tools progressively instead of all at once
-    - [ ] Establish a clear tool hierarchy
-    - [ ] Reduce navigation density
-    - [ ] Keep discoverability without visual clutter
+    - [x] Show tools progressively instead of all at once — *2026-09-25: AI sidebar groups Rewrite / Generate / Versions; More formatting and View menus*
+    - [x] Establish a clear tool hierarchy — *2026-09-25*
+    - [x] Reduce navigation density — *2026-09-25*
+    - [x] Keep discoverability without visual clutter — *2026-09-25: every tool reachable from Ctrl/⌘K deep links*
   - **Verification:**
-    - [ ] Measured reduction in simultaneously visible controls
-    - [ ] Author review confirms features remain discoverable
+    - [x] Measured reduction in simultaneously visible controls — *2026-09-25: 34 % fewer with the AI panel open (53→35), 25 % closed (36→27); `modes.spec.ts` enforces the ceilings*
+    - [ ] Author review confirms features remain discoverable — *open — author review, MV guide §5*
   - **Definition of done:** Cognitive load is reduced without hiding capability.
 
-- [ ] **8.5 — Drafting and editing mode separation**
+- [ ] **8.5 — Drafting and editing mode separation** — *2026-09-25: implemented; open on author review*
   - **Source:** Editor UI High **11**, **12**
   - **Area:** Frontend
   - **Priority:** Medium
@@ -2575,14 +2581,14 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Define distinct drafting and editing modes
-    - [ ] Surface only mode-relevant tools
-    - [ ] Respect the long-form writing workflow
+    - [x] Define distinct drafting and editing modes — *2026-09-25: per-story Draft/Edit switch, Edit is the default*
+    - [x] Surface only mode-relevant tools — *2026-09-25: Draft hides the AI toggle and the selection toolbar*
+    - [x] Respect the long-form writing workflow — *2026-09-25*
   - **Verification:**
-    - [ ] Author review across a full drafting session and a full editing session
+    - [ ] Author review across a full drafting session and a full editing session — *open — author review, MV guide §5*
   - **Definition of done:** Drafting and editing feel like different activities.
 
-- [ ] **8.6 — Dedicated space for advanced AI and Phase 3 surfaces**
+- [ ] **8.6 — Dedicated space for advanced AI and Phase 3 surfaces** — *2026-09-25: implemented; open on the live pod browser run*
   - **Source:** Editor UI High **15**
   - **Area:** Frontend
   - **Priority:** High
@@ -2590,14 +2596,14 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None
   - **Can run in parallel:** No
   - **Implementation checklist:**
-    - [ ] Give advanced AI features room to work
-    - [ ] Home the Phase 3 pin, compare, lock and preservation surfaces
-    - [ ] Integrate the rewritten `SelectionToolbar` from tasks 3.8 and 5.4
+    - [x] Give advanced AI features room to work — *2026-09-25: expandable sidecar*
+    - [x] Home the Phase 3 pin, compare, lock and preservation surfaces — *2026-09-25: Versions group in the sidecar; compare dialog expands*
+    - [x] Integrate the rewritten `SelectionToolbar` from tasks 3.8 and 5.4 — *2026-09-25: Edit mode only; Escape race fixed (Stage 7 toolbar test 9)*
   - **Verification:**
-    - [ ] Every Phase 3 capability is reachable and usable
+    - [ ] Every Phase 3 capability is reachable and usable — *reachable in cloud (`tests/studio/phase3.spec.ts`, mocked); usable against real AI needs the live `--project=browser` run, MV guide §2*
   - **Definition of done:** Advanced AI is not squeezed into a narrow panel.
 
-- [ ] **8.7 — Scalability for future features**
+- [x] **8.7 — Scalability for future features** — *2026-09-25: cloud*
   - **Source:** Editor UI Critical **5**; Medium **18**
   - **Area:** Frontend
   - **Priority:** Medium
@@ -2605,14 +2611,14 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Verify the layout system absorbs new tools without redesign
-    - [ ] Document how to add a tool to the workspace
-    - [ ] Confirm friction does not grow with feature count
+    - [x] Verify the layout system absorbs new tools without redesign — *2026-09-25: mock tool added as one PANELS row + one TOOL_HOMES row*
+    - [x] Document how to add a tool to the workspace — *2026-09-25: `docs/architecture/adding-a-studio-tool.md`*
+    - [x] Confirm friction does not grow with feature count — *2026-09-25: new tool adds one Analyze card, no rail or Write change; Write control ceilings enforced by test*
   - **Verification:**
-    - [ ] Add a mock tool and confirm no layout regression
+    - [x] Add a mock tool and confirm no layout regression — *2026-09-25: `tests/studio/variants.spec.ts` in the mock-tool build; default build proven free of the mock tool*
   - **Definition of done:** The next feature does not require another redesign.
 
-- [ ] **8.8 — Information architecture and navigation deduplication**
+- [x] **8.8 — Information architecture and navigation deduplication** — *2026-09-25: cloud*
   - **Source:** Editor UI Medium **16**, **17**; **Phase 2 Issue 10** *(deferred from task 3.13)*; Phase 3 decision **D10**
   - **Area:** Frontend
   - **Priority:** Medium
@@ -2620,16 +2626,16 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None — *D-4 (all twelve sub-decisions D1-D12) recorded 2026-09-21; see task 0.4*
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Remove the Notes and Narrative Threads navigation duplication
-    - [ ] Place the Idea Shelf per D10
-    - [ ] Rework the IA so it reads as an author studio, not a tool dashboard
-    - [ ] Give every feature one clearly defined location
+    - [x] Remove the Notes and Narrative Threads navigation duplication — *2026-09-25: Notes only in World; Narrative Threads only in Analyze*
+    - [x] Place the Idea Shelf per D10 — *2026-09-25: World → Notes → Ideas; read-only chapter markers in the Write binder, reason recorded*
+    - [x] Rework the IA so it reads as an author studio, not a tool dashboard — *2026-09-25*
+    - [x] Give every feature one clearly defined location — *2026-09-25*
   - **Verification:**
-    - [ ] No feature appears in more than one navigation section without a documented reason
-    - [ ] **Phase 2 Issue 10 explicitly closed here**
+    - [x] No feature appears in more than one navigation section without a documented reason — *2026-09-25: `tests/tool-homes.spec.ts`*
+    - [x] **Phase 2 Issue 10 explicitly closed here** — *2026-09-25: closed; triage register updated*
   - **Definition of done:** Every feature has one obvious home.
 
-- [ ] **8.9 — Accessibility baseline**
+- [ ] **8.9 — Accessibility baseline** — *2026-09-25: implemented; open on screen-reader pass and CI*
   - **Source:** Production gap **PG-09**
   - **Area:** Frontend
   - **Priority:** Medium
@@ -2637,18 +2643,18 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Adopt WCAG 2.1 AA as the standard
-    - [ ] Audit keyboard navigation across the editor
-    - [ ] Audit screen-reader labelling on all panels
-    - [ ] Audit colour contrast
-    - [ ] Add focus management for dynamically loaded panels
-    - [ ] Add an automated accessibility check to CI
+    - [x] Adopt WCAG 2.1 AA as the standard — *2026-09-25*
+    - [x] Audit keyboard navigation across the editor — *2026-09-25: skip link, rail, tablists, toolbar, menus*
+    - [ ] Audit screen-reader labelling on all panels — *names and roles checked by axe in cloud; a real screen-reader pass is manual, MV guide §4*
+    - [x] Audit colour contrast — *2026-09-25: muted text raised to ≥4.5:1 on every studio background*
+    - [x] Add focus management for dynamically loaded panels — *2026-09-25: Analyze tools, sidecar, dialogs*
+    - [ ] Add an automated accessibility check to CI — *deferred with CI (decision in task 6.1); runnable locally as `npm run test:a11y`*
   - **Verification:**
-    - [ ] Automated audit passes at the agreed threshold
-    - [ ] Keyboard-only navigation completes a full writing session
+    - [x] Automated audit passes at the agreed threshold — *2026-09-25: zero serious/critical axe findings on 9 routes + dynamic surfaces; `tests/studio/a11y.spec.ts`*
+    - [x] Keyboard-only navigation completes a full writing session — *2026-09-25: mocked; `a11y.spec.ts` keyboard-only session*
   - **Definition of done:** The product is usable without a mouse and with a screen reader.
 
-- [ ] **8.10 — Responsive behaviour**
+- [x] **8.10 — Responsive behaviour** — *2026-09-25: cloud*
   - **Source:** Master Execution Plan §12 (accessibility and responsive audit)
   - **Area:** Frontend
   - **Priority:** Low
@@ -2656,14 +2662,14 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Verify the workspace at common laptop resolutions
-    - [ ] Verify panels degrade gracefully at narrow widths
-    - [ ] Confirm no horizontal page scroll
+    - [x] Verify the workspace at common laptop resolutions — *2026-09-25*
+    - [x] Verify panels degrade gracefully at narrow widths — *2026-09-25*
+    - [x] Confirm no horizontal page scroll — *2026-09-25*
   - **Verification:**
-    - [ ] Playwright viewport matrix passes
+    - [x] Playwright viewport matrix passes — *2026-09-25: `tests/studio/responsive.spec.ts`, 7 viewports 1920→768*
   - **Definition of done:** The workspace is usable on a standard laptop screen.
 
-- [ ] **8.11 — Multi-hour author usability session**
+- [ ] **8.11 — Multi-hour author usability session** — *open — needs real authors; script and friction log in MV guide §6*
   - **Source:** Editor UI Overall Assessment and Final Recommendation
   - **Area:** Testing / Product
   - **Priority:** High
@@ -2683,13 +2689,13 @@ Repository verification during checklist construction changed three things. Each
 
 ### Stage 8 Completion Gate
 
-- [ ] All 18 Editor UI issues closed or accepted
-- [ ] Phase 2 Issue 10 closed
-- [ ] Every Phase 1, 2 and 3 tool has one clear home
-- [ ] Panels resizable; layout persists
-- [ ] Accessibility baseline met
-- [ ] Multi-hour author usability session passed
-- [ ] No feature duplicated across navigation sections
+- [ ] All 18 Editor UI issues closed or accepted — *open — 7 verified in cloud, 11 await author review*
+- [x] Phase 2 Issue 10 closed — *2026-09-25*
+- [x] Every Phase 1, 2 and 3 tool has one clear home — *2026-09-25*
+- [x] Panels resizable; layout persists — *2026-09-25*
+- [ ] Accessibility baseline met — *open — screen-reader pass and CI check*
+- [ ] Multi-hour author usability session passed — *open — 8.11*
+- [x] No feature duplicated across navigation sections — *2026-09-25*
 
 ---
 
