@@ -126,6 +126,12 @@ The response carries **zero fingerprints of the application** and every fingerpr
 
 The pod's port table was queried from RunPod's own API:
 
+> **Note (2026-09-25):** the commands in this report pass the key as `?api_key=` in the URL, which puts
+> it in process lists, shell history and proxy logs. Send it as a header instead:
+> `printf 'Authorization: Bearer %s\n' "$RUNPOD_API_KEY" | curl -H @- …`. This check is now built into
+> `scripts/verify_runpod_setup.sh` (section "RunPod Port Exposure"). The commands below are kept as the
+> historical record.
+
 ```bash
 curl -X POST "https://api.runpod.io/graphql?api_key=$RUNPOD_API_KEY" \
   -H "Content-Type: application/json" \

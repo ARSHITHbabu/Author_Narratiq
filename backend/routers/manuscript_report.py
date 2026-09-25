@@ -1,18 +1,26 @@
+import hashlib
+import json
 import logging
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 from openai import APIConnectionError, APIStatusError
 
 from database import get_db
-from models import Story, ChapterSummary
+from models import Story, Chapter, ChapterSummary, Character, ManuscriptReportRecord, gen_uuid
 from schemas import (
     CharacterArcEntry, PacingAnalysis, UnresolvedThread,
     StrengthEntry, ImprovementEntry, ManuscriptReport,
     StakesAssessment, StakesEscalationPoint, ThemeEntry,
+    RelationshipArcEntry, NarrativeSignalEntry,
 )
 from routers.auth import get_current_user, User
+from services import signal_inputs
 from services.ai_service import analyze_manuscript
+from services.narrative_signals import build_narrative_signals
+from services.relationship_arcs import build_relationship_arcs
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +35,76 @@ def _check_story_access(story_id: str, user_id: str, db: Session) -> Story:
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
     return story
+
+
+def _source_fingerprint(story_id: str, db: Session) -> str:
+    """Hash of what a report is built from (D2 / review L3): every indexed
+    chapter's id, the chapter's own updated_at, its summary's generated_at and
+    stale flag. Any edit, re-index, addition or removal changes it."""
+    rows = (
+        db.query(ChapterSummary.chapter_id, Chapter.updated_at,
+                 ChapterSummary.generated_at, ChapterSummary.is_stale)
+        .outerjoin(Chapter, Chapter.chapter_id == ChapterSummary.chapter_id)
+        .filter(ChapterSummary.story_id == story_id)
+        .order_by(ChapterSummary.chapter_id)
+        .all()
+    )
+    h = hashlib.sha256()
+    for chapter_id, updated_at, generated_at, is_stale in rows:
+        h.update(f"{chapter_id}|{updated_at.isoformat() if updated_at else ''}|"
+                 f"{generated_at.isoformat() if generated_at else ''}|{bool(is_stale)}\n".encode())
+    return h.hexdigest()
+
+
+def _save_report(story_id: str, user_id: str, report: ManuscriptReport, fingerprint: str, db: Session) -> None:
+    """One row per story (UNIQUE story_id): a regeneration replaces the
+    previous report atomically, and two concurrent generations cannot create
+    two rows (review M2)."""
+    now = datetime.utcnow()
+    values = {
+        "story_id": story_id, "user_id": user_id,
+        "content_json": report.model_dump_json(),
+        "chapters_analyzed": report.chapters_analyzed,
+        "source_fingerprint": fingerprint,
+        "degraded": report.degraded,
+        "created_at": now, "updated_at": now,
+    }
+    stmt = pg_insert(ManuscriptReportRecord.__table__).values(report_id=gen_uuid(), **values)
+    stmt = stmt.on_conflict_do_update(
+        index_elements=["story_id"],
+        set_={k: stmt.excluded[k] for k in ("user_id", "content_json", "chapters_analyzed",
+                                            "source_fingerprint", "degraded", "updated_at")},
+    )
+    db.execute(stmt)
+    db.commit()
+
+
+@router.get("/{story_id}/manuscript-report", response_model=ManuscriptReport)
+async def get_saved_manuscript_report(
+    story_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """The last generated report for this story (D2). 404 when none has been
+    generated yet. is_stale is True when indexed chapters changed since."""
+    _check_story_access(story_id, current_user.user_id, db)
+    record = (
+        db.query(ManuscriptReportRecord)
+        .filter(ManuscriptReportRecord.story_id == story_id,
+                ManuscriptReportRecord.user_id == current_user.user_id)
+        .first()
+    )
+    if record is None:
+        raise HTTPException(status_code=404, detail="No saved report for this story yet.")
+    try:
+        report = ManuscriptReport.model_validate_json(record.content_json)
+    except Exception as exc:
+        logger.warning("[manuscript] saved report unreadable (%s) — asking the author to regenerate",
+                       type(exc).__name__)
+        raise HTTPException(status_code=404, detail="No saved report for this story yet.")
+    report.generated_at = report.generated_at or record.updated_at
+    report.is_stale = record.source_fingerprint != _source_fingerprint(story_id, db)
+    return report
 
 
 @router.post("/{story_id}/manuscript-report", response_model=ManuscriptReport)
@@ -102,7 +180,13 @@ async def get_manuscript_report(
             ),
         )
     except ValueError as exc:
-        raise HTTPException(status_code=503, detail=str(exc))
+        # Never echo the exception text to the author (it can carry internal
+        # detail); the type is enough for the log.
+        logger.warning("[manuscript] analysis failed (%s)", type(exc).__name__)
+        raise HTTPException(
+            status_code=503,
+            detail="The manuscript report could not be generated right now. Please try again.",
+        )
 
     note_parts = []
     if result.get("mode_note"):
@@ -191,7 +275,29 @@ async def get_manuscript_report(
 
     wc_total = story.word_count or result.get("word_count_total", 0)
 
-    return ManuscriptReport(
+    # Stage 5 (5.14-R / 5.14-N) — deterministic sections, no LLM call.
+    names_by_id = {
+        cid: name for cid, name in
+        db.query(Character.character_id, Character.name).filter(Character.story_id == story_id).all()
+    }
+    rel_raw, rel_dropped = build_relationship_arcs(
+        [{"chapter": s.chapter_number, "relationship_changes": s.relationship_changes} for s in summaries],
+        names_by_id,
+    )
+    if rel_dropped:
+        logger.info("[manuscript] relationship changes not attributable to two known characters: %d",
+                    rel_dropped)
+    relationship_arcs = [RelationshipArcEntry(**a) for a in rel_raw]
+    narrative_signals = [
+        NarrativeSignalEntry(**sig) for sig in build_narrative_signals(
+            [{"chapter": s.chapter_number, "characters_present": s.characters_present or [],
+              "chapter_purpose": s.chapter_purpose} for s in summaries],
+            signal_inputs.load_threads(db, story_id),
+            signal_inputs.load_orphaned_hints(db, story_id),
+        )
+    ]
+
+    report = ManuscriptReport(
         story_id           = story_id,
         chapters_analyzed  = result["chapters_analyzed"],
         word_count_total   = wc_total,
@@ -206,4 +312,19 @@ async def get_manuscript_report(
         chapter_plot_importance    = result.get("chapter_plot_importance", {}),
         deterministic_open_threads = result.get("deterministic_open_threads", []),
         citations_suppressed       = result.get("citations_suppressed", 0),
+        relationship_arcs          = relationship_arcs,
+        narrative_signals          = narrative_signals,
+        generated_at               = datetime.utcnow(),
+        is_stale                   = False,
+        degraded                   = bool(result.get("degraded", False)),
     )
+
+    try:
+        _save_report(story_id, current_user.user_id, report,
+                     _source_fingerprint(story_id, db), db)
+    except Exception as exc:
+        # The author still gets the report they waited for; it just is not
+        # saved. Logged by type only (no manuscript content).
+        db.rollback()
+        logger.error("[manuscript] report could not be saved (%s)", type(exc).__name__)
+    return report

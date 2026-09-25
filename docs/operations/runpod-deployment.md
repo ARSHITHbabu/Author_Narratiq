@@ -251,8 +251,23 @@ retire, not repair — it was fully superseded by `start-narratiq.sh`'s self-boo
 The default moved from 8001 to 9001 in commit `b0f64be`. No override is needed to run the verifier now:
 
 ```bash
-bash scripts/verify_runpod_setup.sh
+bash scripts/verify_runpod_setup.sh                    # any time, including before the stack is up
+bash scripts/verify_runpod_setup.sh --expect-running   # after start-narratiq.sh: is my running stack healthy?
 ```
+
+**Use `--expect-running` after startup.** In the default mode a service that is not listening is only
+a `NOT STARTED` warning, so the script is useful before startup. With `--expect-running` (or
+`EXPECT_RUNNING=1`) a stopped service, or an exposed proxy port answering HTTP 502, is a **failure** and
+the script exits 1. Since 2026-09-25 the verifier also:
+
+- reads the pod's exposed-port table from the RunPod API (using the pod-injected `RUNPOD_API_KEY`, sent as
+  a header on stdin, never in a URL) and **fails** if 3000 or 8000 is not exposed as an HTTP port, which is
+  the root cause of the port-3000 404 incident. If the API cannot be read (permissions, shape), it warns
+  instead;
+- warns if an OS-level `NEXT_PUBLIC_API_URL` differs from `frontend/.env.local`;
+- detects listening services without `ss`/`netstat`, which previously caused a false "NOT STARTED".
+
+Its behaviour is covered by hermetic tests: `python3 -m unittest discover -s scripts/tests -v`.
 
 ---
 

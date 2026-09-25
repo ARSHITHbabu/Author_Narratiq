@@ -217,7 +217,20 @@ def test_narrative_threads_scan_detects_the_manuscripts_mystery_thread(defect_fi
     story_id = defect_fixture["story_id"]
 
     r = client.post(f"/api/stories/{story_id}/narrative-threads/scan", headers=headers)
-    assert r.status_code == 200, r.text
+    assert r.status_code in (200, 202), r.text
+
+    # Stage 5 D1 fix: the scan runs in the background and is observable via
+    # scan-status. Poll it instead of reading the thread list immediately.
+    deadline = time.monotonic() + AI_TIMEOUT - 20
+    status = None
+    while time.monotonic() < deadline:
+        s = client.get(f"/api/stories/{story_id}/narrative-threads/scan-status", headers=headers)
+        assert s.status_code == 200, s.text
+        status = s.json()
+        if status["status"] not in ("pending", "running"):
+            break
+        time.sleep(3)
+    assert status and status["status"] == "completed", f"scan did not complete: {status}"
 
     r2 = client.get(f"/api/stories/{story_id}/narrative-threads", headers=headers)
     assert r2.status_code == 200, r2.text
@@ -234,13 +247,10 @@ def test_manuscript_report_persists_across_a_refetch(defect_fixture):
     """Author-reported symptom: report generates with useful content, but is
     gone after navigating away and back.
 
-    Code-level evidence: routers/manuscript_report.py has exactly one route
-    (POST) and contains no db.add/db.commit anywhere — the report is computed
-    fresh every call and never stored. There is no GET route to re-fetch it,
-    so 'persisted' is asserted here as: a second POST call (the only way to
-    retrieve it at all) returns a report referencing the same chapters. This
-    is deliberately the weakest reasonable persistence check — even this
-    currently has no server-side caching/storage to rely on.
+    Original code-level cause (2026-09-22): the router had one POST route and
+    never stored the report. Since the Stage 5 D2 fix the report is upserted
+    into manuscript_reports and a GET route returns it; this test pins that
+    round trip against the live stack.
     """
     client, headers = _client_and_headers(defect_fixture["base_url"], defect_fixture["user_id"])
     story_id = defect_fixture["story_id"]
@@ -252,15 +262,17 @@ def test_manuscript_report_persists_across_a_refetch(defect_fixture):
         "manuscript report returned no substantive content on first generation"
     )
 
-    import routers.manuscript_report as mr_module
-    has_persistence = "db.add" in Path(mr_module.__file__).read_text() or "db.commit" in Path(mr_module.__file__).read_text()
-    assert has_persistence, (
-        "routers/manuscript_report.py has no db.add/db.commit at all — the report "
-        "is never persisted server-side, matching the author's 2026-09-22 report "
-        "that it disappears after navigating away and back. There is also no GET "
-        "route to distinguish 'lost' from 'never saved' — both are the same defect "
-        "from the author's point of view."
+    # Stage 5 D2 fix: the report is saved and re-fetchable with GET, as the
+    # panel does when the author navigates back.
+    r2 = client.get(f"/api/stories/{story_id}/manuscript-report", headers=headers)
+    assert r2.status_code == 200, (
+        f"saved manuscript report could not be re-fetched ({r2.status_code}) — "
+        "matching the author's 2026-09-22 report that it disappears after navigating away."
     )
+    second = r2.json()
+    for key in ("chapters_analyzed", "strengths", "improvements", "character_arcs"):
+        assert second[key] == first[key], f"re-fetched report differs in {key}"
+    assert second["is_stale"] is False
 
 
 @pytest.mark.timeout(AI_TIMEOUT)

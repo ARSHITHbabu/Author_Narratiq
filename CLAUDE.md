@@ -133,7 +133,7 @@ Revisions `0003`–`0006` were never created. The chain is unbroken — `0007` s
 
 All migrations are idempotent and reversible. Never hand-apply raw `ALTER TABLE` to a live database. Write migrations by hand with `_table_exists` / `_index_exists` / `_column_exists` guards (template: `0011_audio_uploads.py`), because `start-narratiq.sh` runs `create_all()` **before** `alembic upgrade head` and every migration must tolerate objects that already exist. Use `alembic check` (or `alembic revision --autogenerate` into a scratch file) only as a **drift check** (Stage 7 decision C7-3). `alembic check` currently reports 31 pre-existing index-only drift items from migrations 0001–0013 (indexes not declared in the models) and none for Phase 3.
 
-Later migrations: `0016` story bible failed sections · `0017` chapter-summary arc/relationship fields · `0018` `story_preservation_settings` (Stage 5) · `0019`–`0022` Phase 3 (below). Round-trip test on a populated test DB: `DATABASE_URL=…/narratiq_test bash backend/tests/run_migration_roundtrip.sh`.
+Later migrations: `0016` story bible failed sections · `0017` chapter-summary arc/relationship fields · `0018` `story_preservation_settings` (Stage 5) · `0019`–`0022` Phase 3 (below) · `0023` `narrative_thread_scans` + `manuscript_reports` (Stage 5 live-review fixes D1/D2, one row per story). Round-trip test on a populated test DB: `DATABASE_URL=…/narratiq_test bash backend/tests/run_migration_roundtrip.sh`.
 
 ## Phase 2 AI Model Usage
 

@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test'
 import {
   REFINE_MODES, TONES, EMOTIONS, AUDIENCES, STYLES, LANGUAGES, INTENSITIES,
   AUTHOR_STYLES, TRANSFORM_GROUPS, buildTransformCall, splitSentences, LOCKABLE_GROUPS, STRENGTH_LEVELS,
+  noChangeMessage, NEAR_NOOP_REASON_PREFIX,
 } from '../lib/transforms'
 
 // ── Complete Phase 1/Phase 2 option inventory is present ──────────────────────
@@ -156,4 +157,13 @@ test('every transform sends ONLY the selected text (no story-wide context)', () 
     expect(c.path).not.toContain('intelligence')
     expect(c.path).not.toContain('voice')
   }
+})
+
+// ── Stage 5 (D4): an unchanged Style result is never shown as a rewrite ─────
+test('no-change message distinguishes "already suitable" from "no meaningful change"', () => {
+  const guard = 'The AI could not find a meaningful change to make — try a stronger setting or a different passage.'
+  expect(guard.startsWith(NEAR_NOOP_REASON_PREFIX)).toBe(true)
+  expect(noChangeMessage(guard)).toBe(guard)
+  expect(noChangeMessage('It is already formal.')).toBe('Already reads that way — It is already formal.')
+  expect(noChangeMessage(null)).toBe('This already reads that way — no change made.')
 })

@@ -28,6 +28,10 @@ from services.ai_service import (
     describe_style_drift,
 )
 
+from services import signal_inputs
+from services.narrative_signals import build_narrative_signals, format_signals_for_prompt
+from services.timeline_signals import build_timeline_signals, format_timeline_signals_for_prompt
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["analysis"])
@@ -182,6 +186,27 @@ async def run_continuity_check(
         for c in db.query(NoteCard).filter(NoteCard.story_id == story_id).all()
     ]
 
+    # Task 5.14 — deterministic timeline / narrative-structure candidates.
+    # Prompt inputs only (prompt v3): the model verifies each one and every
+    # finding still goes through validate_continuity_citations below.
+    timeline_sigs = build_timeline_signals(
+        [{"chapter_number": s.chapter_number, "timeline_markers": s.timeline_markers,
+          "key_events": s.key_events} for s in summaries],
+        signal_inputs.load_flash_chapters(db, story_id),
+    )
+    narrative_sigs = build_narrative_signals(
+        [{"chapter": s.chapter_number, "characters_present": s.characters_present or [],
+          "chapter_purpose": s.chapter_purpose} for s in summaries],
+        signal_inputs.load_threads(db, story_id),
+        signal_inputs.load_orphaned_hints(db, story_id),
+    )
+
+    def _signals_block(chunk: list[dict]) -> str:
+        chapters = {d["chapter_number"] for d in chunk}
+        parts = (format_timeline_signals_for_prompt(signal_inputs.signals_touching(timeline_sigs, chapters)),
+                 format_signals_for_prompt(signal_inputs.signals_touching(narrative_sigs, chapters)))
+        return "\n\n".join(p for p in parts if p)
+
     # Chunked processing for large manuscripts
     chunk_size = 10
     all_issues: list[dict] = []
@@ -190,13 +215,15 @@ async def run_continuity_check(
     degraded_reason: str | None = None
 
     if len(summary_dicts) <= chunk_size:
-        all_issues, meta = await check_continuity(char_profiles, summary_dicts, notes, cards)
+        all_issues, meta = await check_continuity(char_profiles, summary_dicts, notes, cards,
+                                                  signals_block=_signals_block(summary_dicts))
         degraded, degraded_reason = meta.degraded, meta.reason
     else:
         tasks = []
         for i in range(0, len(summary_dicts), chunk_size):
             chunk = summary_dicts[i:i + chunk_size]
-            tasks.append(check_continuity(char_profiles, chunk, notes, cards))
+            tasks.append(check_continuity(char_profiles, chunk, notes, cards,
+                                          signals_block=_signals_block(chunk)))
         results = await asyncio.gather(*tasks)
         seen_descs: set[str] = set()
         degraded_chunks = 0

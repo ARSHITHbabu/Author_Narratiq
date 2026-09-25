@@ -157,6 +157,29 @@ export interface ManuscriptReport {
   strengths:          StrengthEntry[]
   improvements:       ImprovementEntry[]
   analysis_note:      string
+  // Stage 5 additive fields — deterministic, machine-detected sections and
+  // saved-report metadata (D2). Optional so older responses still type-check.
+  relationship_arcs?: RelationshipArcEntry[]
+  narrative_signals?: NarrativeSignalEntry[]
+  generated_at?:      string | null
+  is_stale?:          boolean
+  degraded?:          boolean
+}
+
+export interface RelationshipArcEntry {
+  characters:    string[]
+  changes:       { chapter: number; change: string }[]
+  first_chapter: number
+  last_chapter:  number
+  chapter_count: number
+}
+
+export interface NarrativeSignalEntry {
+  kind:     'setup_without_payoff' | 'character_disappearance' | 'purpose_gap' | string
+  subject:  string
+  chapters: number[]
+  detail:   string
+  source:   string
 }
 
 export interface TransformResponse {
@@ -606,6 +629,20 @@ export interface NarrativeThreadOut {
 export interface NarrativeScanResponse {
   job_id: string
   status: string
+}
+
+// Stage 5 (D1) — GET /narrative-threads/scan-status
+export type NarrativeScanState = 'none' | 'pending' | 'running' | 'completed' | 'completed_empty' | 'failed'
+
+export interface NarrativeScanStatus {
+  scan_id: string | null
+  status: NarrativeScanState
+  threads_written: number
+  chapters_scanned: number
+  batches_degraded: number
+  error_code: string | null
+  started_at: string | null
+  finished_at: string | null
 }
 
 // P2-08 Style Drift

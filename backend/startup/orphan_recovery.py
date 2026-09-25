@@ -15,7 +15,7 @@ What is swept:
 What is NOT done:
   - No content is deleted
   - No retries are attempted (that belongs in Celery — Phase B)
-  - narrative_thread scans have no persistent job record — authors re-trigger via UI
+  NarrativeThreadScan: status in ('pending','running') → status='failed' (Stage 5, migration 0023)
 """
 
 import logging
@@ -33,7 +33,7 @@ async def recover_orphaned_jobs() -> dict[str, int]:
     Designed to be called once at startup; safe to call again (idempotent).
     """
     from database import SessionLocal
-    from models import AudioUpload, ManuscriptJob, StoryIntelJob, VoiceSession, VoiceWorkflow, StoryBible
+    from models import AudioUpload, ManuscriptJob, StoryIntelJob, VoiceSession, VoiceWorkflow, StoryBible, NarrativeThreadScan
 
     db = SessionLocal()
     counts: dict[str, int] = {}
@@ -85,6 +85,18 @@ async def recover_orphaned_jobs() -> dict[str, int]:
             bible.status     = "failed"
             bible.updated_at = now
         counts["story_bibles"] = len(stuck_bibles)
+        # ── NarrativeThreadScan (pending/running → failed) ────────────────────
+        stuck_scans = (
+            db.query(NarrativeThreadScan)
+            .filter(NarrativeThreadScan.status.in_(["pending", "running"]))
+            .all()
+        )
+        for scan in stuck_scans:
+            scan.status      = "failed"
+            scan.error_code  = "interrupted"
+            scan.finished_at = now
+            scan.updated_at  = now
+        counts["narrative_thread_scans"] = len(stuck_scans)
 
         # ── VoiceSession (active → failed) ────────────────────────────────────
         stuck_sessions = (

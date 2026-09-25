@@ -255,6 +255,27 @@ class ThemeEntry(BaseModel):
     chapters: List[int]
 
 
+class RelationshipArcChange(BaseModel):
+    chapter: int
+    change:  str
+
+
+class RelationshipArcEntry(BaseModel):
+    characters:    List[str]
+    changes:       List[RelationshipArcChange]
+    first_chapter: int
+    last_chapter:  int
+    chapter_count: int
+
+
+class NarrativeSignalEntry(BaseModel):
+    kind:     str          # setup_without_payoff | character_disappearance | purpose_gap
+    subject:  str
+    chapters: List[int]
+    detail:   str
+    source:   str = "chapter_summaries"   # or "narrative_threads" / "foreshadowing_registry"
+
+
 class ManuscriptReport(BaseModel):
     story_id:           str
     chapters_analyzed:  int
@@ -284,6 +305,17 @@ class ManuscriptReport(BaseModel):
     # chapter number that doesn't exist in this manuscript (task 5.14's
     # citation-validation extended from continuity-check to this report).
     citations_suppressed:       int = 0
+    # Stage 5 (2026-09-25) — deterministic, machine-detected sections built
+    # from indexed chapter summaries (no extra LLM call). See
+    # services/relationship_arcs.py and services/narrative_signals.py.
+    relationship_arcs:          List[RelationshipArcEntry] = []
+    narrative_signals:          List[NarrativeSignalEntry] = []
+    # Saved-report metadata (D2). generated_at is when this report was made;
+    # is_stale is True when indexed chapters changed since then.
+    generated_at:               Optional[datetime] = None
+    is_stale:                   bool = False
+    degraded:                   bool = False
+
 
 
 # ── Phase 3: Generation controls (shared, all optional — spec §17.2, §18.1) ───
@@ -1715,6 +1747,19 @@ class NarrativeScanResponse(BaseModel):
     job_id:        str
     status:        str
     threads_found: Optional[int] = None
+
+
+class NarrativeScanStatus(BaseModel):
+    """Latest scan for a story (Stage 5, D1). status: none | pending | running |
+    completed | completed_empty | failed. error_code is author-safe."""
+    scan_id:          Optional[str] = None
+    status:           str
+    threads_written:  int = 0
+    chapters_scanned: int = 0
+    batches_degraded: int = 0
+    error_code:       Optional[str] = None
+    started_at:       Optional[datetime] = None
+    finished_at:      Optional[datetime] = None
 
 
 # ── P2-08: Writing Style Drift Detector ──────────────────────────────────────

@@ -255,6 +255,7 @@ async def complete_structured(
     temperature: float = 0.0,
     max_tokens: int = 800,
     label: str = "structured",
+    guided_json: bool = False,
 ) -> tuple[Any, DegradedMeta]:
     """
     Run a structured generation under the degraded-output contract.
@@ -270,9 +271,30 @@ async def complete_structured(
     Exactly one reprompt. Two attempts is a structural maximum, not a tuning
     knob: a model that cannot produce the shape twice will not produce it on the
     fifth try, and the author is waiting.
+
+    ``guided_json=True`` (Stage 5, opt-in) asks vLLM for guided JSON decoding
+    (``response_format={"type": "json_object"}``) on both attempts, with the
+    same fallback ``_complete_json`` uses when a build rejects it. Only enable
+    it where the expected root is a JSON **object**, and only per call site:
+    switching it on everywhere is a behaviour change that needs live
+    measurement per feature. Enabled today for plot holes and the narrative
+    thread extraction, the two features whose live failures were parse failures.
     """
-    raw, finish_reason = await _complete_ex(system, user, temperature=temperature,
-                                            max_tokens=max_tokens)
+    async def _call(sys_prompt: str) -> tuple[str, Optional[str]]:
+        if not guided_json:
+            return await _complete_ex(sys_prompt, user, temperature=temperature, max_tokens=max_tokens)
+        try:
+            return await _complete_ex(sys_prompt, user, temperature=temperature, max_tokens=max_tokens,
+                                      response_format={"type": "json_object"})
+        except APIStatusError as exc:
+            if exc.status_code != 400:
+                raise
+            logger.info("[ai_service] %s: guided JSON unsupported (400) — retrying plain", label)
+        except TypeError:
+            logger.info("[ai_service] %s: client lacks response_format — retrying plain", label)
+        return await _complete_ex(sys_prompt, user, temperature=temperature, max_tokens=max_tokens)
+
+    raw, finish_reason = await _call(system)
     value, discarded = coerce(_extract_json(raw, None))
     truncated = finish_reason == "length"
 
@@ -288,16 +310,15 @@ async def complete_structured(
     # Nothing usable — one stricter retry before giving up.
     # Length and finish_reason only: the response is derived from the author's
     # manuscript and must not be written to a log.
-    logger.warning("[ai_service] %s unparseable (finish_reason=%s, chars=%d), retrying once",
-                   label, finish_reason, len(raw or ""))
-    raw2, finish_reason2 = await _complete_ex(system + _STRICTER_JSON_RETRY, user,
-                                              temperature=temperature, max_tokens=max_tokens)
+    logger.warning("[ai_service] %s unparseable (finish_reason=%s, chars=%d, shape=%s), retrying once",
+                   label, finish_reason, len(raw or ""), _output_shape(raw))
+    raw2, finish_reason2 = await _call(system + _STRICTER_JSON_RETRY)
     value, discarded = coerce(_extract_json(raw2, None))
     truncated = finish_reason2 == "length"
 
     if value is None:
-        logger.warning("[ai_service] %s unparseable after retry (finish_reason=%s, chars=%d)",
-                       label, finish_reason2, len(raw2 or ""))
+        logger.warning("[ai_service] %s unparseable after retry (finish_reason=%s, chars=%d, shape=%s)",
+                       label, finish_reason2, len(raw2 or ""), _output_shape(raw2))
         _record_parse_metric(label, PARSE_FAILED, attempts=2, discarded=0)
         return None, DegradedMeta(
             True,
@@ -309,6 +330,29 @@ async def complete_structured(
     return value, DegradedMeta(
         True, _degraded_reason(discarded, truncated, retried=True), 2, discarded,
     )
+
+
+def _output_shape(raw: Optional[str]) -> str:
+    """Content-free description of a model response, for parse-failure logs.
+
+    Only the class of the first non-space character and whether a JSON opener
+    appears anywhere — never any of the text itself, which is derived from the
+    author's manuscript (Stage 3.5 privacy rule).
+    """
+    text = (raw or "").lstrip()
+    if not text:
+        return "empty"
+    first = text[0]
+    if first in "{[":
+        kind = "json_open"
+    elif first == "`":
+        kind = "fence"
+    elif first.isalpha():
+        kind = "prose"
+    else:
+        kind = "other"
+    has_opener = "{" in text or "[" in text
+    return f"{kind},opener={'yes' if has_opener else 'no'}"
 
 
 def _degraded_reason(discarded: int, truncated: bool, retried: bool = False) -> str:
@@ -830,12 +874,68 @@ async def _per_segment_fallback(segments: list[dict], system: str, temperature: 
     return "".join(out_parts)
 
 
-async def _run_constrained_transform(
+# ── D4 (Stage 5 live review): near-no-op guard ────────────────────────────────
+# A transform the author asked for at moderate/strong that comes back almost
+# identical is not a success. Enabled per transform: style only in Stage 5
+# (review M1). Extending it to tone/emotion/age needs live measurement first.
+_NEAR_NOOP_GUARD_TRANSFORMS = frozenset({"style"})
+_NEAR_NOOP_MIN_CHANGE = 0.03          # < 3% of the rewritable text changed → near-no-op
+_NEAR_NOOP_REASON = ("The AI could not find a meaningful change to make — try a stronger "
+                     "setting or a different passage.")
+_NEAR_NOOP_RETRY = ("Your previous output was nearly identical to the original. Apply the "
+                    "requested change clearly and noticeably, while still following every "
+                    "preservation rule above.")
+
+
+def _is_near_noop(original: str, transformed: str, locked_ranges: Optional[list]) -> bool:
+    """True when less than _NEAR_NOOP_MIN_CHANGE of the REWRITABLE text
+    changed. Locked spans are identical by construction, so the threshold is
+    scaled by the unlocked share instead of letting locks count as 'no change'."""
+    from difflib import SequenceMatcher
+    if not original.strip():
+        return False
+    _marked, segments = mark_locked_segments(original, locked_ranges)
+    unlocked = sum(len(seg["text"]) for seg in segments if not seg["locked"])
+    if unlocked == 0:
+        return False
+    share = unlocked / len(original)
+    a, b = original.split(), transformed.split()
+    changed = 1.0 - SequenceMatcher(None, a, b, autojunk=False).ratio()
+    return changed < _NEAR_NOOP_MIN_CHANGE * share
+
+
+async def _run_constrained_transform(**kwargs) -> dict:
+    """_run_constrained_transform_once plus the D4 near-no-op guard: for an
+    allow-listed transform at moderate/strong, a near-identical result is
+    retried ONCE with an explicit instruction; if it is still near-identical
+    the original is returned with no_change=True and an honest reason, never
+    presented as a successful transform. Bounded: at most one extra call."""
+    result = await _run_constrained_transform_once(**kwargs)
+    text = kwargs["text"]
+    if (kwargs["transform_type"] not in _NEAR_NOOP_GUARD_TRANSFORMS
+            or kwargs.get("strength", "light") not in ("moderate", "strong")
+            or result["no_change"] or result["failed"]
+            or not _is_near_noop(text, result["transformed"], kwargs.get("locked_ranges"))):
+        return result
+    logger.info("[near_noop] transform=%s strength=%s — retrying once",
+                kwargs["transform_type"], kwargs.get("strength"))
+    retry = await _run_constrained_transform_once(
+        **{**kwargs, "change_check_target": ""}, retry_instruction=_NEAR_NOOP_RETRY)
+    if (not retry["no_change"] and not retry["failed"]
+            and not _is_near_noop(text, retry["transformed"], kwargs.get("locked_ranges"))):
+        return retry
+    logger.info("[near_noop] transform=%s still near-identical — reported as no change",
+                kwargs["transform_type"])
+    return {**retry, "transformed": text, "no_change": True, "reason": _NEAR_NOOP_REASON,
+            "strength_violation": False, "preservation_violations": [], "failed": False}
+
+
+async def _run_constrained_transform_once(
     *, transform_type: str, text: str, temperature: float, max_tokens: int,
     builder_kwargs: dict, story_id: Optional[str] = None, db=None,
     strength: str = "light", locked_ranges: Optional[list] = None,
     change_check_target: str = "", extra_user_context: str = "",
-    p3=None,
+    p3=None, retry_instruction: str = "",
 ) -> dict:
     """
     Returns {transformed, no_change, reason, strength_violation,
@@ -879,6 +979,8 @@ async def _run_constrained_transform(
     builder, resolved_version = resolve_prompt_version(transform_type, settings.prompt_version, settings.prompt_version_fallback)
     _log_prompt_version(transform_type, resolved_version)
     system = builder(preservation_clause=preservation_clause, strength_clause=strength_clause, **builder_kwargs)
+    if retry_instruction:
+        system = f"{system} {retry_instruction}"
     if p3 is not None and p3.system_block:
         # The output contract is restated LAST: JSON/format compliance on a
         # 7B model degrades fastest with distance (spec §12.2).
@@ -1163,7 +1265,9 @@ async def transform_style(
         max_tokens=len(text.split()) * 2 + 150,
         builder_kwargs={"style": style, "genre_context": genre_context},
         story_id=story_id, db=db, strength=strength, locked_ranges=locked_ranges,
-        change_check_target=f"already written in the style of {style}",
+        # D4: at "strong" the author explicitly asked for a strong rewrite, so the
+        # "already written in this style" shortcut does not apply.
+        change_check_target="" if strength == "strong" else f"already written in the style of {style}",
         p3=p3,
     )
 
@@ -2234,6 +2338,15 @@ async def generate_plot_suggestions(
 _PLOT_HOLE_MAX_CHAPTERS = 60   # single_pass per-call limit; batched/hierarchical lift this
 
 
+def _plot_hole_max_tokens(chapter_count: int) -> int:
+    """Output budget for the single-pass plot-hole call: 1400 (the previous
+    fixed value) for small manuscripts, growing with chapter count so a long
+    issue list is less likely to be cut off, capped at 2400 so prompt + output
+    stays inside the 8192-token context. A cut-off result is still reported via
+    finish_reason='length' → degraded_reason, never silently."""
+    return max(1400, min(2400, 900 + 60 * max(0, chapter_count)))
+
+
 def coerce_text_suggestions(parsed) -> tuple[Optional[list], int]:
     """
     Coerce a list of plot suggestions ({id, text, rationale}-ish).
@@ -2574,8 +2687,11 @@ async def _strategy_single_pass(chapters: list[dict]) -> dict:
         "Story chapters:\n\n" + "\n".join(lines),
         coerce=coerce_plot_hole_result,
         temperature=0.0,
-        max_tokens=1400,
+        max_tokens=_plot_hole_max_tokens(len(capped)),
         label="plot_holes",
+        # Stage 5 D3: the 2026-09-22 live failure was "unparseable" on both
+        # attempts; guided decoding constrains the output to valid JSON.
+        guided_json=True,
     )
 
     if result is None:
@@ -4958,9 +5074,15 @@ async def check_continuity(
     chapter_summaries: list[dict],
     story_notes: list[str],
     note_cards: list[str],
+    signals_block: str = "",
 ) -> tuple[list[dict], DegradedMeta]:
     """
     Synthesise all manuscript data and identify contradictions.
+
+    ``signals_block`` (task 5.14, prompt v3) carries the deterministic
+    timeline and narrative-structure candidates for the chapters in this call
+    (services/timeline_signals.py, services/narrative_signals.py). They are
+    hints the model must verify; they are never findings on their own.
 
     Returns ``(issues, meta)`` — issues being
     [{type, description, chapter_refs, severity, resolution_hint}].
@@ -4989,31 +5111,17 @@ async def check_continuity(
     notes_block = "\n".join(f"- {n}" for n in story_notes[:20]) or "(none)"
     cards_block  = "\n".join(f"- {c}" for c in note_cards[:20]) or "(none)"
 
-    system = (
-        "You are a continuity editor reviewing a manuscript for internal contradictions. "
-        "Be specific: quote the conflicting facts and cite chapter numbers. Reason about "
-        "CAUSE AND EFFECT, not just surface facts — a character acting against an "
-        "established motivation, or a setup (promise, threat, planted object, stated goal) "
-        "that is contradicted rather than paid off, is as real a continuity problem as a "
-        "changed eye color or an impossible travel time."
-    )
+    # Task 5.14 — the prompt text lives in the registry (continuity is
+    # versioned from v2; there is no v1 entry, hence the fixed "v2" fallback).
+    builder, resolved = resolve_prompt_version("continuity", settings.prompt_version, "v2")
+    _log_prompt_version("continuity", resolved)
+    system, instructions = builder(signals_block=signals_block)
     user = (
         "## Character Profiles\n" + char_block + "\n\n"
         "## Chapter-by-Chapter Summary\n" + chap_block + "\n\n"
         "## World/Story Notes\n" + notes_block + "\n\n"
         "## Location/World Cards\n" + cards_block + "\n\n"
-        "Identify contradictions in: character appearance, character locations, "
-        "world rules, timeline, character motivation/arc consistency, and relationship "
-        "consistency. Return a JSON array of objects with keys:\n"
-        '  "type": one of character_appearance | character_location | world_rule | timeline '
-        '| motivation | relationship\n'
-        '  "description": specific description of the contradiction\n'
-        '  "chapter_refs": array of chapter numbers involved\n'
-        '  "severity": high | medium | low\n'
-        '  "resolution_hint": a concrete, specific suggestion naming exactly what to change '
-        "and where — never a generic line like 'add more detail' or 'clarify this'\n"
-        "If no contradictions found, return an empty array []. "
-        "Return ONLY the JSON array."
+        + instructions
     )
     issues, meta = await complete_structured(
         system, user,
@@ -5251,19 +5359,75 @@ async def generate_story_bible_section(
 
 # ── P2-07: Dead-End Narrative Thread Tracker ──────────────────────────────────
 
+_THREAD_BATCH_SIZE = 3   # was 5: five chapters' worth of actions overflowed an 800-token answer
+
+
+def _coerce_chapter_number(value, allowed: set[int]) -> Optional[int]:
+    """"Chapter 2", "ch. 2", 2.0, "2" → 2. Anything not in this batch → None."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        n = int(value)
+    else:
+        m = re.search(r"\d+", str(value or ""))
+        if not m:
+            return None
+        n = int(m.group())
+    return n if n in allowed else None
+
+
+def coerce_thread_events(parsed, allowed_chapters: set[int]) -> tuple[Optional[list], int]:
+    """Coerce one thread-extraction answer. Accepts {"threads": [...]}, a bare
+    array, or a single-array wrapper (see _issue_list_from). Returns
+    (events, discarded); events is None only when no array was found at all."""
+    items = _issue_list_from(parsed, "threads")
+    if items is None:
+        return None, 0
+    kept, discarded = [], 0
+    for item in items:
+        if not isinstance(item, dict) or not str(item.get("thread_name") or "").strip():
+            discarded += 1
+            continue
+        chapter = _coerce_chapter_number(item.get("chapter_number"), allowed_chapters)
+        if chapter is None:
+            discarded += 1
+            continue
+        action = str(item.get("action") or "introduced").strip().lower()
+        kept.append({
+            "thread_name":    str(item["thread_name"]).strip(),
+            "action":         action if action in ("introduced", "developed", "resolved") else "developed",
+            "description":    str(item.get("description") or ""),
+            "chapter_number": chapter,
+        })
+    return kept, discarded
+
+
 async def extract_narrative_threads_from_summaries(
     chapter_summaries: list[dict],
+    stats: Optional[dict] = None,
 ) -> list[dict]:
     """
-    Scan ChapterSummary data (batched up to 5 per call) and extract
+    Scan ChapterSummary data (batched, _THREAD_BATCH_SIZE per call) and extract
     named narrative threads with their status.
     Returns [{thread_name, action, description, chapter_number}].
+
+    Stage 5 (D1): previously a truncated or malformed batch silently became
+    ``[]`` (the silent-fallback class task 3.5 banned) and one non-numeric
+    chapter_number aborted the whole scan. Now each batch goes through
+    complete_structured (object root, guided JSON, one reprompt); if ``stats``
+    is given it receives {"batches", "batches_degraded", "batches_failed",
+    "entries_discarded"} so the caller can report an honest outcome.
     """
-    # Batch up to 5 chapters per Qwen call to stay within context budget
+    counters = {"batches": 0, "batches_degraded": 0, "batches_failed": 0, "entries_discarded": 0}
     all_threads = []
-    batch_size = 5
-    for i in range(0, len(chapter_summaries), batch_size):
-        batch = chapter_summaries[i:i + batch_size]
+    system = (
+        "You are a narrative analyst extracting story threads from chapter summaries. "
+        "A narrative thread is a named subplot, character arc, mystery, quest, "
+        "conflict, or recurring motif that spans multiple chapters."
+    )
+    for i in range(0, len(chapter_summaries), _THREAD_BATCH_SIZE):
+        batch = chapter_summaries[i:i + _THREAD_BATCH_SIZE]
+        allowed = {int(s["chapter_number"]) for s in batch}
         batch_text = "\n".join(
             f"Chapter {s['chapter_number']} ({s.get('title','')}):\n"
             f"  Key events: {s.get('key_events', [])}\n"
@@ -5271,34 +5435,36 @@ async def extract_narrative_threads_from_summaries(
             f"  Summary: {s.get('raw_summary', '')[:300]}"
             for s in batch
         )
-        system = (
-            "You are a narrative analyst extracting story threads from chapter summaries. "
-            "A narrative thread is a named subplot, character arc, mystery, quest, "
-            "conflict, or recurring motif that spans multiple chapters."
-        )
         user = (
             f"{batch_text}\n\n"
             "For each distinct narrative thread you can identify in these chapters, "
-            "return one JSON object per action. Return a JSON array of objects with keys:\n"
-            '  "thread_name": specific name for the thread (e.g. "The missing crown", "Elena\'s revenge arc")\n'
-            '  "action": introduced | developed | resolved\n'
-            '  "description": one sentence describing what happens with this thread\n'
-            '  "chapter_number": the chapter number\n'
-            "Filter out: generic/vague threads shorter than 3 words, "
-            "threads matching ['the story', 'the journey', 'the conflict']. "
-            "Return ONLY the JSON array. If no threads found, return []."
+            "return one entry per chapter it appears in. Return a JSON object:\n"
+            '{"threads": [{"thread_name": specific name (e.g. "The missing crown", "Elena\'s revenge arc"), '
+            '"action": "introduced" | "developed" | "resolved", '
+            '"description": one sentence describing what happens with this thread in that chapter, '
+            '"chapter_number": the chapter number as an integer}]}\n'
+            "Use the same thread_name every time the same thread appears. "
+            "Skip vague names like 'the story', 'the journey', 'the conflict'. "
+            'If no threads are found, return {"threads": []}.'
         )
-        raw = await _complete(system, user, temperature=0.1, max_tokens=800)
-        parsed = _extract_json(raw, fallback=[])
-        if isinstance(parsed, list):
-            for item in parsed:
-                if isinstance(item, dict) and item.get("thread_name"):
-                    all_threads.append({
-                        "thread_name":    str(item["thread_name"]),
-                        "action":         str(item.get("action", "introduced")),
-                        "description":    str(item.get("description", "")),
-                        "chapter_number": int(item.get("chapter_number", 0)),
-                    })
+        counters["batches"] += 1
+        events, meta = await complete_structured(
+            system, user,
+            coerce=lambda parsed, allowed=allowed: coerce_thread_events(parsed, allowed),
+            temperature=0.1,
+            max_tokens=300 + 250 * len(batch),
+            label="narrative_threads",
+            guided_json=True,
+        )
+        if events is None:
+            counters["batches_failed"] += 1
+            continue
+        if meta.degraded:
+            counters["batches_degraded"] += 1
+        counters["entries_discarded"] += meta.discarded
+        all_threads.extend(events)
+    if stats is not None:
+        stats.update(counters)
     return all_threads
 
 

@@ -26,7 +26,7 @@ import { Sparkles, Loader2, Check, X, ChevronDown, GripVertical, Lock, Unlock, A
 import { toast } from 'sonner'
 import {
   TRANSFORM_GROUPS, INTENSITIES, runTransform, splitSentences, LOCKABLE_GROUPS, STRENGTH_LEVELS,
-  type GroupId, type StrengthLevel, type SentenceSpan,
+  type GroupId, type StrengthLevel, type SentenceSpan, noChangeMessage,
 } from '@/lib/transforms'
 import { useStoryContext } from './StoryContextEngine'
 import { deriveToolDefaults, hasGenreProfile } from '@/lib/genreDefaults'
@@ -261,7 +261,7 @@ export default function SelectionToolbar({ selection, sidebarVisible }: Props) {
       // Task 5.5 — already suitable: nothing to review or apply, tell the
       // author why instead of showing a no-op preview.
       if (result.no_change) {
-        toast.info(result.reason ? `Already reads that way — ${result.reason}` : 'This already reads that way — no change made.')
+        toast.info(noChangeMessage(result.reason))
         return
       }
       // A lock-contract failure: the server returned the ORIGINAL text. Keep the

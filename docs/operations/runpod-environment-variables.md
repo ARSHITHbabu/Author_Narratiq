@@ -148,10 +148,13 @@ means no `SECRET_KEY` and an immediate `ValidationError`.
 **Frontend (Next.js):** `NEXT_PUBLIC_API_URL` is the only variable the entire frontend reads
 (`frontend/lib/api.ts:3`). Next.js loads `.env.local` via `@next/env`, which does **not** overwrite
 variables already present in the real environment. So a `NEXT_PUBLIC_API_URL` set in the RunPod UI
-**overrides** the `frontend/.env.local` that `start-narratiq.sh:577-579` writes. Because the value is
+**overrides** the `frontend/.env.local` that `start-narratiq.sh:606-608` writes. Because the value is
 inlined into the JS bundle at build time, a stale pod ID there produces a frontend that is baked to
-call a dead URL. **UNVERIFIED** — this follows from documented `@next/env`/dotenv behaviour but was
-not executed here. **Do not set `NEXT_PUBLIC_API_URL` in RunPod.**
+call a dead URL. **DEMONSTRATED 2026-09-25** on the locked `next@14.2.35` — see §11 item 2 for the
+builds and sentinel counts. Since the same date `start-narratiq.sh:622` passes
+`NEXT_PUBLIC_API_URL="${BACKEND_PUBLIC_URL}"` explicitly to its own `npm run build`, so the script's
+build is immune; a **manual** `npm run build` is not, and `scripts/verify_runpod_setup.sh` warns when an
+OS-level value differs from `.env.local`. **Do not set `NEXT_PUBLIC_API_URL` in RunPod.**
 
 ---
 
@@ -194,6 +197,33 @@ logins. Setting `SECRET_KEY` in the RunPod UI makes it survive re-clones — and
 > **Interaction worth knowing:** if `SECRET_KEY` is set in RunPod *and* `backend/.env` does not exist,
 > the script still generates and writes a second key to `backend/.env`. The RunPod value takes
 > precedence, so the generated one is inert — confusing, but harmless.
+
+#### Storing `SECRET_KEY` outside the pod (checklist task 2.2)
+
+A copy outside the pod is what lets you restore the same key after a re-clone or a pod reset, so
+existing logins survive. The value must **never** appear on a terminal, in shell history, in
+Jupyter/web-terminal scrollback, in a log, or in any chat or AI transcript.
+
+1. **Find which key is live.** OS env wins over `backend/.env`, so check the environment first,
+   without printing the value:
+   `[ -n "${SECRET_KEY:-}" ] && echo "set in OS env (RunPod UI)" || echo "not in OS env — backend/.env governs"`
+2. **Copy it straight into your password manager, never to the screen.** From your own machine over
+   SSH, pipe it into your clipboard tool rather than viewing it, for example
+   `ssh <pod> 'grep "^SECRET_KEY=" /workspace/narratiq-ai/backend/.env | cut -d= -f2-' | pbcopy`
+   (`xclip -selection clipboard` on Linux, `clip` on Windows), and paste it into the password-manager
+   entry. If the live key is the OS-env one, copy it from the RunPod UI field instead.
+   Avoid commands that print it (`cat`, `echo $SECRET_KEY`, `env`, `printenv`); a leading space
+   before a command does not reliably keep it out of history on RunPod's shells.
+3. **Verify by hash only — of the live key.** On the pod, hash whichever copy step 1 found to be live:
+   - if `SECRET_KEY` is in the OS env (RunPod UI): `printf '%s' "$SECRET_KEY" | sha256sum`
+   - otherwise (`backend/.env` governs): `grep "^SECRET_KEY=" backend/.env | cut -d= -f2- | tr -d '\n' | sha256sum`
+   and compare with the same hash of the stored copy on your machine (paste into
+   `sha256sum` via the clipboard, e.g. `pbpaste | tr -d '\n' | shasum -a 256`). Matching hashes are the evidence.
+4. **Restore after a reset:** paste the stored value into the RunPod UI `SECRET_KEY` field (preferred —
+   it then survives every re-clone), or into `backend/.env` before the first `start-narratiq.sh` run.
+5. **Rotation:** changing the key invalidates every active JWT; users log in again. Account rows are
+   unaffected. If a key was ever printed in plaintext (as happened once on 2026-09-21), rotate it and
+   store the new one.
 
 ### 3.4 `HF_TOKEN`
 
@@ -324,6 +354,12 @@ Most likely to be worth overriding:
 
 Full field-by-field listing: `backend/config.py:30-238`.
 
+**Not an application setting:** `RUNPOD_API_KEY` is injected by RunPod into every pod and is read
+**only** by `scripts/verify_runpod_setup.sh`, to confirm that ports 3000/8000 are exposed. It is sent to
+the RunPod API as a header on stdin, never in a URL, argv or output. Do not add it to `backend/.env`
+(`extra="forbid"` would reject it). `RUNPOD_API_URL` and `RUNPOD_PROXY_URL_TEMPLATE` are test-only
+seams for `scripts/tests/test_verify_runpod_setup.py`; never set them on a pod.
+
 Format notes: list-typed fields (`CORS_ORIGINS`, `VOICE_ADMIN_EMAILS`) must be **JSON**, e.g.
 `CORS_ORIGINS=["https://abc123-3000.proxy.runpod.net","http://localhost:3000"]`. Booleans accept
 `true`/`false`.
@@ -387,7 +423,8 @@ skips completed work on later runs.
 - **Hugging Face auth** flows RunPod UI → script env → `download_models.sh:15`. The script itself
   only echoes a tip at `:278`.
 - **Persistent volume paths are not honoured** — `MODEL_DIR` is hardcoded at `:16`. See §3.5 and §10.
-- **Frontend URL is build-time.** `:577-579` writes `.env.local`, then `:590` rebuilds. Changing the
+- **Frontend URL is build-time.** `:606-608` writes `.env.local`, then `:622` rebuilds, passing
+  `NEXT_PUBLIC_API_URL` explicitly so a stale RunPod-UI value cannot win (since 2026-09-25). Changing the
   backend URL later requires a **rebuild**, not a restart.
 - **CORS is rebuilt from the live pod ID** each run (`:445`), so it self-heals when the pod ID
   changes — unless a stale `CORS_ORIGINS` in the RunPod UI overrides it on a manual restart.
@@ -500,13 +537,18 @@ longer exists.
 ## 11. Uncertainties — runtime verification required
 
 Nothing in this document was validated against a running system as originally written. **Updated
-2026-09-21 with live verification against an actual running pod** (Stage 2, task 2.5) — 6 of 7 items
-below are now resolved; item 4 remains genuinely open, with the reason recorded rather than assumed.
+2026-09-21 with live verification against an actual running pod** (Stage 2, task 2.5), which resolved 6
+of 7 items. *(Corrected 2026-09-25: this paragraph previously said item 4 was the open one; the table
+always showed item 2 as the partial item.)* **Updated 2026-09-25:** item 2's override case is now
+demonstrated, so **every item below has a demonstrated outcome and no untested assumption remains.**
+Item 4 carries an open *design* question (tracked in §10), not an unknown. Item 1 carries a recorded
+conflict about `SECRET_KEY`, which is a stale-record question for a pod that has since been reset, and
+is routed to manual verification MV-2.2-A.
 
 | # | Item | Confidence | Resolution |
 |---|---|---|---|
-| 1 | Which variables are *actually* still in your RunPod UI | **CONFIRMED 2026-09-21** | Directly inspected the pod's environment. **None of the app-relevant or obsolete variables listed in §4/§7 are set** — no `SECRET_KEY`, `VLLM_BASE_URL`, `DATABASE_URL`, `CORS_ORIGINS`, `MODEL_BASE_DIR`, `HF_TOKEN`, `NEXT_PUBLIC_API_URL`, and none of §7's obsolete keys. This pod's RunPod UI is clean |
-| 2 | Next.js `.env.local` vs OS env precedence for `NEXT_PUBLIC_API_URL` | **PARTIALLY CONFIRMED 2026-09-21** | The default path (no OS env var set, `.env.local` used) is directly demonstrated: the built bundle contains zero stale host references and exactly one correct one. The *override* case (an OS env var present taking precedence over `.env.local`) was **not** separately tested on this repo — no such variable exists to test against. That half remains inferred from documented Next.js/`@next/env` behaviour, not directly demonstrated here |
+| 1 | Which variables are *actually* still in your RunPod UI | **CONFIRMED 2026-09-21** | Directly inspected the pod's environment. **None of the app-relevant or obsolete variables listed in §4/§7 are set** — no `SECRET_KEY`, `VLLM_BASE_URL`, `DATABASE_URL`, `CORS_ORIGINS`, `MODEL_BASE_DIR`, `HF_TOKEN`, `NEXT_PUBLIC_API_URL`, and none of §7's obsolete keys. This pod's RunPod UI is clean. **⚠ Conflict (noted 2026-09-25):** the Master Implementation Checklist's same-day records (task 2.1 note; task 2.2 subtask 2) say `SECRET_KEY` **was** present in the OS environment. The two records cannot both be right, and that pod has since been reset (current pod `shbr4txyem5s9w`), so neither can be re-checked. The `SECRET_KEY` part of this row is therefore **disputed**; the current pod's state is to be established by MV-2.2-A (`docs/testing/manual-verification/stage-02-manual-verification-guide.md`). The rest of the row stands |
+| 2 | Next.js `.env.local` vs OS env precedence for `NEXT_PUBLIC_API_URL` | **CONFIRMED 2026-09-25** (default path 2026-09-21 on the pod; override case 2026-09-25 by build) | Default path: on the pod, the built bundle contained zero stale host references and exactly one correct one (2026-09-21). Override case: demonstrated by four production builds of this repo's `frontend/` with the locked **`next@14.2.35`** (`npm ci` in a scratch copy; sentinel hosts on the reserved `.invalid` TLD; counts are files under `.next/static` containing each sentinel). (1) `.env.local`=ENVLOCAL, no OS var → ENVLOCAL 1, OSENV 0. (2) `.env.local`=ENVLOCAL **and** OS `NEXT_PUBLIC_API_URL`=OSENV → **OSENV 1, ENVLOCAL 0: the OS variable wins.** (3) neither set → the `http://localhost:8000` fallback (`lib/api.ts:3`) 1, both sentinels 0. (4) the `start-narratiq.sh:622` form, stale OS var OSENV plus explicit `NEXT_PUBLIC_API_URL="${BACKEND_PUBLIC_URL}"`=ENVLOCAL → ENVLOCAL 1, OSENV 0: the fix holds. `.next/server` counts matched in every build. This is a property of the locked Next.js version, not of the pod |
 | 3 | Whether the app runs at all | **CONFIRMED 2026-09-21** | Fully verified end to end, including a complete manual author session through the external URL (login, story/chapter creation and persistence, a real AI generation, logout, re-login) |
 | 4 | `MODEL_BASE_DIR` override behaviour on a Network Volume | **CONFIRMED 2026-09-21, split finding — no download triggered** | Verified by direct code inspection plus a zero-side-effect reproduction of each script's own resolution line (not the full script — running the full script would trigger real downloads, which was deliberately avoided). Result: **`start-narratiq.sh` hardcodes `MODEL_DIR="/workspace/models"` (`:16`) and unconditionally re-exports `MODEL_BASE_DIR` from it before calling `download_models.sh` (`:283`,`:530`) — a pre-set `MODEL_BASE_DIR` has no effect through this path.** But `scripts/download_models.sh` run **standalone** does honour `MODEL_BASE_DIR` (`:14`, `${MODEL_BASE_DIR:-/workspace/models}`) — reproduced safely with a throwaway path and no download. So the override works for one entry point and not the other; §10 follow-up item 2 (whether to change `start-narratiq.sh` to honour it) remains an open design decision, not a verification gap |
 | 5 | `pydantic-settings` precedence (env > `.env`) | **CONFIRMED 2026-09-21** | `VLLM_BASE_URL=http://127.0.0.1:9999/v1 python3 -c "from config import settings; print(settings.vllm_base_url)"` from `backend/` → correctly returned the override value, not the `.env` one |

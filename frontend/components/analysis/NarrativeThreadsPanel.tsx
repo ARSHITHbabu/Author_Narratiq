@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Loader2, GitBranch, RefreshCw, ChevronDown, ChevronRight } from 'lucide-react'
 import { narrativeThreadsApi } from '@/lib/api'
-import { NarrativeThreadOut, NarrativeScanResponse } from '@/lib/types'
+import { NarrativeThreadOut, NarrativeScanStatus } from '@/lib/types'
 import { toast } from 'sonner'
 
 interface Props { storyId: string }
@@ -82,41 +82,130 @@ function ThreadCard({ thread, storyId, onUpdated }: { thread: NarrativeThreadOut
   )
 }
 
+// Stage 5 (D1): a scan is a background job. The panel polls its status with
+// backoff instead of guessing a fixed delay, resumes waiting when the author
+// comes back to the panel, and says honestly how the scan ended.
+const POLL_FIRST_MS = 3_000
+const POLL_MAX_MS = 20_000
+const POLL_GIVE_UP_MS = 10 * 60_000
+
+const FAILURE_TEXT: Record<string, string> = {
+  ai_unavailable: 'The AI model is not available right now. Try scanning again in a moment.',
+  unreadable: "The AI's answers could not be read. Please scan again.",
+  interrupted: 'The scan was interrupted because the server restarted. Please scan again.',
+}
+
+function scanNotice(st: NarrativeScanStatus | null): { tone: 'info' | 'warn' | 'error'; text: string } | null {
+  if (!st) return null
+  if (st.status === 'failed') {
+    return { tone: 'error', text: FAILURE_TEXT[st.error_code ?? ''] ?? 'The scan did not finish. Please scan again.' }
+  }
+  if (st.status === 'completed_empty') {
+    return { tone: 'info', text: `The scan read ${st.chapters_scanned} chapter(s) and found no narrative threads.` }
+  }
+  if (st.status === 'completed' && st.batches_degraded > 0) {
+    return { tone: 'warn', text: 'Some chapters could not be read during the scan, so this list may be incomplete.' }
+  }
+  return null
+}
+
 export default function NarrativeThreadsPanel({ storyId }: Props) {
   const [threads, setThreads] = useState<NarrativeThreadOut[] | null>(null)
-  const [scanning, setScanning] = useState(false)
+  const [scanStatus, setScanStatus] = useState<NarrativeScanStatus | null>(null)
+  const [starting, setStarting] = useState(false)
+  const [timedOut, setTimedOut] = useState(false)
   const [loadingList, setLoadingList] = useState(false)
   const [filter, setFilter] = useState<string>('all')
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const alive = useRef(true)
+
+  const scanning = starting || scanStatus?.status === 'pending' || scanStatus?.status === 'running'
 
   const loadThreads = async () => {
     setLoadingList(true)
     try {
       const res = await narrativeThreadsApi.list(storyId)
-      setThreads(res.data)
+      if (alive.current) setThreads(res.data)
     } catch {
       toast.error('Failed to load threads')
     } finally {
-      setLoadingList(false)
+      if (alive.current) setLoadingList(false)
     }
   }
 
+  const stopPolling = () => {
+    if (timer.current) clearTimeout(timer.current)
+    timer.current = null
+  }
+
+  const poll = (delay: number, startedAt: number) => {
+    stopPolling()
+    timer.current = setTimeout(async () => {
+      if (!alive.current) return
+      try {
+        const res = await narrativeThreadsApi.scanStatus(storyId)
+        if (!alive.current) return
+        const st: NarrativeScanStatus = res.data
+        setScanStatus(st)
+        if (st.status === 'pending' || st.status === 'running') {
+          if (Date.now() - startedAt > POLL_GIVE_UP_MS) { setTimedOut(true); return }
+          poll(Math.min(Math.round(delay * 1.5), POLL_MAX_MS), startedAt)
+          return
+        }
+        await loadThreads()
+      } catch {
+        // A transient network error: keep waiting rather than declaring failure.
+        if (Date.now() - startedAt <= POLL_GIVE_UP_MS) poll(Math.min(delay * 2, POLL_MAX_MS), startedAt)
+        else setTimedOut(true)
+      }
+    }, delay)
+  }
+
   const scan = async () => {
-    setScanning(true)
+    setStarting(true)
+    setTimedOut(false)
     try {
-      await narrativeThreadsApi.scan(storyId)
-      toast.success('Scan started — threads will appear once ready')
-      // Poll once after 10 s
-      setTimeout(() => loadThreads(), 10_000)
+      const res = await narrativeThreadsApi.scan(storyId)
+      setScanStatus(prev => ({
+        ...(prev ?? { threads_written: 0, chapters_scanned: 0, batches_degraded: 0, error_code: null,
+                      started_at: null, finished_at: null }),
+        scan_id: res.data.job_id, status: res.data.status, error_code: null,
+      } as NarrativeScanStatus))
+      toast.success('Scan started. Results will appear here when it finishes.')
+      poll(POLL_FIRST_MS, Date.now())
     } catch (e: any) {
       toast.error(e?.response?.data?.detail ?? 'Scan failed')
     } finally {
-      setScanning(false)
+      setStarting(false)
     }
   }
 
   useEffect(() => {
+    alive.current = true
     loadThreads()
+    // Resume waiting if a scan is still running from an earlier visit.
+    narrativeThreadsApi.scanStatus(storyId).then(res => {
+      if (!alive.current) return
+      const st: NarrativeScanStatus = res.data
+      setScanStatus(st)
+      if (st.status === 'pending' || st.status === 'running') poll(POLL_FIRST_MS, Date.now())
+    }).catch(() => { /* status is optional context; the list still loads */ })
+    return () => { alive.current = false; stopPolling() }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storyId])
+
+  const notice = timedOut
+    ? { tone: 'warn' as const, text: 'The scan is taking longer than expected. It is still running; check back later.' }
+    : scanNotice(scanStatus)
+  const noticeEl = notice && (
+    <p className={`text-[11px] leading-snug px-2.5 py-2 rounded-lg border ${
+      notice.tone === 'error' ? 'text-red-300 bg-red-500/10 border-red-500/20'
+      : notice.tone === 'warn' ? 'text-amber-300 bg-amber-500/10 border-amber-500/20'
+      : 'text-[#9da3c8] bg-[#141728] border-[#1f2440]'}`}
+       role={notice.tone === 'error' ? 'alert' : 'status'}>
+      {notice.text}
+    </p>
+  )
 
   const filtered = threads?.filter(t => filter === 'all' || t.status === filter) ?? []
   const deadEnds = threads?.filter(t => t.status === 'dead_end').length ?? 0
@@ -135,6 +224,12 @@ export default function NarrativeThreadsPanel({ storyId }: Props) {
       <div className="flex flex-col items-center justify-center gap-4 p-6 h-full">
         <GitBranch className="w-10 h-10 text-[#2e3454]" />
         <p className="text-xs text-[#5c6391] text-center">Track narrative threads across your manuscript and flag dead ends</p>
+        {scanning && !timedOut && (
+          <p className="text-[11px] text-[#9da3c8] text-center" role="status">
+            Scanning your chapters. This can take several minutes for a long manuscript.
+          </p>
+        )}
+        {(!scanning || timedOut) && noticeEl}
         <button
           onClick={scan}
           disabled={scanning}
@@ -170,6 +265,16 @@ export default function NarrativeThreadsPanel({ storyId }: Props) {
           </button>
         </div>
       </div>
+
+      {(scanning || notice) && (
+        <div className="px-3 pb-2 flex-shrink-0">
+          {scanning && !timedOut ? (
+            <p className="text-[11px] text-[#9da3c8]" role="status">
+              <Loader2 className="w-3 h-3 animate-spin inline mr-1" />Rescanning. The list updates when it finishes.
+            </p>
+          ) : noticeEl}
+        </div>
+      )}
 
       {/* Filter pills */}
       <div className="px-3 pb-2 flex gap-1 flex-shrink-0">
