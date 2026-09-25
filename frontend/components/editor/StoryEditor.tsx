@@ -64,6 +64,10 @@ export default function StoryEditor({ storyId, chapter, onWordCountChange, onEdi
   const [saving, setSaving] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Which chapter's content is actually in the document (not just the heading).
+  // Exposed as data-content-loaded so tests can wait for the real content before
+  // selecting text — a selection made earlier is wiped by setContent.
+  const [loadedChapterId, setLoadedChapterId] = useState<string | null>(null)
 
   const editor = useEditor({
     extensions: [
@@ -145,6 +149,7 @@ export default function StoryEditor({ storyId, chapter, onWordCountChange, onEdi
       } catch {
         editor.commands.setContent(chapter.content || '', false)
       }
+      setLoadedChapterId(chapter.chapter_id)
       onContentLoaded?.()
     }
     load()
@@ -246,7 +251,7 @@ export default function StoryEditor({ storyId, chapter, onWordCountChange, onEdi
       )}
 
       {/* Editor area */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto" data-content-loaded={loadedChapterId === chapter.chapter_id ? 'true' : 'false'}>
         <div className={`mx-auto px-8 py-8 ${readOnly ? 'max-w-2xl reading-mode' : 'max-w-3xl'}`}>
           <h2 className="text-xs font-medium text-[#8e94bd] uppercase tracking-widest mb-6">
             Chapter {chapter.chapter_number} — {chapter.title}

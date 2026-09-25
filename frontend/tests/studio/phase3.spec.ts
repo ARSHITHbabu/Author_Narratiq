@@ -3,6 +3,7 @@
 // compare, sentence locks, preservation rules. Mocked API; no model involved.
 import { test, expect, type Page, type Route } from '@playwright/test'
 import { mockApi, signIn, workspaceUrl, STORY_ID, CHAPTER_IDS } from './mockApi'
+import { waitForChapterContent, focusEditorSettled } from './helpers'
 
 const now = '2026-09-25T00:00:00Z'
 const pin = (id: string, label: string) => ({
@@ -50,7 +51,7 @@ async function phase3Api(page: Page) {
 
 async function openWrite(page: Page) {
   await page.goto(workspaceUrl('write'))
-  await page.locator('.ProseMirror').first().waitFor()
+  await waitForChapterContent(page)
   await page.getByRole('button', { name: 'AI assistant', exact: true }).click()
 }
 
@@ -60,6 +61,7 @@ test('transform → pin: a result can be pinned from the sidecar', async ({ page
   const { created } = await phase3Api(page)
   await openWrite(page)
   await page.getByRole('combobox', { name: 'Rewrite tool' }).selectOption('tone')
+  await focusEditorSettled(page)
   await page.locator('.ProseMirror p').first().click({ clickCount: 3 })
   await page.locator('#ai-tool-panel').getByRole('button', { name: /Apply|Change|Transform|Rewrite/ }).last().click()
   await expect(page.getByTestId('pin-button')).toBeVisible()
@@ -72,6 +74,7 @@ test('sentence locks and preservation rules are reachable on a lockable tool', a
   await openWrite(page)
   await page.getByRole('combobox', { name: 'Rewrite tool' }).selectOption('tone')
   await expect(page.getByTestId('sidebar-lock-strength')).toBeVisible()
+  await focusEditorSettled(page)
   await page.locator('.ProseMirror p').first().click({ clickCount: 3 })
   await expect(page.getByTestId('sidebar-lock-strength').getByRole('button', { name: /Placeholder paragraph 1/ })).toBeVisible()
   await page.getByRole('button', { name: /What the AI must keep/ }).click()

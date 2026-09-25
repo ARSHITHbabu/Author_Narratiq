@@ -2,7 +2,7 @@
 // the editor keeps a usable width, and every rail item stays reachable.
 import { test, expect } from '@playwright/test'
 import { mockApi, signIn, workspaceUrl } from './mockApi'
-import { hasHorizontalScroll } from './helpers'
+import { hasHorizontalScroll, waitForChapterContent } from './helpers'
 
 const VIEWPORTS = [
   [1920, 1080], [1536, 864], [1440, 900], [1366, 768], [1280, 720], [1024, 768], [768, 1024],
@@ -26,7 +26,7 @@ for (const [w, h] of VIEWPORTS) {
     test('Write keeps a usable editor with the AI sidecar open, and the rail is reachable', async ({ page }) => {
       await signIn(page); await mockApi(page)
       await page.goto(workspaceUrl('write'))
-      await page.locator('.ProseMirror').first().waitFor()
+      await waitForChapterContent(page)
       await page.getByRole('button', { name: 'AI assistant', exact: true }).click()
       await expect(page.getByRole('complementary', { name: 'AI Assistant' })).toBeVisible()
       const editor = (await page.locator('.ProseMirror').first().boundingBox())!

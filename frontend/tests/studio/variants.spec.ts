@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test'
 import { readdirSync, readFileSync, statSync, existsSync } from 'fs'
 import { join } from 'path'
 import { mockApi, signIn, workspaceUrl } from './mockApi'
-import { hasHorizontalScroll, openPalette } from './helpers'
+import { hasHorizontalScroll, openPalette, waitForChapterContent } from './helpers'
 
 const VARIANT = process.env.STUDIO_VARIANT ?? 'default'
 const MARKER = 'narratiq-e2e-mock-tool-7f3a'
@@ -67,7 +67,7 @@ test.describe('p3-off build', () => {
   test('Phase 3 surfaces disappear cleanly and every other home still works', async ({ page }) => {
     await signIn(page); await mockApi(page)
     await page.goto(workspaceUrl('write'))
-    await page.locator('.ProseMirror').first().waitFor()
+    await waitForChapterContent(page)
     await page.getByRole('button', { name: 'AI assistant', exact: true }).click()
     await expect(page.getByRole('tablist', { name: 'AI tool groups' }).getByRole('tab')).toHaveText(['Rewrite', 'Generate'])
     await expect(page.getByRole('button', { name: /What the AI must keep/ })).toHaveCount(0)

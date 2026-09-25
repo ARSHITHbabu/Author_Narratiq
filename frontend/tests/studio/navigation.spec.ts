@@ -2,7 +2,7 @@
 // in its one home, sub-routes belong to their parent, Notes/Threads not duplicated.
 import { test, expect } from '@playwright/test'
 import { mockApi, signIn, workspaceUrl, STORY_ID } from './mockApi'
-import { openPalette } from './helpers'
+import { openPalette, waitForChapterContent } from './helpers'
 
 const RAIL = [
   ['write', 'Write'], ['plan', 'Plan'], ['characters', 'Characters'], ['world', 'World'],
@@ -25,7 +25,7 @@ test('every rail item routes to its workspace and is marked current', async ({ p
 
 test('keyboard shortcuts Ctrl+1..7 switch workspaces', async ({ page }) => {
   await page.goto(workspaceUrl('write'))
-  await page.locator('.ProseMirror').first().waitFor()
+  await waitForChapterContent(page)
   for (let i = RAIL.length - 1; i >= 0; i--) {
     await page.keyboard.press(`Control+${i + 1}`)
     await expect(page).toHaveURL(new RegExp(`/${RAIL[i][0]}(\\?|$)`))
@@ -81,7 +81,7 @@ test('section tabs follow the WAI-ARIA tab pattern and are remembered per story'
 
 test('Search & replace opens in Write with Ctrl+F and from the palette', async ({ page }) => {
   await page.goto(workspaceUrl('write'))
-  await page.locator('.ProseMirror').first().waitFor()
+  await waitForChapterContent(page)
   await page.keyboard.press('Control+f')
   await expect(page.getByPlaceholder(/search/i).first()).toBeVisible()
   await page.keyboard.press('Escape')
@@ -94,7 +94,7 @@ test('Search & replace opens in Write with Ctrl+F and from the palette', async (
 
 test('palette deep links open a tool in its home', async ({ page }) => {
   await page.goto(workspaceUrl('write'))
-  await page.locator('.ProseMirror').first().waitFor()
+  await waitForChapterContent(page)
   for (const [query, url, tab] of [
     ['Go to Notes', /world\?section=notes/, 'Notes'],
     ['Go to Pacing', /plan\?section=pacing/, 'Pacing'],

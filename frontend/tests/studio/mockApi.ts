@@ -71,7 +71,13 @@ export async function mockApi(page: Page, extra: Handler[] = []): Promise<ApiLog
     const ch = path.match(/^\/api\/stories\/[^/]+\/chapters\/([^/]+)$/)
     if (ch) {
       const found = chapters.find((c) => c.chapter_id === ch[1])
-      if (found && method === 'GET') return json(route, found)
+      if (found && method === 'GET') {
+        // STUDIO_CHAPTER_DELAY_MS slows the chapter body so readiness bugs in
+        // specs show up every time instead of only under heavy load (review F1).
+        const delay = Number(process.env.STUDIO_CHAPTER_DELAY_MS || 0)
+        if (delay > 0) await new Promise((r) => setTimeout(r, delay))
+        return json(route, found)
+      }
       if (found && (method === 'PUT' || method === 'PATCH')) { log.saves.push(`${method} ${path}`); return json(route, found) }
     }
     if (method === 'GET' && path === `/api/stories/${STORY_ID}/characters`) return json(route, [])
@@ -99,6 +105,22 @@ export async function mockApi(page: Page, extra: Handler[] = []): Promise<ApiLog
  *  writes. Only on the first document of the test (sessionStorage marker), so a
  *  later logout in the same test is not undone by the next navigation. */
 export async function signIn(page: Page, user: MockUser = USER_A) {
+  // STUDIO_LATE_SELECTIONCHANGE_MS delivers the editor's selectionchange events
+  // late, so ProseMirror's 20 ms post-focus selection sync lands in the window
+  // a fast test gesture can hit. Used to prove the F1 second-cause fix.
+  const late = Number(process.env.STUDIO_LATE_SELECTIONCHANGE_MS || 0)
+  if (late > 0) {
+    await page.addInitScript((ms) => {
+      const add = Document.prototype.addEventListener
+      Document.prototype.addEventListener = function (this: Document, type: string, fn: any, opts?: any) {
+        if (type === 'selectionchange' && typeof fn === 'function') {
+          const self = this
+          return add.call(self, type, (e: Event) => { setTimeout(() => fn.call(self, e), ms) }, opts)
+        }
+        return add.call(this, type, fn, opts)
+      } as typeof Document.prototype.addEventListener
+    }, late)
+  }
   await page.addInitScript((u) => {
     if (!sessionStorage.getItem('mock-signed-in')) {
       sessionStorage.setItem('mock-signed-in', '1')

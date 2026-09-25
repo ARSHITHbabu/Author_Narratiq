@@ -5,6 +5,7 @@
 import { test, expect, type Page } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
 import { mockApi, signIn, workspaceUrl, STORY_ID } from './mockApi'
+import { waitForChapterContent } from './helpers'
 
 const WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']
 
@@ -32,7 +33,7 @@ for (const ws of ['write', 'plan', 'characters', 'world', 'analyze', 'assistant'
 test('axe: Write with the AI sidecar, the View menu and the command palette open', async ({ page }) => {
   await mockApi(page)
   await page.goto(workspaceUrl('write'))
-  await page.locator('.ProseMirror').first().waitFor()
+  await waitForChapterContent(page)
   await page.getByRole('button', { name: 'AI assistant', exact: true }).click()
   await audit(page, 'write+sidecar')
   await page.getByRole('button', { name: 'View options' }).click()
@@ -87,7 +88,7 @@ test('a full writing session with the keyboard only', async ({ page }) => {
   await tabTo(page, focusedName('Write'))
   await page.keyboard.press('Enter')
   await expect(page).toHaveURL(new RegExp(`/projects/${STORY_ID}/write`))
-  await page.locator('.ProseMirror').first().waitFor()
+  await waitForChapterContent(page)
 
   // Binder → Chapter 2.
   await tabTo(page, `document.activeElement?.textContent?.includes('Chapter 2') && document.activeElement.tagName === 'BUTTON'`)
