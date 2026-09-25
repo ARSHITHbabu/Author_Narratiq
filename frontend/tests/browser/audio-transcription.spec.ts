@@ -64,7 +64,8 @@ test('uploading an audio file returns a non-empty cleaned transcript', async ({ 
     window.localStorage.setItem('narratiq_token', t)
     window.localStorage.setItem('narratiq_user', u)
   }, [token, user])
-  await page.goto(`/projects/${STORY_ID}`)
+  // Audio transcription's one home is the Assistant workspace (Stage 8 Tool Homes).
+  await page.goto(`/projects/${STORY_ID}/assistant`)
 
   // Best-effort: exact tab/panel trigger for Audio not confirmed against a
   // live render. Falls back to a title-based lookup matching the pattern

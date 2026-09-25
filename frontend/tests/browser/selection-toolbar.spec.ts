@@ -24,7 +24,7 @@ const AI_TIMEOUT = 120_000
 
 const toolbar = (page: Page) => page.getByRole('toolbar', { name: 'AI actions for the selected text' })
 const sidecarPanel = (page: Page) => page.getByText('AI Assistant', { exact: true })
-const sidecarToggle = (page: Page) => page.getByTitle(/AI sidecar/)
+const sidecarToggle = (page: Page) => page.getByRole('button', { name: 'AI assistant', exact: true })
 const previewCard = (page: Page) => page.getByRole('button', { name: 'Apply to selection' })
 const editorArea = (page: Page) => page.locator('.ProseMirror')
 const firstParagraph = (page: Page) => page.locator('.ProseMirror p').first()

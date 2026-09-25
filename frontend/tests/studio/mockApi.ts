@@ -57,6 +57,13 @@ export async function mockApi(page: Page, extra: Handler[] = []): Promise<ApiLog
     if (method === 'OPTIONS') return route.fulfill({ status: 204 })
     for (const h of extra) if (await h(route, method, path)) return
 
+    // ── auth: the email picks the fixture user ──────────────────────────────
+    if (method === 'POST' && path === '/api/auth/login') {
+      const email = (req.postDataJSON() ?? {}).email
+      const u = [USER_A, USER_B].find((x) => x.email === email) ?? USER_A
+      return json(route, { access_token: `mock-token-${u.username}`, token_type: 'bearer', user: { ...u, created_at: now } })
+    }
+
     // ── core story context ──────────────────────────────────────────────────
     if (method === 'GET' && /^\/api\/projects\/?$/.test(path)) return json(route, [story])
     if (method === 'GET' && path === `/api/projects/${STORY_ID}`) return json(route, story)
@@ -79,10 +86,13 @@ export async function mockApi(page: Page, extra: Handler[] = []): Promise<ApiLog
   return log
 }
 
-/** Sign a mocked user in by seeding the same localStorage keys the app's login writes. */
+/** Sign a mocked user in by seeding the same localStorage keys the app's login
+ *  writes. Only on the first document of the test (sessionStorage marker), so a
+ *  later logout in the same test is not undone by the next navigation. */
 export async function signIn(page: Page, user: MockUser = USER_A) {
   await page.addInitScript((u) => {
-    if (!localStorage.getItem('narratiq_token')) {
+    if (!sessionStorage.getItem('mock-signed-in')) {
+      sessionStorage.setItem('mock-signed-in', '1')
       localStorage.setItem('narratiq_token', 'mock-token')
       localStorage.setItem('narratiq_user', JSON.stringify({ ...u, created_at: '2026-09-25T00:00:00Z' }))
     }

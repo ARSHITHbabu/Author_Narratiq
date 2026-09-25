@@ -7,7 +7,7 @@
 // is published into the Story Context Engine (single source of truth).
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
+import { Panel, PanelGroup, PanelResizeHandle, type ImperativePanelHandle } from 'react-resizable-panels'
 import { PenLine, Sparkles, Focus, Maximize2, AlignVerticalSpaceAround, PanelRightOpen } from 'lucide-react'
 import ChapterSidebar from '@/components/editor/ChapterSidebar'
 import EditorWithMethods, { type EditorMethods, type LiveSelection } from '@/components/editor/EditorWithMethods'
@@ -27,6 +27,8 @@ const VersionCompareView = dynamic(() => import('@/components/generation/Version
 // Manuscript search & replace (its one home is Write — Stage 8.1). Floating panel,
 // loaded only when opened (⌘F / Ctrl+F, or "Search & replace" in the palette).
 const SearchPanel = dynamic(() => import('@/components/search/SearchPanel'), { ssr: false })
+
+const EXPANDED_SIDECAR = 65
 
 export default function WriteWorkspace() {
   const { storyId, story, chapters, activeChapter, activeChapterId, setActiveChapter, reloadChapters, registerEditor, updateChapterWordCount } = useStoryContext()
@@ -61,6 +63,10 @@ export default function WriteWorkspace() {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f' && !e.shiftKey) {
         e.preventDefault()
         store.setSearchOpen(true)
+      } else if ((e.ctrlKey || e.metaKey) && e.key === '\\') {
+        // ⌘\ / Ctrl+\ — the sidecar shortcut its buttons have always advertised.
+        e.preventDefault()
+        store.toggleSidecar()
       } else if (e.key === 'Escape' && useStudioStore.getState().searchOpen) {
         closeSearch()
       }
@@ -127,8 +133,17 @@ export default function WriteWorkspace() {
 
   useEffect(() => { setSelection(null) }, [activeChapterId])
 
-  const showBinder = !store.binderCollapsed && !store.focusMode && !store.zenMode
   const showSidecar = store.sidecarOpen && !store.focusMode && !store.zenMode
+  // Expanded sidecar (8.2 / 8.6): room for detailed AI work — the binder steps
+  // aside and the sidecar takes most of the width. Its size is not saved as the
+  // normal sidecar size, so collapsing returns to the author's own width.
+  const expanded = showSidecar && store.sidecarExpanded
+  const showBinder = !store.binderCollapsed && !store.focusMode && !store.zenMode && !expanded
+  const sidecarRef = useRef<ImperativePanelHandle | null>(null)
+  useEffect(() => {
+    if (!showSidecar) return
+    sidecarRef.current?.resize(expanded ? EXPANDED_SIDECAR : useStudioStore.getState().sidecarSize)
+  }, [expanded, showSidecar])
 
   const toggleFullscreen = () => {
     if (document.fullscreenElement) document.exitFullscreen()
@@ -147,7 +162,9 @@ export default function WriteWorkspace() {
   return (
     <div className="h-full flex flex-col bg-[#0d0f1a]">
       <div className="flex-1 min-h-0">
-        <PanelGroup direction="horizontal" autoSaveId="narratiq-write" className="h-full">
+        {/* Sizes persist through the per-user studio store only (Stage 8.2) — no
+            second autoSaveId copy that could disagree with it. */}
+        <PanelGroup direction="horizontal" className="h-full">
           {showBinder && (
             <>
               <Panel id="binder" order={1} defaultSize={store.binderSize} minSize={12} maxSize={32}
@@ -190,8 +207,9 @@ export default function WriteWorkspace() {
           {showSidecar && (
             <>
               <PanelResizeHandle className="w-1 bg-transparent hover:bg-amber-500/30 transition-colors" />
-              <Panel id="sidecar" order={3} defaultSize={store.sidecarSize} minSize={18} maxSize={40}
-                onResize={(s) => store.setSidecarSize(s)} className="min-w-0">
+              <Panel id="sidecar" order={3} ref={sidecarRef}
+                defaultSize={expanded ? EXPANDED_SIDECAR : store.sidecarSize} minSize={18} maxSize={expanded ? 75 : 40}
+                onResize={(s) => { if (!useStudioStore.getState().sidecarExpanded) store.setSidecarSize(s) }} className="min-w-0">
                 <AISidecar selection={selection} />
               </Panel>
             </>
@@ -211,7 +229,7 @@ export default function WriteWorkspace() {
           {/* Selection-safe: this button hands the selection to the sidebar, so
               pressing it is not the author walking away from their selection. */}
           <button onClick={() => store.toggleSidecar()} {...selectionSafeProps()}
-            className={`p-1 rounded hover:bg-[#1f2440] ${store.sidecarOpen ? 'text-amber-400' : ''}`} title="AI sidecar (⌘\\)"><PanelRightOpen className="w-3.5 h-3.5" /></button>
+            className={`p-1 rounded hover:bg-[#1f2440] ${store.sidecarOpen ? 'text-amber-400' : ''}`} title="AI assistant (⌘\\)" aria-label="AI assistant" aria-pressed={store.sidecarOpen}><PanelRightOpen className="w-3.5 h-3.5" aria-hidden="true" /></button>
           <button onClick={() => store.toggleTypewriter()} className={`p-1 rounded hover:bg-[#1f2440] ${store.typewriter ? 'text-amber-400' : ''}`} title="Typewriter"><AlignVerticalSpaceAround className="w-3.5 h-3.5" /></button>
           <button onClick={() => store.setFocusMode(!store.focusMode)} className={`p-1 rounded hover:bg-[#1f2440] ${store.focusMode ? 'text-amber-400' : ''}`} title="Focus (⌘.)"><Focus className="w-3.5 h-3.5" /></button>
           <button onClick={() => store.setZenMode(true)} className="p-1 rounded hover:bg-[#1f2440]" title="Zen mode"><Sparkles className="w-3.5 h-3.5" /></button>

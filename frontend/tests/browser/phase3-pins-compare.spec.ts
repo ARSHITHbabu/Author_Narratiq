@@ -93,7 +93,7 @@ test('P3-01/P3-04: Versions lists pins; two versions compare and merge block by 
   await expect(page.getByTestId('pin-button')).toContainText('Pinned', { timeout: 15_000 })
   await page.keyboard.press('Escape')
 
-  await page.getByTitle(/AI sidecar/).click()
+  await page.getByRole('button', { name: 'AI assistant', exact: true }).click()
   await page.getByRole('button', { name: 'Versions' }).click()
   const cards = page.getByTestId('pin-card')
   await expect(cards).toHaveCount(2, { timeout: 15_000 })

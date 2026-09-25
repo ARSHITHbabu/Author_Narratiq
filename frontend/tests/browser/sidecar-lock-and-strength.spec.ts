@@ -44,7 +44,7 @@ async function openWithSidecar(page: Page) {
   await expect(page.locator('.ProseMirror')).toBeVisible({ timeout: 30_000 })
   await page.getByText('Fixture', { exact: true }).first().click()
   await expect(firstParagraph(page)).toContainText('sensor reported')
-  await page.getByTitle(/AI sidecar/).click()
+  await page.getByRole('button', { name: 'AI assistant', exact: true }).click()
   await page.getByRole('button', { name: 'Tone', exact: true }).click()
 }
 

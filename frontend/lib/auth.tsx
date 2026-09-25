@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { User } from './types'
 import { authApi } from './api'
+import { bindStudioStoreToUser } from './studioStore'
 
 interface AuthCtx {
   user: User | null
@@ -57,6 +58,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     localStorage.removeItem('narratiq_token')
     localStorage.removeItem('narratiq_user')
+    // Detach the studio layout from this account; the next sign-in loads its own.
+    void bindStudioStoreToUser(null)
     setToken(null)
     setUser(null)
   }
