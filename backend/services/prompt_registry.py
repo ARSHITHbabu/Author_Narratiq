@@ -285,6 +285,114 @@ def _suggestions_v2(**_ignored) -> str:
     )
 
 
+# ══════════════════════════════════════════════════════════════════════════
+# Continuity check prompt (task 5.14). Registered from v2 onwards: before
+# Stage 5 the continuity prompt was not versioned, so there is no v1 entry
+# and check_continuity resolves with "v2" as its fallback. Builders return
+# (system, instructions); the caller assembles the data blocks around them.
+# ══════════════════════════════════════════════════════════════════════════
+
+_CONTINUITY_SYSTEM_V2 = (
+    "You are a continuity editor reviewing a manuscript for internal contradictions. "
+    "Be specific: quote the conflicting facts and cite chapter numbers. Reason about "
+    "CAUSE AND EFFECT, not just surface facts — a character acting against an "
+    "established motivation, or a setup (promise, threat, planted object, stated goal) "
+    "that is contradicted rather than paid off, is as real a continuity problem as a "
+    "changed eye color or an impossible travel time."
+)
+
+_CONTINUITY_INSTRUCTIONS_V2 = (
+    "Identify contradictions in: character appearance, character locations, "
+    "world rules, timeline, character motivation/arc consistency, and relationship "
+    "consistency. Return a JSON array of objects with keys:\n"
+    '  "type": one of character_appearance | character_location | world_rule | timeline '
+    '| motivation | relationship\n'
+    '  "description": specific description of the contradiction\n'
+    '  "chapter_refs": array of chapter numbers involved\n'
+    '  "severity": high | medium | low\n'
+    '  "resolution_hint": a concrete, specific suggestion naming exactly what to change '
+    "and where — never a generic line like 'add more detail' or 'clarify this'\n"
+    "If no contradictions found, return an empty array []. "
+    "Return ONLY the JSON array."
+)
+
+
+def _continuity_v2(**_ignored) -> tuple[str, str]:
+    return _CONTINUITY_SYSTEM_V2, _CONTINUITY_INSTRUCTIONS_V2
+
+
+def _continuity_v3(signals_block: str = "", **_ignored) -> tuple[str, str]:
+    """v3 adds the deterministic timeline / narrative-structure signals
+    (services/timeline_signals.py, services/narrative_signals.py) as
+    candidates the model must verify. With no signals it is identical to v2."""
+    if not signals_block:
+        return _CONTINUITY_SYSTEM_V2, _CONTINUITY_INSTRUCTIONS_V2
+    system = _CONTINUITY_SYSTEM_V2 + (
+        " You are also given machine-detected candidate problems. They are hints, "
+        "not findings: confirm each one against the chapter data before reporting it, "
+        "and silently drop any you cannot confirm. A flashback, a time skip, a dream or "
+        "a deliberate unreliable narrator is not a contradiction."
+    )
+    instructions = signals_block + "\n\n" + _CONTINUITY_INSTRUCTIONS_V2 + (
+        " A setup that is never paid off, or a character who vanishes without explanation, "
+        "is reported with type \"motivation\" only if you can confirm it from the chapter data."
+    )
+    return system, instructions
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# v3 — Stage 5 live-review fix D4 (style "Thriller" came back unchanged).
+# Only style changes; every other transform reuses its v2 builder, so
+# switching to v3 never moves another transform back to v1.
+# ══════════════════════════════════════════════════════════════════════════
+
+# The style picker (frontend/lib/transforms.ts STYLES) offers genre/mode
+# targets, not authors (author-inspired rewriting is its own transform).
+# v2 framed every target as "the literary style of X" and forbade genre
+# markers and new imagery, which pushes a GENRE target towards a no-op.
+# v3 names the craft levers for each known mode instead.
+_STYLE_LEVERS_V3 = {
+    "thriller": "short, punchy sentences and paragraphs; urgency and forward momentum; "
+                "tension from withheld information and a sense of threat or a ticking clock; "
+                "active verbs; cut reflective asides that slow the pace",
+    "noir": "hard-boiled, clipped narration; a cynical, world-weary sensibility; "
+            "terse, concrete description with occasional sharp simile; moral ambiguity",
+    "gothic": "brooding atmosphere and dread; ornate, darker diction; decay, shadow and "
+              "confinement in the description of setting; heightened interior unease",
+    "pulp": "fast, vivid, visceral prose; strong verbs; high energy; action foregrounded",
+    "minimalist": "spare, precise sentences; cut adjectives, adverbs and explanation; "
+                  "let concrete action and subtext carry the feeling",
+    "lyrical": "musical rhythm and cadence; sound patterning; richer imagery drawn from "
+               "what is already in the passage; longer flowing sentences where it serves the moment",
+    "literary": "layered, introspective narration; precise, resonant diction; attention to "
+                "interiority and subtext",
+    "contemporary": "modern, accessible, plain-spoken prose; current idiom; clear, direct sentences",
+}
+
+
+def _style_v3(style: str, genre_context: str,
+              preservation_clause: str = "", strength_clause: str = "", **_ignored) -> str:
+    levers = _STYLE_LEVERS_V3.get((style or "").strip().lower())
+    if levers is None:
+        # Unknown / free-text target: the v2 wording, unchanged.
+        return _style_v2(style, genre_context, preservation_clause=preservation_clause,
+                         strength_clause=strength_clause)
+    base = (
+        f"Rewrite this passage so it clearly reads as {style} prose. Use these craft "
+        f"levers: {levers}. The change must be noticeable to a reader — restructuring "
+        "sentences and changing rhythm and diction is expected, not just swapping a few "
+        "words. Keep every event, character, fact and line of dialogue content the "
+        "same; do not add plot. Dialogue may be tightened only if the preservation "
+        "rules allow it, and a character's own voice must stay recognisable. Return "
+        "ONLY the rewritten passage."
+    )
+    if preservation_clause:
+        base += f" {preservation_clause}"
+    if strength_clause:
+        base += f" {strength_clause}"
+    return _with_genre(base, genre_context)
+
+
 def register_version(version: str, builders: dict[str, Callable]) -> None:
     """Add a new, additive version to the registry. Never call this to
     overwrite an existing version — that would defeat the whole point of
@@ -339,4 +447,13 @@ register_version("v2", {
     "translate": _translate_v2,
     "suggestions": _suggestions_v2,
     "author_style": _author_style_v1,  # unchanged — see _author_style_v1's own docstring
+    "continuity": _continuity_v2,  # the exact prompt check_continuity used before registration
+})
+
+# v3 (Stage 5, D4 + 5.14): every v2 transform is carried over; only style and
+# continuity get new builders. The config default is "v3" with fallback "v2".
+register_version("v3", {
+    **PROMPT_REGISTRY["v2"],
+    "style": _style_v3,
+    "continuity": _continuity_v3,
 })

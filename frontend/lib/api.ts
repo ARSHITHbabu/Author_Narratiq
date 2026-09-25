@@ -340,6 +340,9 @@ export const analysisApi = {
     api.post(`/api/stories/${storyId}/plot-holes`),
   getManuscriptReport: (storyId: string) =>
     api.post(`/api/stories/${storyId}/manuscript-report`),
+  // Stage 5 (D2): the last saved report; 404 when none has been generated yet.
+  getSavedManuscriptReport: (storyId: string) =>
+    api.get(`/api/stories/${storyId}/manuscript-report`),
 }
 
 // ── Copyright / Plagiarism Risk Detection ─────────────────────────────────────
@@ -431,6 +434,8 @@ export const storyBibleApi = {
 // ── Phase 2 — Narrative Threads (P2-07) ──────────────────────────────────────
 export const narrativeThreadsApi = {
   scan:   (storyId: string)                              => api.post(`/api/stories/${storyId}/narrative-threads/scan`),
+  // Stage 5 (D1): the latest scan's outcome — none | pending | running | completed | completed_empty | failed.
+  scanStatus: (storyId: string)                          => api.get(`/api/stories/${storyId}/narrative-threads/scan-status`),
   list:   (storyId: string, status?: string)             => api.get(`/api/stories/${storyId}/narrative-threads`, { params: status ? { status } : {} }),
   update: (storyId: string, threadId: string, status: string) =>
     api.patch(`/api/stories/${storyId}/narrative-threads/${threadId}`, { status }),

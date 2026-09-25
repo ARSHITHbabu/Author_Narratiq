@@ -163,6 +163,17 @@ export interface TransformResult {
   name_autofix: { replace: string; with: string }[]
 }
 
+// Stage 5 (D4): the server's reason when a Style rewrite came back almost
+// identical twice (backend ai_service._NEAR_NOOP_REASON). It is a no_change
+// result, but NOT "already reads that way", so it is shown as-is.
+export const NEAR_NOOP_REASON_PREFIX = 'The AI could not find a meaningful change'
+
+// The one message to show an author for a no_change result.
+export function noChangeMessage(reason: string | null | undefined): string {
+  if (reason && reason.startsWith(NEAR_NOOP_REASON_PREFIX)) return reason
+  return reason ? `Already reads that way — ${reason}` : 'This already reads that way — no change made.'
+}
+
 // Mirrors CONTROLLABLE_GROUPS in lib/generationControls.ts (kept here too so
 // this module has no import cycle): the endpoints whose schema accepts `controls`.
 const CONTROLS_GROUPS: GroupId[] = ['tone', 'emotion', 'age_adapt', 'style']

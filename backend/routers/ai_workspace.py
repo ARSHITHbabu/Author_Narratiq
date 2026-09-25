@@ -13,7 +13,6 @@ AI preferences (P3-05 / P3-10). Every route:
 
 Pin content is read/written only through services.pin_store (§46 item 10).
 """
-from __future__ import annotations
 
 import asyncio
 import logging

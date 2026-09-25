@@ -17,8 +17,8 @@ from database import get_db
 from exceptions import AIServiceUnavailableError
 from middleware.rate_limit import limiter, get_user_id
 from middleware.concurrency import bg_ai_semaphore
-from models import Story, Chapter, ChapterSummary, NarrativeThread
-from schemas import NarrativeThreadOut, NarrativeThreadUpdate, NarrativeScanResponse
+from models import Story, Chapter, ChapterSummary, NarrativeThread, NarrativeThreadScan
+from schemas import NarrativeThreadOut, NarrativeThreadUpdate, NarrativeScanResponse, NarrativeScanStatus
 from routers.auth import get_current_user, User
 from services.ai_service import (
     extract_narrative_threads_from_summaries,
@@ -38,6 +38,18 @@ _THREAD_STOP_LIST = frozenset({
 
 # Minimum cosine similarity to cluster two thread names as identical
 _CLUSTER_THRESHOLD = 0.85
+
+# Strong references to running scan tasks. asyncio keeps only a weak reference
+# to a task, so a bare create_task() can be garbage-collected mid-scan.
+_scan_tasks: set = set()
+
+_ACTIVE_SCAN_STATUSES = ("pending", "running")
+
+
+def _keep_thread_name(name: str) -> bool:
+    """At least two words and not a generic stop-listed name."""
+    cleaned = name.strip()
+    return len(cleaned.split()) >= 2 and cleaned.lower() not in _THREAD_STOP_LIST
 
 
 def _get_owned_story(story_id: str, user_id: str, db: Session) -> Story:
@@ -93,11 +105,13 @@ async def _cluster_thread_names(raw_names: list[str]) -> dict[str, str]:
     return canonical_map
 
 
-async def _run_scan_pipeline(story_id: str, user_id: str) -> int:
+async def _run_scan_pipeline(story_id: str, user_id: str, stats: Optional[dict] = None) -> int:
     """
     Full thread scan: extract → cluster → compute lifecycle → upsert DB.
-    Returns the count of threads written.
+    Returns the count of threads written. If ``stats`` is given it also gets
+    "chapters_scanned" and the extraction counters (batches_degraded, …).
     """
+    stats = stats if stats is not None else {}
     from database import SessionLocal
 
     db = SessionLocal()
@@ -114,6 +128,7 @@ async def _run_scan_pipeline(story_id: str, user_id: str) -> int:
             return 0
 
         total_chapters = max(s.chapter_number for s, _ in summaries)
+        stats["chapters_scanned"] = len(summaries)
 
         summary_dicts = [
             {
@@ -126,13 +141,13 @@ async def _run_scan_pipeline(story_id: str, user_id: str) -> int:
             for s, t in summaries
         ]
 
-        raw_thread_events = await extract_narrative_threads_from_summaries(summary_dicts)
+        raw_thread_events = await extract_narrative_threads_from_summaries(summary_dicts, stats=stats)
 
-        # Filter stop-list and very short names
+        # Filter stop-list and one-word names. (Was >= 3 words, which also
+        # dropped legitimate specific names like "Forged contract".)
         raw_thread_events = [
             e for e in raw_thread_events
-            if len(e["thread_name"].strip().split()) >= 3
-            and e["thread_name"].strip().lower() not in _THREAD_STOP_LIST
+            if _keep_thread_name(e["thread_name"])
         ]
 
         if not raw_thread_events:
@@ -219,6 +234,101 @@ async def _run_scan_pipeline(story_id: str, user_id: str) -> int:
         db.close()
 
 
+def _scan_outcome(threads_written: int, stats: dict) -> str:
+    """completed | completed_empty | failed. Zero threads only counts as a real
+    "nothing found" if at least one batch was actually read: when every batch
+    was unreadable, saying "no threads" would be the silent-fallback lie."""
+    if threads_written:
+        return "completed"
+    batches = int(stats.get("batches", 0))
+    if batches and int(stats.get("batches_failed", 0)) >= batches:
+        return "failed"
+    return "completed_empty"
+
+
+def _scan_status_out(scan: Optional[NarrativeThreadScan]) -> NarrativeScanStatus:
+    if scan is None:
+        return NarrativeScanStatus(status="none")
+    return NarrativeScanStatus(
+        scan_id=scan.scan_id, status=scan.status,
+        threads_written=scan.threads_written or 0, chapters_scanned=scan.chapters_scanned or 0,
+        batches_degraded=scan.batches_degraded or 0, error_code=scan.error_code,
+        started_at=scan.started_at, finished_at=scan.finished_at,
+    )
+
+
+def _finish_scan(scan_id: str, *, status: str, threads: int = 0, stats: Optional[dict] = None,
+                 error_code: Optional[str] = None) -> None:
+    """Record a scan's outcome on its own short-lived session."""
+    from database import SessionLocal
+
+    db = SessionLocal()
+    try:
+        scan = db.query(NarrativeThreadScan).filter(NarrativeThreadScan.scan_id == scan_id).first()
+        if scan is None:          # story deleted mid-scan (row cascaded away)
+            return
+        stats = stats or {}
+        scan.status           = status
+        scan.threads_written  = threads
+        scan.chapters_scanned = int(stats.get("chapters_scanned", scan.chapters_scanned or 0))
+        scan.batches_degraded = int(stats.get("batches_degraded", 0)) + int(stats.get("batches_failed", 0))
+        scan.error_code       = error_code
+        scan.finished_at      = datetime.utcnow()
+        db.commit()
+    finally:
+        db.close()
+
+
+def _mark_scan_running(scan_id: str) -> None:
+    from database import SessionLocal
+
+    db = SessionLocal()
+    try:
+        scan = db.query(NarrativeThreadScan).filter(NarrativeThreadScan.scan_id == scan_id).first()
+        if scan is not None:
+            scan.status = "running"
+            db.commit()
+    finally:
+        db.close()
+
+
+def _claim_scan(story_id: str, user_id: str, db: Session) -> tuple[NarrativeThreadScan, bool]:
+    """Return (scan, started_new). One scan per story at a time: if the story's
+    scan row is pending/running, it is returned unchanged and nothing new starts.
+    The row is one-per-story (UNIQUE story_id); a new scan reuses it. Locking the
+    row (FOR UPDATE) serialises two simultaneous requests; a first-ever insert
+    race is caught by the unique constraint."""
+    from sqlalchemy.exc import IntegrityError
+
+    scan = (db.query(NarrativeThreadScan)
+              .filter(NarrativeThreadScan.story_id == story_id)
+              .with_for_update().first())
+    if scan is not None and scan.status in _ACTIVE_SCAN_STATUSES:
+        db.commit()   # release the row lock
+        return scan, False
+    now = datetime.utcnow()
+    if scan is None:
+        scan = NarrativeThreadScan(story_id=story_id, user_id=user_id)
+        db.add(scan)
+    scan.scan_id          = str(uuid.uuid4())
+    scan.user_id          = user_id
+    scan.status           = "pending"
+    scan.threads_written  = 0
+    scan.chapters_scanned = 0
+    scan.batches_degraded = 0
+    scan.error_code       = None
+    scan.started_at       = now
+    scan.finished_at      = None
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        existing = db.query(NarrativeThreadScan).filter(NarrativeThreadScan.story_id == story_id).first()
+        return existing, False
+    db.refresh(scan)
+    return scan, True
+
+
 @router.post("/{story_id}/narrative-threads/scan", response_model=NarrativeScanResponse)
 @limiter.limit(settings.rate_limit_background_ai, key_func=get_user_id)
 async def scan_narrative_threads(
@@ -231,7 +341,11 @@ async def scan_narrative_threads(
     Scan all chapter summaries with Qwen to extract and track narrative threads.
     Thread names are deduplicated via BGE-M3 cosine clustering.
     Dead-end threads are flagged automatically. Results are upserted — safe to re-run.
-    Returns a job_id immediately; scan runs as a background task.
+
+    Returns immediately; the scan runs in the background. Poll
+    GET /{story_id}/narrative-threads/scan-status for the outcome. If a scan is
+    already pending or running for this story, that scan's id is returned
+    (HTTP 200, same job_id) and no second scan is started.
     """
     _get_owned_story(story_id, current_user.user_id, db)
 
@@ -246,21 +360,48 @@ async def scan_narrative_threads(
             detail="No indexed chapters found. Index at least one chapter first.",
         )
 
-    job_id = str(uuid.uuid4())
+    scan, started_new = _claim_scan(story_id, current_user.user_id, db)
+    if not started_new:
+        return NarrativeScanResponse(job_id=scan.scan_id, status=scan.status)
+
+    scan_id = scan.scan_id
+    user_id = current_user.user_id
 
     async def _bg():
+        stats: dict = {}
         try:
             async with bg_ai_semaphore():
-                count = await _run_scan_pipeline(story_id, current_user.user_id)
+                _mark_scan_running(scan_id)
+                count = await _run_scan_pipeline(story_id, user_id, stats=stats)
+            _finish_scan(scan_id, status=_scan_outcome(count, stats), threads=count, stats=stats,
+                         error_code="unreadable" if _scan_outcome(count, stats) == "failed" else None)
             logger.info("[narrative_threads] scan complete for %s: %d thread(s) written", story_id[:8], count)
         except AIServiceUnavailableError as exc:
             logger.warning("[narrative_threads] AI unavailable for %s: %s", story_id[:8], exc)
+            _finish_scan(scan_id, status="failed", stats=stats, error_code="ai_unavailable")
         except Exception as exc:
-            logger.error("[narrative_threads] scan failed for %s: %s", story_id[:8], exc)
+            logger.error("[narrative_threads] scan failed for %s: %s", story_id[:8], type(exc).__name__)
+            _finish_scan(scan_id, status="failed", stats=stats, error_code="scan_error")
 
-    asyncio.create_task(_bg())
+    task = asyncio.create_task(_bg())
+    _scan_tasks.add(task)
+    task.add_done_callback(_scan_tasks.discard)
 
-    return NarrativeScanResponse(job_id=job_id, status="processing")
+    return NarrativeScanResponse(job_id=scan_id, status="pending")
+
+
+@router.get("/{story_id}/narrative-threads/scan-status", response_model=NarrativeScanStatus)
+def get_scan_status(
+    story_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Latest thread scan for this story: none | pending | running | completed |
+    completed_empty | failed. Lets the UI show an honest outcome, and resume
+    waiting after the author navigates away and back."""
+    _get_owned_story(story_id, current_user.user_id, db)
+    scan = db.query(NarrativeThreadScan).filter(NarrativeThreadScan.story_id == story_id).first()
+    return _scan_status_out(scan)
 
 
 @router.get("/{story_id}/narrative-threads", response_model=list[NarrativeThreadOut])
