@@ -244,17 +244,14 @@ fi
 # occupancy, so a stuck/broken service is caught rather than mistaken for healthy.
 hdr "Service Health"
 
-# ss, then netstat, then a direct loopback connect via bash's /dev/tcp. Before
-# this fallback existed, a host with neither ss nor netstat reported every running
-# service as NOT STARTED and could exit 0 without checking a single service.
+# ss, then netstat, then a direct loopback connect via bash's /dev/tcp — each tried
+# in turn, so a missing or restricted tool falls through to the next. Before the
+# /dev/tcp fallback existed, a host with neither ss nor netstat reported every
+# running service as NOT STARTED and could exit 0 without checking a single service.
 port_listening() {
-    if command -v ss &>/dev/null; then
-        ss -tln 2>/dev/null | grep -q ":$1 "
-    elif command -v netstat &>/dev/null; then
-        netstat -tln 2>/dev/null | grep -q ":$1 "
-    else
-        timeout 2 bash -c "exec 3<>/dev/tcp/127.0.0.1/$1" 2>/dev/null
-    fi
+    { command -v ss &>/dev/null && ss -tln 2>/dev/null | grep -q ":$1 "; } ||
+    { command -v netstat &>/dev/null && netstat -tln 2>/dev/null | grep -q ":$1 "; } ||
+    timeout 2 bash -c "exec 3<>/dev/tcp/127.0.0.1/$1" 2>/dev/null
 }
 
 VLLM_UP=0

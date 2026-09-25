@@ -106,7 +106,7 @@ the pod; nothing here reads or writes story, chapter or user data.
 | Required environment | The pod, plus the author's password manager or secret store |
 | Preconditions | MV-2.2-A done (you know which key is live) |
 | Test data | None |
-| Procedure | Follow [`runpod-environment-variables.md` §3.3, "Storing `SECRET_KEY` outside the pod"](../../operations/runpod-environment-variables.md) steps 1–3 exactly: copy via clipboard, never on screen, and verify by SHA-256 comparison |
+| Procedure | Follow [`runpod-environment-variables.md` §3.3, "Storing `SECRET_KEY` outside the pod"](../../operations/runpod-environment-variables.md) steps 1–3 exactly: copy via clipboard, never on screen, and verify by SHA-256 comparison. **Hash the live copy:** if MV-2.2-A found `SECRET_KEY` in the OS env, the pod-side hash is `printf '%s' "$SECRET_KEY" \| sha256sum` (the OS value wins over `backend/.env`); only otherwise hash the `backend/.env` line |
 | Expected result | The two SHA-256 hashes match |
 | Failure indicators | Hashes differ (a stray newline is the usual cause: re-check the `tr -d '\n'`); the value was displayed anywhere (then rotate it, per step 5) |
 | Evidence to capture | The statement "hashes match on <date>", and the name of the store. **Not** the hash itself in any shared document |

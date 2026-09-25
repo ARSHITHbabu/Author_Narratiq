@@ -214,8 +214,9 @@ Jupyter/web-terminal scrollback, in a log, or in any chat or AI transcript.
    entry. If the live key is the OS-env one, copy it from the RunPod UI field instead.
    Avoid commands that print it (`cat`, `echo $SECRET_KEY`, `env`, `printenv`); a leading space
    before a command does not reliably keep it out of history on RunPod's shells.
-3. **Verify by hash only.** On the pod:
-   `grep "^SECRET_KEY=" backend/.env | cut -d= -f2- | tr -d '\n' | sha256sum`
+3. **Verify by hash only — of the live key.** On the pod, hash whichever copy step 1 found to be live:
+   - if `SECRET_KEY` is in the OS env (RunPod UI): `printf '%s' "$SECRET_KEY" | sha256sum`
+   - otherwise (`backend/.env` governs): `grep "^SECRET_KEY=" backend/.env | cut -d= -f2- | tr -d '\n' | sha256sum`
    and compare with the same hash of the stored copy on your machine (paste into
    `sha256sum` via the clipboard, e.g. `pbpaste | tr -d '\n' | shasum -a 256`). Matching hashes are the evidence.
 4. **Restore after a reset:** paste the stored value into the RunPod UI `SECRET_KEY` field (preferred —
