@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Wand2, Palette, Heart, Users, Type, Globe, BookOpen,
   Copy, Check, Loader2, X, ArrowDownToLine,
-  Play, List, Sparkles, Lock, Unlock,
+  Play, List, Sparkles, Lock, Unlock, Pin as PinIcon,
 } from 'lucide-react'
 import { aiApi, continuationApi, outlineApi } from '@/lib/api'
 import { TransformResponse, ContinuationSuggestion, OutlineBeat, GenreProfile } from '@/lib/types'
@@ -13,6 +13,13 @@ import { toast } from 'sonner'
 // Selection Toolbar). No duplicated option lists across components.
 import { TONES, EMOTIONS, STYLES, LANGUAGES, REFINE_MODES, AUDIENCES, AUTHOR_STYLES, STRENGTH_LEVELS, splitSentences, type StrengthLevel } from '@/lib/transforms'
 import { deriveToolDefaults, NEUTRAL_DEFAULTS, hasGenreProfile } from '@/lib/genreDefaults'
+import { P3_ENABLED, buildControls } from '@/lib/generationControls'
+import { useGenerationStore } from '@/lib/generationStore'
+import GenerationWarnings, { applyNameFixes } from '@/components/generation/GenerationWarnings'
+import PinActions, { type PinSource } from '@/components/generation/PinActions'
+import PreservationRulesPopover from '@/components/generation/PreservationRulesPopover'
+import VersionsPanel from '@/components/generation/VersionsPanel'
+import { useStoryContext } from '@/components/studio/StoryContextEngine'
 
 interface Props {
   storyId: string
@@ -29,14 +36,17 @@ interface Props {
   // When this prop is supplied it is the single truth for BOTH the banner and the
   // transform, so what the author is told and what the AI receives cannot diverge.
   // Omit it and the component behaves exactly as before.
-  liveSelection?: { text: string } | null
+  liveSelection?: { text: string; from?: number; to?: number } | null
 }
 
-type TabId = 'refine' | 'tone' | 'emotion' | 'age' | 'style' | 'author' | 'translate' | 'continue' | 'outline'
+type TabId = 'refine' | 'tone' | 'emotion' | 'age' | 'style' | 'author' | 'translate' | 'continue' | 'outline' | 'versions'
 
 // Stage 5 (tasks 5.4/5.6) — tabs whose endpoint accepts strength + locked_ranges.
 // Same set as LOCKABLE_GROUPS in lib/transforms.ts, in this component's tab ids.
 const LOCKABLE_TABS: TabId[] = ['tone', 'age', 'style']
+// Phase 3 — tabs whose endpoint accepts `controls` (lib/generationControls CONTROLLABLE_GROUPS).
+const CONTROLLABLE_TABS: TabId[] = ['tone', 'emotion', 'age', 'style']
+const TAB_TOOL: Partial<Record<TabId, string>> = { tone: 'tone', emotion: 'emotion', age: 'age_adapt', style: 'style' }
 
 const TABS = [
   { id: 'refine'    as TabId, label: 'Refine',    icon: Wand2    },
@@ -48,6 +58,7 @@ const TABS = [
   { id: 'translate' as TabId, label: 'Translate', icon: Globe    },
   { id: 'continue'  as TabId, label: 'Continue',  icon: Play     },
   { id: 'outline'   as TabId, label: 'Outline',   icon: List     },
+  ...(P3_ENABLED ? [{ id: 'versions' as TabId, label: 'Versions', icon: PinIcon }] : []),
 ]
 
 function ResultPanel({
@@ -55,11 +66,15 @@ function ResultPanel({
   hasSelection,
   onClose,
   onInsert,
+  pinSource,
+  onAutofix,
 }: {
   result: TransformResponse
   hasSelection: boolean
   onClose: () => void
   onInsert?: (text: string) => void
+  pinSource?: PinSource | null
+  onAutofix?: (fixes: { replace: string; with: string }[]) => void
 }) {
   const [copied, setCopied] = useState(false)
 
@@ -97,6 +112,15 @@ function ResultPanel({
         </p>
       </div>
 
+      {(result.warnings?.length ?? 0) > 0 && (
+        <div className="mx-3 mb-2"><GenerationWarnings warnings={result.warnings!} onAutofix={onAutofix} /></div>
+      )}
+      {!(result.warnings?.length) && (result.preservation_violations?.length ?? 0) > 0 && (
+        <p className="mx-3 mb-2 text-[11px] text-red-300 bg-red-500/10 border border-red-500/30 rounded px-2 py-1.5">
+          Could not confirm these character names were preserved: {result.preservation_violations!.join(', ')}.
+        </p>
+      )}
+      {pinSource && <div className="mx-3 mb-2"><PinActions source={pinSource} /></div>}
       {result.strength_violation && (
         <p data-testid="sidebar-strength-warning" className="mx-3 mb-2 text-[11px] text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded px-2 py-1.5">
           This rewrite changed more than the selected strength usually allows — review before applying.
@@ -123,6 +147,10 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
   const [activeTab, setActiveTab] = useState<TabId>('refine')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<TransformResponse | null>(null)
+  const [pinSource, setPinSource] = useState<PinSource | null>(null)
+  const gen = useGenerationStore()
+  const { editor } = useStoryContext()
+  useEffect(() => { gen.setStory(storyId) }, [storyId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Genre-aware defaults: start from the story's detected genre profile so the
   // tools open on sensible, genre-matched selections. With no profile these are
@@ -241,20 +269,56 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
     }
     setLoading(true)
     setResult(null)
+    setPinSource(null)
+    // Phase 3 — controls only for the tabs whose endpoint accepts them. Same
+    // rules as the floating toolbar: selected context/avoid pins, this
+    // session's earlier attempts as the avoid-set, surrounding text for voice.
+    const tool = TAB_TOOL[activeTab]
+    const useP3 = P3_ENABLED && CONTROLLABLE_TABS.includes(activeTab) && !!tool
+    const range = liveSelection && typeof liveSelection.from === 'number' && typeof liveSelection.to === 'number' && sel.trim()
+      ? { from: liveSelection.from, to: liveSelection.to! } : null
+    const contextPinIds = useP3 ? [...gen.contextPinIds] : []
+    const p3 = useP3 ? { chapterId, controls: buildControls({
+      contextPinIds, avoidPinIds: gen.avoidPinIds, avoidTexts: gen.recentTexts(chapterId, tool!),
+      localContext: range ? editor?.getSurroundingText?.(range.from, range.to) : undefined,
+    }) } : undefined
+    const toolParams: Record<string, unknown> =
+      activeTab === 'tone' ? { tone: selectedTone.toLowerCase() } : activeTab === 'emotion' ? { emotion: selectedEmotion.toLowerCase(), intensity }
+      : activeTab === 'age' ? { target_age: selectedAge } : activeTab === 'style' ? { style: selectedStyle.toLowerCase() } : {}
     try {
       let res
       switch (activeTab) {
         case 'refine': res = await aiApi.refine(text, refineMode, storyId, chapterId); break
-        case 'tone': res = await aiApi.tone(text, selectedTone.toLowerCase(), storyId, lock); break
-        case 'emotion': res = await aiApi.emotion(text, selectedEmotion.toLowerCase(), intensity, storyId); break
-        case 'age': res = await aiApi.ageAdapt(text, selectedAge, storyId, lock); break
-        case 'style': res = await aiApi.style(text, selectedStyle.toLowerCase(), storyId, lock); break
+        case 'tone': res = await aiApi.tone(text, selectedTone.toLowerCase(), storyId, lock, p3); break
+        case 'emotion': res = await aiApi.emotion(text, selectedEmotion.toLowerCase(), intensity, storyId, p3); break
+        case 'age': res = await aiApi.ageAdapt(text, selectedAge, storyId, lock, p3); break
+        case 'style': res = await aiApi.style(text, selectedStyle.toLowerCase(), storyId, lock, p3); break
         case 'author': res = await aiApi.authorStyle(text, selectedAuthor, storyId, chapterId); break
         case 'translate': res = await aiApi.translate(text, selectedLang, storyId); break
       }
-      setResult(res?.data || null)
+      const data: TransformResponse | null = res?.data || null
+      if (data?.failed) {
+        // Lock contract failure: the server returned the original text. Say so;
+        // never present the unchanged text as a rewrite. Locks stay as they are.
+        toast.error(data.reason || 'Those sentences could not be rewritten safely with the current locks. Nothing was changed.')
+        return
+      }
+      setResult(data)
+      if (data && useP3 && !data.no_change) {
+        const sessionId = `${Date.now()}`
+        const priorAttempts = gen.recentTexts(chapterId, tool!).length
+        gen.record({ id: sessionId, text: data.transformed, tool: tool!, toolParams, chapterId, sourceText: text,
+                     sourceFrom: range?.from ?? null, sourceTo: range?.to ?? null, createdAt: Date.now(), contextPinIds })
+        setPinSource({ text: data.transformed, tool: tool!, toolParams, chapterId, sourceText: text,
+                       sourceFrom: range?.from ?? null, sourceTo: range?.to ?? null, derivedFromPinIds: contextPinIds, sessionId })
+        if (priorAttempts >= 1 && !gen.firstRunHintShown) {
+          gen.markHintShown()
+          toast.info('Only pinned versions are kept. Everything else disappears when you refresh.')
+        }
+      }
     } catch (err: any) {
-      toast.error(err?.response?.data?.detail || 'AI transformation failed')
+      const d = err?.response?.data?.detail
+      toast.error(typeof d === 'string' ? d : 'The AI could not complete this right now. Your text is unchanged.')
     } finally {
       setLoading(false)
     }
@@ -281,6 +345,7 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
       translate: `Translate to ${selectedLang}`,
       continue:  'Generate Continuations',
       outline:   'Generate Outline',
+      versions:  '',
     }
     return actionMap[activeTab]
   })()
@@ -344,6 +409,21 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
 
       {/* Tab Content */}
       <div className="flex-1 overflow-y-auto p-4">
+
+        {P3_ENABLED && CONTROLLABLE_TABS.includes(activeTab) && (
+          <div className="mb-4 space-y-2">
+            <PreservationRulesPopover storyId={storyId} />
+            {(gen.contextPinIds.length > 0 || gen.avoidPinIds.length > 0) && (
+              <p data-testid="sidebar-context-bar" className="text-[11px] text-sky-200 bg-sky-500/10 border border-sky-500/30 rounded-lg px-2.5 py-1.5">
+                {gen.contextPinIds.length > 0 && `Using ${gen.contextPinIds.length} pinned version${gen.contextPinIds.length === 1 ? '' : 's'} as context. `}
+                {gen.avoidPinIds.length > 0 && `Avoiding ideas like ${gen.avoidPinIds.length}. `}
+                <button className="underline" onClick={() => setActiveTab('versions')}>Change in Versions</button>
+              </p>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'versions' && <VersionsPanel selectedText={readSelection()} />}
 
         {LOCKABLE_TABS.includes(activeTab) && (
           <div data-testid="sidebar-lock-strength" className="mb-4 space-y-3 rounded-xl border border-[#1f2440] p-3">
@@ -688,7 +768,7 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
         )}
 
         {/* Run button — only for transform tabs */}
-        {!(['continue', 'outline'] as TabId[]).includes(activeTab) && (
+        {!(['continue', 'outline', 'versions'] as TabId[]).includes(activeTab) && (
           <button
             onClick={run}
             disabled={loading}
@@ -712,8 +792,13 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
           <ResultPanel
             result={result}
             hasSelection={hadSelection}
-            onClose={() => setResult(null)}
+            onClose={() => { setResult(null); setPinSource(null) }}
             onInsert={insertText}
+            pinSource={pinSource}
+            onAutofix={(fixes) => {
+              setResult((r) => (r ? { ...r, transformed: applyNameFixes(r.transformed, fixes), warnings: (r.warnings ?? []).filter((w) => !w.autofix) } : r))
+              setPinSource((p) => (p ? { ...p, text: applyNameFixes(p.text, fixes) } : p))
+            }}
           />
         )}
       </div>

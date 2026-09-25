@@ -5,6 +5,8 @@ import { Chapter } from '@/lib/types'
 import { Plus, Trash2, Edit3, Check, X, BookOpen, Loader2 } from 'lucide-react'
 import { chaptersApi } from '@/lib/api'
 import { toast } from 'sonner'
+import { ChapterIdeasList, ChapterIdeasMarker, useChapterIdeas } from '@/components/ideas/ChapterIdeas'
+import { P3_ENABLED } from '@/lib/generationControls'
 
 interface Props {
   storyId: string
@@ -20,6 +22,9 @@ export default function ChapterSidebar({ storyId, chapters, activeChapterId, onS
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState('')
   const [loading, setLoading] = useState<string | null>(null)
+  // Phase 3 Idea Shelf markers: "N ideas waiting" per chapter.
+  const { byChapter: ideasByChapter, reload: reloadIdeas } = useChapterIdeas(storyId)
+  const [ideasOpenFor, setIdeasOpenFor] = useState<string | null>(null)
 
   const addChapter = async () => {
     if (!newTitle.trim()) return
@@ -97,8 +102,8 @@ export default function ChapterSidebar({ storyId, chapters, activeChapterId, onS
 
       <div className="flex-1 overflow-y-auto py-2">
         {chapters.map((ch) => (
+          <div key={ch.chapter_id}>
           <div
-            key={ch.chapter_id}
             className={`group flex items-center gap-2 px-3 py-2 mx-2 rounded-lg cursor-pointer transition-all ${
               activeChapterId === ch.chapter_id
                 ? 'bg-amber-500/10 border border-amber-500/20'
@@ -135,8 +140,13 @@ export default function ChapterSidebar({ storyId, chapters, activeChapterId, onS
                   }`}>
                     {ch.title}
                   </div>
-                  <div className="text-xs text-[#3d4466] mt-0.5">
+                  <div className="text-xs text-[#3d4466] mt-0.5 flex items-center gap-1.5">
                     {ch.word_count > 0 ? `${ch.word_count} words` : 'Empty'}
+                    {P3_ENABLED && (
+                      <ChapterIdeasMarker count={ideasByChapter[ch.chapter_id]?.length ?? 0}
+                        open={ideasOpenFor === ch.chapter_id}
+                        onToggle={() => setIdeasOpenFor((o) => (o === ch.chapter_id ? null : ch.chapter_id))} />
+                    )}
                   </div>
                 </div>
                 {loading === ch.chapter_id ? (
@@ -163,6 +173,10 @@ export default function ChapterSidebar({ storyId, chapters, activeChapterId, onS
                 )}
               </>
             )}
+          </div>
+          {P3_ENABLED && ideasOpenFor === ch.chapter_id && (ideasByChapter[ch.chapter_id]?.length ?? 0) > 0 && (
+            <ChapterIdeasList ideas={ideasByChapter[ch.chapter_id]} onUsed={reloadIdeas} />
+          )}
           </div>
         ))}
 

@@ -1,0 +1,223 @@
+{
+  "checks": {
+    "legacy request (no controls) unchanged shape": {
+      "pass": true,
+      "evidence": {
+        "status": 200,
+        "ms": 801
+      }
+    },
+    "C7-6 foreign story_id \u2261 nonexistent (404, same body)": {
+      "pass": true,
+      "evidence": {
+        "foreign": 404,
+        "missing": 404
+      }
+    },
+    "P3-08 grounded generation": {
+      "pass": true,
+      "evidence": {
+        "context_used": {
+          "characters": [
+            "Elara"
+          ],
+          "facts": 1,
+          "voice": {
+            "level": "light",
+            "fingerprint": true
+          },
+          "tokens_estimate": 249
+        },
+        "warnings": [],
+        "ms": 1537
+      }
+    },
+    "P3-10 light voice from story_dna by default": {
+      "pass": true,
+      "evidence": {
+        "level": "light",
+        "fingerprint": true
+      }
+    },
+    "P3-01 pin created with expiry": {
+      "pass": true,
+      "evidence": {
+        "expires_at": "2026-10-02T07:51:33.476688",
+        "limits": {
+          "used": 1,
+          "max": 20,
+          "plan": "free"
+        }
+      }
+    },
+    "P3-11 background pin embedding stored (D4 on)": {
+      "pass": true,
+      "evidence": true
+    },
+    "isolation: B reading A's pin \u2261 missing": {
+      "pass": true,
+      "evidence": "404/404"
+    },
+    "P3-03 pinned version used as context": {
+      "pass": true,
+      "evidence": {
+        "characters": [
+          "Kira"
+        ],
+        "facts": 1,
+        "pins": 1,
+        "voice": {
+          "level": "light",
+          "fingerprint": true
+        },
+        "tokens_estimate": 388
+      }
+    },
+    "P3-06 variation generated from a pin; anti-echo measured": {
+      "pass": true,
+      "evidence": {
+        "anti_echo_vs_parent": 0.2429,
+        "echo_warning": false
+      }
+    },
+    "P3-06 lineage recorded": {
+      "pass": true,
+      "evidence": {
+        "root_pin_id": "fe0edba7-99c3-4e0e-88db-b0304ba3e4e8",
+        "lineage_depth": 1,
+        "parent_pin_id": "fe0edba7-99c3-4e0e-88db-b0304ba3e4e8"
+      }
+    },
+    "P3-11 similarity finds the identical pin": {
+      "pass": true,
+      "evidence": [
+        {
+          "pin_id": "fe0edba7-99c3-4e0e-88db-b0304ba3e4e8",
+          "text_index": null,
+          "score": 1.0,
+          "method": "lexical",
+          "label": "near_duplicate"
+        },
+        {
+          "pin_id": "335b653f-30e8-4a0f-8c82-43ab15c53697",
+          "text_index": null,
+          "score": 0.2429,
+          "method": "lexical",
+          "label": "distinct"
+        }
+      ]
+    },
+    "P3-04 AI comparison summary (best effort)": {
+      "pass": true,
+      "evidence": {
+        "available": true,
+        "summary": "Version B adds more sensory detail and conveys a sense of the corridor's vastness."
+      }
+    },
+    "P3-04 merge smoothing respects fidelity bounds": {
+      "pass": true,
+      "evidence": {
+        "smoothed": true,
+        "word_delta": 0.0,
+        "min_block_similarity": 1.0
+      }
+    },
+    "P3-09 promoted to Idea Shelf": {
+      "pass": true,
+      "evidence": {
+        "card_id": "c09a7036-073e-4f8f-b110-02f4a1a58ad8"
+      }
+    },
+    "P3-07 measured divergence improves with the avoid-set": {
+      "pass": true,
+      "evidence": {
+        "mean_pairwise_similarity_without_avoid": 0.3569,
+        "mean_pairwise_similarity_with_avoid": 0.2841,
+        "per_passage": {
+          "without_avoid": [
+            0.30456666666666665,
+            0.3937,
+            0.37229999999999996
+          ],
+          "with_avoid": [
+            0.22773333333333334,
+            0.39926666666666666,
+            0.22543333333333332
+          ]
+        }
+      }
+    },
+    "D6 strict check runs for pro and costs one extra call": {
+      "pass": true,
+      "evidence": {
+        "auto_ms": 2447,
+        "strict_ms": 3308,
+        "extra_ms": 861,
+        "extra_llm_calls": 1,
+        "strict_ran": true,
+        "strict_warnings": [
+          "The harbour lamps are lit only by the keeper."
+        ]
+      }
+    },
+    "D6 strict check refused (with notice) on free plan": {
+      "pass": true,
+      "evidence": "info warning"
+    },
+    "D5 light voice costs ~90 tokens": {
+      "pass": true,
+      "evidence": {
+        "off": 0,
+        "light": 51,
+        "strong": 51,
+        "light_minus_off": 51,
+        "strong_minus_off": 51
+      }
+    }
+  },
+  "measurements": {
+    "latency_ms": {
+      "legacy": 801,
+      "phase3_default": 1537
+    },
+    "variation_anti_echo": 0.2429,
+    "p3_07_divergence": {
+      "mean_pairwise_similarity_without_avoid": 0.3569,
+      "mean_pairwise_similarity_with_avoid": 0.2841,
+      "per_passage": {
+        "without_avoid": [
+          0.30456666666666665,
+          0.3937,
+          0.37229999999999996
+        ],
+        "with_avoid": [
+          0.22773333333333334,
+          0.39926666666666666,
+          0.22543333333333332
+        ]
+      }
+    },
+    "d6_tier2_cost": {
+      "auto_ms": 2447,
+      "strict_ms": 3308,
+      "extra_ms": 861,
+      "extra_llm_calls": 1,
+      "strict_ran": true,
+      "strict_warnings": [
+        "The harbour lamps are lit only by the keeper."
+      ]
+    },
+    "d5_voice_tokens": {
+      "off": 0,
+      "light": 51,
+      "strong": 51,
+      "light_minus_off": 51,
+      "strong_minus_off": 51
+    }
+  },
+  "expired_pin_left_for_sweep": {
+    "pin_id": "335b653f-30e8-4a0f-8c82-43ab15c53697",
+    "user_id": "3205b258-b6d3-4015-a487-3095133bac75",
+    "story_id": "9416de62-81ec-47ea-a810-e1f1e48b2051"
+  }
+}

@@ -62,6 +62,11 @@ REGISTER = {
     "generate_chapter_outline":             ("silent-fallback", "Stage 5 — generation quality"),
     "extract_narrative_threads_from_summaries": ("silent-fallback", "Stage 7 — narrative threads"),
     "services/voice/planner.py":            ("handled", None),
+    # Stage 7 (P3-04). Not complete_structured(): its retry is driven by a
+    # deterministic FIDELITY check (word delta <= 12 %, block similarity >= 0.9),
+    # not by parse success, and it falls back to the author's exact unsmoothed
+    # merge with a warning — bounded (2 attempts), logged, never silent.
+    "smooth_merge":                         ("handled", None),
     # services/voice/intent.py was here as a silent-fallback with destination
     # "task 3.6". Task 3.6 converted it to complete_structured(), so it is no
     # longer a direct caller — the register shrinking is the fix landing.

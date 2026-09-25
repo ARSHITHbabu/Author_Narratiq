@@ -38,6 +38,11 @@ import {
   clampToolbarPosition, defaultToolbarPosition, menuOpensUpward, type Point, type Size,
 } from '@/lib/toolbarPosition'
 import type { LiveSelection } from '@/components/editor/EditorWithMethods'
+import { P3_ENABLED, CONTROLLABLE_GROUPS, buildControls } from '@/lib/generationControls'
+import { useGenerationStore } from '@/lib/generationStore'
+import GenerationWarnings, { applyNameFixes } from '@/components/generation/GenerationWarnings'
+import PinActions from '@/components/generation/PinActions'
+import type { GenerationWarning } from '@/lib/types'
 
 interface Preview extends PreviewIdentity {
   text: string
@@ -48,6 +53,11 @@ interface Preview extends PreviewIdentity {
   preservationViolations: string[]
   strengthViolation: boolean
   lockedSentenceCount: number
+  // Phase 3 (Stage 7)
+  warnings: GenerationWarning[]
+  sessionId: string
+  toolParams: Record<string, unknown>
+  contextPinIds: string[]
 }
 
 interface Props {
@@ -60,6 +70,8 @@ const sameSize = (a: Size | null, b: Size) => !!a && a.width === b.width && a.he
 
 export default function SelectionToolbar({ selection, sidebarVisible }: Props) {
   const { storyId, activeChapterId, editor, logActivity, genreProfile } = useStoryContext()
+  const gen = useGenerationStore()
+  useEffect(() => { gen.setStory(storyId) }, [storyId]) // eslint-disable-line react-hooks/exhaustive-deps
   const [openGroup, setOpenGroup] = useState<GroupId | null>(null)
   const [busy, setBusy] = useState(false)
   const [intensity, setIntensity] = useState<string>('medium')
@@ -221,9 +233,20 @@ export default function SelectionToolbar({ selection, sidebarVisible }: Props) {
       : undefined
     const seq = ++requestSeq.current
     setBusy(true); setOpenGroup(null)
+    // Phase 3 — only for tools whose endpoint accepts controls. The avoid-set is
+    // this session's earlier attempts for the same tool + chapter (P3-07's quiet
+    // default); nothing about them is stored anywhere.
+    const p3 = P3_ENABLED && CONTROLLABLE_GROUPS.includes(group)
+    const contextPinIds = p3 ? [...gen.contextPinIds] : []
+    const controls = p3 ? buildControls({
+      contextPinIds, avoidPinIds: gen.avoidPinIds, avoidTexts: gen.recentTexts(chapterId, group),
+      localContext: editor?.getSurroundingText?.(from, to) ?? undefined,
+    }) : undefined
+    const toolParams: Record<string, unknown> = group === 'emotion'
+      ? { emotion: value.toLowerCase(), intensity } : group === 'age_adapt' ? { target_age: value } : { [group]: value.toLowerCase() }
     try {
       const result = await runTransform(group, value, text, {
-        storyId, chapterId, intensity,
+        storyId, chapterId, intensity, controls,
         ...(lockable ? { strength, lockedRanges } : {}),
       })
       // A newer transform was started while this one was in flight — the author is
@@ -241,19 +264,40 @@ export default function SelectionToolbar({ selection, sidebarVisible }: Props) {
         toast.info(result.reason ? `Already reads that way — ${result.reason}` : 'This already reads that way — no change made.')
         return
       }
+      // A lock-contract failure: the server returned the ORIGINAL text. Keep the
+      // current preview and the author's locks exactly as they were (P3-02).
+      if (result.failed) {
+        toast.error(result.reason ?? 'Those sentences could not be rewritten safely with the current locks. Nothing was changed.')
+        return
+      }
+      const sessionId = `${Date.now()}-${seq}`
+      if (p3) {
+        const priorAttempts = gen.recentTexts(chapterId, group).length
+        gen.record({ id: sessionId, text: result.transformed, tool: group, toolParams, chapterId, sourceText: text,
+                     sourceFrom: from, sourceTo: to, createdAt: Date.now(), contextPinIds })
+        if (priorAttempts >= 1 && !gen.firstRunHintShown) {
+          gen.markHintShown()
+          toast.info('Only pinned versions are kept. Everything else disappears when you refresh.')
+        }
+      }
       setPreview({
         text: result.transformed, from, to, group, value, chapterId, sourceText: text,
         preservationViolations: result.preservation_violations,
         strengthViolation: result.strength_violation,
         lockedSentenceCount: lockedRanges?.length ?? 0,
+        warnings: result.warnings, sessionId, toolParams, contextPinIds,
       })
       logActivity({ category: 'ai', type: `${group}_transform`, title: `AI ${group} on selection`, summary: result.transformed.slice(0, 160), ref_type: 'selection', metadata: { value, strength: lockable ? strength : undefined, locked_count: lockedRanges?.length ?? 0 } })
-    } catch {
-      if (requestSeq.current === seq) toast.error('Transform failed')
+    } catch (e: any) {
+      const d = e?.response?.data?.detail
+      if (requestSeq.current === seq) toast.error(typeof d === 'string' ? d : 'The AI could not rewrite this right now. Your text is unchanged.')
     } finally {
       if (requestSeq.current === seq) setBusy(false)
     }
   }
+
+  // P3-02 "regenerate only these": swap locked and unlocked sentences.
+  const invertLocks = () => setLockedIdx((prev) => new Set(sentenceSpans.map((_, i) => i).filter((i) => !prev.has(i))))
 
   const toggleLock = (idx: number) => {
     setLockedIdx((prev) => {
@@ -371,6 +415,9 @@ export default function SelectionToolbar({ selection, sidebarVisible }: Props) {
                               <span className="text-[10px] text-[#5c6391]">
                                 Lock sentences to keep unchanged{lockedIdx.size > 0 ? ` (${lockedIdx.size})` : ''}
                               </span>
+                              <button type="button" onClick={invertLocks} data-testid="invert-locks"
+                                title="Lock everything except the sentences picked — rewrite only those"
+                                className="ml-auto text-[10px] px-1 rounded text-[#9da3c8] hover:text-amber-300">Invert</button>
                             </div>
                             <div className="max-h-24 overflow-y-auto space-y-0.5">
                               {sentenceSpans.map((s, i) => {
@@ -426,8 +473,13 @@ export default function SelectionToolbar({ selection, sidebarVisible }: Props) {
               </p>
             </div>
             <p className="text-xs text-[#cdd2f0] leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap font-serif">{preview.text}</p>
+            {preview.warnings.length > 0 && (
+              <GenerationWarnings warnings={preview.warnings}
+                onAutofix={(fixes) => setPreview((p) => (p ? { ...p, text: applyNameFixes(p.text, fixes),
+                  warnings: p.warnings.filter((w) => !w.autofix) } : p))} />
+            )}
             {/* Task 5.3 — surface preservation warnings in the UI, not just the API. */}
-            {preview.preservationViolations.length > 0 && (
+            {preview.warnings.length === 0 && preview.preservationViolations.length > 0 && (
               <p data-testid="preservation-warning" className="flex items-start gap-1 text-[11px] text-red-300 bg-red-500/10 border border-red-500/30 rounded px-2 py-1.5">
                 <AlertTriangle className="w-3 h-3 mt-0.5 flex-shrink-0" />
                 Could not confirm these character names were preserved: {preview.preservationViolations.join(', ')}.
@@ -440,14 +492,32 @@ export default function SelectionToolbar({ selection, sidebarVisible }: Props) {
             )}
             {previewProblem && (
               <p data-testid="preview-stale" className="text-[11px] text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded px-2 py-1.5">
-                You have changed this passage since the suggestion was made, so it can no longer be applied here. Select the text again to redo it.
+                You have changed this passage since the suggestion was made, so it can no longer replace it.
+                {previewProblem === 'text-changed' && P3_ENABLED ? ' You can insert it at your cursor instead, or select the text again to redo it.' : ' Select the text again to redo it.'}
               </p>
             )}
+            {P3_ENABLED && CONTROLLABLE_GROUPS.includes(preview.group) && (
+              <PinActions source={{
+                text: preview.text, tool: preview.group, toolParams: preview.toolParams, chapterId: preview.chapterId,
+                sourceText: preview.sourceText, sourceFrom: preview.from, sourceTo: preview.to,
+                derivedFromPinIds: preview.contextPinIds, sessionId: preview.sessionId,
+              }} />
+            )}
             <div className="flex gap-2">
+              {previewProblem === 'text-changed' && P3_ENABLED ? (
+                <button data-testid="insert-at-cursor" onClick={() => {
+                  if (!editor || preview.chapterId !== activeChapterId) { toast.error('Open the chapter this suggestion was made for first.'); return }
+                  editor.insertText(preview.text); toast.success('Inserted at your cursor'); setPreview(null)
+                }}
+                  className="flex-1 text-xs py-1.5 rounded bg-amber-500 hover:bg-amber-400 text-black font-medium flex items-center justify-center gap-1">
+                  <Check className="w-3.5 h-3.5" /> Insert at cursor instead
+                </button>
+              ) : (
               <button onClick={apply} disabled={!!previewProblem}
                 className="flex-1 text-xs py-1.5 rounded bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed text-black font-medium flex items-center justify-center gap-1">
                 <Check className="w-3.5 h-3.5" /> Apply to selection
               </button>
+              )}
               <button onClick={() => setPreview(null)} className="flex-1 text-xs py-1.5 rounded border border-[#2a3057] text-[#9da3c8] hover:text-white flex items-center justify-center gap-1">
                 <X className="w-3.5 h-3.5" /> Discard
               </button>

@@ -20,6 +20,9 @@ export interface EditorMethods {
    *  Lets a caller prove a captured range still holds the words it captured
    *  before writing over it. */
   getTextInRange: (from: number, to: number) => string
+  /** Phase 3 (P3-10): up to `chars` of text either side of a range, clamped to the
+   *  document. Read-only — used as voice-matching context, never written back. */
+  getSurroundingText?: (from: number, to: number, chars?: number) => { before: string; after: string }
 }
 
 // A live selection always carries the chapter it belongs to: `from`/`to` are
@@ -77,6 +80,16 @@ export default function EditorWithMethods({
         const size = ed.state.doc.content.size
         if (from < 0 || to > size || from >= to) return ''
         return ed.state.doc.textBetween(from, to, ' ')
+      },
+      getSurroundingText: (from: number, to: number, chars = 800) => {
+        const ed = editorRef.current
+        if (!ed) return { before: '', after: '' }
+        const size = ed.state.doc.content.size
+        const a = Math.max(0, Math.min(from, size)), b = Math.max(a, Math.min(to, size))
+        return {
+          before: a > 0 ? ed.state.doc.textBetween(Math.max(0, a - chars), a, '\n') : '',
+          after: b < size ? ed.state.doc.textBetween(b, Math.min(size, b + chars), '\n') : '',
+        }
       },
     })
   }, [onMethodsReady])

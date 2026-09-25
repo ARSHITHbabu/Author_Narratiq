@@ -1,0 +1,79 @@
+{
+  "rules": {
+    "character_names": true,
+    "tone": true,
+    "tense": "warn",
+    "pov": "warn",
+    "dialogue_meaning": "warn",
+    "timeline": "warn",
+    "story_facts": false
+  },
+  "stored_real_outputs": {
+    "samples": 54,
+    "flagged_samples": 0,
+    "per_kind": {
+      "tense_shift": 0,
+      "pov_shift": 0,
+      "dialogue_changed": 0,
+      "timeline_added": 0
+    },
+    "per_kind_rate": {
+      "tense_shift": 0.0,
+      "pov_shift": 0.0,
+      "dialogue_changed": 0.0,
+      "timeline_added": 0.0
+    },
+    "flagged": []
+  },
+  "unchanged_signal_passages": {
+    "samples": 6,
+    "flagged_samples": 0,
+    "per_kind": {
+      "tense_shift": 0,
+      "pov_shift": 0,
+      "dialogue_changed": 0,
+      "timeline_added": 0
+    },
+    "per_kind_rate": {
+      "tense_shift": 0.0,
+      "pov_shift": 0.0,
+      "dialogue_changed": 0.0,
+      "timeline_added": 0.0
+    },
+    "flagged": []
+  },
+  "fresh_live_outputs": {
+    "samples": 27,
+    "flagged_samples": 0,
+    "per_kind": {
+      "tense_shift": 0,
+      "pov_shift": 0,
+      "dialogue_changed": 0,
+      "timeline_added": 0
+    },
+    "per_kind_rate": {
+      "tense_shift": 0.0,
+      "pov_shift": 0.0,
+      "dialogue_changed": 0.0,
+      "timeline_added": 0.0
+    },
+    "flagged": []
+  },
+  "recall_on_broken_rewrites": {
+    "tense": {
+      "samples": 6,
+      "detected": 4,
+      "recall": 0.6667
+    },
+    "pov": {
+      "samples": 6,
+      "detected": 6,
+      "recall": 1.0
+    },
+    "timeline": {
+      "samples": 12,
+      "detected": 12,
+      "recall": 1.0
+    }
+  }
+}

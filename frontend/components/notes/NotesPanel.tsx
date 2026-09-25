@@ -5,6 +5,8 @@ import { Plus, Trash2, ChevronDown, ChevronUp, Loader2, AlertCircle, RefreshCw }
 import { ocrApi } from '@/lib/api'
 import { StoryNote, NoteCard, NoteCardType } from '@/lib/types'
 import { toast } from 'sonner'
+import IdeaShelfTab from '@/components/ideas/IdeaShelfTab'
+import { P3_ENABLED } from '@/lib/generationControls'
 
 interface Props {
   storyId:    string
@@ -42,7 +44,7 @@ const CARD_TYPE_STYLES: Record<NoteCardType, string> = {
 }
 
 export default function NotesPanel({ storyId, reloadKey }: Props) {
-  const [tab, setTab]               = useState<'notes' | 'cards'>('notes')
+  const [tab, setTab]               = useState<'notes' | 'cards' | 'ideas'>('notes')
   const [notesSection, setNotesSection] = useState<Section<StoryNote>>({ data: [], status: 'loading' })
   const [cardsSection, setCardsSection] = useState<Section<NoteCard>>({ data: [], status: 'loading' })
   const [cardFilter, setCardFilter] = useState<NoteCardType | 'all'>('all')
@@ -116,7 +118,10 @@ export default function NotesPanel({ storyId, reloadKey }: Props) {
   const handleCardUpdated  = (c: NoteCard)   => setCardsSection(s => ({ ...s, data: s.data.map(x => x.card_id === c.card_id ? c : x) }))
   const handleCardDeleted  = (id: string)    => setCardsSection(s => ({ ...s, data: s.data.filter(x => x.card_id !== id) }))
 
-  const filteredCards = cardFilter === 'all' ? noteCards : noteCards.filter(c => c.card_type === cardFilter)
+  // Idea Shelf cards (Phase 3) have their own tab; the Cards tab keeps showing
+  // exactly the five reference-card types it always did.
+  const referenceCards = noteCards.filter(c => (CARD_TYPES as string[]).includes(c.card_type))
+  const filteredCards = cardFilter === 'all' ? referenceCards : referenceCards.filter(c => c.card_type === cardFilter)
 
   // Only the very first load blanks the panel. After that each section shows its own
   // state, so one slow or failed request never hides the other's content.
@@ -155,7 +160,7 @@ export default function NotesPanel({ storyId, reloadKey }: Props) {
     <div className="flex flex-col h-full overflow-hidden">
       {/* Sub-tab toggle */}
       <div className="flex border-b border-[#1f2440] flex-shrink-0">
-        {(['notes', 'cards'] as const).map(t => (
+        {((P3_ENABLED ? ['notes', 'cards', 'ideas'] : ['notes', 'cards']) as ('notes' | 'cards' | 'ideas')[]).map(t => (
           <button
             key={t}
             onClick={() => { setTab(t); setCreating(null) }}
@@ -165,14 +170,16 @@ export default function NotesPanel({ storyId, reloadKey }: Props) {
                 : 'text-[#5c6391] hover:text-[#9da3c8]'
             }`}
           >
-            {t === 'notes' ? 'Story Notes' : 'Note Cards'}
+            {t === 'notes' ? 'Story Notes' : t === 'cards' ? 'Note Cards' : 'Ideas'}
             {/* A failure in the section you are NOT looking at is still visible. */}
-            {(t === 'notes' ? notesSection.status : cardsSection.status) === 'error' && (
+            {t !== 'ideas' && (t === 'notes' ? notesSection.status : cardsSection.status) === 'error' && (
               <AlertCircle data-testid={`${t}-tab-error`} className="w-3 h-3 text-red-400" />
             )}
           </button>
         ))}
       </div>
+
+      {tab === 'ideas' && <IdeaShelfTab storyId={storyId} />}
 
       {tab === 'notes' && (
         <div className="flex flex-col h-full overflow-hidden">

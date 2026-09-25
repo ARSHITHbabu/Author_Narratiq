@@ -4,6 +4,95 @@ All production changes are documented here in reverse chronological order.
 
 ---
 
+## Unreleased — Phase 3: Author-Centric AI Workflow (Stage 7)
+
+Design reference: `docs/phases/phase-3-planned/phase-3-author-centric-ai-workflow.md`.
+Deviations from that spec (all approved in the Stage 7 plan) are listed at the end.
+
+### Security
+- **Cross-user data leak closed (C7-6).** Every `/api/ai/*` endpoint that takes a
+  `story_id` (refine, tone, emotion, age-adapt, style, author-style, translate,
+  suggestions and their `/stream` variants, compare-summary, merge-versions) now
+  verifies ownership. Before, any signed-in user could pass another author's
+  `story_id` and have that author's genre profile, character names or manuscript
+  passages placed into their own prompt. A foreign and a non-existent id now return
+  the same 404.
+- New `services/ownership.py`: one rule for every user-owned id (story, chapter,
+  pin, note card). Foreign and non-existent ids are indistinguishable — same 404
+  body for direct lookups, one generic count-only warning for batch ids.
+- Note-card update/delete now return 404 (was 403) for another author's card.
+
+### Added
+- **Pins (P3-01)** — `routers/ai_workspace.py` (`/api/stories/{id}/ai/pins`…):
+  create/list/get/patch/delete, applied, promote. Plan caps (D1) enforced under a
+  per-user advisory lock; 409 with the oldest pin at the cap, never silent
+  eviction; 413 when too large; identical content is deduplicated. Expiry is
+  written at insert (free: 7 days, D3) and an hourly sweep in the existing cleanup
+  loop deletes expired pins (`[pin_cleanup] cleanup_rows=…` is logged every run).
+  Pin rows are excluded from logical backups (D9). Content is read and written only
+  through `services/pin_store.py`.
+- **Pins as context (P3-03), generate from a version (P3-06), avoid-set (P3-07),
+  consistency (P3-08), voice (P3-10)** — optional `controls` on tone / emotion /
+  age-adapt / style. All context is assembled in `services/generation_context.py`
+  under one token budget (2,600); anything dropped is reported, never silent.
+- **Consistency (P3-08)** — `services/consistency.py`: grounded block from
+  characters, character intelligence, story facts, world rules, timeline and earlier
+  chapter summaries (never later chapters); Tier-1 knowledge check; Tier-2 strict
+  check for pro/studio plans only (D6).
+- **Similarity (P3-11)** — `services/similarity.py` + `POST …/ai/similarity`:
+  lexical first, BGE-M3/pgvector only for ambiguous cases; informative only.
+- **Compare & merge (P3-04)** — `POST /api/ai/compare-summary`,
+  `POST /api/ai/merge-versions` (fidelity guard: ≤12 % word change, every chosen
+  block ≥0.9 similar, one retry, else the unsmoothed merge). Diff runs in the
+  browser (`lib/diff.ts`).
+- **Idea Shelf (P3-09)** — note cards gain `target_chapter_id`, `tags`, `status`,
+  `source_pin_id` and eight idea types; list filters; "Ideas" tab inside Notes
+  (D10); "N ideas waiting" markers in the Write binder with drag and
+  Insert-at-cursor.
+- **Preferences** — `GET/PATCH /api/stories/{id}/ai/preferences` (project
+  preservation rules, voice level, strict mode, duplicate auto-retry).
+- `GET /api/ai/limits` — resolved plan limits and usage (display only; the server
+  enforces everything).
+- Frontend: Versions tab, compare/merge dialog, "What the AI must keep" panel,
+  shared warnings banner with one-click name restore, Pin / Idea Shelf / similarity
+  badge on results, invert-locks, Insert-at-cursor when the source text changed.
+  Session history is in memory only (never persisted). `NEXT_PUBLIC_P3_ENABLED=false`
+  (at build time) switches the Phase 3 UI off.
+
+### Changed
+- Stage 5 lock/preservation engine extended rather than duplicated (C7-5):
+  locked ranges are validated (bounds, overlap, all-locked → 422); a lock-contract
+  failure now returns `failed: true` instead of presenting the original text as a
+  rewrite; new conservative checks for tense, point of view, dialogue meaning and
+  timeline additions. Heuristic checks default to **warn only** — measured 0 false
+  positives on 81 real rewrites (`tests/fixtures/preservation_checks_measurement.json`).
+- `_extract_json` register: `smooth_merge` added as "handled" (validation-driven,
+  bounded retry, deterministic fallback); the other new structured calls use
+  `complete_structured()`.
+
+### Database (migrations 0019–0022, renumbered from the spec's 0016–0019 — C7-1)
+- `0019` `ai_generation_pins` (+5 indexes, autovacuum tuning)
+- `0020` `story_preservation_settings` +`preserve_rules`, `style_prefs`, `pin_prefs`
+  (extends the Stage 5 table instead of a second preference table — C7-2)
+- `0021` `note_cards` +4 Idea Shelf columns, +2 indexes
+- `0022` `users.plan` (NULL = free)
+All guarded, reversible, and round-trip tested on a populated database
+(`backend/tests/run_migration_roundtrip.sh`); rollback keeps every idea card.
+
+### Configuration
+- 30 new optional settings in `config.py` and `.env.example` (all defaulted; the spec's 29 plus `dialogue_similarity_min`).
+
+### Deviations from the Phase 3 spec
+- No `/api/ai/regenerate-segments` endpoint and no JSON segment contract (C7-5):
+  partial regeneration stays on the Stage 5 `locked_ranges` engine, which already
+  guarantees locked text byte-for-byte.
+- Controls are accepted by tone/emotion/age-adapt/style only; refine, translate and
+  author-style keep their existing behaviour.
+- Tense / POV / dialogue / timeline checks warn by default; they add prompt rules
+  and a repair retry only when an author sets them to "Keep".
+
+---
+
 ## Unreleased — Author-Inspired Style Rewrite & Copyright/Plagiarism Risk Detection
 
 Design + implementation reference: `docs/specifications/author-style-and-copyright-risk-features.md`

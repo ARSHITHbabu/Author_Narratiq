@@ -3,6 +3,7 @@ import html as _html
 import logging
 import os
 import uuid
+from typing import Optional
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, Request, UploadFile, File, HTTPException, Response
@@ -501,16 +502,39 @@ def list_story_notes(
 @router.get("/{story_id}/note-cards", response_model=list[NoteCardOut])
 def list_note_cards(
     story_id: str,
+    card_type: Optional[str] = None,
+    group: Optional[str] = None,              # "ideas" | "cards" — Phase 3 Idea Shelf split
+    status: Optional[str] = None,
+    target_chapter_id: Optional[str] = None,
+    tag: Optional[str] = None,
+    q: Optional[str] = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """All filters are optional; with none supplied this returns exactly the
+    pre-Phase-3 list (every card, newest first)."""
+    from schemas import IDEA_CARD_TYPES
     _get_owned_story(story_id, current_user.user_id, db)
-    return (
-        db.query(NoteCard)
-        .filter(NoteCard.story_id == story_id)
-        .order_by(NoteCard.created_at.desc())
-        .all()
-    )
+    query = db.query(NoteCard).filter(NoteCard.story_id == story_id)
+    if card_type:
+        query = query.filter(NoteCard.card_type == card_type)
+    if group == "ideas":
+        query = query.filter(NoteCard.card_type.in_(IDEA_CARD_TYPES))
+    elif group == "cards":
+        query = query.filter(~NoteCard.card_type.in_(IDEA_CARD_TYPES))
+    if status == "open":
+        query = query.filter((NoteCard.status == "open") | (NoteCard.status.is_(None)))
+    elif status:
+        query = query.filter(NoteCard.status == status)
+    if target_chapter_id:
+        query = query.filter(NoteCard.target_chapter_id == target_chapter_id)
+    if q and q.strip():
+        like = f"%{q.strip()[:100]}%"
+        query = query.filter((NoteCard.title.ilike(like)) | (NoteCard.content.ilike(like)))
+    cards = query.order_by(NoteCard.created_at.desc()).all()
+    if tag:
+        cards = [c for c in cards if tag in (c.tags or [])]
+    return cards
 
 
 # ── StoryNote CRUD ────────────────────────────────────────────────────────────
@@ -579,6 +603,20 @@ def delete_story_note(
 
 # ── NoteCard CRUD ─────────────────────────────────────────────────────────────
 
+def _enforce_card_caps(card_type: str, story_id: str, current_user: User, db: Session) -> None:
+    """Phase 3 plan caps (spec §21): idea cards per user, style samples per story."""
+    from schemas import IDEA_CARD_TYPES
+    from services import plans
+    if card_type == "style_sample":
+        count = db.query(NoteCard).filter(NoteCard.story_id == story_id, NoteCard.user_id == current_user.user_id,
+                                          NoteCard.card_type == "style_sample").count()
+        plans.enforce_style_sample_create(current_user, count)
+    elif card_type in IDEA_CARD_TYPES:
+        count = db.query(NoteCard).filter(NoteCard.user_id == current_user.user_id,
+                                          NoteCard.card_type.in_(IDEA_CARD_TYPES - {"style_sample"})).count()
+        plans.enforce_idea_card_create(current_user, count)
+
+
 @router.post("/{story_id}/note-cards", response_model=NoteCardOut, status_code=201)
 async def create_note_card(
     story_id: str,
@@ -586,13 +624,20 @@ async def create_note_card(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    from services.ownership import owned_chapter_or_none
     _get_owned_story(story_id, current_user.user_id, db)
+    target = owned_chapter_or_none(data.target_chapter_id, story_id, current_user.user_id, db)
+    card_type = data.card_type or "general"
+    _enforce_card_caps(card_type, story_id, current_user, db)
     card = NoteCard(
         story_id=story_id,
         user_id=current_user.user_id,
         title=data.title or "",
         content=data.content,
-        card_type=data.card_type or "general",
+        card_type=card_type,
+        target_chapter_id=target.chapter_id if target else None,
+        tags=data.tags,
+        status=data.status or "open",
     )
     db.add(card)
     db.commit()
@@ -608,18 +653,27 @@ async def update_note_card(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    card = db.query(NoteCard).filter(NoteCard.card_id == card_id).first()
-    if not card:
-        raise HTTPException(status_code=404, detail="Note card not found")
-    if card.user_id != current_user.user_id:
-        raise HTTPException(status_code=403, detail="Not authorised to edit this note card")
+    # Stage 7: not-found and not-owned are now the same 404 (previously a
+    # foreign card returned 403, which confirmed the card existed).
+    from services.ownership import owned_card, owned_chapter_or_none
+    card = owned_card(card_id, current_user.user_id, db)
     if data.title is not None:
         card.title = data.title
     content_changed = data.content is not None
     if content_changed:
         card.content = data.content
-    if data.card_type is not None:
+    if data.card_type is not None and data.card_type != card.card_type:
+        _enforce_card_caps(data.card_type, card.story_id, current_user, db)
         card.card_type = data.card_type
+    if data.clear_target_chapter:
+        card.target_chapter_id = None
+    elif data.target_chapter_id is not None:
+        target = owned_chapter_or_none(data.target_chapter_id, card.story_id, current_user.user_id, db)
+        card.target_chapter_id = target.chapter_id
+    if data.tags is not None:
+        card.tags = data.tags
+    if data.status is not None:
+        card.status = data.status
     card.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(card)
@@ -634,11 +688,8 @@ def delete_note_card(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    card = db.query(NoteCard).filter(NoteCard.card_id == card_id).first()
-    if not card:
-        raise HTTPException(status_code=404, detail="Note card not found")
-    if card.user_id != current_user.user_id:
-        raise HTTPException(status_code=403, detail="Not authorised to delete this note card")
+    from services.ownership import owned_card
+    card = owned_card(card_id, current_user.user_id, db)
     db.delete(card)
     db.commit()
     return Response(status_code=204)

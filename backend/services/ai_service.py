@@ -835,34 +835,71 @@ async def _run_constrained_transform(
     builder_kwargs: dict, story_id: Optional[str] = None, db=None,
     strength: str = "light", locked_ranges: Optional[list] = None,
     change_check_target: str = "", extra_user_context: str = "",
+    p3=None,
 ) -> dict:
     """
     Returns {transformed, no_change, reason, strength_violation,
-    preservation_violations, failed}. See the approved Stage 5 design's
-    failure policy: one repair retry on a preservation violation, one
-    stricter retry + one per-segment fallback on a lock-shape failure,
-    never more — `failed=True` means "return original text unchanged", the
-    bounded end of every retry ladder here.
+    preservation_violations, failed, warnings, context_used, name_autofix}.
+    See the approved Stage 5 design's failure policy: one repair retry on a
+    preservation violation, one stricter retry + one per-segment fallback on a
+    lock-shape failure, never more — `failed=True` means "return original
+    text unchanged", the bounded end of every retry ladder here.
+
+    `p3` (Stage 7) is an optional services.generation_context.GenerationContext.
+    None = the exact Stage 5 behaviour (no Phase 3 context, no extra checks),
+    which is what every request without `controls` gets. With a context:
+    its budgeted system block and user suffix are added, the resolved
+    preservation rules drive the clause and the checks, the single repair
+    retry also covers explicitly-enforced tense/POV rules (at temperature
+    − 0.1), and the Phase 3 post-generation checks add `warnings`.
+    Locked spans stay structurally protected in every attempt.
     """
+    rules = p3.rules if p3 is not None else None
+    if p3 is not None and (p3.derivation or p3.context_pin_ids or p3.avoid_texts):
+        # The author explicitly asked for something new; "already suitable"
+        # is not a meaningful answer to a derivation or a combine request.
+        change_check_target = ""
+    if p3 is not None and p3.temperature is not None:
+        temperature = p3.temperature
+    if p3 is not None and p3.derivation in ("continue", "expand"):
+        max_tokens = int(max_tokens * 1.8)   # these intents legitimately lengthen the draft
+
     if change_check_target:
         needs_change, reason = await _assess_change_needed(text, change_check_target, transform_type)
         if not needs_change:
             return {"transformed": text, "no_change": True, "reason": reason,
-                    "strength_violation": False, "preservation_violations": [], "failed": False}
+                    "strength_violation": False, "preservation_violations": [], "failed": False,
+                    "warnings": list(p3.warnings) if p3 is not None else [],
+                    "context_used": dict(p3.context_used) if p3 is not None else {},
+                    "name_autofix": []}
 
-    preservation_clause = build_preservation_clause(story_id, db)
+    preservation_clause = build_preservation_clause(story_id, db, rules=rules)
     strength_clause = build_strength_clause(strength)
 
     builder, resolved_version = resolve_prompt_version(transform_type, settings.prompt_version, settings.prompt_version_fallback)
     _log_prompt_version(transform_type, resolved_version)
     system = builder(preservation_clause=preservation_clause, strength_clause=strength_clause, **builder_kwargs)
+    if p3 is not None and p3.system_block:
+        # The output contract is restated LAST: JSON/format compliance on a
+        # 7B model degrades fastest with distance (spec §12.2).
+        system = (f"{system}\n\n{p3.system_block}\n\nOUTPUT: follow the output instructions given at "
+                  "the start exactly — return only the rewritten text, with any [KEEP]/[REWRITE] markers "
+                  "exactly as instructed.")
 
     marked_text, segments = mark_locked_segments(text, locked_ranges)
     user_message = marked_text + (f"\n\nStory context:\n{extra_user_context}" if extra_user_context else "")
+    if p3 is not None and p3.user_suffix:
+        user_message += p3.user_suffix
 
-    async def _attempt(extra: str = "") -> str:
+    async def _attempt(extra: str = "", temp: Optional[float] = None) -> str:
         sys_prompt = f"{system} {extra}".strip()
-        return await _complete(sys_prompt, user_message, temperature=temperature, max_tokens=max_tokens)
+        return await _complete(sys_prompt, user_message,
+                               temperature=temperature if temp is None else temp, max_tokens=max_tokens)
+
+    def _rebuild(raw_out: str) -> tuple[Optional[str], bool]:
+        if locked_ranges:
+            return reconstruct_with_locks(raw_out, segments)
+        return raw_out, True
 
     raw = await _attempt()
 
@@ -881,7 +918,10 @@ async def _run_constrained_transform(
         if not shape_ok:
             return {"transformed": text, "no_change": False,
                     "reason": "Could not safely apply this transform with the current lock selection.",
-                    "strength_violation": False, "preservation_violations": [], "failed": True}
+                    "strength_violation": False, "preservation_violations": [], "failed": True,
+                    "warnings": list(p3.warnings) if p3 is not None else [],
+                    "context_used": dict(p3.context_used) if p3 is not None else {},
+                    "name_autofix": []}
         if not verify_lock_byte_identity(segments, reconstructed):
             # Must be unreachable by construction (reconstruct_with_locks always
             # splices original bytes for locked segments) — if this ever fires,
@@ -890,30 +930,107 @@ async def _run_constrained_transform(
     else:
         reconstructed = raw
 
-    violations = check_character_name_preservation(text, reconstructed, story_id, db)
-    if violations:
-        correction = (
-            f"You removed or changed these character names, which must be preserved "
-            f"exactly: {', '.join(violations)}. Restore them exactly as given."
-        )
-        raw2 = await _attempt(correction)
-        if locked_ranges:
-            reconstructed2, shape_ok2 = reconstruct_with_locks(raw2, segments)
-        else:
-            reconstructed2, shape_ok2 = raw2, True
+    violations = check_character_name_preservation(text, reconstructed, story_id, db, rules=rules)
+
+    if p3 is None:
+        # ── Exact Stage 5 repair path (unchanged) ─────────────────────────
+        if violations:
+            correction = (
+                f"You removed or changed these character names, which must be preserved "
+                f"exactly: {', '.join(violations)}. Restore them exactly as given."
+            )
+            raw2 = await _attempt(correction)
+            reconstructed2, shape_ok2 = _rebuild(raw2)
+            if shape_ok2:
+                violations2 = check_character_name_preservation(text, reconstructed2, story_id, db)
+                reconstructed, violations = reconstructed2, violations2
+            # else: keep the first attempt's result and reported violations —
+            # the retry's own shape failure is reported via violations staying
+            # non-empty, never retried a second time (bounded).
+        strength_violation = check_strength_violation(text, reconstructed, strength)
+        return {
+            "transformed": reconstructed, "no_change": False, "reason": None,
+            "strength_violation": strength_violation, "preservation_violations": violations,
+            "failed": False, "warnings": [], "context_used": {}, "name_autofix": [],
+        }
+
+    # ── Stage 7 (Phase 3) path ────────────────────────────────────────────
+    from services.transform_preservation import verify_preservation, suggest_name_autofix
+    tool = transform_type
+    enforce_names = rules.get("character_names") is True
+
+    def _hard(ws: list[dict]) -> list[dict]:
+        return [w for w in ws if w.get("severity") == "hard"]
+
+    checks = verify_preservation(text, reconstructed, rules, tool=tool)
+    hard_names = violations if enforce_names else []
+    if (hard_names or _hard(checks)) and settings.preservation_auto_repair:
+        problems = []
+        if hard_names:
+            problems.append(f"You removed or changed these character names, which must be preserved "
+                            f"exactly: {', '.join(hard_names)}. Restore them exactly as given.")
+        problems.extend(w["message"] + " Fix this." for w in _hard(checks))
+        raw2 = await _attempt(" ".join(problems), temp=max(0.2, temperature - 0.1))
+        reconstructed2, shape_ok2 = _rebuild(raw2)
         if shape_ok2:
-            violations2 = check_character_name_preservation(text, reconstructed2, story_id, db)
-            reconstructed, violations = reconstructed2, violations2
-        # else: keep the first attempt's result and reported violations —
-        # the retry's own shape failure is reported via violations staying
-        # non-empty, never retried a second time (bounded).
+            reconstructed = reconstructed2
+            violations = check_character_name_preservation(text, reconstructed, story_id, db, rules=rules)
+            checks = verify_preservation(text, reconstructed, rules, tool=tool)
+
+    # P3-07 / P3-11 — near-duplicate of an idea the author asked to avoid.
+    from services.similarity import lexical_score, anti_echo_score
+    dup_warning = None
+    if p3.avoid_texts:
+        best = max(lexical_score(reconstructed, a) for a in p3.avoid_texts)
+        if best >= settings.similarity_lexical_hi and p3.duplicate_auto_retry:
+            retry_temp = min(0.95, temperature + settings.duplicate_retry_temp_step)
+            raw3 = await _attempt("Your previous answer repeated an idea the author already rejected. "
+                                  "Take a clearly different direction.", temp=retry_temp)
+            reconstructed3, shape_ok3 = _rebuild(raw3)
+            if shape_ok3:
+                best3 = max(lexical_score(reconstructed3, a) for a in p3.avoid_texts)
+                if best3 < best:
+                    reconstructed, best = reconstructed3, best3
+                    violations = check_character_name_preservation(text, reconstructed, story_id, db, rules=rules)
+                    checks = verify_preservation(text, reconstructed, rules, tool=tool)
+        if best >= settings.similarity_lexical_hi:
+            dup_warning = {"kind": "near_duplicate", "severity": "info",
+                           "message": f"This result is {round(best * 100)}% similar to an idea you asked to avoid."}
+
+    warnings = list(p3.warnings) + checks
+    if dup_warning:
+        warnings.append(dup_warning)
+    if p3.derivation == "variation" and p3.source_draft:
+        echo = anti_echo_score(reconstructed, p3.source_draft)
+        p3.context_used["anti_echo"] = echo
+        if echo >= settings.similarity_lexical_hi:
+            warnings.append({"kind": "echo", "severity": "info",
+                             "message": f"This variation kept {round(echo * 100)}% of the original version's wording."})
+
+    if p3.consistency is not None:
+        from services.consistency import knowledge_violations, strict_consistency_check
+        warnings.extend(knowledge_violations(p3.consistency, text, reconstructed))
+        if p3.strict_consistency and p3.consistency_block:
+            strict, ran = await strict_consistency_check(p3.consistency_block, reconstructed)
+            warnings.extend(strict)
+            p3.context_used["strict_check"] = ran
+
+    for name in violations:
+        warnings.append({"kind": "name_changed", "severity": "hard" if enforce_names else "soft",
+                         "message": f"Could not confirm the character name “{name}” was kept.",
+                         "entity": {"type": "character", "name": name}})
+    autofix = suggest_name_autofix(reconstructed, violations, story_id, db)
+    if autofix:
+        for w in warnings:
+            if w["kind"] == "name_changed":
+                w["autofix"] = [f for f in autofix if f["with"] == w["entity"]["name"].split()[0]] or None
 
     strength_violation = check_strength_violation(text, reconstructed, strength)
-
     return {
         "transformed": reconstructed, "no_change": False, "reason": None,
         "strength_violation": strength_violation, "preservation_violations": violations,
-        "failed": False,
+        "failed": False, "warnings": warnings, "context_used": dict(p3.context_used),
+        "name_autofix": autofix,
     }
 
 
@@ -928,6 +1045,7 @@ async def transform_tone(
     text: str, tone: str, context: str = "", genre_context: str = "",
     story_id: Optional[str] = None, db=None,
     strength: str = "light", locked_ranges: Optional[list] = None,
+    p3=None,
 ) -> dict:
     """
     Returns the full Stage 5 result dict (see _run_constrained_transform).
@@ -941,6 +1059,7 @@ async def transform_tone(
         builder_kwargs={"tone": tone, "genre_context": genre_context},
         story_id=story_id, db=db, strength=strength, locked_ranges=locked_ranges,
         change_check_target=f"written in a {tone} tone", extra_user_context=context,
+        p3=p3,
     )
 
 
@@ -963,6 +1082,7 @@ def _resolve_emotion_system(emotion: str, intensity: str, genre_context: str, **
 async def rewrite_emotion(
     text: str, emotion: str, intensity: str = "medium", genre_context: str = "",
     story_id: Optional[str] = None, db=None,
+    p3=None,
 ) -> dict:
     """
     Returns the Stage 5 result dict. Deliberately no strength/locking/
@@ -976,6 +1096,7 @@ async def rewrite_emotion(
         builder_kwargs={"emotion": emotion, "intensity": intensity, "genre_context": genre_context},
         story_id=story_id, db=db, strength="strong",  # "strong" = no structural ceiling, matching pre-5.6 behaviour
         locked_ranges=None, change_check_target="",     # no no-change check for emotion, by design
+        p3=p3,
     )
 
 
@@ -1003,6 +1124,7 @@ async def adapt_for_age(
     text: str, target_age: str, context: str = "", genre_context: str = "",
     story_id: Optional[str] = None, db=None,
     strength: str = "light", locked_ranges: Optional[list] = None,
+    p3=None,
 ) -> dict:
     return await _run_constrained_transform(
         transform_type="age_adapt", text=text, temperature=0.3,
@@ -1010,6 +1132,7 @@ async def adapt_for_age(
         builder_kwargs={"target_age": target_age, "genre_context": genre_context},
         story_id=story_id, db=db, strength=strength, locked_ranges=locked_ranges,
         change_check_target=f"already appropriate for {target_age} readers", extra_user_context=context,
+        p3=p3,
     )
 
 
@@ -1033,6 +1156,7 @@ async def transform_style(
     text: str, style: str, genre_context: str = "",
     story_id: Optional[str] = None, db=None,
     strength: str = "light", locked_ranges: Optional[list] = None,
+    p3=None,
 ) -> dict:
     return await _run_constrained_transform(
         transform_type="style", text=text, temperature=0.6,
@@ -1040,6 +1164,7 @@ async def transform_style(
         builder_kwargs={"style": style, "genre_context": genre_context},
         story_id=story_id, db=db, strength=strength, locked_ranges=locked_ranges,
         change_check_target=f"already written in the style of {style}",
+        p3=p3,
     )
 
 
@@ -4385,7 +4510,9 @@ async def retrieve_relevant_chunks(
     """
     from sqlalchemy import text
 
-    logger.debug(f"[retrieval] story={story_id[:8]}... — embedding query: {question[:80]!r}")
+    # Lengths and ids only — never manuscript or selection text (Stage 7 log hygiene;
+    # Phase 3 consistency context calls this on every grounded generation).
+    logger.debug(f"[retrieval] story={story_id[:8]}... — embedding query ({len(question)} chars)")
     q_emb = await embed_text(question)
     q_vec_str = vector_literal(q_emb)
 
@@ -4417,8 +4544,8 @@ async def retrieve_relevant_chunks(
     logger.info(f"[retrieval] Top-{len(rows)} results: "
         f"scores={[round(float(row.score), 3) for row in rows]}")
     best = rows[0]
-    logger.info(f"[retrieval] Best match — Chapter {best.chapter_number}: "
-        f"{best.raw_summary[:150]!r}")
+    logger.info(f"[retrieval] Best match — Chapter {best.chapter_number} "
+        f"(summary {len(best.raw_summary or '')} chars)")
 
     return [
         {

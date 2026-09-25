@@ -487,7 +487,12 @@ GLOBALS_SHA="${GLOBALS_FILE}.sha256"
 # ── Dump ──────────────────────────────────────────────────────────────────────
 # Read-only, MVCC snapshot — the running backend keeps serving while this happens.
 CREATED_FILES+=("${DUMP_FILE}")
+# Phase 3 decision D9: ai_generation_pins holds temporary, expiring AI drafts
+# (never manuscript content — chapters, characters and story bible live in
+# their own fully-backed-up tables). Its DEFINITION is dumped so a restore
+# recreates the table; its ROWS are excluded so pins add zero backup bytes.
 pg_dump --format=custom --compress=6 --file="${DUMP_FILE}" \
+    --exclude-table-data=public.ai_generation_pins \
     || fail "pg_dump failed. No usable backup was produced."
 chmod 600 "${DUMP_FILE}" 2>/dev/null || true
 log "Wrote $(basename "${DUMP_FILE}") ($(du -h "${DUMP_FILE}" | cut -f1))"

@@ -86,7 +86,7 @@ The pod has 2× NVIDIA RTX PRO 4500 Blackwell (sm_120) GPUs. These require:
 | `backend/routers/pacing.py` | Phase 2: pacing goal setting + chapter progress tracking |
 | `backend/models.py` | SQLAlchemy ORM models (full schema) |
 | `backend/schemas.py` | Pydantic request/response schemas |
-| `backend/config.py` | Settings loaded from `.env` via pydantic-settings (56 fields). `vllm_base_url` defaults to **9001**, matching `start-narratiq.sh`. `secret_key` is the only field with no default |
+| `backend/config.py` | Settings loaded from `.env` via pydantic-settings (89 fields incl. 30 Phase 3). `vllm_base_url` defaults to **9001**, matching `start-narratiq.sh`. `secret_key` is the only field with no default |
 | `frontend/lib/api.ts` | Typed API client wrappers; JWT interceptor |
 | `frontend/lib/types.ts` | TypeScript interfaces for all domain objects |
 | `frontend/app/(dashboard)/projects/[id]/page.tsx` | 3-column editor layout; all 10 right panels lazy-loaded via `next/dynamic` |
@@ -131,7 +131,9 @@ Revisions `0003`–`0006` were never created. The chain is unbroken — `0007` s
 - `0014` — story intake analysis
 - `0015` — story bible status
 
-All migrations are idempotent and reversible. Always use `alembic revision --autogenerate` for new schema changes — never raw `ALTER TABLE`.
+All migrations are idempotent and reversible. Never hand-apply raw `ALTER TABLE` to a live database. Write migrations by hand with `_table_exists` / `_index_exists` / `_column_exists` guards (template: `0011_audio_uploads.py`), because `start-narratiq.sh` runs `create_all()` **before** `alembic upgrade head` and every migration must tolerate objects that already exist. Use `alembic check` (or `alembic revision --autogenerate` into a scratch file) only as a **drift check** (Stage 7 decision C7-3). `alembic check` currently reports 31 pre-existing index-only drift items from migrations 0001–0013 (indexes not declared in the models) and none for Phase 3.
+
+Later migrations: `0016` story bible failed sections · `0017` chapter-summary arc/relationship fields · `0018` `story_preservation_settings` (Stage 5) · `0019`–`0022` Phase 3 (below). Round-trip test on a populated test DB: `DATABASE_URL=…/narratiq_test bash backend/tests/run_migration_roundtrip.sh`.
 
 ## Phase 2 AI Model Usage
 
@@ -247,6 +249,28 @@ Phase B (future): HttpOnly cookie migration requires frontend auth flow changes.
 - **Redis**: moving rate limits to Redis **requires a code change** — pass `storage_uri=` to the `Limiter` at `middleware/rate_limit.py:67`. Earlier revisions of this file claimed `SLOWAPI_STORAGE_URI` did this with zero code changes; that was never true
 - **Celery**: Replace `asyncio.create_task()` calls with Celery `.delay()` — semaphore guards can be replaced with Celery worker concurrency limits
 - **S3/R2**: Change `UPLOAD_DIR_AUDIO` and `UPLOAD_DIR_OCR` env vars to bucket prefixes; swap `open()` calls for boto3 client
+
+## Phase 3 — Author-Centric AI Workflow (Stage 7)
+
+Spec: `docs/phases/phase-3-planned/phase-3-author-centric-ai-workflow.md`. Product rule R1: **unpinned generations are never stored** (session history lives only in the browser, `lib/generationStore.ts`, not persisted).
+
+| ID | Capability | Where |
+|----|-----------|-------|
+| P3-01 | Temporary pins | `routers/ai_workspace.py` (`/api/stories/{id}/ai/pins…`), `services/pin_store.py`, `services/plans.py` |
+| P3-02 | Sentence locks / partial regeneration | Stage 5 engine: `services/transform_preservation.py` + `ai_service._run_constrained_transform` (`locked_ranges`) |
+| P3-03/06/07/08/10 | Pins as context, generate from a version, avoid-set, consistency, voice | optional `controls` on `/api/ai/{tone,emotion,age-adapt,style}` → `services/generation_context.py` (the ONLY place Phase 3 prompt context is assembled), `services/consistency.py` |
+| P3-04 | Compare & merge | `frontend/lib/diff.ts` (client-side), `/api/ai/compare-summary`, `/api/ai/merge-versions` (`services/version_tools.py`) |
+| P3-05 | Preservation rules | `/api/stories/{id}/ai/preferences`; checks in `transform_preservation.verify_preservation` (heuristics warn-only by default) |
+| P3-09 | Idea Shelf | `note_cards` + idea types; filters on `/api/ocr/{story_id}/note-cards`; `components/ideas/*` |
+| P3-11 | Similarity | `services/similarity.py`, `POST /api/stories/{id}/ai/similarity` |
+
+- **Ownership:** every Phase 3 id goes through `services/ownership.py` — foreign and non-existent ids are indistinguishable (same 404; one generic warning for batch ids). `/api/ai/*` also verifies `story_id` ownership.
+- **Tables:** `ai_generation_pins` (new, `0019`); `story_preservation_settings` +3 JSON prefs (`0020`); `note_cards` +`target_chapter_id`/`tags`/`status`/`source_pin_id` (`0021`); `users.plan` (`0022`, NULL = free; assigned manually for now — decision D2).
+- **Pin content** is read/written only via `PinContentStore` (`get_pin_store()`); pins are excluded from RAG and from logical backups (`--exclude-table-data=public.ai_generation_pins` in both backup scripts, decision D9).
+- **Expiry:** `main._cleanup_expired_pins()` runs at startup and hourly inside `_run_periodic_cleanup()`; it logs `[pin_cleanup] cleanup_rows=N` every run, and `[pin_metrics]` daily (storage-growth triggers, spec §16.3).
+- **Settings:** 30 fields in `config.py` under "Phase 3 — generation management", mirrored in `.env.example`. Plan limits: `services/plans.py` defaults (decision D1), overridable with `PLAN_LIMITS_JSON` (validated at import — a malformed value stops startup).
+- **Frontend:** Versions tab and rules panel in `AIToolsSidebar`; pin / Idea Shelf / similarity actions on results (`components/generation/*`); compare dialog lazy-loaded in the Write workspace. Build with `NEXT_PUBLIC_P3_ENABLED=false` to switch the Phase 3 UI off (rollback).
+- **Errors:** Phase 3 raises `exceptions.ApiError` → flat `{detail, code, …}` bodies (e.g. `pin_limit_reached` 409 with `oldest_pin`, `pin_too_large` 413, `too_many_context_pins` 422, `no_unlocked_segments` 422).
 
 ## Config Gotchas
 

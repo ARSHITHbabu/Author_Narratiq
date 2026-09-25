@@ -46,13 +46,13 @@ Repository verification during checklist construction changed three things. Each
 | 4 — Phase 1 Retrieval and Data Correctness | 16 | 16 | 0 | 0 | **Complete** |
 | 5 — Phase 1 AI Generation Quality | 16 | 15 | 1 | 0 | Implemented — **gate open**\*\* |
 | 6 — Test Automation and CI | 7 | 3 | 4 | 0 | **Complete\*\*\*** (CI deferred by decision) |
-| 7 — Phase 3 Implementation | 15 | 0 | 15 | 0 | Not Started |
+| 7 — Phase 3 Implementation | 15 | 10 | 5 | 0 | Implemented — **gate open**† |
 | 8 — Editor UI and Workspace Redesign | 11 | 0 | 11 | 0 | Not Started |
 | 9 — Full Regression Testing and UAT | 7 | 0 | 7 | 0 | Not Started |
 | 10 — Production Readiness | 9 | 0 | 9 | 0 | Not Started |
 | 11 — Documentation Reconciliation | 9 | 0 | 9 | 0 | Not Started |
 | 12 — Release Validation | 3 | 0 | 3 | 0 | Not Started |
-| **Total** | **131** | **65** | **66** | **0** | **In Progress** |
+| **Total** | **131** | **75** | **56** | **0** | **In Progress** |
 
 > The stage table counts **main tasks**. Stage 1 shows 0 completed because task 1.1 is still open — six of its seven subtasks are done; the seventh, the off-pod copy, is deferred. The counts below track actionable checkboxes and are the authoritative progress measure. *(2026-09-21 — superseded for Stage 1: task 1.1 is now complete, the off-pod copy having actually been done. See the `*` below.)*
 >
@@ -63,6 +63,8 @@ Repository verification during checklist construction changed three things. Each
 > **\*\*Stage 5's "In Progress" label (2026-09-21, updated same day after a second continuous implementation pass):** 15 of 16 tasks are now fully done end-to-end, including frontend lock/strength UI controls (5.3, 5.4, 5.6 — E2E-verified in a real browser), 5.12's voice-convergence measurement, and 5.13's complete suggestions overhaul (category variety, narrative risk, prioritisation, adversarial pass, all measured before/after). Only **5.14** remains partially unticked — 8 of its 11 deeper Story Audit items are genuinely implemented and measured this round (character/relationship arcs, unresolved-thread cross-referencing, stakes, themes, plot importance, generic-recommendation replacement, developmental insight, surface-level detection depth), while 3 (dedicated timeline-reasoning logic, dedicated narrative-reasoning logic, relationship arc as its own distinct section) are honestly marked partial — real, measured improvement via a shared mechanism, not independently built further. Full per-task accounting is in the Stage 5 section below and its Completion Gate note — nothing here is a silent gap. The Stage 5 gate itself still requires the blind/manual author review, which only the author can close.
 >
 > **\*Stage 1's "Complete" label (2026-09-21):** the Stage 1 Completion Gate is closed — all seven of its own independent criteria are verified true — while 4 of Stage 1's 9 main-task checkboxes remain deliberately unticked (1.2, 1.3 not applicable to this pod; 1.5's literal "data intact" clause is permanently unsatisfiable now that the original manuscript is lost, though the task's stack-running half is verified; 1.6 has one item by-design deferred to Stage 11). This mirrors how Stage 3 closed with two open-by-design items — see the note under the Stage 1 Completion Gate for the full accounting. Nothing here is a silent gap.
+>
+> **†Stage 7 (2026-09-25) — implemented and accepted by the author (APPROVE COMPLETION); gate NOT fully closed.** 10 of 15 main tasks ticked. 7.3, 7.4, 7.10, 7.12 and 7.15 are implemented and verified but held open on named items: ⌘Z single-step undo browser re-check (author manual), migration test in CI (CI deferred), Tier-2 warning-text quality, golden-set author review of voice matching, real day-8 cleanup verification, and the intermittent selection-toolbar test 9. UAT remains Stage 9. Full evidence, approved deviations and the carried-forward list are in the note under the Stage 7 Completion Gate. Nothing here is a silent gap.
 >
 > **\*\*\*Stage 6's "Complete" label (2026-09-22), approved under an explicitly revised scope, not fully done in the stage's original sense:** 3 of 7 main tasks are ticked (6.2, 6.3, 6.6). Task 6.1 (CI pipeline) is **intentionally deferred by explicit author decision** — a working GitHub Actions setup was built, verified locally, then removed, because the project's priority right now is finishing core product features, not CI infrastructure; it will be reconsidered near final production readiness. Task 6.6 closes under an **author-approved revised acceptance criterion** (Phase 2 fully mapped + Stage 5 at task granularity; Phase 1's 147 individual issue numbers explicitly deferred as a separate future task). Tasks 6.4, 6.5 and 6.7 stay unticked as parent tasks — each is substantially done (6.4: 7/9 journeys live-verified; 6.5: 6/7 sub-items; 6.7: 4/5 sub-items) with specific, honestly-open remainders (2 real product gaps in 6.4 — manuscript-upload frontend UI missing, audio transcription justified-manual; 6.5's scheduling is N/A while CI is deferred and its deliberate-regression proof wasn't performed; 6.7's Dependabot line is GitHub-specific and deferred with 6.1). The full backend suite is verified green (499 passed, 0 failed) both before and after the CI-file removal. See the Stage 6 Completion Gate note and the delivered Stage 6 closure report for the complete evidence trail. Nothing here is a silent gap — every open item is named in the Completion Gate's "carried forward" list.
 
@@ -78,10 +80,10 @@ Repository verification during checklist construction changed three things. Each
 >
 > **One new frontend defect was discovered during the author's own manual verification, not fixed under this task:** the Logout control disappears on pointer hover before it can be clicked, so logout could not be completed or confirmed working. Recorded under task 1.8; not yet triaged into a stage — see the note there.
 
-**Total actionable checkboxes:** 1146 (2026-09-21 Stage 5 closure evaluation: +3 new ticked sub-items at 5.4/5.6, recording manual author verification and the sidecar fix, over a **corrected** pre-edit base of **1143**. The previously recorded "1146 / 562" had been counted with a regex that also matched three prose mentions of the checkbox syntax on the Formula and Total lines. The true pre-edit figures were **1143 / 561**, verified by counting only list-item markers `^\s*- \[( |x)\]`.) *Earlier note, kept for traceability:* (whole-file; was 1138 before this Stage 5 pass began, 1143 after its first continuation — +8 net new sub-items total added while detailing per-task evidence across both passes; independently re-verified by direct regex count of every `- [x]`/`- [ ]` marker, per the same counting discipline used for the 1134→1135 reconciliation)
-**Currently completed:** 601 (2026-09-22 Stage 6 closure: +41 newly ticked checkboxes, all within the Stage 6 section — tasks 6.2, 6.3 and 6.6 fully complete [the latter under the author-approved revised acceptance criterion], plus genuinely-done sub-items within 6.4, 6.5 and 6.7. Independently verified by direct regex count of every `- [x]`/`- [ ]` marker, same counting discipline as prior reconciliations: 601 ticked, 545 unticked, 1146 total — no checkbox lines were added or removed, only converted.) *Earlier note:* 560 (2026-09-21 closure evaluation: from the corrected 561, +3 manual-verification/sidecar sub-items, −4 unticked because they were not actually complete: 5.14's three partial items and the "All 15 Story Audit issues closed or accepted" gate line. Stage 5 section: 156 of 172.)
-**Remaining:** 545
-**Overall project completion:** 52.4% (601 ÷ 1146), up from 48.9%. Stage 6 is the fourth stage, after Stage 0, Stage 3 and Stage 4, to close (under its explicitly revised scope — CI/GitHub Actions deferred by author decision, 6.6 under a revised, approved criterion). Stage 5's gate remains separately open (see its own Completion Gate note) — Stage 6 was entered via the author's explicit override of that dependency, recorded at the top of the Stage 6 section.
+**Total actionable checkboxes:** 1150 (2026-09-25 Stage 7 update: +4 new, deliberately UNTICKED carried-forward sub-items added under 7.3, 7.10 and 7.15 so open work stays visible. Independently re-verified by direct regex count of list-item markers `^\s*- \[( |x)\]` before (1146 / 601) and after (1150 / 725) the edit.) *Earlier note:* 1146 (2026-09-21 Stage 5 closure evaluation: +3 new ticked sub-items at 5.4/5.6, recording manual author verification and the sidecar fix, over a **corrected** pre-edit base of **1143**. The previously recorded "1146 / 562" had been counted with a regex that also matched three prose mentions of the checkbox syntax on the Formula and Total lines. The true pre-edit figures were **1143 / 561**, verified by counting only list-item markers `^\s*- \[( |x)\]`.) *Earlier note, kept for traceability:* (whole-file; was 1138 before this Stage 5 pass began, 1143 after its first continuation — +8 net new sub-items total added while detailing per-task evidence across both passes; independently re-verified by direct regex count of every `- [x]`/`- [ ]` marker, per the same counting discipline used for the 1134→1135 reconciliation)
+**Currently completed:** 725 (2026-09-25 Stage 7: +124 newly ticked checkboxes, all within the Stage 7 section — 124 of Stage 7's 140; the 16 still open are named carry-forwards, not silent gaps.) *Earlier note:* 601 (2026-09-22 Stage 6 closure: +41 newly ticked checkboxes, all within the Stage 6 section — tasks 6.2, 6.3 and 6.6 fully complete [the latter under the author-approved revised acceptance criterion], plus genuinely-done sub-items within 6.4, 6.5 and 6.7. Independently verified by direct regex count of every `- [x]`/`- [ ]` marker, same counting discipline as prior reconciliations: 601 ticked, 545 unticked, 1146 total — no checkbox lines were added or removed, only converted.) *Earlier note:* 560 (2026-09-21 closure evaluation: from the corrected 561, +3 manual-verification/sidecar sub-items, −4 unticked because they were not actually complete: 5.14's three partial items and the "All 15 Story Audit issues closed or accepted" gate line. Stage 5 section: 156 of 172.)
+**Remaining:** 425
+**Overall project completion:** 63.0% (725 ÷ 1150), up from 52.4% (601 ÷ 1146). Stage 7 is implemented and accepted but its gate is not fully closed (see † above). *Earlier:* 52.4% (601 ÷ 1146), up from 48.9%. Stage 6 is the fourth stage, after Stage 0, Stage 3 and Stage 4, to close (under its explicitly revised scope — CI/GitHub Actions deferred by author decision, 6.6 under a revised, approved criterion). Stage 5's gate remains separately open (see its own Completion Gate note) — Stage 6 was entered via the author's explicit override of that dependency, recorded at the top of the Stage 6 section.
 
 > *Counting-basis note (2026-07-25):* the recorded total of 1125 is a **whole-file** checkbox count. The formula above says Stages 0–12, which counts **1111** — the 14-box difference is the Final Project Completion Checklist and the register sections. The existing basis is retained so the figures stay comparable across updates; the formula wording and the basis should be reconciled in Stage 11.
 
@@ -91,6 +93,12 @@ Repository verification during checklist construction changed three things. Each
 
 ## Next Task to Execute
 
+> ### ✅ 2026-09-25 — Stage 7 (Phase 3) implemented and accepted — gate held open on named items
+>
+> The author gave APPROVE COMPLETION for Stage 7 on the evidence in the Stage 7 implementation report. 10 of 15 main tasks are ticked; 7.3, 7.4, 7.10, 7.12 and 7.15 stay open only on the carried-forward items listed under the Stage 7 Completion Gate (⌘Z browser re-check, CI migration test, Tier-2 warning text, golden-set voice review, real day-8 cleanup check, intermittent selection-toolbar test 9). The pod was a fresh reset (`shbr4txyem5s9w`); it was rebuilt with `start-narratiq.sh` and runs on a clean database with controlled fixtures only — the author's local backup was deliberately **not** restored. **Per explicit author instruction, Stage 8 has NOT been analysed, planned or started.**
+>
+> ⚑ Superseded — the Stage 6 note below is kept for traceability.
+>
 > ### ✅ 2026-09-22 — Stage 6 is COMPLETE under its explicitly revised scope (gate closed by author approval)
 >
 > Entered via the author's explicit override of the "Stage 5 gate passed" entry condition (Stage 5's own gate remains separately open — see its Completion Gate note). Tasks 6.2, 6.3 and 6.6 fully done (6.6 under an author-approved revised acceptance criterion). Task 6.1 (CI/GitHub Actions) intentionally deferred by explicit author decision — built, verified locally, then removed; reconsider near final production readiness. Tasks 6.4, 6.5, 6.7 substantially done with specific, named, carried-forward open items (see the Stage 6 Completion Gate's "carried forward" list) — none silently dropped. Full backend suite verified green (499 passed, 0 failed) both before and after the CI-file removal. **Per explicit author instruction, Stage 7 has NOT been analyzed, planned or started.**
@@ -2181,7 +2189,7 @@ Repository verification during checklist construction changed three things. Each
 
 ---
 
-- [ ] **7.1 — Close Phase 3 stakeholder decisions and re-baseline**
+- [x] **7.1 — Close Phase 3 stakeholder decisions and re-baseline** — *completed 2026-09-25*
   - **Source:** Phase 3 spec §45, §7.4
   - **Area:** Product / Planning
   - **Priority:** Critical
@@ -2189,15 +2197,15 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None — *D-4 (all twelve sub-decisions D1-D12) recorded 2026-09-21; see task 0.4*
   - **Can run in parallel:** No
   - **Implementation checklist:**
-    - [ ] Confirm all twelve §45 decisions are recorded (task 0.4)
-    - [ ] Re-read §7.4 and confirm each listed blocker is cleared
-    - [ ] Re-baseline scope given P3-02 and P3-05 already delivered
-    - [ ] Confirm the milestone sequence: Milestone 0 → 3A generation control → remaining
+    - [x] Confirm all twelve §45 decisions are recorded (task 0.4) — *2026-09-25: all 12 mapped to code (D1 plans.py, D3 7-day TTL, D4 pin_store_embedding=True, D5 light, D6 pro+, D9 backup exclusion, D10 Ideas tab, D11 deferred, D12 auto-retry off; D2 manual users.plan; D7/D8 by history)*
+    - [x] Re-read §7.4 and confirm each listed blocker is cleared — *2026-09-25: PRE-1 and PRE-2 re-verified in 7.2*
+    - [x] Re-baseline scope given P3-02 and P3-05 already delivered — *2026-09-25: conflicts C7-1…C7-8 recorded and approved; P3-02/P3-05 extended on the Stage 5 engine, not rebuilt (C7-5)*
+    - [x] Confirm the milestone sequence: Milestone 0 → 3A generation control → remaining — *2026-09-25: implemented in that order*
   - **Verification:**
-    - [ ] No open product question remains in the Phase 3 scope
+    - [x] No open product question remains in the Phase 3 scope — *2026-09-25: all resolved by the approved C7 decisions*
   - **Definition of done:** Phase 3 implementation can start without ambiguity.
 
-- [ ] **7.2 — Verify PRE-1 and PRE-2 are delivered**
+- [x] **7.2 — Verify PRE-1 and PRE-2 are delivered** — *completed 2026-09-25*
   - **Source:** Phase 3 spec §7.4, §46 items 3 and 4
   - **Area:** Backend / Frontend
   - **Priority:** Critical
@@ -2205,14 +2213,14 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None
   - **Can run in parallel:** No
   - **Implementation checklist:**
-    - [ ] Confirm PRE-1 fixed in task 3.1 with `test_retrieval_signatures.py` present
-    - [ ] Confirm P2-02 continuation and P2-04 outline demonstrably work
-    - [ ] Confirm PRE-2 fixed in task 3.8 — toolbar dismisses on deselect and defers to the sidecar
+    - [x] Confirm PRE-1 fixed in task 3.1 with `test_retrieval_signatures.py` present — *2026-09-25: present and passing*
+    - [x] Confirm P2-02 continuation and P2-04 outline demonstrably work — *2026-09-25: live against real vLLM — continuation 200 with 3 real suggestions (11 s), outline 200 with 3 beats (8 s)*
+    - [x] Confirm PRE-2 fixed in task 3.8 — toolbar dismisses on deselect and defers to the sidecar — *2026-09-25: browser specs selection-toolbar "1+2 select shows / deselect hides" and "3+4 sidebar suppresses toolbar" pass*
   - **Verification:**
-    - [ ] Phase 3 spec §46 items 3 and 4 satisfied
+    - [x] Phase 3 spec §46 items 3 and 4 satisfied — *2026-09-25*
   - **Definition of done:** Phase 3's prerequisite defects are provably closed.
 
-- [ ] **7.3 — Verify P3-02 and P3-05 meet Phase 3 acceptance criteria**
+- [ ] **7.3 — Verify P3-02 and P3-05 meet Phase 3 acceptance criteria** — *2026-09-25: implemented and tested; open only on the ⌘Z browser re-verification. R6 byte-identity proven by 100 randomised adversarial runs*
   - **Source:** Phase 3 spec §40, §P3-02, §P3-05; Master Execution Plan §7.3
   - **Area:** AI / Backend
   - **Priority:** Critical
@@ -2221,16 +2229,17 @@ Repository verification during checklist construction changed three things. Each
   - **Can run in parallel:** No
   - > **Do not reimplement.** These were delivered in Stage 5 tasks 5.4 and 5.3.
   - **Implementation checklist:**
-    - [ ] Verify P3-02 against its §40 acceptance criteria
-    - [ ] Verify P3-05 against its §40 acceptance criteria
-    - [ ] Confirm the segment model is compatible with P3-01 pin storage
-    - [ ] Confirm the preservation-rules table matches the §13 schema so P3-10 can extend it
-    - [ ] Close any acceptance gap found
+    - [ ] Verify P3-02 against its §40 acceptance criteria — *2026-09-25: all verified by test EXCEPT "⌘Z undoes an apply in one step", not re-verified in a browser this stage (author will check manually) — see the new sub-item below*
+    - [ ] Browser re-verification: ⌘Z undoes an applied AI result in one step — *carried forward, author manual check (the apply path is the unchanged single-transaction `replaceRange`)*
+    - [x] Verify P3-05 against its §40 acceptance criteria — *2026-09-25: project defaults API/UI + per-request override, tense/POV/dialogue/timeline checks, name autofix, one bounded repair retry, warnings never silent (tests/test_phase3_preservation.py, test_generation_context.py)*
+    - [x] Confirm the segment model is compatible with P3-01 pin storage — *2026-09-25: locks are offsets into the request text; pins store the result plus source range/hash — independent, no conflict*
+    - [x] Confirm the preservation-rules table matches the §13 schema so P3-10 can extend it — *2026-09-25: extended in place by migration 0020 (preserve_rules/style_prefs/pin_prefs) — conflict decision C7-2*
+    - [x] Close any acceptance gap found — *2026-09-25: locked-range validation (422), explicit `failed` on lock-contract failure, invert locks, insert-at-cursor on stale range, sidecar warnings, heuristics measured 0 false positives on 81 real rewrites (tests/fixtures/preservation_checks_measurement.json). No `/regenerate-segments` endpoint by decision C7-5*
   - **Verification:**
-    - [ ] Both capabilities pass Phase 3 acceptance, not merely the Phase 1 QA fix
+    - [ ] Both capabilities pass Phase 3 acceptance, not merely the Phase 1 QA fix — *2026-09-25: open only on the ⌘Z browser re-verification above*
   - **Definition of done:** P3-02 and P3-05 are Phase-3-complete, with no duplicate implementation.
 
-- [ ] **7.4 — Phase 3 migrations 0016–0019**
+- [ ] **7.4 — Phase 3 migrations 0016–0019** — *2026-09-25: implemented and verified locally; open only on the CI checkbox (deferred)*
   - **Source:** Phase 3 spec §13, §46 item 5
   - **Area:** Database
   - **Priority:** Critical
@@ -2238,19 +2247,19 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None — *D-4 (all twelve sub-decisions D1-D12) recorded 2026-09-21; see task 0.4*
   - **Can run in parallel:** No
   - **Implementation checklist:**
-    - [ ] Reconcile the preservation-rules migration created in Stage 5 with the planned numbering
-    - [ ] Create the `ai_generation_pins` migration
-    - [ ] Create the `note_cards` extension migration (§13.3) for P3-09 / P3-10
-    - [ ] Add the nullable vector column for P3-11
-    - [ ] Use `alembic revision --autogenerate`; never raw `ALTER TABLE`
-    - [ ] Ensure every migration is idempotent and reversible
+    - [x] Reconcile the preservation-rules migration created in Stage 5 with the planned numbering — *2026-09-25: Phase 3 migrations renumbered 0019–0022 (0016–0018 already used) — C7-1*
+    - [x] Create the `ai_generation_pins` migration — *2026-09-25: 0019 (+5 indexes, autovacuum)*
+    - [x] Create the `note_cards` extension migration (§13.3) for P3-09 / P3-10 — *2026-09-25: 0021*
+    - [x] Add the nullable vector column for P3-11 — *2026-09-25: `embedding vector(1024)` in 0019, no HNSW by design*
+    - [x] Use `alembic revision --autogenerate`; never raw `ALTER TABLE` — *2026-09-25: under approved decision C7-3 — autogenerate/`alembic check` used as a drift check (no Phase 3 drift; 31 older index-only drift items recorded in CLAUDE.md), migrations hand-written with guards per repo convention*
+    - [x] Ensure every migration is idempotent and reversible — *2026-09-25: re-upgrade is a no-op; downgrade verified*
   - **Verification:**
-    - [ ] `alembic upgrade head` then `downgrade` runs cleanly on PostgreSQL 16 + pgvector
-    - [ ] Migration test runs in CI
-    - [ ] Rollback verified against a populated database
+    - [x] `alembic upgrade head` then `downgrade` runs cleanly on PostgreSQL 16 + pgvector — *2026-09-25: on a populated DB and on a create_all-provisioned DB (`backend/tests/run_migration_roundtrip.sh`)*
+    - [ ] Migration test runs in CI — *NOT done — CI deferred by author decision (Stage 6); local script `tests/run_migration_roundtrip.sh` is ready — carried forward*
+    - [x] Rollback verified against a populated database — *2026-09-25: author data byte-identical across downgrade/re-upgrade (7/7 tables), idea cards survive rollback*
   - **Definition of done:** Schema changes apply and roll back cleanly.
 
-- [ ] **7.5 — P3-01 Temporary generation pins**
+- [x] **7.5 — P3-01 Temporary generation pins** — *completed 2026-09-25*
   - **Source:** Phase 3 spec §P3-01 (§327), §15, §16, §21.1
   - **Area:** Backend / Database / Frontend
   - **Priority:** High
@@ -2258,24 +2267,24 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None — *D-4 (all twelve sub-decisions D1-D12) recorded 2026-09-21; see task 0.4*
   - **Can run in parallel:** No — P3-03, P3-04, P3-06, P3-11 all reuse it
   - **Implementation checklist:**
-    - [ ] Design confirmation against §P3-01
-    - [ ] `ai_generation_pins` table and migration
-    - [ ] Backend pin create / list / delete
-    - [ ] Retention and expiry per D3
-    - [ ] `pin_store_embedding` default per D4
-    - [ ] Ownership and permission rules — a pin belongs to one user and one story
-    - [ ] Plan-limit enforcement per §21.1
-    - [ ] Exclude from logical backups per D9
-    - [ ] Pin action in `SelectionToolbar.tsx`
-    - [ ] Pin list UI
+    - [x] Design confirmation against §P3-01 — *2026-09-25: matches spec with approved C7 deviations*
+    - [x] `ai_generation_pins` table and migration — *2026-09-25: 0019*
+    - [x] Backend pin create / list / delete — *2026-09-25: `routers/ai_workspace.py`; also get/patch/applied/promote*
+    - [x] Retention and expiry per D3 — *2026-09-25: 7 days free, written at insert; hourly sweep observed live 08:47:48 `cleanup_rows=1`*
+    - [x] `pin_store_embedding` default per D4 — *2026-09-25: on; background embedding verified live*
+    - [x] Ownership and permission rules — a pin belongs to one user and one story — *2026-09-25: services/ownership.py; foreign ≡ non-existent*
+    - [x] Plan-limit enforcement per §21.1 — *2026-09-25: 409 with oldest pin, 413, advisory-locked cap exact under concurrency*
+    - [x] Exclude from logical backups per D9 — *2026-09-25: verified: archive has the table definition, 0 pin data entries*
+    - [x] Pin action in `SelectionToolbar.tsx` — *2026-09-25: browser-verified*
+    - [x] Pin list UI — *2026-09-25: Versions tab, browser-verified*
   - **Verification:**
-    - [ ] Unit and integration tests for pin lifecycle and expiry
-    - [ ] Cross-user isolation test — user A cannot read user B's pins
-    - [ ] Migration and rollback verified
-    - [ ] Storage growth measured against the §32 cost model
+    - [x] Unit and integration tests for pin lifecycle and expiry — *2026-09-25: tests/test_pins.py 19/19*
+    - [x] Cross-user isolation test — user A cannot read user B's pins — *2026-09-25: every route, identical responses*
+    - [x] Migration and rollback verified — *2026-09-25: see 7.4*
+    - [x] Storage growth measured against the §32 cost model — *2026-09-25: ~1.5 KB/pin without embedding, ~7.0 KB with, vs model 3.6 / 8.5 KB*
   - **Definition of done:** An author can keep a good attempt and it survives until expiry.
 
-- [ ] **7.6 — P3-03 Use pinned versions as generation context**
+- [x] **7.6 — P3-03 Use pinned versions as generation context** — *completed 2026-09-25*
   - **Source:** Phase 3 spec §P3-03 (§477), §1517
   - **Area:** AI / Backend / Frontend
   - **Priority:** High
@@ -2283,18 +2292,18 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None — *D-4 (all twelve sub-decisions D1-D12) recorded 2026-09-21; see task 0.4*
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Design confirmation against §P3-03
-    - [ ] Feed up to N pins into the prompt, budget-shared
-    - [ ] Summarise oversized pins rather than truncating
-    - [ ] Apply §12.3 prompt budgeting
-    - [ ] Run preservation checks on the output
-    - [ ] UI to select which pins are context
+    - [x] Design confirmation against §P3-03 — *2026-09-25: `services/generation_context.py` is the single composition point*
+    - [x] Feed up to N pins into the prompt, budget-shared — *2026-09-25: plan-capped (422 over limit)*
+    - [x] Summarise oversized pins rather than truncating — *2026-09-25: summarised once, cached in pins.summary; unsummarisable pins dropped and reported*
+    - [x] Apply §12.3 prompt budgeting — *2026-09-25: 2,600-token budget, drops reported in warnings*
+    - [x] Run preservation checks on the output — *2026-09-25: same checks as every Phase 3 generation*
+    - [x] UI to select which pins are context — *2026-09-25: "Use as context" in Versions*
   - **Verification:**
-    - [ ] Integration test asserting pin content reaches the prompt
-    - [ ] Prompt stays within the context window at maximum pin count
+    - [x] Integration test asserting pin content reaches the prompt — *2026-09-25: test_generation_context.py; live: context_used.pins=1*
+    - [x] Prompt stays within the context window at maximum pin count — *2026-09-25: studio maximum stays under max_model_len 8192*
   - **Definition of done:** An author can say "use the villain from attempt 4".
 
-- [ ] **7.7 — P3-04 Side-by-side comparison and merge**
+- [x] **7.7 — P3-04 Side-by-side comparison and merge** — *completed 2026-09-25*
   - **Source:** Phase 3 spec §P3-04 (§545), §1518, §1519
   - **Area:** Frontend / AI
   - **Priority:** High
@@ -2302,19 +2311,19 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None — *D-4 (all twelve sub-decisions D1-D12) recorded 2026-09-21; see task 0.4*
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Design confirmation against §P3-04
-    - [ ] Client-side diff — no new storage
-    - [ ] Comparison summary via `_extract_json` with `{}` fallback, best-effort
-    - [ ] Block-level merge selection
-    - [ ] Merge smoothing with word-count delta ≤ 12% and block similarity ≥ 0.9
-    - [ ] One retry, then return the unsmoothed merge
-    - [ ] Comparison and merge UI
+    - [x] Design confirmation against §P3-04 — *2026-09-25: diff client-side, no upload of unpinned text*
+    - [x] Client-side diff — no new storage — *2026-09-25: `frontend/lib/diff.ts`, no dependency*
+    - [x] Comparison summary via `_extract_json` with `{}` fallback, best-effort — *2026-09-25: deviation: via `complete_structured()` per repo policy (one retry); returns available=false on failure*
+    - [x] Block-level merge selection — *2026-09-25: per-block A/B*
+    - [x] Merge smoothing with word-count delta ≤ 12% and block similarity ≥ 0.9 — *2026-09-25: deterministic guard in services/version_tools.py*
+    - [x] One retry, then return the unsmoothed merge — *2026-09-25: tested*
+    - [x] Comparison and merge UI — *2026-09-25: side-by-side / unified / changes-only*
   - **Verification:**
-    - [ ] Unit tests for the smoothing constraints
-    - [ ] Playwright test for the compare-and-merge flow
+    - [x] Unit tests for the smoothing constraints — *2026-09-25: tests/test_similarity_and_merge.py*
+    - [x] Playwright test for the compare-and-merge flow — *2026-09-25: tests/browser/phase3-pins-compare.spec.ts passes*
   - **Definition of done:** An author can see how two candidates differ and combine them.
 
-- [ ] **7.8 — P3-06 Generate from a specific previous version**
+- [x] **7.8 — P3-06 Generate from a specific previous version** — *completed 2026-09-25*
   - **Source:** Phase 3 spec §P3-06 (§685), §1521
   - **Area:** AI / Backend / Frontend
   - **Priority:** Medium
@@ -2322,18 +2331,18 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None — *D-4 (all twelve sub-decisions D1-D12) recorded 2026-09-21; see task 0.4*
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Design confirmation against §P3-06
-    - [ ] Lineage columns on `ai_generation_pins` — parent, root, depth
-    - [ ] Pass the base pin as SOURCE DRAFT plus the original excerpt for position
-    - [ ] Record derivation intent (variation, improve, …)
-    - [ ] Apply the P3-11 anti-echo score
-    - [ ] Lineage view in the UI
+    - [x] Design confirmation against §P3-06 — *2026-09-25: all 8 intents*
+    - [x] Lineage columns on `ai_generation_pins` — parent, root, depth — *2026-09-25: depth cap 12, beyond cap becomes a new root with provenance kept*
+    - [x] Pass the base pin as SOURCE DRAFT plus the original excerpt for position — *2026-09-25: tested*
+    - [x] Record derivation intent (variation, improve, …) — *2026-09-25: stored on the pin*
+    - [x] Apply the P3-11 anti-echo score — *2026-09-25: echo warning when a variation copies its parent*
+    - [x] Lineage view in the UI — *2026-09-25: indented tree; expired ancestors handled*
   - **Verification:**
-    - [ ] Integration test asserting lineage is recorded correctly
-    - [ ] Derived output differs measurably from its parent
+    - [x] Integration test asserting lineage is recorded correctly — *2026-09-25: test_pins.py*
+    - [x] Derived output differs measurably from its parent — *2026-09-25: live anti-echo 0.24 vs parent*
   - **Definition of done:** An author can branch from any earlier attempt.
 
-- [ ] **7.9 — P3-07 Session-level idea-repetition avoidance**
+- [x] **7.9 — P3-07 Session-level idea-repetition avoidance** — *completed 2026-09-25*
   - **Source:** Phase 3 spec §P3-07 (§747), §1522, §29.5
   - **Area:** AI / Backend
   - **Priority:** Medium
@@ -2341,17 +2350,17 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None — *D-4 (all twelve sub-decisions D1-D12) recorded 2026-09-21; see task 0.4*
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Design confirmation against §P3-07
-    - [ ] Session-scoped avoid-set — **never persisted** (§29.5)
-    - [ ] Cap at 8 gists × 140 characters
-    - [ ] Similarity check against the avoid-set via P3-11
-    - [ ] Auto-retry default per D12
+    - [x] Design confirmation against §P3-07 — *2026-09-25: client session history, deterministic gists*
+    - [x] Session-scoped avoid-set — **never persisted** (§29.5) — *2026-09-25: no table/column; generationStore not persisted*
+    - [x] Cap at 8 gists × 140 characters — *2026-09-25: validator + 300-token block cap*
+    - [x] Similarity check against the avoid-set via P3-11 — *2026-09-25: near_duplicate warning*
+    - [x] Auto-retry default per D12 — *2026-09-25: off; opt-in retry capped at one*
   - **Verification:**
-    - [ ] Unit test asserting the avoid-set is not written to the database
-    - [ ] Repeated generations produce varied ideas within a session
+    - [x] Unit test asserting the avoid-set is not written to the database — *2026-09-25: R1 row-count test + schema test*
+    - [x] Repeated generations produce varied ideas within a session — *2026-09-25: live: mean pairwise similarity 0.357 → 0.284 with the avoid-set*
   - **Definition of done:** The model stops repeating itself within a session, and nothing is permanently blacklisted.
 
-- [ ] **7.10 — P3-08 Character and story-fact consistency guard**
+- [ ] **7.10 — P3-08 Character and story-fact consistency guard** — *2026-09-25: implemented and verified; open only on the Tier-2 warning-text quality item*
   - **Source:** Phase 3 spec §P3-08 (§815), §1523
   - **Area:** AI / Backend
   - **Priority:** High
@@ -2360,18 +2369,19 @@ Repository verification during checklist construction changed three things. Each
   - **Can run in parallel:** Yes
   - **Context:** Composes both retrieval helpers fixed in task 3.1 — verify PRE-1 first.
   - **Implementation checklist:**
-    - [ ] Design confirmation against §P3-08
-    - [ ] Assemble characters, facts, world rules, timeline and nearby summaries into context
-    - [ ] Implement Tier 0 and Tier 1 free checks
-    - [ ] Implement the Tier 2 opt-in JSON check, gated per D6
-    - [ ] One repair retry on a hard-rule violation
-    - [ ] Reuse Phase 1/2 data — no new storage
+    - [x] Design confirmation against §P3-08 — *2026-09-25: `services/consistency.py`, activation gate, never hard-blocks*
+    - [x] Assemble characters, facts, world rules, timeline and nearby summaries into context — *2026-09-25: never beyond the current chapter (tested)*
+    - [x] Implement Tier 0 and Tier 1 free checks — *2026-09-25: name check + knowledge-state check*
+    - [x] Implement the Tier 2 opt-in JSON check, gated per D6 — *2026-09-25: pro/studio only; free plan gets an info notice*
+    - [x] One repair retry on a hard-rule violation — *2026-09-25: temperature −0.1, bounded*
+    - [x] Reuse Phase 1/2 data — no new storage — *2026-09-25: no new table/column*
   - **Verification:**
-    - [ ] Integration test: a generation contradicting an established fact is flagged
-    - [ ] Tier 2 cost measured against the D6 gating decision
+    - [x] Integration test: a generation contradicting an established fact is flagged — *2026-09-25: knowledge_violation test*
+    - [x] Tier 2 cost measured against the D6 gating decision — *2026-09-25: live: +861 ms, 1 extra LLM call*
+    - [ ] Tier-2 warning text describes the contradiction instead of restating the rule — *carried forward: in the live run the 7B model's warning restated the world rule ("The harbour lamps are lit only by the keeper.") rather than describing what the passage did wrong*
   - **Definition of done:** Generations that contradict the established story are caught.
 
-- [ ] **7.11 — P3-09 Idea Shelf**
+- [x] **7.11 — P3-09 Idea Shelf** — *completed 2026-09-25*
   - **Source:** Phase 3 spec §P3-09 (§907), §13.3, §27.2
   - **Area:** Backend / Database / Frontend
   - **Priority:** Medium
@@ -2379,18 +2389,18 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None — *D-4 (all twelve sub-decisions D1-D12) recorded 2026-09-21; see task 0.4*
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Design confirmation against §P3-09
-    - [ ] Extend `note_cards` with an `idea` card type — no new table (§27.2)
-    - [ ] Ideas survive pin expiry
-    - [ ] Navigation placement per D10 — coordinate with task 8.8
-    - [ ] Idea Shelf UI
-    - [ ] Ownership rules consistent with note cards
+    - [x] Design confirmation against §P3-09 — *2026-09-25: no new table*
+    - [x] Extend `note_cards` with an `idea` card type — no new table (§27.2) — *2026-09-25: 8 idea types + 4 columns (0021)*
+    - [x] Ideas survive pin expiry — *2026-09-25: test + live sweep*
+    - [x] Navigation placement per D10 — coordinate with task 8.8 — *2026-09-25: Ideas tab inside Notes, no new navigation entry; binder markers in Write. Task 8.8 should keep this placement in mind*
+    - [x] Idea Shelf UI — *2026-09-25: filters, grouping, tags, status, chapter assignment, drag + keyboard insert*
+    - [x] Ownership rules consistent with note cards — *2026-09-25: foreign ≡ non-existent (404) for cards and target chapters*
   - **Verification:**
-    - [ ] Integration test: an idea survives its source pin's expiry
-    - [ ] Migration and rollback verified
+    - [x] Integration test: an idea survives its source pin's expiry — *2026-09-25: test_pins.py*
+    - [x] Migration and rollback verified — *2026-09-25: idea card survives downgrade as a note card*
   - **Definition of done:** A good idea outlives the generation that produced it.
 
-- [ ] **7.12 — P3-10 Author writing-style preservation**
+- [ ] **7.12 — P3-10 Author writing-style preservation** — *2026-09-25: implemented; open only on the golden-set author review*
   - **Source:** Phase 3 spec §P3-10 (§974), §28.1, §1524
   - **Area:** AI / Backend
   - **Priority:** Medium
@@ -2398,19 +2408,19 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None — *D-4 (all twelve sub-decisions D1-D12) recorded 2026-09-21; see task 0.4*
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Design confirmation against §P3-10
-    - [ ] Extend the P3-05 preservation table
-    - [ ] Reuse `story_dna` rather than building a style analyser (§28.1)
-    - [ ] Assemble fingerprint, exemplars and surrounding paragraphs into context
-    - [ ] Default style match level per D5
-    - [ ] Account-level style profiles deferred per D11 (§28.6)
-    - [ ] Note: no machine verification at this scale (§1524) — rely on golden-set author review
+    - [x] Design confirmation against §P3-10 — *2026-09-25: renderer + control only*
+    - [x] Extend the P3-05 preservation table — *2026-09-25: style_prefs column (0020)*
+    - [x] Reuse `story_dna` rather than building a style analyser (§28.1) — *2026-09-25: no new analysis*
+    - [x] Assemble fingerprint, exemplars and surrounding paragraphs into context — *2026-09-25: levels off/light/strong*
+    - [x] Default style match level per D5 — *2026-09-25: light*
+    - [x] Account-level style profiles deferred per D11 (§28.6) — *2026-09-25: not built*
+    - [x] Note: no machine verification at this scale (§1524) — rely on golden-set author review — *2026-09-25: acknowledged; see open verification item*
   - **Verification:**
-    - [ ] Golden-set author review confirms style match
-    - [ ] Token cost measured against the D5 decision
+    - [ ] Golden-set author review confirms style match — *carried forward — author review not yet done*
+    - [x] Token cost measured against the D5 decision — *2026-09-25: live: light ≈ 51 prompt tokens (spec estimate ~90)*
   - **Definition of done:** Generated text sounds like the author.
 
-- [ ] **7.13 — P3-11 Duplicate and near-duplicate detection**
+- [x] **7.13 — P3-11 Duplicate and near-duplicate detection** — *completed 2026-09-25*
   - **Source:** Phase 3 spec §P3-11 (§1048)
   - **Area:** AI / Backend / Database
   - **Priority:** Medium
@@ -2418,18 +2428,18 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None — *D-4 (all twelve sub-decisions D1-D12) recorded 2026-09-21; see task 0.4*
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Design confirmation against §P3-11
-    - [ ] Nullable vector column on `ai_generation_pins`
-    - [ ] Similarity scoring against existing pins
-    - [ ] Anti-echo score used by P3-06 and P3-07
-    - [ ] Surface near-duplicate warnings in the UI
-    - [ ] Auto-retry behaviour per D12
+    - [x] Design confirmation against §P3-11 — *2026-09-25: two stages, lexical first*
+    - [x] Nullable vector column on `ai_generation_pins` — *2026-09-25: 0019*
+    - [x] Similarity scoring against existing pins — *2026-09-25: pgvector SQL, no numpy*
+    - [x] Anti-echo score used by P3-06 and P3-07 — *2026-09-25: shared lexical scorer*
+    - [x] Surface near-duplicate warnings in the UI — *2026-09-25: similarity badge, opens the comparison*
+    - [x] Auto-retry behaviour per D12 — *2026-09-25: off by default, max one*
   - **Verification:**
-    - [ ] Unit test: a near-identical generation is detected
-    - [ ] Behaviour verified with `pin_store_embedding` both on and off
+    - [x] Unit test: a near-identical generation is detected — *2026-09-25: test_similarity_and_merge.py*
+    - [x] Behaviour verified with `pin_store_embedding` both on and off — *2026-09-25: semantic stage only when on*
   - **Definition of done:** The author is told when a new attempt repeats an old one.
 
-- [ ] **7.14 — Verify Phase 3 product rules R1–R10**
+- [x] **7.14 — Verify Phase 3 product rules R1–R10** — *completed 2026-09-25*
   - **Source:** Phase 3 spec §46 item 2
   - **Area:** AI / Backend / Testing
   - **Priority:** High
@@ -2437,14 +2447,14 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None
   - **Can run in parallel:** No
   - **Implementation checklist:**
-    - [ ] Verify each of R1–R10
-    - [ ] **R1 and R6 must be verified by test, not by inspection** (spec requirement)
+    - [x] Verify each of R1–R10 — *2026-09-25: tests/test_phase3_rules.py (12 checks) plus behaviour tests*
+    - [x] **R1 and R6 must be verified by test, not by inspection** (spec requirement) — *2026-09-25: R1 row-count test; R6 100 randomised adversarial runs + browser lock spec*
   - **Verification:**
-    - [ ] Automated tests exist for R1 and R6
-    - [ ] Every other rule has a recorded verification method
+    - [x] Automated tests exist for R1 and R6 — *2026-09-25*
+    - [x] Every other rule has a recorded verification method — *2026-09-25: static/structural checks in test_phase3_rules.py*
   - **Definition of done:** All ten product rules are verified as the spec requires.
 
-- [ ] **7.15 — Phase 3 definition of done (§46, §47)**
+- [ ] **7.15 — Phase 3 definition of done (§46, §47)** — *2026-09-25: open on the carried-forward items*
   - **Source:** Phase 3 spec §46, §47
   - **Area:** Planning / Testing
   - **Priority:** High
@@ -2452,25 +2462,35 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None
   - **Can run in parallel:** No
   - **Implementation checklist:**
-    - [ ] All eleven capabilities meet their §40 acceptance criteria
-    - [ ] Migrations 0016–0019 apply and roll back cleanly
-    - [ ] Walk the full §47 checklist
-    - [ ] Track realised cost against the §32 model
-    - [ ] Extend the Stage 6 suite with Phase 3 coverage
+    - [ ] All eleven capabilities meet their §40 acceptance criteria — *not yet — open on P3-10 golden-set author review and the P3-02 ⌘Z browser check*
+    - [x] Migrations 0016–0019 apply and roll back cleanly — *2026-09-25: as renumbered 0019–0022 (C7-1)*
+    - [x] Walk the full §47 checklist — *2026-09-25: walked in the Stage 7 report; open items are the ones listed in this task and 7.3/7.4/7.10/7.12*
+    - [x] Track realised cost against the §32 model — *2026-09-25: storage per pin within the model; D5/D6 compute cost measured; `[pin_metrics]` logged daily*
+    - [x] Extend the Stage 6 suite with Phase 3 coverage — *2026-09-25: 107 new backend tests, 3 unit specs, 1 browser spec, live `tests/manual_phase3_live_e2e.py` (18/18)*
+    - [ ] Real day-8 cleanup verification (§36.4 step 4) — *carried forward: the sweep deleted an expired pin live (08:47:48, `cleanup_rows=1`), but a full real 7-day free-plan cycle has not yet elapsed*
+    - [ ] Intermittent `selection-toolbar.spec.ts` test 9 (Escape order) — *carried forward: fails ~1 in 3 runs; pre-existing race in the PRE-2 dismissal logic (re-selecting the identical range does not clear `dismissed`), code path not changed by Stage 7; recommended for the Stage 8 toolbar redesign*
   - **Verification:**
-    - [ ] Every §46 and §47 item ticked
+    - [ ] Every §46 and §47 item ticked — *not met — open items above; UAT is Stage 9*
   - **Definition of done:** Phase 3 is complete by its own published standard.
 
 ### Stage 7 Completion Gate
 
-- [ ] All twelve Phase 3 stakeholder decisions applied
-- [ ] PRE-1 and PRE-2 verified closed
-- [ ] P3-01 … P3-11 all delivered (P3-02, P3-05 verified from Stage 5)
-- [ ] Migrations 0016–0019 apply and roll back cleanly on PostgreSQL 16 + pgvector
-- [ ] Locked segments proven byte-identical across regeneration
-- [ ] Product rules R1–R10 verified, R1 and R6 by test
-- [ ] Phase 3 §46 and §47 fully satisfied
-- [ ] Storage and cost within the §32 model
+- [x] All twelve Phase 3 stakeholder decisions applied — *2026-09-25*
+- [x] PRE-1 and PRE-2 verified closed — *2026-09-25: live continuation/outline + browser specs*
+- [x] P3-01 … P3-11 all delivered (P3-02, P3-05 verified from Stage 5) — *2026-09-25: all delivered; P3-02/P3-05 extended on the Stage 5 engine*
+- [x] Migrations 0016–0019 apply and roll back cleanly on PostgreSQL 16 + pgvector — *2026-09-25: as 0019–0022*
+- [x] Locked segments proven byte-identical across regeneration — *2026-09-25: 100 randomised adversarial runs + browser*
+- [x] Product rules R1–R10 verified, R1 and R6 by test — *2026-09-25*
+- [ ] Phase 3 §46 and §47 fully satisfied — *not met — see carried-forward list below*
+- [x] Storage and cost within the §32 model — *2026-09-25: measured*
+
+---
+
+> **2026-09-25 — Stage 7 implemented and accepted (APPROVE COMPLETION); gate NOT fully closed.** 10 of 15 main tasks complete (7.1, 7.2, 7.5–7.9, 7.11, 7.13, 7.14); 7.3, 7.4, 7.10, 7.12 and 7.15 are implemented and verified but held open on specific, named items. Evidence: 107 new backend tests pass; full backend suite 601 passed (known-defect suite excluded as documented); frontend unit 89/89; browser Phase 3 + Stage 5 lock specs 11/11; live end-to-end against real vLLM 18/18 (`backend/tests/fixtures/phase3_live_e2e_report.json`); populated migration round-trip PASS; heuristic preservation checks 0 false positives on 81 real rewrites; hourly expiry sweep observed live; bundle `/write` +7 kB page-specific.
+>
+> **Approved deviations (Stage 7 plan, C7-1…C7-8):** migrations renumbered 0019–0022; per-story preferences extend `story_preservation_settings` (no `story_ai_preferences` table); autogenerate used only as a drift check; no `/api/ai/regenerate-segments` — partial regeneration stays on the Stage 5 `locked_ranges` engine; cross-user `story_id` leak on `/api/ai/*` fixed (foreign ≡ non-existent 404); pin rows excluded from backups; Phase 3 UI behind `NEXT_PUBLIC_P3_ENABLED`. **Further documented deviations:** `controls` accepted by tone/emotion/age-adapt/style only; heuristic checks (tense/POV/dialogue/timeline) warn by default and are enforced only when the author sets "Keep"; compare summary / strict check use `complete_structured()` (one retry); 30 settings (spec 29 + `dialogue_similarity_min`); shared first-load +0.1 kB (spec target 0); no Command Palette entries added; the live DB was provisioned directly at `0022` during bring-up (empty — no data at risk); retrieval log lines no longer include manuscript text.
+>
+> **Carried forward, tracked, not silently dropped:** golden-set author review of voice matching (7.12); ⌘Z single-step undo browser re-check (7.3, author manual); migration test in CI (7.4, CI deferred); Tier-2 warning-text quality (7.10); real day-8 cleanup verification (7.15); intermittent selection-toolbar test 9 (7.15, recommended for Stage 8); UAT (Stage 9).
 
 ---
 

@@ -170,6 +170,11 @@ export interface TransformResponse {
   reason?: string | null
   strength_violation?: boolean
   preservation_violations?: string[]
+  // Stage 7 (Phase 3) additive fields.
+  failed?: boolean
+  warnings?: GenerationWarning[]
+  context_used?: Record<string, unknown>
+  name_autofix?: { replace: string; with: string }[]
 }
 
 // ── Copyright / Plagiarism Risk Detection ──────────────────────────────────────
@@ -778,4 +783,130 @@ export interface StoryAnalyticsResponse {
   metrics: Record<string, AnalyticsMetric>
   story_intelligence?:            StoryIntelligenceSummary | null
   story_intelligence_available:   boolean
+}
+
+// ── Phase 3 (Stage 7): generation management ──────────────────────────────────
+// Mirrors backend/schemas.py. Every id here is ownership-checked server-side;
+// the client never decides a limit — it only displays /api/ai/limits.
+
+export type IdeaCardType =
+  | 'future_scene' | 'dialogue_idea' | 'plot_twist' | 'character_idea'
+  | 'research' | 'ending_idea' | 'worldbuilding' | 'style_sample'
+export type CardStatus = 'open' | 'used' | 'archived'
+
+export interface IdeaCard extends Omit<NoteCard, 'card_type'> {
+  card_type: NoteCardType | IdeaCardType
+  target_chapter_id: string | null
+  tags: string[] | null
+  status: CardStatus
+  source_pin_id: string | null
+}
+
+export type PreserveValue = true | false | 'warn'
+export type PreserveRuleKey =
+  | 'character_names' | 'tone' | 'tense' | 'pov' | 'dialogue_meaning' | 'timeline' | 'story_facts'
+export type DerivationIntent =
+  | 'variation' | 'improve' | 'continue' | 'keep_structure_change_ending'
+  | 'keep_idea_change_tone' | 'expand' | 'condense' | 'custom'
+export type StyleMatch = 'off' | 'light' | 'strong'
+
+export interface GenerationControls {
+  context_pin_ids?: string[]
+  base_pin_id?: string
+  derivation?: DerivationIntent
+  derivation_param?: string
+  avoid_texts?: string[]
+  avoid_pin_ids?: string[]
+  preserve?: Partial<Record<PreserveRuleKey, PreserveValue | null>>
+  style_match?: StyleMatch
+  local_context?: { before: string; after: string }
+  consistency?: 'auto' | 'off' | 'strict'
+  instruction?: string
+}
+
+export interface GenerationWarning {
+  kind: string
+  severity: 'hard' | 'soft' | 'info'
+  message: string
+  entity?: { type: string; id?: string; name?: string } | null
+  autofix?: { replace: string; with: string }[] | null
+}
+
+export interface PinLimits { used: number; max: number; plan: string }
+
+export interface Pin {
+  pin_id: string
+  story_id: string
+  chapter_id: string | null
+  tool: string
+  scope: string
+  tool_params: Record<string, unknown>
+  preview: string
+  source_excerpt: string
+  source_sha256: string
+  source_from: number | null
+  source_to: number | null
+  content_sha256: string
+  word_count: number
+  label: string
+  is_favourite: boolean
+  parent_pin_id: string | null
+  root_pin_id: string | null
+  lineage_depth: number
+  derived_from_pin_ids: string[]
+  derivation: string
+  has_embedding: boolean
+  applied_at: string | null
+  promoted_card_id: string | null
+  expires_at: string
+  created_at: string
+}
+export interface PinDetail extends Pin { content: string }
+
+export interface PinCreatePayload {
+  chapter_id?: string | null
+  tool: string
+  scope?: 'selection' | 'chapter' | 'story' | 'idea'
+  tool_params?: Record<string, unknown>
+  content: string
+  source_excerpt?: string
+  source_text_sha256?: string
+  source_from?: number | null
+  source_to?: number | null
+  label?: string
+  parent_pin_id?: string | null
+  derived_from_pin_ids?: string[]
+  derivation?: string
+  replace_oldest?: boolean
+}
+
+export interface PlanLimitsOut {
+  plan: string
+  limits: {
+    max_pins: number; pin_ttl_days: number; max_pin_chars: number; max_context_pins: number
+    max_idea_cards: number; max_style_samples: number; can_extend_ttl: boolean; strict_consistency: boolean
+  }
+  usage: { pins: number; idea_cards: number; style_samples?: number }
+  session_history_max: number
+  avoid_max_items: number
+}
+
+export interface AiPreferences {
+  story_id: string
+  preserve_character_names: boolean
+  preserve_tone: boolean
+  author_notes: string
+  preserve_rules: Record<PreserveRuleKey, PreserveValue>
+  style_prefs: { match_level: StyleMatch; exemplar_card_ids: string[]; use_story_dna: boolean }
+  pin_prefs: { duplicate_auto_retry: boolean; strict_consistency: boolean }
+  story_dna_available: boolean
+  strict_consistency_allowed: boolean
+}
+
+export interface SimilarityMatch {
+  pin_id: string | null
+  text_index: number | null
+  score: number
+  method: 'lexical' | 'semantic'
+  label: 'near_duplicate' | 'related' | 'distinct'
 }

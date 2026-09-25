@@ -26,6 +26,8 @@ export interface EditorBridge {
   /** Text currently in a range, '' if the range no longer exists — used to prove a
    *  captured range still holds its captured words before overwriting it. */
   getTextInRange: (from: number, to: number) => string
+  /** Phase 3 (P3-10) — read-only text either side of a range, clamped. */
+  getSurroundingText?: (from: number, to: number, chars?: number) => { before: string; after: string }
 }
 
 export interface Selection { text: string; from: number; to: number }

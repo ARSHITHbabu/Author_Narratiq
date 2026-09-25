@@ -13,13 +13,21 @@ import ChapterSidebar from '@/components/editor/ChapterSidebar'
 import EditorWithMethods, { type EditorMethods, type LiveSelection } from '@/components/editor/EditorWithMethods'
 import AISidecar from '@/components/studio/AISidecar'
 import SelectionToolbar from '@/components/studio/SelectionToolbar'
+import dynamic from 'next/dynamic'
+import { P3_ENABLED } from '@/lib/generationControls'
+import { useGenerationStore } from '@/lib/generationStore'
 import { useStoryContext } from '@/components/studio/StoryContextEngine'
 import { useStudioStore } from '@/lib/studioStore'
 import { isSelectionSafeTarget, selectionSafeProps } from '@/lib/selectionOwnership'
 
+// Loaded on demand — the compare dialog (Radix Dialog + diff) is not needed
+// until an author opens a comparison, so it stays out of the route's first load.
+const VersionCompareView = dynamic(() => import('@/components/generation/VersionCompareView'), { ssr: false })
+
 export default function WriteWorkspace() {
   const { storyId, story, chapters, activeChapter, activeChapterId, setActiveChapter, reloadChapters, registerEditor, updateChapterWordCount } = useStoryContext()
   const store = useStudioStore()
+  const compareOpen = useGenerationStore((s) => s.compare !== null)
   const [wordCount, setWordCount] = useState(activeChapter?.word_count ?? 0)
 
   // Live word count: update both the status-bar number AND the binder/sidebar +
@@ -148,6 +156,9 @@ export default function WriteWorkspace() {
           <button onClick={toggleFullscreen} className="p-1 rounded hover:bg-[#1f2440]" title="Fullscreen"><Maximize2 className="w-3.5 h-3.5" /></button>
         </div>
       )}
+      {/* Phase 3 compare/merge dialog — mounted once for the workspace; opened
+          from Versions or a similarity badge on either AI surface. */}
+      {P3_ENABLED && compareOpen && <VersionCompareView />}
       {store.zenMode && (
         <button onClick={() => store.setZenMode(false)} className="fixed bottom-4 right-4 z-30 text-[11px] px-3 py-1.5 rounded-full border border-[#2e3454] bg-[#13162a] text-[#9da3c8] hover:text-white">Exit Zen (Esc)</button>
       )}

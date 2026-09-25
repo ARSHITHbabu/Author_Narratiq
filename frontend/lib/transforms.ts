@@ -7,6 +7,7 @@
 
 import { Wand2, Palette, Heart, Users, Type, Globe, BookOpen, type LucideIcon } from 'lucide-react'
 import api from './api'
+import type { GenerationControls, GenerationWarning } from './types'
 
 export interface Opt { id: string; label: string; emoji?: string; desc?: string; age?: string }
 
@@ -140,6 +141,9 @@ export interface TransformOpts {
   intensity?: string
   strength?: StrengthLevel
   lockedRanges?: LockedRange[]
+  /** Phase 3 — only sent to CONTROLLABLE groups (tone/emotion/age_adapt/style).
+   *  Omitted → the request is byte-identical to the pre-Phase-3 shape. */
+  controls?: GenerationControls
 }
 
 // Full Stage 5 response shape (schemas.TransformResponse) — additive fields
@@ -152,13 +156,25 @@ export interface TransformResult {
   reason: string | null
   strength_violation: boolean
   preservation_violations: string[]
+  // Phase 3 (Stage 7) — additive.
+  failed: boolean
+  warnings: GenerationWarning[]
+  context_used: Record<string, unknown>
+  name_autofix: { replace: string; with: string }[]
 }
+
+// Mirrors CONTROLLABLE_GROUPS in lib/generationControls.ts (kept here too so
+// this module has no import cycle): the endpoints whose schema accepts `controls`.
+const CONTROLS_GROUPS: GroupId[] = ['tone', 'emotion', 'age_adapt', 'style']
 
 // Pure descriptor of the HTTP call for a transform — used by runTransform AND by
 // tests to assert correct routing + that the SELECTED TEXT is what gets sent.
 export function buildTransformCall(group: GroupId, value: string, text: string, opts: TransformOpts = {}) {
-  const { storyId, chapterId, intensity = 'medium', strength, lockedRanges } = opts
+  const { storyId, chapterId, intensity = 'medium', strength, lockedRanges, controls } = opts
   const lockable = LOCKABLE_GROUPS.includes(group)
+  // Phase 3: controls + the chapter (for story-position context) travel only
+  // when the caller asked for them, and only to endpoints that accept them.
+  const p3 = controls && CONTROLS_GROUPS.includes(group) ? { controls, chapter_id: chapterId } : {}
   // Only attached for groups whose backend schema actually accepts them —
   // sending these to /emotion, /refine, /author-style or /translate would be
   // silently ignored server-side (extra fields aren't rejected), but keeping
@@ -166,10 +182,10 @@ export function buildTransformCall(group: GroupId, value: string, text: string, 
   const lockFields = lockable ? { strength, locked_ranges: lockedRanges?.map((r) => ({ start: r.start, end: r.end })) } : {}
   switch (group) {
     case 'refine':    return { path: '/api/ai/refine', body: { text, mode: value, story_id: storyId, chapter_id: chapterId } }
-    case 'tone':      return { path: '/api/ai/tone', body: { text, tone: value.toLowerCase(), story_id: storyId, ...lockFields } }
-    case 'emotion':   return { path: '/api/ai/emotion', body: { text, emotion: value.toLowerCase(), intensity, story_id: storyId } }
-    case 'age_adapt': return { path: '/api/ai/age-adapt', body: { text, target_age: value, story_id: storyId, ...lockFields } }
-    case 'style':     return { path: '/api/ai/style', body: { text, style: value.toLowerCase(), story_id: storyId, ...lockFields } }
+    case 'tone':      return { path: '/api/ai/tone', body: { text, tone: value.toLowerCase(), story_id: storyId, ...lockFields, ...p3 } }
+    case 'emotion':   return { path: '/api/ai/emotion', body: { text, emotion: value.toLowerCase(), intensity, story_id: storyId, ...p3 } }
+    case 'age_adapt': return { path: '/api/ai/age-adapt', body: { text, target_age: value, story_id: storyId, ...lockFields, ...p3 } }
+    case 'style':     return { path: '/api/ai/style', body: { text, style: value.toLowerCase(), story_id: storyId, ...lockFields, ...p3 } }
     case 'author_style': return { path: '/api/ai/author-style', body: { text, author: value, story_id: storyId, chapter_id: chapterId } }
     case 'translate': return { path: '/api/ai/translate', body: { text, target_language: value, story_id: storyId } }
   }
@@ -188,5 +204,9 @@ export async function runTransform(group: GroupId, value: string, text: string, 
     reason: d.reason ?? null,
     strength_violation: !!d.strength_violation,
     preservation_violations: Array.isArray(d.preservation_violations) ? d.preservation_violations : [],
+    failed: !!d.failed,
+    warnings: Array.isArray(d.warnings) ? d.warnings : [],
+    context_used: d.context_used && typeof d.context_used === 'object' ? d.context_used : {},
+    name_autofix: Array.isArray(d.name_autofix) ? d.name_autofix : [],
   }
 }

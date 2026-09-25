@@ -64,3 +64,30 @@ class UploadTooLargeError(Exception):
         self.message = msg
         self.limit_mb = limit_mb
         self.actual_mb = actual_mb
+
+
+class ApiError(Exception):
+    """
+    Phase 3 structured error (spec §17.4). Caught by the global handler in
+    main.py and rendered FLAT — {"detail": <author-facing text>, "code": ...,
+    plus any extra keys such as "limits" or "oldest_pin"} — so the frontend's
+    existing `e.response.data.detail` handling keeps showing a readable string
+    while Phase 3 surfaces can branch on `code`.
+
+    `detail` must always be author-facing text: never an exception string,
+    never manuscript content.
+    """
+
+    def __init__(self, status_code: int, detail: str, code: str | None = None, **extra):
+        super().__init__(detail)
+        self.status_code = status_code
+        self.detail = detail
+        self.code = code
+        self.extra = extra
+
+    def body(self) -> dict:
+        out = {"detail": self.detail}
+        if self.code:
+            out["code"] = self.code
+        out.update(self.extra)
+        return out

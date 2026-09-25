@@ -6,6 +6,15 @@ Scope: NarratIQ AI (FastAPI backend + Next.js 14 frontend + vLLM/Qwen2.5-7B-Inst
 Baseline: `docs/phases/phase-1-completed/phase-1-status-update.docx` (Phase 1) and `docs/phases/phase-2-completed/phase-2-intelligence-expansion-roadmap.docx` (Phase 2)
 Companion design doc style reference: `docs/specifications/author-style-and-copyright-risk-features.md`
 
+> **Implementation status (2026-09-25, Stage 7 of `docs/NarratIQ_Master_Implementation_Checklist.md`):**
+> implemented, pending the author's completion review. Where the running system differs from this
+> design, the approved Stage 7 decisions govern — see `CHANGELOG.md` ("Phase 3") for the full list:
+> migrations are **0019–0022** (0016–0018 were already used; C7-1); per-story preferences **extend
+> `story_preservation_settings`** instead of a new `story_ai_preferences` table (C7-2); partial
+> regeneration stays on the Stage 5 **`locked_ranges`** engine — there is no `/api/ai/regenerate-segments`
+> endpoint (C7-5); tense/POV/dialogue/timeline checks **warn by default** (enforced only when the
+> author sets a rule to "Keep"); `controls` are accepted by tone, emotion, age-adapt and style.
+
 ---
 
 ## 1. Executive Summary

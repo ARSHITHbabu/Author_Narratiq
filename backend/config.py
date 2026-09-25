@@ -172,6 +172,56 @@ class Settings(BaseSettings):
     voice_low_confidence_floor:    float = 0.35   # below → needs_clarification
     voice_admin_emails: list[str] = []            # may read /api/voice/analytics/*
 
+    # ── Phase 3 — generation management (spec §35) ───────────────────────────
+    # Every Phase 3 business number lives here (product rule R8: limits are
+    # configuration, not code). All have defaults so an untouched .env keeps
+    # working; every key is mirrored in .env.example because of extra="forbid".
+    #
+    # Pins (P3-01). Only the "db" backend is implemented; any other value fails
+    # fast at startup (services/pin_store.get_pin_store).
+    pin_storage_backend:      str   = "db"
+    pin_object_bucket:        str   = ""
+    pin_object_prefix:        str   = "pins"
+    pin_store_embedding:      bool  = True     # D4 — enables similarity stage 2
+    pin_source_excerpt_chars: int   = 300      # only manuscript text a pin stores
+    pin_cleanup_batch_size:   int   = 5000
+    max_total_pin_age_days:   int   = 365      # ceiling on repeated TTL extension
+    rate_limit_pin_write:     str   = "60/minute"
+    # JSON object overriding any subset of services/plans._DEFAULT_PLANS, e.g.
+    # '{"free": {"max_pins": 30}}'. Validated at import; malformed = no start.
+    plan_limits_json:         str   = ""
+
+    # Prompt context budget (P3-03/07/08/10) — tokens, chars/4 estimate.
+    generation_context_token_budget:  int = 2600
+    consistency_context_token_budget: int = 1200
+    pin_context_token_budget:         int = 800
+    style_context_token_budget:       int = 400
+    avoid_block_token_cap:            int = 300
+    avoid_gist_chars:                 int = 240
+    avoid_max_items:                  int = 8
+    session_history_max:              int = 10
+
+    # Partial regeneration / lineage (P3-02, P3-06).
+    max_segments_per_regen: int = 40
+    max_fallback_segments:  int = 5
+    max_lineage_depth:      int = 12
+
+    # Similarity (P3-11). Conservative starting points; tune per deployment.
+    similarity_lexical_hi:      float = 0.82
+    similarity_lexical_lo:      float = 0.45
+    similarity_semantic_hi:     float = 0.90
+    similarity_semantic_mid:    float = 0.75
+    similarity_candidate_limit: int   = 20
+    duplicate_retry_temp_step:  float = 0.15
+
+    # Preservation checks (P3-05). Heuristic checks only ever WARN; they never
+    # rewrite text. Margins are deliberately conservative (false positives
+    # train authors to ignore the banner — spec risk R-02).
+    tense_flip_margin:        float = 0.25
+    pov_shift_margin:         float = 0.30
+    dialogue_similarity_min:  float = 0.6
+    preservation_auto_repair: bool  = True
+
     # ── JWT settings ──────────────────────────────────────────────────────────
     # All token values are now configurable without a code deployment.
     # Production: set JWT_EXPIRE_MINUTES=60 for short-lived tokens.

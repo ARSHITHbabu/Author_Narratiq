@@ -98,19 +98,24 @@ interface LockOpts { strength?: string; lockedRanges?: { start: number; end: num
 const lockBody = (lock?: LockOpts) =>
   lock ? { strength: lock.strength, locked_ranges: lock.lockedRanges?.map((r) => ({ start: r.start, end: r.end })) } : {}
 
+// Phase 3 (Stage 7) — optional `controls` + chapter for story-position context.
+// Omitted → the request body is exactly the pre-Phase-3 shape.
+interface P3Opts { controls?: import('./types').GenerationControls; chapterId?: string }
+const p3Body = (p3?: P3Opts) => (p3?.controls ? { controls: p3.controls, chapter_id: p3.chapterId } : {})
+
 export const aiApi = {
   refine: (text: string, mode = 'standard', storyId?: string, chapterId?: string) =>
     api.post('/api/ai/refine', { text, mode, story_id: storyId, chapter_id: chapterId }),
   // `lock` (Stage 5 — strength + locked_ranges) is optional and only exists on the
   // endpoints whose schema accepts it (schemas.StrengthMixin: tone/age-adapt/style).
-  tone: (text: string, tone: string, storyId?: string, lock?: LockOpts) =>
-    api.post('/api/ai/tone', { text, tone, story_id: storyId, ...lockBody(lock) }),
-  emotion: (text: string, emotion: string, intensity = 'medium', storyId?: string) =>
-    api.post('/api/ai/emotion', { text, emotion, intensity, story_id: storyId }),
-  ageAdapt: (text: string, targetAge: string, storyId?: string, lock?: LockOpts) =>
-    api.post('/api/ai/age-adapt', { text, target_age: targetAge, story_id: storyId, ...lockBody(lock) }),
-  style: (text: string, style: string, storyId?: string, lock?: LockOpts) =>
-    api.post('/api/ai/style', { text, style, story_id: storyId, ...lockBody(lock) }),
+  tone: (text: string, tone: string, storyId?: string, lock?: LockOpts, p3?: P3Opts) =>
+    api.post('/api/ai/tone', { text, tone, story_id: storyId, ...lockBody(lock), ...p3Body(p3) }),
+  emotion: (text: string, emotion: string, intensity = 'medium', storyId?: string, p3?: P3Opts) =>
+    api.post('/api/ai/emotion', { text, emotion, intensity, story_id: storyId, ...p3Body(p3) }),
+  ageAdapt: (text: string, targetAge: string, storyId?: string, lock?: LockOpts, p3?: P3Opts) =>
+    api.post('/api/ai/age-adapt', { text, target_age: targetAge, story_id: storyId, ...lockBody(lock), ...p3Body(p3) }),
+  style: (text: string, style: string, storyId?: string, lock?: LockOpts, p3?: P3Opts) =>
+    api.post('/api/ai/style', { text, style, story_id: storyId, ...lockBody(lock), ...p3Body(p3) }),
   authorStyle: (text: string, author: string, storyId?: string, chapterId?: string) =>
     api.post('/api/ai/author-style', { text, author, story_id: storyId, chapter_id: chapterId }),
   authorStyles: () => api.get('/api/ai/author-styles'),
@@ -118,6 +123,36 @@ export const aiApi = {
     api.post('/api/ai/translate', { text, target_language: targetLanguage, story_id: storyId }),
   suggestions: (storyId: string, chapterId: string, text: string) =>
     api.post('/api/ai/suggestions', { story_id: storyId, chapter_id: chapterId, text }),
+}
+
+// ── Phase 3: pins, limits, compare/merge, similarity, preferences ────────────
+export const pinsApi = {
+  list: (storyId: string, params: { chapter_id?: string; tool?: string; root_pin_id?: string; q?: string; limit?: number } = {}) =>
+    api.get(`/api/stories/${storyId}/ai/pins`, { params }),
+  get: (storyId: string, pinId: string) => api.get(`/api/stories/${storyId}/ai/pins/${pinId}`),
+  create: (storyId: string, payload: import('./types').PinCreatePayload) =>
+    api.post(`/api/stories/${storyId}/ai/pins`, payload),
+  update: (storyId: string, pinId: string, data: { label?: string; is_favourite?: boolean; extend_ttl?: boolean }) =>
+    api.patch(`/api/stories/${storyId}/ai/pins/${pinId}`, data),
+  remove: (storyId: string, pinId: string) => api.delete(`/api/stories/${storyId}/ai/pins/${pinId}`),
+  applied: (storyId: string, pinId: string) => api.post(`/api/stories/${storyId}/ai/pins/${pinId}/applied`),
+  promote: (storyId: string, pinId: string, data: { card_type: string; title?: string; target_chapter_id?: string | null; tags?: string[]; release_pin?: boolean }) =>
+    api.post(`/api/stories/${storyId}/ai/pins/${pinId}/promote`, data),
+  similarity: (storyId: string, data: { text: string; against_pin_ids?: string[]; against_texts?: string[]; tool?: string }) =>
+    api.post(`/api/stories/${storyId}/ai/similarity`, data),
+}
+
+export const generationApi = {
+  limits: (storyId?: string) => api.get('/api/ai/limits', { params: storyId ? { story_id: storyId } : {} }),
+  compareSummary: (storyId: string, textA: string, textB: string) =>
+    api.post('/api/ai/compare-summary', { story_id: storyId, text_a: textA, text_b: textB }),
+  mergeVersions: (storyId: string, blocks: { text: string; source: 'a' | 'b' | 'both' }[]) =>
+    api.post('/api/ai/merge-versions', { story_id: storyId, blocks }),
+}
+
+export const aiPrefsApi = {
+  get: (storyId: string) => api.get(`/api/stories/${storyId}/ai/preferences`),
+  update: (storyId: string, data: Record<string, unknown>) => api.patch(`/api/stories/${storyId}/ai/preferences`, data),
 }
 
 // ── OCR ───────────────────────────────────────────────────────────────────────
@@ -148,6 +183,13 @@ export const ocrApi = {
   // the author navigates away — an abort is a cancellation, never a load failure.
   notes:     (storyId: string, signal?: AbortSignal) => api.get(`/api/ocr/${storyId}/notes`, { signal }),
   noteCards: (storyId: string, signal?: AbortSignal) => api.get(`/api/ocr/${storyId}/note-cards`, { signal }),
+  // Phase 3 Idea Shelf — the same note-card endpoints, with filters.
+  ideaCards: (storyId: string, params: { status?: string; target_chapter_id?: string; tag?: string; q?: string; card_type?: string } = {}, signal?: AbortSignal) =>
+    api.get(`/api/ocr/${storyId}/note-cards`, { params: { group: 'ideas', ...params }, signal }),
+  createIdeaCard: (storyId: string, data: { title?: string; content: string; card_type: string; target_chapter_id?: string | null; tags?: string[] }) =>
+    api.post(`/api/ocr/${storyId}/note-cards`, data),
+  updateIdeaCard: (cardId: string, data: { title?: string; content?: string; card_type?: string; target_chapter_id?: string; clear_target_chapter?: boolean; tags?: string[]; status?: string }) =>
+    api.patch(`/api/ocr/note-cards/${cardId}`, data),
   createNote: (storyId: string, title: string, content: string) =>
     api.post(`/api/ocr/${storyId}/notes`, { title, content }),
   updateNote: (noteId: string, data: { title?: string; content?: string }) =>

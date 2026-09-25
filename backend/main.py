@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 from database import engine, Base, run_db_migrations
 import models  # noqa: F401
 
-from exceptions import AIResponseTruncatedError, AIServiceUnavailableError, UploadTooLargeError
+from exceptions import AIResponseTruncatedError, AIServiceUnavailableError, ApiError, UploadTooLargeError
 from middleware.rate_limit import limiter
 
 from routers import auth, projects, chapters, intake, plot_assistant, ai_transform, ocr, manuscript, export, characters, plot_holes, manuscript_report
@@ -30,6 +30,7 @@ from routers import analysis, analytics, writing_tools, pacing, narrative_thread
 from routers import voice_agent
 from routers import activity
 from routers import copyright_risk
+from routers import ai_workspace
 
 Base.metadata.create_all(bind=engine)
 run_db_migrations(engine)   # add new columns to existing tables
@@ -146,19 +147,101 @@ async def _rollup_voice_analytics() -> None:
         logger.error("[cleanup] voice analytics rollup failed: %s", exc)
 
 
+# ── Phase 3: expired pin cleanup (spec §20) ──────────────────────────────────
+_PIN_CLEANUP_MAX_BATCHES = 20      # ≤ 20 × pin_cleanup_batch_size rows per sweep
+
+
+async def _cleanup_expired_pins() -> int:
+    """Delete pins past expires_at in bounded batches, one session per batch,
+    through the pin store (R9). Fail-soft: an error logs and stops this
+    sweep; the next hourly pass retries. Logs counts only, never content."""
+    import time
+    from database import SessionLocal
+    from models import AiGenerationPin
+    from services.pin_store import get_pin_store
+
+    store, removed, batches, now = get_pin_store(), 0, 0, datetime.utcnow()
+    started = time.monotonic()
+    for _ in range(_PIN_CLEANUP_MAX_BATCHES):
+        db = SessionLocal()
+        try:
+            batch = (db.query(AiGenerationPin)
+                       .filter(AiGenerationPin.expires_at < now)
+                       .order_by(AiGenerationPin.expires_at)
+                       .limit(settings.pin_cleanup_batch_size).all())
+            if not batch:
+                break
+            store.delete_many(batch)
+            for pin in batch:
+                db.delete(pin)
+            db.commit()
+            removed += len(batch)
+            batches += 1
+        except Exception as exc:                   # noqa: BLE001
+            logger.error("[pin_cleanup] batch failed: %s", type(exc).__name__)
+            db.rollback()
+            break
+        finally:
+            db.close()
+    # Always logged — "cleanup_rows" is the single most important post-launch
+    # check (spec §36.4 step 4): an expiry sweep that never runs looks healthy.
+    logger.info("[pin_cleanup] cleanup_rows=%d batches=%d duration_ms=%d",
+                removed, batches, int((time.monotonic() - started) * 1000))
+    return removed
+
+
+def _log_pin_storage_metrics() -> None:
+    """Stage-1 instrumentation (spec §16.4, §20.5): the numbers the §16.3
+    growth triggers are evaluated against. Aggregates only."""
+    from sqlalchemy import text as _t
+    from database import SessionLocal
+    db = SessionLocal()
+    try:
+        row = db.execute(_t("""
+            SELECT COUNT(*) AS pins,
+                   COALESCE(SUM(content_bytes), 0) AS bytes,
+                   COALESCE(percentile_cont(0.5)  WITHIN GROUP (ORDER BY content_bytes), 0) AS p50,
+                   COALESCE(percentile_cont(0.95) WITHIN GROUP (ORDER BY content_bytes), 0) AS p95,
+                   COALESCE(percentile_cont(0.99) WITHIN GROUP (ORDER BY content_bytes), 0) AS p99,
+                   COUNT(DISTINCT user_id) AS users,
+                   COUNT(embedding) AS embedded
+            FROM ai_generation_pins
+        """)).one()
+        rel = db.execute(_t("SELECT pg_total_relation_size('ai_generation_pins')")).scalar()
+        logger.info("[pin_metrics] pins=%d content_bytes=%d p50=%d p95=%d p99=%d users=%d "
+                    "mean_pins_per_user=%.2f embedded=%d table_bytes=%d",
+                    row.pins, row.bytes, row.p50, row.p95, row.p99, row.users,
+                    (row.pins / row.users) if row.users else 0.0, row.embedded, rel or 0)
+    except Exception as exc:                       # noqa: BLE001
+        logger.warning("[pin_metrics] unavailable: %s", type(exc).__name__)
+    finally:
+        db.close()
+
+
 async def _run_periodic_cleanup() -> None:
-    """Startup sweep then hourly OCR + audio file cleanup + voice analytics rollup."""
+    """Startup sweep then hourly OCR + audio file cleanup + voice analytics
+    rollup + expired pin cleanup (Phase 3). Pin metrics are logged daily."""
     await _cleanup_ocr_images()
     await _cleanup_audio_files()
     await _rollup_voice_analytics()
+    await _cleanup_expired_pins()      # startup catch-up (spec E18)
+    _log_pin_storage_metrics()
+    ticks = 0
     while True:
         await asyncio.sleep(_OCR_CLEANUP_INTERVAL_SECS)
+        ticks += 1
         try:
             await _cleanup_ocr_images()
             await _cleanup_audio_files()
             await _rollup_voice_analytics()
         except Exception as exc:
             logger.error("[cleanup] periodic sweep failed: %s", exc)
+        try:
+            await _cleanup_expired_pins()
+            if ticks % 24 == 0:
+                _log_pin_storage_metrics()
+        except Exception as exc:
+            logger.error("[pin_cleanup] periodic sweep failed: %s", type(exc).__name__)
 
 
 @asynccontextmanager
@@ -168,6 +251,13 @@ async def lifespan(app: FastAPI):
     # ── Orphan job recovery (before accepting any requests) ───────────────────
     from startup.orphan_recovery import recover_orphaned_jobs
     await recover_orphaned_jobs()
+
+    # ── Phase 3: fail fast on an unsupported pin backend; validate the
+    #    context budget against the model window (spec §35) ─────────────────────
+    from services.pin_store import get_pin_store
+    from services.generation_context import validate_budget_at_startup
+    get_pin_store()
+    validate_budget_at_startup()
 
     # ── Create upload directories from config ─────────────────────────────────
     os.makedirs(settings.upload_dir_audio, exist_ok=True)
@@ -320,6 +410,11 @@ async def ai_truncated_handler(request: Request, exc: AIResponseTruncatedError) 
     )
 
 
+@app.exception_handler(ApiError)
+async def api_error_handler(request: Request, exc: ApiError) -> JSONResponse:
+    return JSONResponse(status_code=exc.status_code, content=exc.body())
+
+
 @app.exception_handler(UploadTooLargeError)
 async def upload_too_large_handler(request: Request, exc: UploadTooLargeError) -> JSONResponse:
     return JSONResponse(
@@ -368,6 +463,7 @@ app.include_router(voice_agent.router,       prefix="/api/voice")
 app.include_router(activity.router,          prefix="/api/stories")
 # ── Copyright / Plagiarism Risk Detection ───────────────────────────────────────
 app.include_router(copyright_risk.router,    prefix="/api/stories")
+app.include_router(ai_workspace.router,      prefix="/api/stories")
 
 
 @app.get("/api/health")

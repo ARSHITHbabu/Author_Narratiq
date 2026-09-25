@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, computed_field, field_validator
+from pydantic import BaseModel, EmailStr, Field, computed_field, field_validator
 from typing import Optional, List, Any, Literal, Dict
 from datetime import datetime
 
@@ -286,6 +286,74 @@ class ManuscriptReport(BaseModel):
     citations_suppressed:       int = 0
 
 
+# ── Phase 3: Generation controls (shared, all optional — spec §17.2, §18.1) ───
+#
+# Omitting `controls` reproduces pre-Phase-3 behaviour exactly. Every id in
+# here is ownership-checked server-side (services/ownership.py); unavailable
+# ids are dropped and reported with ONE generic warning, never distinguished.
+
+PreserveValue = Optional[Literal[True, False, "warn"]]
+
+DERIVATION_INTENTS = (
+    "variation", "improve", "continue", "keep_structure_change_ending",
+    "keep_idea_change_tone", "expand", "condense", "custom",
+)
+
+
+class PreserveOverrides(BaseModel):
+    """Per-request preservation overrides. None = inherit from the story's
+    project defaults, then the server default. True = enforce (prompt rule +
+    deterministic check + one repair retry on a hard rule); "warn" = check
+    and report only; False = off."""
+    character_names:  PreserveValue = None
+    tone:             PreserveValue = None
+    tense:            PreserveValue = None
+    pov:              PreserveValue = None
+    dialogue_meaning: PreserveValue = None
+    timeline:         PreserveValue = None
+    story_facts:      PreserveValue = None
+    model_config = {"extra": "forbid"}
+
+
+class LocalContext(BaseModel):
+    """≤ ~120 words either side of the selection (P3-10 §28.5)."""
+    before: str = Field("", max_length=1200)
+    after:  str = Field("", max_length=1200)
+
+
+class GenerationControls(BaseModel):
+    context_pin_ids: List[str] = Field(default_factory=list, max_length=16)
+    base_pin_id:     Optional[str] = None
+    derivation:      Optional[Literal[DERIVATION_INTENTS]] = None
+    derivation_param: Optional[str] = Field(None, max_length=300)   # {user text} / {tone} / {n}
+    avoid_texts:     List[str] = Field(default_factory=list, max_length=8)
+    avoid_pin_ids:   List[str] = Field(default_factory=list, max_length=8)
+    preserve:        Optional[PreserveOverrides] = None
+    style_match:     Optional[Literal["off", "light", "strong"]] = None
+    local_context:   Optional[LocalContext] = None
+    consistency:     Literal["auto", "off", "strict"] = "auto"
+    instruction:     Optional[str] = Field(None, max_length=600)
+    session_id:      Optional[str] = Field(None, max_length=80)   # client-only grouping; never stored
+    model_config = {"extra": "forbid"}
+
+    @field_validator("avoid_texts")
+    @classmethod
+    def _cap_avoid_texts(cls, v: List[str]) -> List[str]:
+        # 8 × 240 chars (spec §30 payload-size control). Truncation is safe
+        # here: the first ~240 chars of a prose idea carry its concept.
+        return [t[:240] for t in v if isinstance(t, str) and t.strip()]
+
+
+class GenerationWarning(BaseModel):
+    kind:     str                    # e.g. name_changed | tense_shift | pov_shift | dialogue_changed |
+                                     # timeline_added | knowledge_violation | consistency | context_dropped |
+                                     # pins_unavailable | grounding_unavailable | near_duplicate | echo
+    severity: Literal["hard", "soft", "info"] = "soft"
+    message:  str
+    entity:   Optional[Dict[str, Any]] = None   # {"type": "character", "id": ..., "name": ...}
+    autofix:  Optional[List[Dict[str, str]]] = None   # [{"replace": "Elarah", "with": "Elara"}]
+
+
 # ── AI Transform ──────────────────────────────────────────────────────────────
 
 class TransformRequest(BaseModel):
@@ -299,9 +367,10 @@ class LockedRangeIn(BaseModel):
     """Task 5.4 — a locked sub-span, as character offsets into THIS request's
     own `text` field (the already-selected substring), not document-absolute
     editor positions. See services/transform_preservation.py's docstring for
-    the full sentence-lock contract."""
-    start: int
-    end: int
+    the full sentence-lock contract. Bounds/overlap/all-locked are validated
+    against `text` by transform_preservation.validate_locked_ranges (Stage 7)."""
+    start: int = Field(ge=0)
+    end: int = Field(ge=0)
 
 
 class StrengthMixin(BaseModel):
@@ -309,7 +378,8 @@ class StrengthMixin(BaseModel):
     applies to. Defaults to "light" per the checklist's own instruction to
     default to the lower-intervention setting."""
     strength: Optional[str] = "light"  # light | moderate | strong
-    locked_ranges: Optional[List[LockedRangeIn]] = None
+    locked_ranges: Optional[List[LockedRangeIn]] = Field(None, max_length=200)
+    controls: Optional[GenerationControls] = None   # Phase 3 — optional
 
 
 class ToneRequest(StrengthMixin):
@@ -330,16 +400,19 @@ class EmotionRequest(BaseModel):
     text: str
     emotion: str  # joy, sadness, fear, anger, surprise, disgust, anticipation
     intensity: Optional[str] = "medium"  # low, medium, high
+    controls: Optional[GenerationControls] = None   # Phase 3 — optional
 
 
 class AgeAdaptRequest(StrengthMixin):
     story_id: Optional[str] = None
+    chapter_id: Optional[str] = None   # Phase 3 — optional, for story-position context
     text: str
     target_age: str  # children (5-10), ya (10-18), adult
 
 
 class StyleRequest(StrengthMixin):
     story_id: Optional[str] = None
+    chapter_id: Optional[str] = None   # Phase 3 — optional, for story-position context
     text: str
     style: str  # gothic, noir, contemporary, etc.
 
@@ -391,6 +464,13 @@ class TransformResponse(BaseModel):
     preservation_violations: List[str] = []  # task 5.3 — character names that
                                               # could not be confirmed preserved
                                               # even after the one repair retry
+    # Additive Stage 7 (Phase 3) fields — defaults keep every existing client
+    # byte-compatible when `controls` is omitted.
+    failed: bool = False                  # the transform could not be applied safely;
+                                          # `transformed` is the untouched original
+    warnings: List[GenerationWarning] = []
+    context_used: Dict[str, Any] = {}     # counts only — never text
+    name_autofix: List[Dict[str, str]] = []
 
 
 # ── Copyright / Plagiarism Risk Detection ──────────────────────────────────────
@@ -483,13 +563,48 @@ class StoryNoteOut(BaseModel):
 
 # ── Note Cards ────────────────────────────────────────────────────────────────
 
-_VALID_CARD_TYPES = {"scene", "location", "theme", "character", "general"}
+_BASE_CARD_TYPES = {"scene", "location", "theme", "character", "general"}
+# Phase 3 P3-09 / P3-10 — eight additive values; card_type stays a free
+# String column with no DB constraint, so these need no migration.
+IDEA_CARD_TYPES = {
+    "future_scene", "dialogue_idea", "plot_twist", "character_idea",
+    "research", "ending_idea", "worldbuilding", "style_sample",
+}
+_VALID_CARD_TYPES = _BASE_CARD_TYPES | IDEA_CARD_TYPES
+_VALID_CARD_STATUSES = {"open", "used", "archived"}
+
+
+def _clean_tags(v: Optional[List[str]]) -> Optional[List[str]]:
+    if v is None:
+        return None
+    out: List[str] = []
+    for t in v:
+        t = (t or "").strip()[:40]
+        if t and t not in out:
+            out.append(t)
+    return out[:20]
 
 
 class NoteCardCreate(BaseModel):
     title:     Optional[str] = ""
     content:   str
     card_type: Optional[str] = "general"
+    # Phase 3 Idea Shelf fields — all optional
+    target_chapter_id: Optional[str] = None
+    tags:              Optional[List[str]] = None
+    status:            Optional[str] = None
+
+    @field_validator("tags")
+    @classmethod
+    def _tags(cls, v):
+        return _clean_tags(v)
+
+    @field_validator("status")
+    @classmethod
+    def _status(cls, v):
+        if v is not None and v not in _VALID_CARD_STATUSES:
+            raise ValueError(f"status must be one of: {', '.join(sorted(_VALID_CARD_STATUSES))}")
+        return v
 
     @field_validator("card_type")
     @classmethod
@@ -505,6 +620,24 @@ class NoteCardUpdate(BaseModel):
     title:     Optional[str] = None
     content:   Optional[str] = None
     card_type: Optional[str] = None
+    # Phase 3 Idea Shelf fields. `clear_target_chapter` exists because a
+    # null target_chapter_id cannot be told apart from "not supplied".
+    target_chapter_id:    Optional[str] = None
+    clear_target_chapter: bool = False
+    tags:                 Optional[List[str]] = None
+    status:               Optional[str] = None
+
+    @field_validator("tags")
+    @classmethod
+    def _tags(cls, v):
+        return _clean_tags(v)
+
+    @field_validator("status")
+    @classmethod
+    def _status(cls, v):
+        if v is not None and v not in _VALID_CARD_STATUSES:
+            raise ValueError(f"status must be one of: {', '.join(sorted(_VALID_CARD_STATUSES))}")
+        return v
 
     @field_validator("card_type")
     @classmethod
@@ -523,9 +656,18 @@ class NoteCardOut(BaseModel):
     content:       str
     card_type:     str
     ocr_upload_id: Optional[str] = None
+    target_chapter_id: Optional[str] = None
+    tags:          Optional[List[str]] = None
+    status:        Optional[str] = "open"
+    source_pin_id: Optional[str] = None
     created_at:    datetime
     updated_at:    datetime
     model_config = {"from_attributes": True}
+
+    @field_validator("status", mode="before")
+    @classmethod
+    def _null_status_is_open(cls, v):
+        return v or "open"
 
 
 # ── Characters ────────────────────────────────────────────────────────────────
@@ -1867,3 +2009,218 @@ class VoiceAnalyticsSummary(BaseModel):
     capability_usage:    dict = {}
     stt_p95_ms:          int = 0
     e2e_p95_ms:          int = 0
+
+
+
+# ── Phase 3: Pins (spec §18.1) ────────────────────────────────────────────────
+
+PIN_TOOLS = (
+    "refine", "tone", "emotion", "style", "author_style", "age_adapt", "translate",
+    "continuation", "outline", "plot_suggestion", "segment_regen", "merge",
+)
+
+
+class PinCreate(BaseModel):
+    chapter_id:     Optional[str] = None
+    tool:           Literal[PIN_TOOLS]
+    scope:          Literal["selection", "chapter", "story", "idea"] = "selection"
+    tool_params:    Dict[str, Any] = Field(default_factory=dict)
+    content:        str = Field(min_length=1)
+    source_excerpt: str = ""
+    source_text_sha256: Optional[str] = Field(None, max_length=64)   # hash of the FULL source, computed client-side
+    source_from:    Optional[int] = Field(None, ge=0)
+    source_to:      Optional[int] = Field(None, ge=0)
+    label:          str = Field("", max_length=80)
+    parent_pin_id:  Optional[str] = None
+    derived_from_pin_ids: List[str] = Field(default_factory=list, max_length=16)
+    derivation:     str = Field("", max_length=40)
+    replace_oldest: bool = False    # explicit author choice from the cap modal — never automatic
+
+    @field_validator("tool_params")
+    @classmethod
+    def _small_params(cls, v: Dict[str, Any]) -> Dict[str, Any]:
+        import json as _json
+        if len(_json.dumps(v, default=str)) > 2000:
+            raise ValueError("tool_params is too large")
+        return v
+
+
+class PinUpdate(BaseModel):
+    label:        Optional[str] = Field(None, max_length=80)
+    is_favourite: Optional[bool] = None
+    extend_ttl:   bool = False
+
+
+class PinLimits(BaseModel):
+    used: int
+    max:  int
+    plan: str
+
+
+class PinOut(BaseModel):
+    """List shape: a 180-char preview, never the full body (spec §30)."""
+    pin_id:         str
+    story_id:       str
+    chapter_id:     Optional[str] = None
+    tool:           str
+    scope:          str
+    tool_params:    Dict[str, Any] = {}
+    preview:        str
+    source_excerpt: str = ""
+    source_sha256:  str = ""
+    source_from:    Optional[int] = None
+    source_to:      Optional[int] = None
+    content_sha256: str
+    word_count:     int
+    label:          str = ""
+    is_favourite:   bool = False
+    parent_pin_id:  Optional[str] = None
+    root_pin_id:    Optional[str] = None
+    lineage_depth:  int = 0
+    derived_from_pin_ids: List[str] = []
+    derivation:     str = ""
+    has_embedding:  bool = False
+    applied_at:     Optional[datetime] = None
+    promoted_card_id: Optional[str] = None
+    expires_at:     datetime
+    created_at:     datetime
+
+
+class PinDetailOut(PinOut):
+    content: str
+
+
+class PinCreateOut(BaseModel):
+    pin: PinOut
+    already_pinned: bool = False
+    limits: PinLimits
+
+
+class PinListOut(BaseModel):
+    pins:   List[PinOut]
+    total:  int
+    limits: PinLimits
+
+
+class PinPromoteRequest(BaseModel):
+    card_type:         str = "future_scene"
+    title:             str = Field("", max_length=200)
+    target_chapter_id: Optional[str] = None
+    tags:              Optional[List[str]] = None
+    release_pin:       bool = True
+
+    @field_validator("card_type")
+    @classmethod
+    def _idea_type(cls, v):
+        if v not in IDEA_CARD_TYPES:
+            raise ValueError(f"card_type must be one of: {', '.join(sorted(IDEA_CARD_TYPES))}")
+        return v
+
+    @field_validator("tags")
+    @classmethod
+    def _tags(cls, v):
+        return _clean_tags(v)
+
+
+class PinPromoteOut(BaseModel):
+    card: NoteCardOut
+    pin_released: bool
+
+
+# ── Phase 3: Preferences, limits, similarity, compare, merge ───────────────────
+
+class StylePrefs(BaseModel):
+    match_level:       Optional[Literal["off", "light", "strong"]] = None
+    exemplar_card_ids: Optional[List[str]] = Field(None, max_length=15)
+    use_story_dna:     Optional[bool] = None
+    model_config = {"extra": "forbid"}
+
+
+class PinPrefs(BaseModel):
+    duplicate_auto_retry: Optional[bool] = None   # D12 default off
+    strict_consistency:   Optional[bool] = None   # D6 — only honoured on pro+ plans
+    model_config = {"extra": "forbid"}
+
+
+class AiPreferencesOut(BaseModel):
+    story_id:                 str
+    preserve_character_names: bool
+    preserve_tone:            bool
+    author_notes:             str
+    preserve_rules:           Dict[str, Any]     # fully resolved (defaults filled in)
+    style_prefs:              Dict[str, Any]
+    pin_prefs:                Dict[str, Any]
+    story_dna_available:      bool
+    strict_consistency_allowed: bool
+
+
+class AiPreferencesUpdate(BaseModel):
+    preserve_character_names: Optional[bool] = None
+    preserve_tone:            Optional[bool] = None
+    author_notes:             Optional[str] = Field(None, max_length=1000)
+    preserve_rules:           Optional[PreserveOverrides] = None
+    style_prefs:              Optional[StylePrefs] = None
+    pin_prefs:                Optional[PinPrefs] = None
+
+
+class AiLimitsOut(BaseModel):
+    plan:   str
+    limits: Dict[str, Any]
+    usage:  Dict[str, int]
+    session_history_max: int
+    avoid_max_items:     int
+
+
+class SimilarityRequest(BaseModel):
+    text:            str = Field(min_length=1, max_length=40000)
+    against_pin_ids: List[str] = Field(default_factory=list, max_length=50)
+    against_texts:   List[str] = Field(default_factory=list, max_length=10)
+    tool:            Optional[str] = None
+    mode:            Literal["auto", "lexical"] = "auto"
+
+
+class SimilarityMatch(BaseModel):
+    pin_id:     Optional[str] = None
+    text_index: Optional[int] = None
+    score:      float
+    method:     Literal["lexical", "semantic"]
+    label:      Literal["near_duplicate", "related", "distinct"]
+
+
+class SimilarityOut(BaseModel):
+    matches:  List[SimilarityMatch]
+    checked:  int
+    embedded: bool
+    warnings: List[GenerationWarning] = []
+
+
+class CompareSummaryRequest(BaseModel):
+    story_id: Optional[str] = None
+    text_a:   str = Field(min_length=1, max_length=40000)
+    text_b:   str = Field(min_length=1, max_length=40000)
+
+
+class CompareSummaryOut(BaseModel):
+    summary:        str = ""
+    a_strengths:    List[str] = []
+    b_strengths:    List[str] = []
+    recommendation: str = ""
+    available:      bool = True   # False = best-effort summary could not be produced
+
+
+class MergeBlock(BaseModel):
+    text:    str
+    source:  Literal["a", "b", "both"] = "a"
+
+
+class MergeRequest(BaseModel):
+    story_id: Optional[str] = None
+    blocks:   List[MergeBlock] = Field(min_length=1, max_length=120)
+
+
+class MergeOut(BaseModel):
+    merged:        str
+    smoothed:      bool
+    warnings:      List[GenerationWarning] = []
+    word_delta:    float = 0.0
+    min_block_similarity: float = 1.0

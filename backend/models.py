@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from sqlalchemy import (
     Column, String, Text, Integer, Boolean, Float,
-    ForeignKey, DateTime, JSON, UniqueConstraint
+    ForeignKey, DateTime, JSON, UniqueConstraint, Index
 )
 from sqlalchemy.orm import relationship
 from pgvector.sqlalchemy import Vector
@@ -26,6 +26,9 @@ class User(Base):
     username = Column(String, unique=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+    # Phase 3 (migration 0022, spec §13.4). NULL resolves to "free" in
+    # services/plans.get_limits(); assignment is manual/admin for now (D2).
+    plan = Column(String, nullable=True, default="free")
     stories = relationship("Story", back_populates="user")
 
 
@@ -190,6 +193,15 @@ class StoryPreservationSettings(Base):
     preserve_tone = Column(Boolean, default=True)
     author_notes = Column(Text, default="")
     translation_glossary = Column(JSON, default=dict)
+    # Phase 3 (migration 0020, conflict decision C7-2): this table is extended
+    # rather than adding the spec's separate story_ai_preferences table, so
+    # there is exactly one per-story AI-behaviour row. Three UI-shaped JSON
+    # bags, fetched whole by story_id and never queried by predicate. Missing
+    # keys resolve to services/generation_context defaults; the two legacy
+    # booleans above stay authoritative for character names and tone.
+    preserve_rules = Column(JSON, nullable=True)   # {"tense": true, "pov": true, "dialogue_meaning": true, "timeline": true, "story_facts": false}
+    style_prefs    = Column(JSON, nullable=True)   # {"match_level": "light", "exemplar_card_ids": [], "use_story_dna": true}
+    pin_prefs      = Column(JSON, nullable=True)   # {"duplicate_auto_retry": false, "strict_consistency": false}
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     story = relationship("Story", back_populates="preservation_settings")
@@ -560,8 +572,23 @@ class NoteCard(Base):
     card_type     = Column(String,   default="general")
     ocr_upload_id = Column(String,   nullable=True)
     embedding     = Column(Vector(1024), nullable=True)  # BGE-M3 1024-dim — NULL until first embed
+    # Idea Shelf (Phase 3 P3-09, migration 0021). All nullable: existing cards
+    # read as open, unassigned and untagged with zero backfill.
+    target_chapter_id = Column(String, ForeignKey("chapters.chapter_id", ondelete="SET NULL"), nullable=True)
+    tags              = Column(JSON,   nullable=True)
+    status            = Column(String, nullable=True, default="open")   # open | used | archived
+    # Provenance back to the pin an idea was promoted from. Deliberately NOT an
+    # enforced FK (same pattern as ocr_upload_id): pins expire, and an expiring
+    # pin must never cascade-delete a permanent idea.
+    source_pin_id     = Column(String, nullable=True)
     created_at    = Column(DateTime, default=datetime.utcnow)
     updated_at    = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Names match migration 0021 exactly (create_all runs before alembic).
+    __table_args__ = (
+        Index("ix_note_cards_target_chapter", "target_chapter_id"),
+        Index("ix_note_cards_type_status", "story_id", "card_type", "status"),
+    )
 
     story = relationship("Story", back_populates="note_cards")
 
@@ -1321,3 +1348,70 @@ class ActivityEvent(Base):
     ref_id        = Column(String,   default="")
     metadata_json = Column(JSON,     default=dict)
     created_at    = Column(DateTime, default=datetime.utcnow, index=True)
+
+
+# ── Phase 3: temporary AI generation pins ──────────────────────────────────────
+
+class AiGenerationPin(Base):
+    """
+    A temporary, expiring, author-pinned AI generation (Phase 3 P3-01).
+
+    NOT a manuscript version (see StoryVersion) and NOT a permanent idea (see
+    NoteCard / Idea Shelf). Every row has a non-null expires_at, materialised
+    at insert from the owner's plan, and is deleted by the hourly sweep in
+    main.py once it passes. Excluded from logical backups (decision D9) and
+    from every RAG retriever: a pin is a draft the author has not committed to.
+
+    Content is read and written ONLY through services/pin_store.PinContentStore
+    (Phase 3 definition of done §46 item 10). `content` holds the text under the
+    db backend; `content_uri` is reserved for the deferred object backend.
+    """
+    __tablename__ = "ai_generation_pins"
+
+    pin_id         = Column(String,   primary_key=True, default=gen_uuid)
+    user_id        = Column(String,   ForeignKey("users.user_id"), nullable=False)
+    story_id       = Column(String,   ForeignKey("stories.story_id", ondelete="CASCADE"), nullable=False)
+    chapter_id     = Column(String,   ForeignKey("chapters.chapter_id", ondelete="SET NULL"), nullable=True)
+
+    tool           = Column(String,   nullable=False)
+    scope          = Column(String,   default="selection")
+    tool_params    = Column(JSON,     default=dict)
+
+    source_from    = Column(Integer,  nullable=True)
+    source_to      = Column(Integer,  nullable=True)
+    source_excerpt = Column(Text,     default="")
+    source_sha256  = Column(String(64), default="")
+
+    content        = Column(Text,     nullable=True)
+    content_uri    = Column(Text,     nullable=True)
+    content_sha256 = Column(String(64), nullable=False)
+    content_bytes  = Column(Integer,  default=0)
+    word_count     = Column(Integer,  default=0)
+    summary        = Column(Text,     nullable=True)
+
+    parent_pin_id        = Column(String, ForeignKey("ai_generation_pins.pin_id", ondelete="SET NULL"), nullable=True)
+    root_pin_id          = Column(String, nullable=True)
+    lineage_depth        = Column(Integer, default=0)
+    derived_from_pin_ids = Column(JSON,   default=list)
+    derivation           = Column(String, default="")
+
+    embedding      = Column(Vector(1024), nullable=True)
+
+    label          = Column(String,   default="")
+    is_favourite   = Column(Boolean,  default=False)
+    applied_at     = Column(DateTime, nullable=True)
+    promoted_card_id = Column(String, nullable=True)
+    expires_at     = Column(DateTime, nullable=False)
+    created_at     = Column(DateTime, default=datetime.utcnow)
+    updated_at     = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Deliberately few indexes — high-churn table, every index is write cost
+    # (spec §13.1). Names match migration 0019 exactly. No HNSW on embedding:
+    # similarity candidates are <= 20 rows pre-filtered by (story_id, tool).
+    __table_args__ = (
+        Index("ix_ai_generation_pins_expires_at", "expires_at"),
+        Index("ix_ai_generation_pins_user_story", "user_id", "story_id", "created_at"),
+        Index("ix_ai_generation_pins_chapter", "chapter_id"),
+        Index("ix_ai_generation_pins_content_sha", "content_sha256"),
+        Index("ix_ai_generation_pins_root", "root_pin_id"),
+    )

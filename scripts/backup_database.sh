@@ -162,7 +162,12 @@ fi
 # ── Dump ──────────────────────────────────────────────────────────────────────
 echo ""
 echo "── Dumping database"
+# Phase 3 decision D9: ai_generation_pins holds temporary, expiring AI drafts
+# (never manuscript content — chapters, characters and story bible live in
+# their own fully-backed-up tables). Its DEFINITION is dumped so a restore
+# recreates the table; its ROWS are excluded so pins add zero backup bytes.
 pg_dump --format=custom --compress=6 --file="${DUMP_FILE}" \
+    --exclude-table-data=public.ai_generation_pins \
     || die "pg_dump failed. No backup was produced."
 chmod 600 "${DUMP_FILE}"
 echo "  Wrote $(basename "${DUMP_FILE}") ($(du -h "${DUMP_FILE}" | cut -f1))"
