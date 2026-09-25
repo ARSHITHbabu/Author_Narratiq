@@ -58,16 +58,16 @@ function TranscriptCard({
         <div>
           <StatusBadge status={upload.status} />
           {upload.language_detected && (
-            <span className="text-[10px] text-[#5c6391] ml-2">{upload.language_detected.toUpperCase()}</span>
+            <span className="text-[10px] text-[#8e94bd] ml-2">{upload.language_detected.toUpperCase()}</span>
           )}
           {upload.duration_seconds != null && (
-            <span className="text-[10px] text-[#5c6391] ml-2">{upload.duration_seconds.toFixed(1)}s</span>
+            <span className="text-[10px] text-[#8e94bd] ml-2">{upload.duration_seconds.toFixed(1)}s</span>
           )}
         </div>
         {upload.status === 'completed' && (
           <button
             onClick={() => setExpanded(v => !v)}
-            className="text-[10px] text-[#5c6391] hover:text-amber-400"
+            className="text-[10px] text-[#8e94bd] hover:text-amber-400"
           >
             {expanded ? 'Collapse' : 'Expand'}
           </button>
@@ -184,7 +184,7 @@ export default function AudioPanel({ storyId }: Props) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full gap-2 text-[#5c6391]">
+      <div className="flex items-center justify-center h-full gap-2 text-[#8e94bd]">
         <Loader2 className="w-4 h-4 animate-spin" />
       </div>
     )
@@ -197,7 +197,7 @@ export default function AudioPanel({ storyId }: Props) {
           <Mic className="w-3.5 h-3.5 text-amber-500" />
           <span className="text-xs font-medium text-[#9da3c8]">Audio Notes</span>
         </div>
-        <button onClick={loadUploads} className="text-[#5c6391] hover:text-amber-400 transition-colors" title="Refresh">
+        <button onClick={loadUploads} className="text-[#8e94bd] hover:text-amber-400 transition-colors" title="Refresh">
           <RefreshCw className="w-3.5 h-3.5" />
         </button>
       </div>
@@ -211,7 +211,7 @@ export default function AudioPanel({ storyId }: Props) {
         <button
           onClick={() => fileRef.current?.click()}
           disabled={uploading}
-          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-dashed border-[#2e3454] hover:border-amber-500/40 hover:bg-amber-500/5 transition-all text-[#5c6391] hover:text-amber-400 disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-dashed border-[#2e3454] hover:border-amber-500/40 hover:bg-amber-500/5 transition-all text-[#8e94bd] hover:text-amber-400 disabled:opacity-50"
         >
           {uploading
             ? <><Loader2 className="w-4 h-4 animate-spin" /><span className="text-xs">Uploading…</span></>
@@ -229,7 +229,7 @@ export default function AudioPanel({ storyId }: Props) {
             e.target.value = ''
           }}
         />
-        <p className="text-[10px] text-[#3d4466] text-center mt-1">mp3 · wav · m4a · ogg · flac · webm</p>
+        <p className="text-[10px] text-[#8a90ba] text-center mt-1">mp3 · wav · m4a · ogg · flac · webm</p>
       </div>
 
       {/* Uploads list */}
@@ -237,7 +237,7 @@ export default function AudioPanel({ storyId }: Props) {
         {uploads.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 py-8">
             <Mic className="w-8 h-8 text-[#2e3454]" />
-            <p className="text-xs text-[#5c6391] text-center">Upload an audio note to transcribe it with Whisper AI</p>
+            <p className="text-xs text-[#8e94bd] text-center">Upload an audio note to transcribe it with Whisper AI</p>
           </div>
         ) : (
           uploads.map(u => (

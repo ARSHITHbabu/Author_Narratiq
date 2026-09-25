@@ -40,10 +40,11 @@ interface Props {
   onSearchReady?: (fns: EditorSearchFunctions) => void
   onContentLoaded?: () => void
   reloadTrigger?: number
+  readOnly?: boolean
 }
 
 export default function EditorWithMethods({
-  storyId, chapter, onWordCountChange, onMethodsReady, onSelectionChange, onSearchReady, onContentLoaded, reloadTrigger,
+  storyId, chapter, onWordCountChange, onMethodsReady, onSelectionChange, onSearchReady, onContentLoaded, reloadTrigger, readOnly,
 }: Props) {
   const editorRef = useRef<any>(null)
 
@@ -101,6 +102,7 @@ export default function EditorWithMethods({
       onWordCountChange={onWordCountChange}
       onContentLoaded={onContentLoaded}
       reloadTrigger={reloadTrigger}
+      readOnly={readOnly}
       onEditorReady={(ed, searchFns) => {
         editorRef.current = ed
         onSearchReady?.(searchFns)

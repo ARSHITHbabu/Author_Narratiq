@@ -61,11 +61,11 @@ export default function PreservationRulesPopover({ storyId }: { storyId: string 
       </button>
       {open && (
         <div className="px-3 pb-3 space-y-3 text-[11px]">
-          {state === 'loading' && <Loader2 className="w-4 h-4 animate-spin text-[#5c6391]" />}
+          {state === 'loading' && <Loader2 className="w-4 h-4 animate-spin text-[#8e94bd]" />}
           {state === 'error' && <p className="text-red-300">These settings could not be loaded. The AI keeps using its safe defaults (character names and your voice are protected).</p>}
           {prefs && (
             <>
-              <p className="text-[#5c6391]">Applies to Tone, Emotion, Audience and Style for this story.</p>
+              <p className="text-[#8e94bd]">Applies to Tone, Emotion, Audience and Style for this story.</p>
               <ul className="space-y-1.5">
                 {PRESERVE_RULES.map((r) => (
                   <li key={r.key} className="flex items-center gap-2">
@@ -82,7 +82,7 @@ export default function PreservationRulesPopover({ storyId }: { storyId: string 
                   </li>
                 ))}
               </ul>
-              <p className="text-[10px] text-[#5c6391]">“Check” flags a problem without telling the AI. Nothing is ever rewritten for you — warnings appear on the result.</p>
+              <p className="text-[10px] text-[#8e94bd]">“Check” flags a problem without telling the AI. Nothing is ever rewritten for you — warnings appear on the result.</p>
 
               <div>
                 <p className="text-[#9da3c8] mb-1">Voice matching</p>
@@ -96,7 +96,7 @@ export default function PreservationRulesPopover({ storyId }: { storyId: string 
                   ))}
                 </div>
                 {!prefs.story_dna_available && (
-                  <p className="text-[10px] text-[#5c6391] mt-1">Run Story Intelligence to enable fingerprint matching — until then only the surrounding text is used.</p>
+                  <p className="text-[10px] text-[#8e94bd] mt-1">Run Story Intelligence to enable fingerprint matching — until then only the surrounding text is used.</p>
                 )}
               </div>
 
@@ -104,7 +104,7 @@ export default function PreservationRulesPopover({ storyId }: { storyId: string 
                 <input type="checkbox" checked={prefs.pin_prefs.strict_consistency} disabled={!prefs.strict_consistency_allowed}
                   onChange={(e) => save({ pin_prefs: { strict_consistency: e.target.checked } })} className="mt-0.5 accent-amber-500" />
                 <span>Strict story-consistency check
-                  <span className="block text-[10px] text-[#5c6391]">
+                  <span className="block text-[10px] text-[#8e94bd]">
                     {prefs.strict_consistency_allowed ? 'An extra AI check against your story facts — slower.' : 'Not included in your plan. The standard checks always run.'}
                   </span></span>
               </label>
@@ -112,7 +112,7 @@ export default function PreservationRulesPopover({ storyId }: { storyId: string 
                 <input type="checkbox" checked={prefs.pin_prefs.duplicate_auto_retry}
                   onChange={(e) => save({ pin_prefs: { duplicate_auto_retry: e.target.checked } })} className="mt-0.5 accent-amber-500" />
                 <span>Automatically retry once when a result repeats an idea I asked to avoid
-                  <span className="block text-[10px] text-[#5c6391]">Off by default — each retry takes extra time.</span></span>
+                  <span className="block text-[10px] text-[#8e94bd]">Off by default — each retry takes extra time.</span></span>
               </label>
 
               <div>

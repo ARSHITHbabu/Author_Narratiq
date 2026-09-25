@@ -33,7 +33,7 @@ const REL_TYPES: RelationshipType[] = ['ally', 'rival', 'family', 'romantic', 'm
 const STRENGTHS: RelationshipStrength[] = ['weak', 'moderate', 'strong', 'critical']
 
 const STRENGTH_COLOR: Record<RelationshipStrength, string> = {
-  weak:     'text-[#5c6391]',
+  weak:     'text-[#8e94bd]',
   moderate: 'text-sky-400',
   strong:   'text-amber-400',
   critical: 'text-red-400',
@@ -46,7 +46,7 @@ const REL_COLOR: Record<RelationshipType, string> = {
   romantic:  'text-pink-400',
   mentor:    'text-sky-400',
   enemy:     'text-red-400',
-  neutral:   'text-[#5c6391]',
+  neutral:   'text-[#8e94bd]',
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -378,7 +378,7 @@ export default function CharacterProfilePanel({
     label, value, onChange, rows = 3,
   }: { label: string; value: string; onChange: (v: string) => void; rows?: number }) => (
     <div>
-      <label className="text-xs text-[#5c6391] mb-1 block">{label}</label>
+      <label className="text-xs text-[#8e94bd] mb-1 block">{label}</label>
       <textarea
         value={value}
         onChange={e => { onChange(e.target.value); scheduleProfileSave() }}
@@ -396,11 +396,11 @@ export default function CharacterProfilePanel({
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="px-4 py-3 border-b border-[#1f2440] flex items-center gap-2 flex-shrink-0">
-        <button onClick={onBack} className="text-[#5c6391] hover:text-[#9da3c8] transition-colors">
+        <button onClick={onBack} className="text-[#8e94bd] hover:text-[#9da3c8] transition-colors">
           <ArrowLeft className="w-4 h-4" />
         </button>
         <span className="text-xs font-medium text-[#9da3c8] truncate flex-1">{character.name}</span>
-        {savingProfile && <Loader2 className="w-3 h-3 text-[#3d4466] animate-spin flex-shrink-0" />}
+        {savingProfile && <Loader2 className="w-3 h-3 text-[#8a90ba] animate-spin flex-shrink-0" />}
         {!savingProfile && profileSaved && (
           <Check className="w-3 h-3 text-green-500/60 flex-shrink-0" />
         )}
@@ -411,11 +411,11 @@ export default function CharacterProfilePanel({
 
         {/* ── Identity ──────────────────────────────────────────────────── */}
         <section>
-          <p className="text-[10px] font-semibold text-[#3d4466] uppercase tracking-wider mb-2">Identity</p>
+          <p className="text-[10px] font-semibold text-[#8a90ba] uppercase tracking-wider mb-2">Identity</p>
 
           {/* Name */}
           <div className="mb-3">
-            <label className="text-xs text-[#5c6391] mb-1 block">Name</label>
+            <label className="text-xs text-[#8e94bd] mb-1 block">Name</label>
             <input
               type="text"
               value={name}
@@ -427,7 +427,7 @@ export default function CharacterProfilePanel({
 
           {/* Role */}
           <div className="mb-3">
-            <label className="text-xs text-[#5c6391] mb-1 block">Role</label>
+            <label className="text-xs text-[#8e94bd] mb-1 block">Role</label>
             <div className="grid grid-cols-2 gap-1">
               {ROLES.map(r => {
                 const Icon = r.icon
@@ -441,7 +441,7 @@ export default function CharacterProfilePanel({
                     className={`flex items-center gap-1.5 py-1.5 px-2 rounded-lg border text-[11px] font-medium transition-all ${
                       role === r.value
                         ? 'border-amber-500/50 bg-amber-500/10 text-amber-400'
-                        : 'border-[#1f2440] text-[#5c6391] hover:border-[#2e3454] hover:text-[#9da3c8]'
+                        : 'border-[#1f2440] text-[#8e94bd] hover:border-[#2e3454] hover:text-[#9da3c8]'
                     }`}
                   >
                     <Icon className="w-3 h-3" />
@@ -454,7 +454,7 @@ export default function CharacterProfilePanel({
 
           {/* Status */}
           <div className="mb-3">
-            <label className="text-xs text-[#5c6391] mb-1 block">Status</label>
+            <label className="text-xs text-[#8e94bd] mb-1 block">Status</label>
             <div className="grid grid-cols-3 gap-1">
               {STATUSES.map(s => (
                 <button
@@ -466,7 +466,7 @@ export default function CharacterProfilePanel({
                   className={`py-1.5 rounded-lg border text-[11px] font-medium transition-all ${
                     status === s.value
                       ? 'border-amber-500/50 bg-amber-500/10 text-amber-400'
-                      : 'border-[#1f2440] text-[#5c6391] hover:border-[#2e3454] hover:text-[#9da3c8]'
+                      : 'border-[#1f2440] text-[#8e94bd] hover:border-[#2e3454] hover:text-[#9da3c8]'
                   }`}
                 >
                   {s.label}
@@ -477,7 +477,7 @@ export default function CharacterProfilePanel({
 
           {/* Aliases */}
           <div>
-            <label className="text-xs text-[#5c6391] mb-1 block">Aliases</label>
+            <label className="text-xs text-[#8e94bd] mb-1 block">Aliases</label>
             <div className="flex flex-wrap gap-1 mb-1.5">
               {aliases.map(a => (
                 <span
@@ -485,7 +485,7 @@ export default function CharacterProfilePanel({
                   className="flex items-center gap-1 text-[11px] px-2 py-0.5 bg-[#1f2440] border border-[#2e3454] rounded-full text-[#9da3c8]"
                 >
                   {a}
-                  <button onClick={() => removeAlias(a)} className="text-[#3d4466] hover:text-red-400 transition-colors">
+                  <button onClick={() => removeAlias(a)} className="text-[#8a90ba] hover:text-red-400 transition-colors">
                     <X className="w-2.5 h-2.5" />
                   </button>
                 </span>
@@ -502,7 +502,7 @@ export default function CharacterProfilePanel({
               />
               <button
                 onClick={addAlias}
-                className="px-2 py-1.5 rounded-lg border border-[#2e3454] text-[#5c6391] hover:text-amber-400 hover:border-amber-500/30 transition-colors"
+                className="px-2 py-1.5 rounded-lg border border-[#2e3454] text-[#8e94bd] hover:text-amber-400 hover:border-amber-500/30 transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" />
               </button>
@@ -512,7 +512,7 @@ export default function CharacterProfilePanel({
 
         {/* ── Traits ────────────────────────────────────────────────────── */}
         <section>
-          <p className="text-[10px] font-semibold text-[#3d4466] uppercase tracking-wider mb-2">Traits</p>
+          <p className="text-[10px] font-semibold text-[#8a90ba] uppercase tracking-wider mb-2">Traits</p>
           <div className="flex flex-wrap gap-1 mb-1.5">
             {traits.map(t => (
               <span
@@ -537,22 +537,22 @@ export default function CharacterProfilePanel({
             />
             <button
               onClick={addTrait}
-              className="px-2 py-1.5 rounded-lg border border-[#2e3454] text-[#5c6391] hover:text-amber-400 hover:border-amber-500/30 transition-colors"
+              className="px-2 py-1.5 rounded-lg border border-[#2e3454] text-[#8e94bd] hover:text-amber-400 hover:border-amber-500/30 transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />
             </button>
           </div>
-          <p className="text-[10px] text-[#3d4466] mt-1">Traits are included in Plot Assistant character context.</p>
+          <p className="text-[10px] text-[#8a90ba] mt-1">Traits are included in Plot Assistant character context.</p>
         </section>
 
         {/* ── Profile fields ─────────────────────────────────────────────── */}
         <section className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <p className="text-[10px] font-semibold text-[#3d4466] uppercase tracking-wider">Profile</p>
+            <p className="text-[10px] font-semibold text-[#8a90ba] uppercase tracking-wider">Profile</p>
             <button
               onClick={handleEnrich}
               disabled={enrichLoading}
-              className="flex items-center gap-1 text-[9px] text-[#5c6391] hover:text-amber-400 transition-colors disabled:opacity-50"
+              className="flex items-center gap-1 text-[9px] text-[#8e94bd] hover:text-amber-400 transition-colors disabled:opacity-50"
               title="Extract profile suggestions from story mentions"
             >
               {enrichLoading
@@ -573,7 +573,7 @@ export default function CharacterProfilePanel({
                 </p>
                 <button
                   onClick={() => setEnrichResult(null)}
-                  className="text-[#3d4466] hover:text-[#9da3c8] transition-colors"
+                  className="text-[#8a90ba] hover:text-[#9da3c8] transition-colors"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -584,7 +584,7 @@ export default function CharacterProfilePanel({
                     <span className="text-[10px] font-medium text-[#9da3c8] capitalize">
                       {s.field.replace('_', ' ')}
                     </span>
-                    <span className="text-[9px] text-[#3d4466]">
+                    <span className="text-[9px] text-[#8a90ba]">
                       {Math.round(s.confidence * 100)}% · Ch{s.chapter}
                     </span>
                   </div>
@@ -592,7 +592,7 @@ export default function CharacterProfilePanel({
                     {s.value.length > 150 ? s.value.slice(0, 150) + '…' : s.value}
                   </p>
                   {s.evidence && (
-                    <p className="text-[9px] text-[#3d4466] italic border-l-2 border-[#2e3454] pl-2">
+                    <p className="text-[9px] text-[#8a90ba] italic border-l-2 border-[#2e3454] pl-2">
                       &ldquo;{s.evidence.length > 120 ? s.evidence.slice(0, 120) + '…' : s.evidence}&rdquo;
                     </p>
                   )}
@@ -607,7 +607,7 @@ export default function CharacterProfilePanel({
             </div>
           )}
           <div>
-            <label className="text-xs text-[#5c6391] mb-1 block">Age</label>
+            <label className="text-xs text-[#8e94bd] mb-1 block">Age</label>
             <input
               type="text"
               value={age}
@@ -629,17 +629,17 @@ export default function CharacterProfilePanel({
           <section>
             <button
               onClick={() => setShowRawNotes(v => !v)}
-              className="w-full flex items-center justify-between text-[10px] font-semibold text-[#3d4466] uppercase tracking-wider mb-1"
+              className="w-full flex items-center justify-between text-[10px] font-semibold text-[#8a90ba] uppercase tracking-wider mb-1"
             >
               <span>OCR Notes (staging)</span>
               {showRawNotes ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
             </button>
             {showRawNotes ? (
-              <pre className="bg-[#0d0f1a] border border-[#1f2440] rounded-xl p-3 text-[11px] text-[#5c6391] whitespace-pre-wrap break-words font-mono">
+              <pre className="bg-[#0d0f1a] border border-[#1f2440] rounded-xl p-3 text-[11px] text-[#8e94bd] whitespace-pre-wrap break-words font-mono">
                 {character.profile.raw_notes}
               </pre>
             ) : (
-              <p className="text-[10px] text-[#3d4466]">
+              <p className="text-[10px] text-[#8a90ba]">
                 Handwritten OCR notes — promote content to structured fields above.
               </p>
             )}
@@ -651,12 +651,12 @@ export default function CharacterProfilePanel({
           <div className="flex items-center justify-between mb-1">
             <button
               onClick={handleToggleMentions}
-              className="flex items-center gap-1.5 text-[10px] font-semibold text-[#3d4466] uppercase tracking-wider"
+              className="flex items-center gap-1.5 text-[10px] font-semibold text-[#8a90ba] uppercase tracking-wider"
             >
               <BookOpen className="w-3 h-3" />
               Story Mentions
               {mentions !== null && (
-                <span className="text-[#5c6391] normal-case font-normal">
+                <span className="text-[#8e94bd] normal-case font-normal">
                   ({mentions.length})
                 </span>
               )}
@@ -667,7 +667,7 @@ export default function CharacterProfilePanel({
                 onClick={loadMentions}
                 disabled={loadingMentions}
                 title="Refresh mentions"
-                className="text-[#3d4466] hover:text-amber-400 transition-colors disabled:opacity-40"
+                className="text-[#8a90ba] hover:text-amber-400 transition-colors disabled:opacity-40"
               >
                 <Loader2 className={`w-3 h-3 ${loadingMentions ? 'animate-spin text-amber-400' : ''}`} />
               </button>
@@ -677,25 +677,25 @@ export default function CharacterProfilePanel({
             <div className="flex flex-col gap-2">
               {loadingMentions && mentions === null ? (
                 <div className="flex justify-center py-3">
-                  <Loader2 className="w-4 h-4 text-[#3d4466] animate-spin" />
+                  <Loader2 className="w-4 h-4 text-[#8a90ba] animate-spin" />
                 </div>
               ) : mentions && mentions.length === 0 ? (
                 <div className="flex flex-col gap-1.5 py-1">
-                  <p className="text-[11px] text-[#3d4466] leading-relaxed">
+                  <p className="text-[11px] text-[#8a90ba] leading-relaxed">
                     No story mentions found yet.
                   </p>
                   <p className="text-[10px] text-[#2e3454] leading-relaxed">
                     If you just added this character, mention indexing is running in the
                     background — click ↻ above in a few seconds to refresh.
                     If chapters were added before this character, use{' '}
-                    <span className="text-[#5c6391]">Sync Mentions</span> from the cast menu.
+                    <span className="text-[#8e94bd]">Sync Mentions</span> from the cast menu.
                   </p>
                 </div>
               ) : mentions ? (
                 mentions.map(m => (
                   <div key={m.mention_id} className="border-l-2 border-[#2e3454] pl-2.5">
                     <p className="text-[9px] text-amber-400/60 mb-0.5">Chapter {m.chapter_number}</p>
-                    <p className="text-[10px] text-[#5c6391] leading-relaxed">
+                    <p className="text-[10px] text-[#8e94bd] leading-relaxed">
                       {m.passage_text.length > 220
                         ? m.passage_text.slice(0, 220) + '…'
                         : m.passage_text}
@@ -711,7 +711,7 @@ export default function CharacterProfilePanel({
         <section>
           <button
             onClick={() => setShowArcTimeline(v => !v)}
-            className="w-full flex items-center gap-1.5 text-[10px] font-semibold text-[#3d4466] uppercase tracking-wider mb-2"
+            className="w-full flex items-center gap-1.5 text-[10px] font-semibold text-[#8a90ba] uppercase tracking-wider mb-2"
           >
             <GitBranch className="w-3 h-3" />
             Arc Timeline
@@ -731,7 +731,7 @@ export default function CharacterProfilePanel({
           <div className="flex items-center justify-between mb-1.5">
             <button
               onClick={() => setShowVoice(v => !v)}
-              className="flex items-center gap-1.5 text-[10px] font-semibold text-[#3d4466] uppercase tracking-wider"
+              className="flex items-center gap-1.5 text-[10px] font-semibold text-[#8a90ba] uppercase tracking-wider"
             >
               <Wand2 className="w-3 h-3" />
               Voice Consistency
@@ -752,7 +752,7 @@ export default function CharacterProfilePanel({
                   }
                 }}
                 disabled={voiceLoading}
-                className="flex items-center gap-1 text-[9px] text-[#5c6391] hover:text-amber-400 disabled:opacity-50"
+                className="flex items-center gap-1 text-[9px] text-[#8e94bd] hover:text-amber-400 disabled:opacity-50"
               >
                 {voiceLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
                 Run Check
@@ -762,12 +762,12 @@ export default function CharacterProfilePanel({
           {showVoice && (
             <div className="flex flex-col gap-2">
               {!voiceResult && !voiceLoading && (
-                <p className="text-[10px] text-[#3d4466]">
+                <p className="text-[10px] text-[#8a90ba]">
                   Analyse dialogue passages to detect inconsistent voice across chapters. Click "Run Check" above.
                 </p>
               )}
               {voiceLoading && (
-                <div className="flex items-center gap-1.5 text-[#5c6391] text-xs">
+                <div className="flex items-center gap-1.5 text-[#8e94bd] text-xs">
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />Analysing passages…
                 </div>
               )}
@@ -779,8 +779,8 @@ export default function CharacterProfilePanel({
                         Score: <span className="text-amber-400 font-medium">{Math.round(voiceResult.consistency_score * 100)}%</span>
                       </span>
                     )}
-                    <span className="text-[#5c6391]">{voiceResult.dialogue_count} passages</span>
-                    <span className="text-[#5c6391]">{voiceResult.inconsistent_pairs.length} inconsistencies</span>
+                    <span className="text-[#8e94bd]">{voiceResult.dialogue_count} passages</span>
+                    <span className="text-[#8e94bd]">{voiceResult.inconsistent_pairs.length} inconsistencies</span>
                   </div>
                   {voiceResult.inconsistent_pairs.length === 0 ? (
                     <p className="text-[11px] text-emerald-400">Voice is consistent across all analysed passages.</p>
@@ -793,7 +793,7 @@ export default function CharacterProfilePanel({
                           <p className="text-[11px] text-[#9da3c8] italic leading-relaxed line-clamp-3">"{pair.passage_b}"</p>
                         </div>
                         {pair.description && (
-                          <p className="text-[10px] text-[#5c6391] leading-relaxed">{pair.description}</p>
+                          <p className="text-[10px] text-[#8e94bd] leading-relaxed">{pair.description}</p>
                         )}
                       </div>
                     ))
@@ -807,10 +807,10 @@ export default function CharacterProfilePanel({
         {/* ── Relationships ──────────────────────────────────────────────── */}
         <section>
           <div className="flex items-center justify-between mb-2">
-            <p className="text-[10px] font-semibold text-[#3d4466] uppercase tracking-wider">Relationships</p>
+            <p className="text-[10px] font-semibold text-[#8a90ba] uppercase tracking-wider">Relationships</p>
             <button
               onClick={() => setShowAddRel(v => !v)}
-              className="flex items-center gap-1 text-[10px] text-[#5c6391] hover:text-amber-400 transition-colors"
+              className="flex items-center gap-1 text-[10px] text-[#8e94bd] hover:text-amber-400 transition-colors"
             >
               <Plus className="w-3 h-3" />
               Add
@@ -818,7 +818,7 @@ export default function CharacterProfilePanel({
           </div>
 
           {showAddRel && otherChars.length === 0 && (
-            <p className="text-[11px] text-[#3d4466] mb-2">Create more characters first to add relationships.</p>
+            <p className="text-[11px] text-[#8a90ba] mb-2">Create more characters first to add relationships.</p>
           )}
 
           {showAddRel && otherChars.length > 0 && (
@@ -842,7 +842,7 @@ export default function CharacterProfilePanel({
                     className={`py-1 rounded-lg border text-[10px] capitalize font-medium transition-all ${
                       relType === t
                         ? 'border-amber-500/50 bg-amber-500/10 text-amber-400'
-                        : 'border-[#1f2440] text-[#5c6391] hover:border-[#2e3454]'
+                        : 'border-[#1f2440] text-[#8e94bd] hover:border-[#2e3454]'
                     }`}
                   >
                     {t}
@@ -858,7 +858,7 @@ export default function CharacterProfilePanel({
                     className={`py-1 rounded-lg border text-[10px] capitalize font-medium transition-all ${
                       relStrength === s
                         ? 'border-amber-500/50 bg-amber-500/10 text-amber-400'
-                        : 'border-[#1f2440] text-[#5c6391] hover:border-[#2e3454]'
+                        : 'border-[#1f2440] text-[#8e94bd] hover:border-[#2e3454]'
                     }`}
                   >
                     {s}
@@ -874,7 +874,7 @@ export default function CharacterProfilePanel({
                 className="w-full bg-[#1f2440] border border-[#2e3454] rounded-lg px-2.5 py-1.5 text-xs text-[#e8eaf6] placeholder-[#3d4466] focus:outline-none focus:border-amber-500/50 resize-none"
               />
 
-              <label className="flex items-center gap-2 text-[11px] text-[#5c6391] cursor-pointer">
+              <label className="flex items-center gap-2 text-[11px] text-[#8e94bd] cursor-pointer">
                 <input
                   type="checkbox"
                   checked={relMutual}
@@ -887,7 +887,7 @@ export default function CharacterProfilePanel({
               <div className="flex gap-1">
                 <button
                   onClick={() => setShowAddRel(false)}
-                  className="flex-1 py-1.5 rounded-lg border border-[#2e3454] text-xs text-[#5c6391] hover:text-[#9da3c8] transition-colors"
+                  className="flex-1 py-1.5 rounded-lg border border-[#2e3454] text-xs text-[#8e94bd] hover:text-[#9da3c8] transition-colors"
                 >
                   Cancel
                 </button>
@@ -905,10 +905,10 @@ export default function CharacterProfilePanel({
 
           {loadingRels ? (
             <div className="flex justify-center py-3">
-              <Loader2 className="w-4 h-4 text-[#3d4466] animate-spin" />
+              <Loader2 className="w-4 h-4 text-[#8a90ba] animate-spin" />
             </div>
           ) : rels.length === 0 ? (
-            <p className="text-[11px] text-[#3d4466]">No relationships yet.</p>
+            <p className="text-[11px] text-[#8a90ba]">No relationships yet.</p>
           ) : (
             <div className="flex flex-col gap-1.5">
               {rels.map(rel => {
@@ -926,7 +926,7 @@ export default function CharacterProfilePanel({
                         <span className={`text-[11px] font-medium capitalize ${REL_COLOR[rel.relationship_type]}`}>
                           {rel.relationship_type}
                         </span>
-                        <span className="text-[10px] text-[#3d4466]">
+                        <span className="text-[10px] text-[#8a90ba]">
                           {isFrom ? '→' : rel.is_mutual ? '↔' : '←'}
                         </span>
                         <span className="text-[11px] text-[#9da3c8] truncate">{otherChar?.name ?? 'Unknown'}</span>
@@ -935,12 +935,12 @@ export default function CharacterProfilePanel({
                         </span>
                       </div>
                       {rel.description && (
-                        <p className="text-[10px] text-[#3d4466] line-clamp-2">{rel.description}</p>
+                        <p className="text-[10px] text-[#8a90ba] line-clamp-2">{rel.description}</p>
                       )}
                     </div>
                     <button
                       onClick={() => deleteRelationship(rel)}
-                      className="text-[#3d4466] hover:text-red-400 transition-colors flex-shrink-0"
+                      className="text-[#8a90ba] hover:text-red-400 transition-colors flex-shrink-0"
                       title="Delete relationship"
                     >
                       <X className="w-3 h-3" />
@@ -957,7 +957,7 @@ export default function CharacterProfilePanel({
           {!confirmDelete ? (
             <button
               onClick={() => setConfirmDelete(true)}
-              className="flex items-center gap-1.5 text-xs text-[#3d4466] hover:text-red-400 transition-colors"
+              className="flex items-center gap-1.5 text-xs text-[#8a90ba] hover:text-red-400 transition-colors"
             >
               <Trash2 className="w-3.5 h-3.5" />
               Delete character

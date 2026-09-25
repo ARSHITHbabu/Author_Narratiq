@@ -34,14 +34,14 @@ function IssueCard({ issue }: { issue: PlotHoleIssue }) {
       >
         <AlertTriangle className={`w-3.5 h-3.5 mt-0.5 flex-shrink-0 ${
           issue.severity === 'high' ? 'text-red-400' :
-          issue.severity === 'medium' ? 'text-amber-400' : 'text-[#5c6391]'
+          issue.severity === 'medium' ? 'text-amber-400' : 'text-[#8e94bd]'
         }`} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap mb-1">
             <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${styles.badge}`}>
               {issue.severity.toUpperCase()}
             </span>
-            <span className="text-[10px] text-[#5c6391] px-1.5 py-0.5 rounded bg-[#0f1220] border border-[#1f2440]">
+            <span className="text-[10px] text-[#8e94bd] px-1.5 py-0.5 rounded bg-[#0f1220] border border-[#1f2440]">
               {typeLabel}
             </span>
             {issue.chapters.map(ch => (
@@ -52,7 +52,7 @@ function IssueCard({ issue }: { issue: PlotHoleIssue }) {
           </div>
           <p className="text-xs text-[#c8cce8] leading-relaxed line-clamp-2">{issue.description}</p>
         </div>
-        <div className="flex-shrink-0 text-[#3d4466] mt-0.5">
+        <div className="flex-shrink-0 text-[#8a90ba] mt-0.5">
           {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
         </div>
       </button>
@@ -133,7 +133,7 @@ export default function PlotHolesPanel({ storyId }: Props) {
           <div className="flex flex-col items-center gap-2 py-4 text-center">
             <AlertTriangle className="w-6 h-6 text-amber-400/60" />
             <p className="text-xs text-[#9da3c8] font-medium">Not enough indexed chapters</p>
-            <p className="text-xs text-[#5c6391] leading-relaxed">
+            <p className="text-xs text-[#8e94bd] leading-relaxed">
               Sync at least 2 chapters using the Sync Summaries button in the chapter list.
             </p>
           </div>
@@ -144,7 +144,7 @@ export default function PlotHolesPanel({ storyId }: Props) {
           <div className="flex flex-col gap-3">
 
             {/* Summary bar */}
-            <div className="flex items-center justify-between text-xs text-[#5c6391]">
+            <div className="flex items-center justify-between text-xs text-[#8e94bd]">
               <span>{result.chapters_analyzed} chapter(s) analyzed</span>
               {result.issues_found > 0 && (
                 <div className="flex items-center gap-1.5">
@@ -162,7 +162,7 @@ export default function PlotHolesPanel({ storyId }: Props) {
                 <p className="text-[11px] text-amber-300/90 leading-relaxed">
                   {result.degraded_reason ?? 'These results are incomplete — some of the analysis could not be read.'}
                 </p>
-                <p className="text-[10px] text-[#5c6391] mt-0.5">
+                <p className="text-[10px] text-[#8e94bd] mt-0.5">
                   What is shown below is real. Run the scan again for the rest.
                 </p>
               </div>
@@ -173,11 +173,11 @@ export default function PlotHolesPanel({ storyId }: Props) {
               <div className="flex flex-col items-center gap-2 py-4 text-center">
                 <CheckCircle className="w-7 h-7 text-green-500/60" />
                 <p className="text-xs text-[#9da3c8] font-medium">No issues detected</p>
-                <p className="text-xs text-[#5c6391]">Your story is consistent across analyzed chapters.</p>
+                <p className="text-xs text-[#8e94bd]">Your story is consistent across analyzed chapters.</p>
               </div>
             )}
             {result.issues_found === 0 && result.degraded && (
-              <p className="text-xs text-[#5c6391] text-center py-2">
+              <p className="text-xs text-[#8e94bd] text-center py-2">
                 No issues could be read from this scan.
               </p>
             )}
@@ -189,7 +189,7 @@ export default function PlotHolesPanel({ storyId }: Props) {
 
             {/* Analysis note */}
             {result.analysis_note && (
-              <p className="text-[10px] text-[#3d4466] leading-relaxed border-t border-[#1f2440] pt-2">
+              <p className="text-[10px] text-[#8a90ba] leading-relaxed border-t border-[#1f2440] pt-2">
                 {result.analysis_note}
               </p>
             )}
@@ -201,8 +201,8 @@ export default function PlotHolesPanel({ storyId }: Props) {
           <div className="flex flex-col items-center gap-3 py-6 text-center">
             <ScanSearch className="w-8 h-8 text-[#2e3454]" />
             <div>
-              <p className="text-xs text-[#5c6391] font-medium">Analyze your story for issues</p>
-              <p className="text-xs text-[#3d4466] mt-1 leading-relaxed">
+              <p className="text-xs text-[#8e94bd] font-medium">Analyze your story for issues</p>
+              <p className="text-xs text-[#8a90ba] mt-1 leading-relaxed">
                 Checks for character inconsistencies,<br />
                 unresolved threads, and timeline gaps
               </p>

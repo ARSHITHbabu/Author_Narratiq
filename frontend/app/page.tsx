@@ -55,7 +55,7 @@ export default function LandingPage() {
             The AI writing studio built exclusively for novelists. Story memory, genre intelligence,
             plot assistance, and literary transformation — all in one place.
           </p>
-          <p className="text-sm text-[#5c6391] mb-10">
+          <p className="text-sm text-[#8e94bd] mb-10">
             Your story data never leaves your server. Complete author privacy.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -170,7 +170,7 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[#1f2440] py-10 px-6 text-center text-sm text-[#5c6391]">
+      <footer className="border-t border-[#1f2440] py-10 px-6 text-center text-sm text-[#8e94bd]">
         <div className="flex items-center justify-center gap-2 mb-2">
           <Feather className="w-4 h-4 text-amber-500" />
           <span className="text-[#9da3c8] font-medium">NarratIQ AI</span>

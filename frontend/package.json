@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "next lint",
     "test": "playwright test --project=unit",
-    "test:browser": "playwright test --project=browser"
+    "test:browser": "playwright test --project=browser",
+    "test:studio": "playwright test -c playwright.studio.config.ts",
+    "test:a11y": "playwright test -c playwright.studio.config.ts a11y",
+    "test:studio:variants": "STUDIO_VARIANT=mock-tool playwright test -c playwright.studio.config.ts navigation variants && STUDIO_VARIANT=p3-off playwright test -c playwright.studio.config.ts smoke navigation variants"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.0.4",
@@ -47,6 +50,7 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
     "@playwright/test": "^1.60.0",
     "@types/node": "^20.14.2",
     "@types/react": "^18.3.3",

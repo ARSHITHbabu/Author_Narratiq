@@ -92,6 +92,18 @@ export function resolveToolbarMode(input: {
   return owner === 'toolbar' ? 'controls' : 'hidden'
 }
 
+/** Escape dismisses the toolbar for ONE selection event, not for a range.
+ *
+ *  Every selection the editor reports is a fresh object, so "dismissed" means
+ *  "the selection on screen is the very one the author pressed Escape on".
+ *  Re-selecting the identical words is a new selection object and a fresh
+ *  intent. Keying dismissal on the range instead was the Stage 7 flake in
+ *  selection-toolbar test 9: whether the toolbar came back depended on whether
+ *  React happened to render the momentary collapsed selection in between. */
+export function isDismissedFor(dismissedFor: object | null, selection: object | null): boolean {
+  return dismissedFor !== null && dismissedFor === selection
+}
+
 /** True when the event target sits inside a surface that consumes the selection.
  *  Part of the ownership contract, not general DOM utility: it is how a surface
  *  declares "a click here is still about the selection". */

@@ -156,7 +156,7 @@ export default function OCRPanel({ storyId, chapterId, chaptersLoading = false, 
           <Camera className="w-4 h-4 text-amber-500" />
           <span className="text-xs font-medium text-[#9da3c8] uppercase tracking-wider">Handwritten Notes OCR</span>
         </div>
-        <p className="text-xs text-[#3d4466] mt-1">Photograph your notes → AI extracts & cleans → inject into project</p>
+        <p className="text-xs text-[#8a90ba] mt-1">Photograph your notes → AI extracts & cleans → inject into project</p>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
@@ -180,16 +180,16 @@ export default function OCRPanel({ storyId, chapterId, chaptersLoading = false, 
             onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) handleFile(f) }}
             className="border-2 border-dashed border-[#2e3454] rounded-xl p-8 text-center cursor-pointer hover:border-amber-500/40 hover:bg-amber-500/5 transition-all"
           >
-            <Camera className="w-10 h-10 text-[#3d4466] mx-auto mb-3" />
+            <Camera className="w-10 h-10 text-[#8a90ba] mx-auto mb-3" />
             <p className="text-sm text-[#9da3c8] mb-1">Upload handwritten note photo</p>
-            <p className="text-xs text-[#3d4466]">JPEG, PNG, WebP, HEIC — drag & drop or click</p>
-            <p className="text-xs text-[#3d4466] mt-2 italic">Tip: Clear handwriting on plain white paper gives best results</p>
+            <p className="text-xs text-[#8a90ba]">JPEG, PNG, WebP, HEIC — drag & drop or click</p>
+            <p className="text-xs text-[#8a90ba] mt-2 italic">Tip: Clear handwriting on plain white paper gives best results</p>
           </div>
         ) : (
           <div className="relative">
             {previewError ? (
               <div className="w-full rounded-xl border border-[#2e3454] max-h-48 h-24 flex items-center justify-center bg-[#0d0f1a]">
-                <p className="text-xs text-[#5c6391]">{file?.name ?? 'Image selected'}</p>
+                <p className="text-xs text-[#8e94bd]">{file?.name ?? 'Image selected'}</p>
               </div>
             ) : (
               <img
@@ -255,7 +255,7 @@ export default function OCRPanel({ storyId, chapterId, chaptersLoading = false, 
                 </div>
                 <div className="bg-[#0d0f1a] border border-[#1f2440] rounded-xl p-3">
                   <p className="text-xs font-medium text-[#9da3c8] mb-2">Tips for better results:</p>
-                  <ul className="text-xs text-[#5c6391] space-y-1">
+                  <ul className="text-xs text-[#8e94bd] space-y-1">
                     <li>• Use plain white or light-coloured paper</li>
                     <li>• Ensure good, even lighting — avoid shadows</li>
                     <li>• Keep handwriting dark and clear</li>
@@ -275,7 +275,7 @@ export default function OCRPanel({ storyId, chapterId, chaptersLoading = false, 
                 {/* Confidence + engine info */}
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <span className="text-xs text-amber-400 font-medium">Text Extracted</span>
-                  <div className="flex items-center gap-3 text-xs text-[#5c6391]">
+                  <div className="flex items-center gap-3 text-xs text-[#8e94bd]">
                     <span title="OCR engine used">Engine: {result.ocr_engine}</span>
                     <span
                       className={
@@ -305,7 +305,7 @@ export default function OCRPanel({ storyId, chapterId, chaptersLoading = false, 
                 {/* Note type badge */}
                 {result.note_type && result.note_type !== 'other' && (
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-[#5c6391]">Classified as:</span>
+                    <span className="text-xs text-[#8e94bd]">Classified as:</span>
                     <span className="px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 rounded-full text-xs text-amber-400 capitalize">
                       {result.note_type}
                     </span>
@@ -314,7 +314,7 @@ export default function OCRPanel({ storyId, chapterId, chaptersLoading = false, 
 
                 {/* Editable cleaned text */}
                 <div>
-                  <div className="flex items-center gap-1 text-xs text-[#5c6391] mb-1.5">
+                  <div className="flex items-center gap-1 text-xs text-[#8e94bd] mb-1.5">
                     <Edit3 className="w-3 h-3" />
                     {result.cleaned_text
                       ? 'AI-cleaned text — review and edit before saving:'
@@ -333,7 +333,7 @@ export default function OCRPanel({ storyId, chapterId, chaptersLoading = false, 
                   <div className="border border-[#1f2440] rounded-xl overflow-hidden">
                     <button
                       onClick={() => setShowRaw(!showRaw)}
-                      className="w-full flex items-center justify-between px-3 py-2 text-xs text-[#5c6391] hover:text-[#9da3c8] hover:bg-[#0d0f1a] transition-colors"
+                      className="w-full flex items-center justify-between px-3 py-2 text-xs text-[#8e94bd] hover:text-[#9da3c8] hover:bg-[#0d0f1a] transition-colors"
                     >
                       <span>Raw OCR output (before AI cleanup)</span>
                       {showRaw
@@ -342,7 +342,7 @@ export default function OCRPanel({ storyId, chapterId, chaptersLoading = false, 
                       }
                     </button>
                     {showRaw && (
-                      <pre className="px-3 py-2.5 text-xs text-[#5c6391] bg-[#0d0f1a] font-mono whitespace-pre-wrap break-words border-t border-[#1f2440]">
+                      <pre className="px-3 py-2.5 text-xs text-[#8e94bd] bg-[#0d0f1a] font-mono whitespace-pre-wrap break-words border-t border-[#1f2440]">
                         {result.raw_text}
                       </pre>
                     )}
@@ -357,11 +357,11 @@ export default function OCRPanel({ storyId, chapterId, chaptersLoading = false, 
                       <span className="text-xs font-medium text-amber-400">
                         Possible Corrections Using Story Context
                       </span>
-                      <span className="ml-auto text-xs text-[#5c6391]">
+                      <span className="ml-auto text-xs text-[#8e94bd]">
                         {activeSuggestions.length} suggestion{activeSuggestions.length !== 1 ? 's' : ''}
                       </span>
                     </div>
-                    <p className="px-3 pt-2 text-xs text-[#5c6391] leading-relaxed">
+                    <p className="px-3 pt-2 text-xs text-[#8e94bd] leading-relaxed">
                       These are possible matches from your manuscript. Review carefully — OCR may have
                       captured a new name that genuinely differs from an existing character.
                     </p>
@@ -375,7 +375,7 @@ export default function OCRPanel({ storyId, chapterId, chaptersLoading = false, 
                             <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">
                               {s.original}
                             </span>
-                            <span className="text-xs text-[#3d4466]">→</span>
+                            <span className="text-xs text-[#8a90ba]">→</span>
                             <span className="text-xs font-mono px-1.5 py-0.5 rounded bg-green-500/10 text-green-400 border border-green-500/20">
                               {s.suggested}
                             </span>
@@ -383,14 +383,14 @@ export default function OCRPanel({ storyId, chapterId, chaptersLoading = false, 
                               className={`ml-auto text-xs font-medium ${
                                 s.confidence >= 0.80 ? 'text-green-400'
                                 : s.confidence >= 0.65 ? 'text-amber-400'
-                                : 'text-[#5c6391]'
+                                : 'text-[#8e94bd]'
                               }`}
                               title="String similarity to story term"
                             >
                               {Math.round(s.confidence * 100)}%
                             </span>
                           </div>
-                          <p className="text-xs text-[#5c6391] mb-2.5">{s.reason}</p>
+                          <p className="text-xs text-[#8e94bd] mb-2.5">{s.reason}</p>
                           <div className="flex gap-2">
                             <button
                               onClick={() => applySuggestion(s)}
@@ -400,7 +400,7 @@ export default function OCRPanel({ storyId, chapterId, chaptersLoading = false, 
                             </button>
                             <button
                               onClick={() => ignoreSuggestion(s)}
-                              className="flex-1 text-xs py-1.5 rounded-lg border border-[#2e3454] text-[#5c6391] hover:text-[#9da3c8] hover:border-[#3d4466] transition-colors"
+                              className="flex-1 text-xs py-1.5 rounded-lg border border-[#2e3454] text-[#8e94bd] hover:text-[#9da3c8] hover:border-[#3d4466] transition-colors"
                             >
                               Ignore
                             </button>
@@ -413,7 +413,7 @@ export default function OCRPanel({ storyId, chapterId, chaptersLoading = false, 
 
                 {/* ── Destination picker ───────────────────────────────── */}
                 <div>
-                  <label className="text-xs text-[#5c6391] mb-1.5 block">Save to:</label>
+                  <label className="text-xs text-[#8e94bd] mb-1.5 block">Save to:</label>
                   <div className="grid grid-cols-2 gap-1.5">
                     {DESTINATIONS.map((d) => {
                       // Disabled, never hidden: the author can see the destination
@@ -439,7 +439,7 @@ export default function OCRPanel({ storyId, chapterId, chaptersLoading = false, 
                     })}
                   </div>
                   {!chapterId && (
-                    <p className="text-xs text-[#5c6391] mt-1.5">
+                    <p className="text-xs text-[#8e94bd] mt-1.5">
                       {chaptersLoading
                         ? 'Chapter draft is unavailable until this story’s chapters finish loading.'
                         : 'Chapter draft needs a chapter — add one to this story to use it.'}
@@ -450,7 +450,7 @@ export default function OCRPanel({ storyId, chapterId, chaptersLoading = false, 
                 {/* ── Character name input (shown only for character_profile) ── */}
                 {destination === 'character_profile' && (
                   <div>
-                    <label className="text-xs text-[#5c6391] mb-1.5 flex items-center gap-1.5">
+                    <label className="text-xs text-[#8e94bd] mb-1.5 flex items-center gap-1.5">
                       <User className="w-3 h-3" />
                       Character name
                       <span className="text-red-400">*</span>
@@ -462,7 +462,7 @@ export default function OCRPanel({ storyId, chapterId, chaptersLoading = false, 
                       placeholder="Enter character name…"
                       className="w-full bg-[#0d0f1a] border border-[#2e3454] rounded-xl px-3 py-2 text-sm text-[#e8eaf6] placeholder-[#3d4466] focus:outline-none focus:border-amber-500/50 transition-colors"
                     />
-                    <p className="text-xs text-[#3d4466] mt-1">
+                    <p className="text-xs text-[#8a90ba] mt-1">
                       Notes will be appended to this character's profile. A new character is created if the name doesn't exist yet.
                     </p>
                   </div>

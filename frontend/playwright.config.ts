@@ -11,6 +11,10 @@ import { defineConfig, devices } from '@playwright/test'
 //               npx playwright test --project=browser
 //
 // Browser-project environment: E2E_BASE_URL, E2E_EMAIL, E2E_PASSWORD, E2E_STORY_ID.
+//
+// A third suite, `studio` (tests/studio), runs in a real browser against a mocked
+// API and needs no backend. It has its own config because it starts its own
+// server: npm run test:studio (see playwright.studio.config.ts).
 export default defineConfig({
   fullyParallel: true,
   reporter: 'list',
@@ -18,7 +22,7 @@ export default defineConfig({
     {
       name: 'unit',
       testDir: './tests',
-      testIgnore: '**/browser/**',
+      testIgnore: ['**/browser/**', '**/studio/**'],
     },
     {
       name: 'browser',

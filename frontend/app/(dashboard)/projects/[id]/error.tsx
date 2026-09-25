@@ -25,11 +25,11 @@ export default function EditorError({
         </div>
 
         <h1 className="text-lg font-semibold text-[#e8eaf6] mb-2">Editor encountered an error</h1>
-        <p className="text-sm text-[#5c6391] mb-1">
+        <p className="text-sm text-[#8e94bd] mb-1">
           Something went wrong while loading this manuscript.
         </p>
         {error.digest && (
-          <p className="text-xs text-[#3d4466] font-mono mb-6">ref: {error.digest}</p>
+          <p className="text-xs text-[#8a90ba] font-mono mb-6">ref: {error.digest}</p>
         )}
 
         <div className="flex flex-col gap-3 mt-6">

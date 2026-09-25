@@ -37,7 +37,7 @@ const destination = (page: Page, label: string) => page.getByRole('button', { na
 
 async function openOcr(page: Page, storyId: string) {
   await page.goto(`/projects/${storyId}/world`)
-  await page.getByRole('button', { name: /Scan \(OCR\)/ }).click()
+  await page.getByRole('tab', { name: /Scan \(OCR\)/ }).click()
 }
 
 test.beforeEach(async ({ page, request }) => {

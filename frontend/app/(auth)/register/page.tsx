@@ -80,7 +80,7 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => setShow(!show)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5c6391] hover:text-[#9da3c8]"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8e94bd] hover:text-[#9da3c8]"
                 >
                   {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -107,13 +107,13 @@ export default function RegisterPage() {
 
           <ul className="mt-5 space-y-1">
             {['Free to start', 'No credit card required', 'Your data stays private'].map((b) => (
-              <li key={b} className="flex items-center gap-2 text-xs text-[#5c6391]">
+              <li key={b} className="flex items-center gap-2 text-xs text-[#8e94bd]">
                 <span className="text-amber-500">✓</span> {b}
               </li>
             ))}
           </ul>
 
-          <p className="text-center text-sm text-[#5c6391] mt-6">
+          <p className="text-center text-sm text-[#8e94bd] mt-6">
             Already have an account?{' '}
             <Link href="/login" className="text-amber-400 hover:text-amber-300">
               Sign in

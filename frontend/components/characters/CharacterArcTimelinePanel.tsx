@@ -12,7 +12,7 @@ const ROLE_CONFIG: Record<ArcRole, { label: string; color: string; dot: string }
   major_player:  { label: 'Major Player',  color: 'text-amber-400',  dot: 'bg-amber-400'  },
   turning_point: { label: 'Turning Point', color: 'text-red-400',    dot: 'bg-red-400'    },
   observer:      { label: 'Observer',      color: 'text-[#9da3c8]',  dot: 'bg-[#3d4466]'  },
-  brief_mention: { label: 'Brief Mention', color: 'text-[#5c6391]',  dot: 'bg-[#2e3454]'  },
+  brief_mention: { label: 'Brief Mention', color: 'text-[#8e94bd]',  dot: 'bg-[#2e3454]'  },
 }
 
 // ── Snapshot node ─────────────────────────────────────────────────────────────
@@ -33,12 +33,12 @@ function SnapshotNode({ snap }: { snap: CharacterArcSnapshot }) {
       <div className="pb-4 flex-1 min-w-0">
         {/* Chapter header */}
         <div className="flex items-center gap-2 mb-1 flex-wrap">
-          <span className="text-[10px] font-semibold text-[#5c6391]">Ch{snap.chapter_number}</span>
+          <span className="text-[10px] font-semibold text-[#8e94bd]">Ch{snap.chapter_number}</span>
           <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded-full border ${
             snap.role_in_chapter === 'major_player'  ? 'border-amber-500/30 bg-amber-500/10 text-amber-400' :
             snap.role_in_chapter === 'turning_point' ? 'border-red-500/30   bg-red-500/10   text-red-400'   :
             snap.role_in_chapter === 'observer'      ? 'border-[#2e3454]    bg-[#1f2440]    text-[#9da3c8]' :
-                                                       'border-[#1f2440]    bg-transparent  text-[#5c6391]'
+                                                       'border-[#1f2440]    bg-transparent  text-[#8e94bd]'
           }`}>
             {cfg.label}
           </span>
@@ -48,7 +48,7 @@ function SnapshotNode({ snap }: { snap: CharacterArcSnapshot }) {
             </span>
           )}
           {snap.is_stale && (
-            <span className="text-[9px] px-1.5 py-0.5 rounded-full border border-[#2e3454] text-[#3d4466]">
+            <span className="text-[9px] px-1.5 py-0.5 rounded-full border border-[#2e3454] text-[#8a90ba]">
               stale
             </span>
           )}
@@ -72,14 +72,14 @@ function SnapshotNode({ snap }: { snap: CharacterArcSnapshot }) {
         {snap.development_note && (
           <button
             onClick={() => setExpanded(v => !v)}
-            className="flex items-center gap-1 text-[9px] text-[#3d4466] hover:text-[#5c6391] transition-colors mt-0.5"
+            className="flex items-center gap-1 text-[9px] text-[#8a90ba] hover:text-[#8e94bd] transition-colors mt-0.5"
           >
             {expanded ? <ChevronUp className="w-2.5 h-2.5" /> : <ChevronDown className="w-2.5 h-2.5" />}
             Arc note
           </button>
         )}
         {expanded && snap.development_note && (
-          <p className="text-[10px] text-[#5c6391] leading-relaxed mt-1 border-l-2 border-[#2e3454] pl-2">
+          <p className="text-[10px] text-[#8e94bd] leading-relaxed mt-1 border-l-2 border-[#2e3454] pl-2">
             {snap.development_note}
           </p>
         )}
@@ -126,7 +126,7 @@ export default function CharacterArcTimelinePanel({ storyId, characterId, charac
   if (!timeline && !loading && !noMentions) {
     return (
       <div className="flex flex-col items-center gap-3 py-4">
-        <p className="text-[11px] text-[#5c6391] text-center leading-relaxed">
+        <p className="text-[11px] text-[#8e94bd] text-center leading-relaxed">
           Generate {characterName}&apos;s arc timeline to see how their journey unfolds chapter by chapter.
         </p>
         <button
@@ -145,7 +145,7 @@ export default function CharacterArcTimelinePanel({ storyId, characterId, charac
     return (
       <div className="flex flex-col items-center gap-2 py-4">
         <Loader2 className="w-4 h-4 text-indigo-400 animate-spin" />
-        <p className="text-[10px] text-[#5c6391]">Analysing {characterName}&apos;s story arc…</p>
+        <p className="text-[10px] text-[#8e94bd]">Analysing {characterName}&apos;s story arc…</p>
       </div>
     )
   }
@@ -154,7 +154,7 @@ export default function CharacterArcTimelinePanel({ storyId, characterId, charac
   if (noMentions) {
     return (
       <div className="flex flex-col gap-2 py-2">
-        <p className="text-[11px] text-[#5c6391] leading-relaxed">
+        <p className="text-[11px] text-[#8e94bd] leading-relaxed">
           No story mentions found. Sync character mentions first, then generate the timeline.
         </p>
         <button
@@ -175,13 +175,13 @@ export default function CharacterArcTimelinePanel({ storyId, characterId, charac
     <div className="flex flex-col gap-3">
       {/* Overview */}
       <div className="flex items-center justify-between">
-        <p className="text-[10px] text-[#5c6391]">
+        <p className="text-[10px] text-[#8e94bd]">
           Present in {chapters_with_presence} of {total_chapters} chapter{total_chapters !== 1 ? 's' : ''}
         </p>
         <button
           onClick={generate}
           disabled={loading}
-          className="text-[9px] text-[#3d4466] hover:text-indigo-400 transition-colors disabled:opacity-40"
+          className="text-[9px] text-[#8a90ba] hover:text-indigo-400 transition-colors disabled:opacity-40"
           title="Regenerate arc timeline"
         >
           Regenerate
@@ -190,7 +190,7 @@ export default function CharacterArcTimelinePanel({ storyId, characterId, charac
 
       {/* Timeline */}
       {snapshots.length === 0 ? (
-        <p className="text-[11px] text-[#3d4466]">
+        <p className="text-[11px] text-[#8a90ba]">
           No chapter snapshots generated — character may not appear in indexed chapters.
         </p>
       ) : (
@@ -203,7 +203,7 @@ export default function CharacterArcTimelinePanel({ storyId, characterId, charac
 
       {/* Analysis note */}
       {analysis_note && (
-        <p className="text-[9px] text-[#3d4466] leading-relaxed pt-1 border-t border-[#1f2440]">
+        <p className="text-[9px] text-[#8a90ba] leading-relaxed pt-1 border-t border-[#1f2440]">
           {analysis_note}
         </p>
       )}

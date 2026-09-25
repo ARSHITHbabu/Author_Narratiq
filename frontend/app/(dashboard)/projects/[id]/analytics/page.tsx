@@ -120,25 +120,26 @@ export default function AnalyticsPage({ params }: { params: { id: string } }) {
     <div className="h-full flex flex-col bg-[#0d0f1a]">
       {/* In flow, not fixed: it takes its own height instead of overlaying the
           content, so it can never cover the first section or anything scrolled to. */}
-      <nav className="flex-shrink-0 bg-[#0d0f1a] border-b border-[#1f2440]">
+      <nav aria-label="Analytics" className="flex-shrink-0 bg-[#0d0f1a] border-b border-[#1f2440]">
         <div className="max-w-5xl mx-auto px-6 h-14 flex items-center gap-3">
-          <Link href={`/projects/${storyId}`} className="text-[#5c6391] hover:text-amber-400">
-            <ArrowLeft className="w-4 h-4" />
+          <Link href={`/projects/${storyId}/analyze`} aria-label="Back to Analyze" className="text-[#8e94bd] hover:text-amber-400 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/70">
+            <ArrowLeft className="w-4 h-4" aria-hidden="true" />
           </Link>
           <div className="w-px h-4 bg-[#2e3454]" />
           <Feather className="w-4 h-4 text-amber-500" />
           <span className="text-sm font-medium text-[#9da3c8]">{story?.title}</span>
-          <span className="text-[#3d4466] text-sm">/ Analytics</span>
+          <span className="text-[#8a90ba] text-sm">/ Analytics</span>
         </div>
       </nav>
 
       {/* The one and only scroll container on this page. Sections added below grow
           it; no further layout work is needed for future analytics. */}
-      <div className="flex-1 min-h-0 overflow-y-auto">
+      <div className="flex-1 min-h-0 overflow-y-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-500/40"
+        tabIndex={0} role="region" aria-label="Writing statistics">
         <div className="max-w-5xl mx-auto px-6 pt-8 pb-16">
         <div className="mb-8">
           <h1 className="text-2xl font-bold mb-1">Writing Statistics</h1>
-          <p className="text-[#5c6391] text-sm">Narrative analytics for {story?.title}</p>
+          <p className="text-[#8e94bd] text-sm">Narrative analytics for {story?.title}</p>
         </div>
 
         {/* Novel progress */}
@@ -153,7 +154,7 @@ export default function AnalyticsPage({ params }: { params: { id: string } }) {
               style={{ width: `${progressPct}%` }}
             />
           </div>
-          <div className="flex justify-between mt-2 text-xs text-[#5c6391]">
+          <div className="flex justify-between mt-2 text-xs text-[#8e94bd]">
             <span>{totalWords.toLocaleString()} written</span>
             <span>{Math.max(0, targetNovelWords - totalWords).toLocaleString()} remaining</span>
           </div>
@@ -165,16 +166,16 @@ export default function AnalyticsPage({ params }: { params: { id: string } }) {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           {metrics.map((mt) => (
             <div key={mt.label} title={mt.explanation} className="bg-[#13162a] border border-[#1f2440] rounded-xl p-5">
-              <div className="flex items-center gap-2 text-[#5c6391] mb-2">
+              <div className="flex items-center gap-2 text-[#8e94bd] mb-2">
                 <mt.icon className="w-3.5 h-3.5" />
                 <span className="text-xs">{mt.label}</span>
               </div>
               <div className={`text-2xl font-bold ${mt.color}`}>{mt.value}</div>
-              <div className="text-[10px] text-[#5c6391] mt-1 line-clamp-2">{mt.explanation}</div>
+              <div className="text-[10px] text-[#8e94bd] mt-1 line-clamp-2">{mt.explanation}</div>
             </div>
           ))}
           {!analytics && (
-            <div className="col-span-full text-xs text-[#5c6391] italic">
+            <div className="col-span-full text-xs text-[#8e94bd] italic">
               Server-side analytics unavailable — showing chapter breakdown only.
             </div>
           )}
@@ -191,25 +192,25 @@ export default function AnalyticsPage({ params }: { params: { id: string } }) {
             <div className="grid sm:grid-cols-2 gap-4 text-sm">
               {analytics.story_intelligence.emotional_arc_shape && (
                 <div>
-                  <span className="text-[#5c6391] text-xs block mb-1">Emotional Arc Shape</span>
+                  <span className="text-[#8e94bd] text-xs block mb-1">Emotional Arc Shape</span>
                   <span className="text-[#e8eaf6]">{analytics.story_intelligence.emotional_arc_shape}</span>
                 </div>
               )}
               {analytics.story_intelligence.dominant_emotions && analytics.story_intelligence.dominant_emotions.length > 0 && (
                 <div>
-                  <span className="text-[#5c6391] text-xs block mb-1">Dominant Emotions</span>
+                  <span className="text-[#8e94bd] text-xs block mb-1">Dominant Emotions</span>
                   <span className="text-[#e8eaf6]">{analytics.story_intelligence.dominant_emotions.join(', ')}</span>
                 </div>
               )}
               {analytics.story_intelligence.overall_pacing && (
                 <div>
-                  <span className="text-[#5c6391] text-xs block mb-1">Overall Pacing</span>
+                  <span className="text-[#8e94bd] text-xs block mb-1">Overall Pacing</span>
                   <span className="text-[#e8eaf6]">{analytics.story_intelligence.overall_pacing}</span>
                 </div>
               )}
               {analytics.story_intelligence.pacing_score != null && (
                 <div>
-                  <span className="text-[#5c6391] text-xs block mb-1">Pacing Score</span>
+                  <span className="text-[#8e94bd] text-xs block mb-1">Pacing Score</span>
                   <span className="text-[#e8eaf6]">{analytics.story_intelligence.pacing_score}</span>
                 </div>
               )}
@@ -235,10 +236,10 @@ export default function AnalyticsPage({ params }: { params: { id: string } }) {
                 <div key={ch.chapter_id} className="px-6 py-4 hover:bg-[#1a1e36] transition-colors">
                   <div className="flex items-center justify-between mb-2">
                     <div>
-                      <span className="text-xs text-[#5c6391] mr-2">Ch.{ch.chapter_number}</span>
+                      <span className="text-xs text-[#8e94bd] mr-2">Ch.{ch.chapter_number}</span>
                       <span className="text-sm font-medium text-[#e8eaf6]">{ch.title}</span>
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-[#5c6391]">
+                    <div className="flex items-center gap-4 text-xs text-[#8e94bd]">
                       <span>{ch.word_count.toLocaleString()} words</span>
                       <span className="hidden sm:block">Readability: <span className="text-[#9da3c8]">{rd}</span></span>
                       <span className="hidden sm:block">Dialogue: <span className="text-[#9da3c8]">{dr}%</span></span>
@@ -267,7 +268,7 @@ export default function AnalyticsPage({ params }: { params: { id: string } }) {
             ].map((f) => (
               <div key={f.title} className="border border-[#2e3454] rounded-xl p-4 opacity-60">
                 <div className="text-sm font-medium text-[#9da3c8] mb-1">{f.title}</div>
-                <div className="text-xs text-[#5c6391]">{f.desc}</div>
+                <div className="text-xs text-[#8e94bd]">{f.desc}</div>
               </div>
             ))}
           </div>

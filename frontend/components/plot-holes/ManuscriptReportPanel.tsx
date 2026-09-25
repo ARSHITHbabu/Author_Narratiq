@@ -39,7 +39,7 @@ function ArcCard({ arc }: { arc: CharacterArcEntry }) {
         className="w-full text-left p-3 flex items-start gap-2.5"
         onClick={() => setExpanded(!expanded)}
       >
-        <Users className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-[#5c6391]" />
+        <Users className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-[#8e94bd]" />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap mb-1">
             <span className="text-xs font-medium text-[#c8cce8]">{arc.name}</span>
@@ -50,15 +50,15 @@ function ArcCard({ arc }: { arc: CharacterArcEntry }) {
           <div className="flex items-center gap-1 flex-wrap">
             {first !== undefined && <ChPill n={first} />}
             {sorted.length > 2 && (
-              <span className="text-[10px] text-[#3d4466]">···</span>
+              <span className="text-[10px] text-[#8a90ba]">···</span>
             )}
             {last !== undefined && last !== first && <ChPill n={last} />}
-            <span className="text-[10px] text-[#3d4466]">
+            <span className="text-[10px] text-[#8a90ba]">
               {sorted.length} chapter{sorted.length !== 1 ? 's' : ''}
             </span>
           </div>
         </div>
-        <div className="flex-shrink-0 text-[#3d4466] mt-0.5">
+        <div className="flex-shrink-0 text-[#8a90ba] mt-0.5">
           {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
         </div>
       </button>
@@ -104,18 +104,18 @@ function RelationshipCard({ arc }: { arc: RelationshipArcEntry }) {
   return (
     <div className="border border-[#1f2440] rounded-xl bg-[#0d0f1a] overflow-hidden">
       <button className="w-full text-left p-3 flex items-start gap-2.5" onClick={() => setExpanded(!expanded)}>
-        <HeartHandshake className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-[#5c6391]" />
+        <HeartHandshake className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-[#8e94bd]" />
         <div className="flex-1 min-w-0">
           <span className="text-xs font-medium text-[#c8cce8]">{arc.characters.join(' & ')}</span>
           <div className="flex items-center gap-1 flex-wrap mt-1">
             <ChPill n={arc.first_chapter} />
-            {arc.last_chapter !== arc.first_chapter && <><span className="text-[10px] text-[#3d4466]">→</span><ChPill n={arc.last_chapter} /></>}
-            <span className="text-[10px] text-[#3d4466]">
+            {arc.last_chapter !== arc.first_chapter && <><span className="text-[10px] text-[#8a90ba]">→</span><ChPill n={arc.last_chapter} /></>}
+            <span className="text-[10px] text-[#8a90ba]">
               {arc.changes.length} change{arc.changes.length !== 1 ? 's' : ''}
             </span>
           </div>
         </div>
-        <div className="flex-shrink-0 text-[#3d4466] mt-0.5">
+        <div className="flex-shrink-0 text-[#8a90ba] mt-0.5">
           {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
         </div>
       </button>
@@ -224,7 +224,7 @@ export default function ManuscriptReportPanel({ storyId }: Props) {
         <div className="flex flex-col items-center gap-2 py-4 text-center">
           <AlertTriangle className="w-6 h-6 text-amber-400/60" />
           <p className="text-xs text-[#9da3c8] font-medium">Not enough indexed chapters</p>
-          <p className="text-xs text-[#5c6391] leading-relaxed">
+          <p className="text-xs text-[#8e94bd] leading-relaxed">
             Sync at least 2 chapters using the Sync Summaries button in the chapter list.
           </p>
         </div>
@@ -246,14 +246,14 @@ export default function ManuscriptReportPanel({ storyId }: Props) {
 
           {/* Overview */}
           <div className="bg-[#0d0f1a] border border-[#1f2440] rounded-xl p-3">
-            <div className="flex items-center justify-between text-xs text-[#5c6391]">
+            <div className="flex items-center justify-between text-xs text-[#8e94bd]">
               <span>{report.chapters_analyzed} chapter{report.chapters_analyzed !== 1 ? 's' : ''} analyzed</span>
               {report.word_count_total > 0 && (
                 <span>{report.word_count_total.toLocaleString()} words</span>
               )}
             </div>
             {formatGenerated(report.generated_at) && (
-              <p className="text-[10px] text-[#3d4466] mt-1">Generated {formatGenerated(report.generated_at)}</p>
+              <p className="text-[10px] text-[#8a90ba] mt-1">Generated {formatGenerated(report.generated_at)}</p>
             )}
           </div>
 
@@ -265,7 +265,7 @@ export default function ManuscriptReportPanel({ storyId }: Props) {
                 <span className="text-[10px] font-medium text-[#9da3c8] uppercase tracking-wider">
                   Character Arcs
                 </span>
-                <span className="text-[10px] text-[#3d4466]">
+                <span className="text-[10px] text-[#8a90ba]">
                   ({report.character_arcs.length})
                 </span>
               </div>
@@ -296,7 +296,7 @@ export default function ManuscriptReportPanel({ storyId }: Props) {
                 )}
                 {report.pacing.slow_chapters.length > 0 && (
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[10px] text-[#5c6391]">Slow:</span>
+                    <span className="text-[10px] text-[#8e94bd]">Slow:</span>
                     {[...report.pacing.slow_chapters].sort((a, b) => a - b).map(n => (
                       <span key={n} className="text-[10px] text-[#9da3c8] px-1.5 py-0.5 rounded bg-[#1f2440]">
                         Ch{n}
@@ -306,7 +306,7 @@ export default function ManuscriptReportPanel({ storyId }: Props) {
                 )}
                 {report.pacing.intense_chapters.length > 0 && (
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[10px] text-[#5c6391]">Intense:</span>
+                    <span className="text-[10px] text-[#8e94bd]">Intense:</span>
                     {[...report.pacing.intense_chapters].sort((a, b) => a - b).map(n => (
                       <span key={n} className="text-[10px] text-amber-400 px-1.5 py-0.5 rounded bg-amber-500/10">
                         Ch{n}
@@ -326,7 +326,7 @@ export default function ManuscriptReportPanel({ storyId }: Props) {
                 <span className="text-[10px] font-medium text-[#9da3c8] uppercase tracking-wider">
                   Unresolved Threads
                 </span>
-                <span className="text-[10px] text-[#3d4466]">
+                <span className="text-[10px] text-[#8a90ba]">
                   ({report.unresolved_threads.length})
                 </span>
               </div>
@@ -392,9 +392,9 @@ export default function ManuscriptReportPanel({ storyId }: Props) {
                 <span className="text-[10px] font-medium text-[#9da3c8] uppercase tracking-wider">
                   Relationships
                 </span>
-                <span className="text-[10px] text-[#3d4466]">({report.relationship_arcs!.length})</span>
+                <span className="text-[10px] text-[#8a90ba]">({report.relationship_arcs!.length})</span>
               </div>
-              <p className="text-[10px] text-[#5c6391] leading-relaxed">
+              <p className="text-[10px] text-[#8e94bd] leading-relaxed">
                 How each pair's relationship changes, chapter by chapter, as recorded when your chapters were indexed.
               </p>
               {report.relationship_arcs!.map((arc, i) => <RelationshipCard key={i} arc={arc} />)}
@@ -409,9 +409,9 @@ export default function ManuscriptReportPanel({ storyId }: Props) {
                 <span className="text-[10px] font-medium text-[#9da3c8] uppercase tracking-wider">
                   Things to check
                 </span>
-                <span className="text-[10px] text-[#3d4466]">({report.narrative_signals!.length})</span>
+                <span className="text-[10px] text-[#8a90ba]">({report.narrative_signals!.length})</span>
               </div>
-              <p className="text-[10px] text-[#5c6391] leading-relaxed">
+              <p className="text-[10px] text-[#8e94bd] leading-relaxed">
                 Detected automatically from your chapter summaries, not judged by the AI. Some may be intentional.
               </p>
               {report.narrative_signals!.map((sig, i) => <SignalCard key={i} sig={sig} />)}
@@ -420,7 +420,7 @@ export default function ManuscriptReportPanel({ storyId }: Props) {
 
           {/* Analysis note */}
           {report.analysis_note && (
-            <p className="text-[10px] text-[#3d4466] leading-relaxed border-t border-[#1f2440] pt-2">
+            <p className="text-[10px] text-[#8a90ba] leading-relaxed border-t border-[#1f2440] pt-2">
               {report.analysis_note}
             </p>
           )}
@@ -432,8 +432,8 @@ export default function ManuscriptReportPanel({ storyId }: Props) {
         <div className="flex flex-col items-center gap-3 py-6 text-center">
           <BookOpen className="w-8 h-8 text-[#2e3454]" />
           <div>
-            <p className="text-xs text-[#5c6391] font-medium">Editorial analysis report</p>
-            <p className="text-xs text-[#3d4466] mt-1 leading-relaxed">
+            <p className="text-xs text-[#8e94bd] font-medium">Editorial analysis report</p>
+            <p className="text-xs text-[#8a90ba] mt-1 leading-relaxed">
               Character arcs, pacing, unresolved threads,<br />
               strengths, and improvement suggestions
             </p>

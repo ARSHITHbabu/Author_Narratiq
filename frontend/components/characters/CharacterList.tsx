@@ -165,7 +165,7 @@ export default function CharacterList({ storyId }: Props) {
         <p className="text-[10px] text-[#cdd2f0]">
           Story mentions are still being indexed for {mentionsPending} chapter{mentionsPending !== 1 ? 's' : ''}.
         </p>
-        <p className="text-[10px] text-[#5c6391]">
+        <p className="text-[10px] text-[#8e94bd]">
           The cast is saved. Mention counts and mention-based search will fill in shortly.
         </p>
       </div>
@@ -216,20 +216,20 @@ export default function CharacterList({ storyId }: Props) {
         <button
           onClick={() => setView('graph')}
           title="Relationship graph"
-          className="text-[#3d4466] hover:text-amber-400 transition-colors"
+          className="text-[#8a90ba] hover:text-amber-400 transition-colors"
         >
           <GitBranch className="w-3.5 h-3.5" />
         </button>
         <button
           onClick={() => setShowGenerateCast(true)}
           title="Generate cast from story"
-          className="text-[#3d4466] hover:text-amber-400 transition-colors"
+          className="text-[#8a90ba] hover:text-amber-400 transition-colors"
         >
           <Sparkles className="w-3.5 h-3.5" />
         </button>
         <button
           onClick={() => setShowCreate(true)}
-          className="flex items-center gap-1 text-[10px] font-medium text-[#5c6391] hover:text-amber-400 border border-[#2e3454] hover:border-amber-500/30 rounded-lg px-2 py-1 transition-all"
+          className="flex items-center gap-1 text-[10px] font-medium text-[#8e94bd] hover:text-amber-400 border border-[#2e3454] hover:border-amber-500/30 rounded-lg px-2 py-1 transition-all"
         >
           <Plus className="w-3 h-3" />
           New
@@ -252,7 +252,7 @@ export default function CharacterList({ storyId }: Props) {
                 className="flex items-center gap-1 text-[10px] px-2 py-0.5 bg-[#1f2440] border border-amber-500/20 rounded-full"
               >
                 <span className="text-[#9da3c8]">{hint.suggested_name}</span>
-                <span className="text-[#3d4466]">Ch{hint.chapter_number}</span>
+                <span className="text-[#8a90ba]">Ch{hint.chapter_number}</span>
                 <button
                   onClick={() => handlePromoteHint(hint.hint_id)}
                   title="Add to cast"
@@ -263,7 +263,7 @@ export default function CharacterList({ storyId }: Props) {
                 <button
                   onClick={() => handleDismissHint(hint.hint_id)}
                   title="Dismiss"
-                  className="text-[#3d4466] hover:text-red-400 transition-colors"
+                  className="text-[#8a90ba] hover:text-red-400 transition-colors"
                 >
                   <X className="w-2.5 h-2.5" />
                 </button>
@@ -276,7 +276,7 @@ export default function CharacterList({ storyId }: Props) {
       {/* Search */}
       <div className="px-3 py-2 border-b border-[#1f2440] flex-shrink-0">
         <div className="flex items-center gap-1.5 bg-[#0d0f1a] border border-[#2e3454] rounded-lg px-2.5 py-1.5">
-          <Search className="w-3 h-3 text-[#3d4466] flex-shrink-0" />
+          <Search className="w-3 h-3 text-[#8a90ba] flex-shrink-0" />
           <input
             type="text"
             value={query}
@@ -295,7 +295,7 @@ export default function CharacterList({ storyId }: Props) {
               className={`text-[9px] px-1.5 py-0.5 rounded-full border capitalize transition-all ${
                 role === r
                   ? 'border-amber-500/50 bg-amber-500/10 text-amber-400'
-                  : 'border-[#1f2440] text-[#3d4466] hover:border-[#2e3454] hover:text-[#5c6391]'
+                  : 'border-[#1f2440] text-[#8a90ba] hover:border-[#2e3454] hover:text-[#8e94bd]'
               }`}
             >
               {r || 'all'}
@@ -309,7 +309,7 @@ export default function CharacterList({ storyId }: Props) {
               className={`text-[9px] px-1.5 py-0.5 rounded-full border capitalize transition-all ${
                 status === s
                   ? 'border-amber-500/50 bg-amber-500/10 text-amber-400'
-                  : 'border-[#1f2440] text-[#3d4466] hover:border-[#2e3454] hover:text-[#5c6391]'
+                  : 'border-[#1f2440] text-[#8a90ba] hover:border-[#2e3454] hover:text-[#8e94bd]'
               }`}
             >
               {s || 'all'}
@@ -322,12 +322,12 @@ export default function CharacterList({ storyId }: Props) {
       <div className="flex-1 overflow-y-auto">
         {loading ? (
           <div className="flex items-center justify-center py-10">
-            <Loader2 className="w-4 h-4 text-[#3d4466] animate-spin" />
+            <Loader2 className="w-4 h-4 text-[#8a90ba] animate-spin" />
           </div>
         ) : characters.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 gap-3 px-4">
             <Users className="w-8 h-8 text-[#2e3454]" />
-            <p className="text-xs text-[#3d4466] text-center">
+            <p className="text-xs text-[#8a90ba] text-center">
               {query || role || status
                 ? 'No characters match your filters.'
                 : 'No characters yet. Create your first character to get started.'}
@@ -343,7 +343,7 @@ export default function CharacterList({ storyId }: Props) {
                 </button>
                 <button
                   onClick={() => setShowCreate(true)}
-                  className="text-[10px] text-[#3d4466] hover:text-[#5c6391] transition-colors"
+                  className="text-[10px] text-[#8a90ba] hover:text-[#8e94bd] transition-colors"
                 >
                   or add manually
                 </button>
@@ -366,7 +366,7 @@ export default function CharacterList({ storyId }: Props) {
       {/* Character count */}
       {!loading && characters.length > 0 && (
         <div className="flex-shrink-0 px-3 py-1.5 border-t border-[#1f2440]">
-          <p className="text-[10px] text-[#3d4466]">
+          <p className="text-[10px] text-[#8a90ba]">
             {characters.length} character{characters.length !== 1 ? 's' : ''}
           </p>
         </div>

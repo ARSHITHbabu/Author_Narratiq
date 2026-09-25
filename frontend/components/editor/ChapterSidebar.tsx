@@ -93,7 +93,7 @@ export default function ChapterSidebar({ storyId, chapters, activeChapterId, onS
               el?.select()
             }, 50)
           }}
-          className="p-1 text-[#5c6391] hover:text-amber-400 transition-colors"
+          className="p-1 text-[#8e94bd] hover:text-amber-400 transition-colors"
           title="Add chapter"
         >
           <Plus className="w-4 h-4" />
@@ -114,6 +114,7 @@ export default function ChapterSidebar({ storyId, chapters, activeChapterId, onS
               <div className="flex items-center gap-1 flex-1 min-w-0">
                 <input
                   autoFocus
+                  aria-label="Chapter title"
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
                   onKeyDown={(e) => {
@@ -122,17 +123,18 @@ export default function ChapterSidebar({ storyId, chapters, activeChapterId, onS
                   }}
                   className="flex-1 bg-[#0d0f1a] border border-amber-500/40 rounded px-2 py-0.5 text-xs text-[#e8eaf6] focus:outline-none min-w-0"
                 />
-                <button onClick={() => renameChapter(ch)} className="text-amber-400 hover:text-amber-300 flex-shrink-0">
+                <button onClick={() => renameChapter(ch)} aria-label="Save chapter title" className="text-amber-400 hover:text-amber-300 flex-shrink-0">
                   <Check className="w-3.5 h-3.5" />
                 </button>
-                <button onClick={() => setEditingId(null)} className="text-[#5c6391] hover:text-[#9da3c8] flex-shrink-0">
+                <button onClick={() => setEditingId(null)} aria-label="Cancel rename" className="text-[#8e94bd] hover:text-[#9da3c8] flex-shrink-0">
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
             ) : (
               <>
-                <div className="flex-1 min-w-0" onClick={() => onSelect(ch)}>
-                  <div className="text-xs text-[#5c6391] mb-0.5">
+                <button type="button" data-binder-item className="flex-1 min-w-0 text-left rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/70"
+                  onClick={() => onSelect(ch)} aria-current={activeChapterId === ch.chapter_id ? 'true' : undefined}>
+                  <div className="text-xs text-[#8e94bd] mb-0.5">
                     Chapter {ch.chapter_number}
                   </div>
                   <div className={`text-sm font-medium truncate ${
@@ -140,32 +142,35 @@ export default function ChapterSidebar({ storyId, chapters, activeChapterId, onS
                   }`}>
                     {ch.title}
                   </div>
-                  <div className="text-xs text-[#3d4466] mt-0.5 flex items-center gap-1.5">
+                  <div className="text-xs text-[#8a90ba] mt-0.5 flex items-center gap-1.5">
                     {ch.word_count > 0 ? `${ch.word_count} words` : 'Empty'}
-                    {P3_ENABLED && (
-                      <ChapterIdeasMarker count={ideasByChapter[ch.chapter_id]?.length ?? 0}
-                        open={ideasOpenFor === ch.chapter_id}
-                        onToggle={() => setIdeasOpenFor((o) => (o === ch.chapter_id ? null : ch.chapter_id))} />
-                    )}
                   </div>
-                </div>
+                </button>
+                {/* Outside the select button: a button may not contain a button. */}
+                {P3_ENABLED && (
+                  <ChapterIdeasMarker count={ideasByChapter[ch.chapter_id]?.length ?? 0}
+                    open={ideasOpenFor === ch.chapter_id}
+                    onToggle={() => setIdeasOpenFor((o) => (o === ch.chapter_id ? null : ch.chapter_id))} />
+                )}
                 {loading === ch.chapter_id ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-[#5c6391] flex-shrink-0" />
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-[#8e94bd] flex-shrink-0" />
                 ) : (
-                  <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                  <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity flex gap-1">
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
                         setEditingId(ch.chapter_id)
                         setEditTitle(ch.title)
                       }}
-                      className="p-1 text-[#5c6391] hover:text-amber-400"
+                      className="p-1 text-[#8e94bd] hover:text-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/70 rounded"
+                      aria-label={`Rename ${ch.title || `chapter ${ch.chapter_number}`}`} title="Rename"
                     >
                       <Edit3 className="w-3 h-3" />
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); deleteChapter(ch) }}
-                      className="p-1 text-[#5c6391] hover:text-red-400"
+                      className="p-1 text-[#8e94bd] hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/70 rounded"
+                      aria-label={`Delete ${ch.title || `chapter ${ch.chapter_number}`}`} title="Delete"
                     >
                       <Trash2 className="w-3 h-3" />
                     </button>
@@ -204,7 +209,7 @@ export default function ChapterSidebar({ storyId, chapters, activeChapterId, onS
               </button>
               <button
                 onClick={() => { setAdding(false); setNewTitle('') }}
-                className="flex-1 border border-[#2e3454] text-[#5c6391] text-xs py-1.5 rounded hover:border-[#3d4466]"
+                className="flex-1 border border-[#2e3454] text-[#8e94bd] text-xs py-1.5 rounded hover:border-[#3d4466]"
               >
                 Cancel
               </button>

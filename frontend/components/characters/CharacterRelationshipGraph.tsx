@@ -195,14 +195,14 @@ export default function CharacterRelationshipGraph({ storyId, onBack, onSelect }
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="px-4 py-3 border-b border-[#1f2440] flex items-center gap-2 flex-shrink-0">
-        <button onClick={onBack} className="text-[#5c6391] hover:text-[#9da3c8] transition-colors">
+        <button onClick={onBack} className="text-[#8e94bd] hover:text-[#9da3c8] transition-colors">
           <ArrowLeft className="w-4 h-4" />
         </button>
         <span className="text-xs font-medium text-[#9da3c8] flex-1">Relationship Graph</span>
         <button
           onClick={loadGraph}
           disabled={loading}
-          className="text-[#3d4466] hover:text-[#9da3c8] transition-colors disabled:opacity-40"
+          className="text-[#8a90ba] hover:text-[#9da3c8] transition-colors disabled:opacity-40"
           title="Refresh"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -213,7 +213,7 @@ export default function CharacterRelationshipGraph({ storyId, onBack, onSelect }
       <div className="flex-1 relative overflow-hidden">
         {loading ? (
           <div className="absolute inset-0 flex items-center justify-center">
-            <Loader2 className="w-5 h-5 text-[#3d4466] animate-spin" />
+            <Loader2 className="w-5 h-5 text-[#8a90ba] animate-spin" />
           </div>
         ) : error ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-4">
@@ -227,7 +227,7 @@ export default function CharacterRelationshipGraph({ storyId, onBack, onSelect }
           </div>
         ) : chars.length === 0 ? (
           <div className="absolute inset-0 flex items-center justify-center">
-            <p className="text-xs text-[#3d4466] text-center px-4">
+            <p className="text-xs text-[#8a90ba] text-center px-4">
               No characters yet. Create characters and add relationships to see the graph.
             </p>
           </div>
@@ -399,7 +399,7 @@ export default function CharacterRelationshipGraph({ storyId, onBack, onSelect }
         {/* Characters exist but no edges — show nodes + a non-blocking hint. */}
         {!loading && !error && chars.length > 0 && edges.length === 0 && (
           <div className="absolute top-2 left-1/2 -translate-x-1/2 pointer-events-none">
-            <span className="text-[10px] text-[#5c6391] bg-[#0d0f1a]/85 border border-[#1f2440] px-2 py-1 rounded">
+            <span className="text-[10px] text-[#8e94bd] bg-[#0d0f1a]/85 border border-[#1f2440] px-2 py-1 rounded">
               No relationships detected yet.
             </span>
           </div>
@@ -418,19 +418,19 @@ export default function CharacterRelationshipGraph({ storyId, onBack, onSelect }
                 <p className="text-xs text-[#9da3c8] mb-0.5">
                   <span className="font-medium" style={{ color }}>{selectedEdge.relationship_type}</span>
                   {' '}·{' '}
-                  <span className="text-[#5c6391] capitalize">{selectedEdge.strength}</span>
-                  {selectedEdge.is_mutual && <span className="text-[#3d4466] ml-1">(mutual)</span>}
+                  <span className="text-[#8e94bd] capitalize">{selectedEdge.strength}</span>
+                  {selectedEdge.is_mutual && <span className="text-[#8a90ba] ml-1">(mutual)</span>}
                 </p>
-                <p className="text-[11px] text-[#5c6391]">
+                <p className="text-[11px] text-[#8e94bd]">
                   {fromChar?.name ?? '?'} → {toChar?.name ?? '?'}
                 </p>
                 {selectedEdge.description && (
-                  <p className="text-[11px] text-[#3d4466] mt-1 line-clamp-2">{selectedEdge.description}</p>
+                  <p className="text-[11px] text-[#8a90ba] mt-1 line-clamp-2">{selectedEdge.description}</p>
                 )}
               </div>
               <button
                 onClick={() => deleteEdge(selectedEdge)}
-                className="text-[#3d4466] hover:text-red-400 transition-colors flex-shrink-0 text-[11px]"
+                className="text-[#8a90ba] hover:text-red-400 transition-colors flex-shrink-0 text-[11px]"
               >
                 Remove
               </button>
@@ -448,7 +448,7 @@ export default function CharacterRelationshipGraph({ storyId, onBack, onSelect }
               {type}
             </span>
           ))}
-          <span className="text-[9px] text-[#3d4466] ml-auto">Double-click node → profile</span>
+          <span className="text-[9px] text-[#8a90ba] ml-auto">Double-click node → profile</span>
         </div>
       )}
     </div>

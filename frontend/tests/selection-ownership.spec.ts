@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test'
 import {
   SELECTION_SAFE_ATTR,
+  isDismissedFor,
   isMeaningfulSelection,
   isPreviewValid,
   isSelectionSafeTarget,
@@ -207,4 +208,19 @@ test('the chapter is checked before the text — the stronger boundary reports f
 
 test('no preview means nothing to refuse', () => {
   expect(previewInvalidReason(null, 'ch-1', 'anything')).toBeNull()
+})
+
+// ── Stage 8 (review M2): Escape dismissal is per selection event ─────────────
+// Deterministic replacement for the timing that made browser test 9 flaky.
+test('Escape dismissal applies to the dismissed selection object only', () => {
+  const sel = { text: 'The sea was calm.', from: 1, to: 18, chapterId: 'c1' }
+  expect(isDismissedFor(null, sel)).toBe(false)
+  expect(isDismissedFor(sel, sel)).toBe(true)                    // same selection: stays hidden
+  const reselected = { ...sel }                                   // identical range, new selection
+  expect(isDismissedFor(sel, reselected)).toBe(false)             // comes back
+  expect(isDismissedFor(sel, null)).toBe(false)
+  // End to end through the mode resolver: re-selecting the same words shows controls.
+  const base = { preview: null, activeChapterId: 'c1', sidebarVisible: false }
+  expect(resolveToolbarMode({ ...base, selection: sel, dismissed: isDismissedFor(sel, sel) })).toBe('hidden')
+  expect(resolveToolbarMode({ ...base, selection: reselected, dismissed: isDismissedFor(sel, reselected) })).toBe('controls')
 })

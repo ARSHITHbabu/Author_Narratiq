@@ -31,7 +31,7 @@ import {
 import { useStoryContext } from './StoryContextEngine'
 import { deriveToolDefaults, hasGenreProfile } from '@/lib/genreDefaults'
 import {
-  previewInvalidReason, resolveToolbarMode, selectionKey, selectionSafeProps,
+  isDismissedFor, previewInvalidReason, resolveToolbarMode, selectionKey, selectionSafeProps,
   type PreviewIdentity,
 } from '@/lib/selectionOwnership'
 import {
@@ -83,8 +83,10 @@ export default function SelectionToolbar({ selection, sidebarVisible }: Props) {
   // marked locked for the NEXT transform run on this selection.
   const [lockedIdx, setLockedIdx] = useState<Set<number>>(new Set())
   const [preview, setPreview] = useState<Preview | null>(null)
-  // Escape hides the toolbar until the author makes a different selection.
-  const [dismissed, setDismissed] = useState(false)
+  // Escape hides the toolbar for the selection it was pressed on; the author's
+  // next selection — even of the same words — brings it back (isDismissedFor).
+  const [dismissedFor, setDismissedFor] = useState<LiveSelection | null>(null)
+  const dismissed = isDismissedFor(dismissedFor, selection)
   // Only the newest transform may produce a preview; older ones resolve into nothing.
   const requestSeq = useRef(0)
 
@@ -110,7 +112,6 @@ export default function SelectionToolbar({ selection, sidebarVisible }: Props) {
     if (selKey === prevKeyRef.current) return
     prevKeyRef.current = selKey
     setOpenGroup(null)
-    setDismissed(false)
     if (selKey) setPreview(null)
     // A new selection is a new set of sentences — stale locked indices would
     // point at the wrong spans (or none at all) in different prose.
@@ -145,11 +146,11 @@ export default function SelectionToolbar({ selection, sidebarVisible }: Props) {
       if (e.key !== 'Escape') return
       if (openGroup) { setOpenGroup(null); return }
       if (preview) { setPreview(null); return }
-      setDismissed(true)
+      setDismissedFor(selection)
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-  }, [mode, openGroup, preview])
+  }, [mode, openGroup, preview, selection])
 
   // ── Position: measured, clamped, draggable ─────────────────────────────────
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -346,7 +347,7 @@ export default function SelectionToolbar({ selection, sidebarVisible }: Props) {
       title="Drag to move · double-click to reset position"
       aria-label="Move the AI toolbar. Double-click to reset its position."
       data-testid="toolbar-drag-handle"
-      className="flex-shrink-0 px-0.5 text-[#5c6391] hover:text-[#9da3c8] cursor-grab active:cursor-grabbing touch-none"
+      className="flex-shrink-0 px-0.5 text-[#8e94bd] hover:text-[#9da3c8] cursor-grab active:cursor-grabbing touch-none"
     >
       <GripVertical className="w-3.5 h-3.5" />
     </button>
@@ -382,7 +383,7 @@ export default function SelectionToolbar({ selection, sidebarVisible }: Props) {
                   <div role="menu" className={`absolute ${menuUp ? 'bottom-full mb-1' : 'top-full mt-1'} left-0 z-30 w-56 rounded-lg border border-[#2e3454] bg-[#13162a] shadow-2xl py-1 max-h-72 overflow-y-auto`}>
                     {g.id === 'emotion' && (
                       <div className="flex items-center gap-1 px-2 py-1.5 border-b border-[#1f2440]">
-                        <span className="text-[10px] text-[#5c6391] mr-1">Intensity</span>
+                        <span className="text-[10px] text-[#8e94bd] mr-1">Intensity</span>
                         {INTENSITIES.map((i) => (
                           <button key={i} onClick={() => setIntensity(i)}
                             className={`text-[10px] px-1.5 py-0.5 rounded ${intensity === i ? 'bg-amber-500/20 text-amber-300' : 'text-[#9da3c8] hover:bg-[#1f2440]'}`}>{i}</button>
@@ -394,7 +395,7 @@ export default function SelectionToolbar({ selection, sidebarVisible }: Props) {
                         {/* Task 5.6 — strength control. Applies to whichever option
                             below is clicked next. */}
                         <div className="flex items-center gap-1 px-2 py-1.5 border-b border-[#1f2440]">
-                          <span className="text-[10px] text-[#5c6391] mr-1">Strength</span>
+                          <span className="text-[10px] text-[#8e94bd] mr-1">Strength</span>
                           {STRENGTH_LEVELS.map((s) => (
                             <button key={s} onClick={() => setStrength(s)}
                               title={
@@ -411,8 +412,8 @@ export default function SelectionToolbar({ selection, sidebarVisible }: Props) {
                         {sentenceSpans.length > 1 && (
                           <div className="px-2 py-1.5 border-b border-[#1f2440]">
                             <div className="flex items-center gap-1 mb-1">
-                              <Lock className="w-2.5 h-2.5 text-[#5c6391]" />
-                              <span className="text-[10px] text-[#5c6391]">
+                              <Lock className="w-2.5 h-2.5 text-[#8e94bd]" />
+                              <span className="text-[10px] text-[#8e94bd]">
                                 Lock sentences to keep unchanged{lockedIdx.size > 0 ? ` (${lockedIdx.size})` : ''}
                               </span>
                               <button type="button" onClick={invertLocks} data-testid="invert-locks"
@@ -450,7 +451,7 @@ export default function SelectionToolbar({ selection, sidebarVisible }: Props) {
                           {o.emoji && <span>{o.emoji}</span>}
                           <span className={`text-xs ${recommended ? 'text-amber-300' : 'text-[#e8eaf6]'}`}>{o.label}</span>
                           {recommended && <span className="text-[10px] text-amber-400">★</span>}
-                          {o.desc && <span className="text-[10px] text-[#5c6391] ml-auto">{o.desc}</span>}
+                          {o.desc && <span className="text-[10px] text-[#8e94bd] ml-auto">{o.desc}</span>}
                         </button>
                       )
                     })}

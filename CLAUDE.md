@@ -89,7 +89,11 @@ The pod has 2× NVIDIA RTX PRO 4500 Blackwell (sm_120) GPUs. These require:
 | `backend/config.py` | Settings loaded from `.env` via pydantic-settings (89 fields incl. 30 Phase 3). `vllm_base_url` defaults to **9001**, matching `start-narratiq.sh`. `secret_key` is the only field with no default |
 | `frontend/lib/api.ts` | Typed API client wrappers; JWT interceptor |
 | `frontend/lib/types.ts` | TypeScript interfaces for all domain objects |
-| `frontend/app/(dashboard)/projects/[id]/page.tsx` | 3-column editor layout; all 10 right panels lazy-loaded via `next/dynamic` |
+| `frontend/app/(dashboard)/projects/[id]/page.tsx` | Story entry: redirects to the author's last workspace (default Write). The old 3-column editor is gone |
+| `frontend/app/(dashboard)/projects/[id]/{write,plan,characters,world,analyze,assistant,publish}/page.tsx` | The Studio workspaces (Stage 8). `layout.tsx` holds `StudioShell` + `StudioStoreGate` |
+| `frontend/lib/registries/{workspaces,panels,actions,toolHomes}.ts(x)` | Studio registries. `toolHomes.ts` is the one table of where every tool lives; add a tool per `docs/architecture/adding-a-studio-tool.md` |
+| `frontend/lib/studioStore.ts` | Layout/mode store, persisted per user per browser (`narratiq_studio:<user_id>`) |
+| `frontend/tests/studio/` | Mocked-API Playwright suite (`npm run test:studio`, `test:a11y`, `test:studio:variants`); config `playwright.studio.config.ts` |
 | `frontend/app/(dashboard)/projects/[id]/error.tsx` | Next.js error boundary for the editor route |
 | `frontend/components/chunk-error-recovery.tsx` | Auto-reload on ChunkLoadError; sessionStorage debounce to prevent loops |
 | `start-narratiq.sh` | Full bootstrap: pip installs, ovis.py patch, numpy pin, cache clear, service launch |
@@ -160,15 +164,17 @@ Later migrations: `0016` story bible failed sections · `0017` chapter-summary a
 - Audio max size: 100 MB (enforced via Content-Length header pre-check before body read, then byte count after read)
 - Story bible concurrent generation guard: `_generating: set[str]` in `story_bible.py` prevents duplicate Qwen calls for same story
 
-## Phase 2 Frontend Architecture
+## Studio Frontend Architecture (Stage 8)
 
-All 10 right-panel components in `/projects/[id]/page.tsx` are loaded via `next/dynamic` with `ssr: false`:
-- `AIToolsSidebar`, `PlotAssistantPanel`, `OCRPanel`, `NotesPanel`, `CharacterList`
-- `AuditPanel`, `StoryBiblePanel`, `PacingGoalPanel`, `AudioPanel`, `SearchPanel`
+The editor is a set of workspaces under `/projects/[id]/`: Write, Plan, Characters, World, Analyze, Assistant, Publish. Each tool has exactly one home, listed in `lib/registries/toolHomes.ts` and enforced by `tests/tool-homes.spec.ts`. Plan (plot, pacing) and World (bible, notes + Idea Shelf, OCR) use `components/studio/SectionTabs.tsx` with `?section=` deep links. Analyze tools come from `lib/registries/panels.tsx`. The Command Palette (Ctrl/⌘K) reads `lib/registries/actions.ts`.
 
-Bundle sizes after lazy loading:
-- `/projects/[id]`: **108 kB** page-specific, **235 kB** First Load JS  ← was 143 kB / 270 kB before Phase 2 hardening
-- Panels are cached after first load; tab switching after that is instant
+- Write: binder, editor, AI sidecar (`AIToolsSidebar`, groups Rewrite / Generate / Versions), Search & replace (Ctrl/⌘F). Draft/Edit mode per story (Edit is the default); Reading mode is read-only and sends no saves; View menu has Focus, Zen, Typewriter, Fullscreen. Ctrl+\\ expands the sidecar.
+- Layout sizes, modes and last sections persist in `lib/studioStore.ts`, keyed per user (`narratiq_studio:<user_id>`) and bound by `StudioStoreGate` in the project layout.
+- Panels and sections are lazy-loaded with `next/dynamic` (`ssr: false`).
+- `AuditPanel` was dead code and was removed in Stage 8.
+- Tests: `tests/studio/` runs against a mocked API (build with `NEXT_PUBLIC_API_URL=http://mock-api.test`; separate `NEXT_DIST_DIR` so the real `.next` is never touched). Includes axe (zero serious/critical), a 1920→768 viewport matrix and build variants (`STUDIO_VARIANT=mock-tool|p3-off`). The live specs in `tests/browser/` still need a pod.
+
+Bundle (Stage 8, `next build`): `/projects/[id]/write` **128 kB** page-specific, **290 kB** First Load JS (baseline on `main`: 129 kB / 262 kB). The First Load rise is mostly accounting: the Radix menu chunk (≈26 kB gzip) the project layout already loaded is now also imported by the Write page, so Next counts it for the route. Gzipped JS a browser downloads on a cold Write load went from 313.0 kB to 318.2 kB (+5.2 kB).
 
 `ChunkLoadError` auto-recovery is in `components/chunk-error-recovery.tsx` (window error listener + sessionStorage 10s debounce to prevent loops).
 

@@ -58,7 +58,7 @@ export default function StyleDriftPanel({ storyId }: Props) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 p-6 h-full">
         <PenLine className="w-10 h-10 text-[#2e3454]" />
-        <p className="text-xs text-[#5c6391] text-center">Detect if your writing style has shifted between early and late chapters</p>
+        <p className="text-xs text-[#8e94bd] text-center">Detect if your writing style has shifted between early and late chapters</p>
         <button
           onClick={check}
           className="px-3 py-1.5 rounded-lg text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-all"
@@ -71,7 +71,7 @@ export default function StyleDriftPanel({ storyId }: Props) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full gap-2 text-[#5c6391]">
+      <div className="flex items-center justify-center h-full gap-2 text-[#8e94bd]">
         <Loader2 className="w-4 h-4 animate-spin" />
         <span className="text-xs">Analysing writing style…</span>
       </div>
@@ -84,7 +84,7 @@ export default function StyleDriftPanel({ storyId }: Props) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 p-6 h-full">
         <AlertCircle className="w-8 h-8 text-[#2e3454]" />
-        <p className="text-xs text-[#5c6391] text-center">Need at least 6 indexed chapters to detect style drift.</p>
+        <p className="text-xs text-[#8e94bd] text-center">Need at least 6 indexed chapters to detect style drift.</p>
       </div>
     )
   }
@@ -93,7 +93,7 @@ export default function StyleDriftPanel({ storyId }: Props) {
     <div className="flex flex-col h-full overflow-y-auto">
       <div className="px-4 pt-3 pb-1 flex items-center justify-between flex-shrink-0">
         <span className="text-xs text-[#9da3c8]">{(d.early_chapters?.length ?? 0) + (d.late_chapters?.length ?? 0)} chapters analysed</span>
-        <button onClick={check} className="text-[#5c6391] hover:text-amber-400" title="Refresh">
+        <button onClick={check} className="text-[#8e94bd] hover:text-amber-400" title="Refresh">
           <RefreshCw className="w-3.5 h-3.5" />
         </button>
       </div>

@@ -11,7 +11,8 @@ import { useRouter } from 'next/navigation'
 import { useMemo } from 'react'
 import { toast } from 'sonner'
 import { ACTIONS, type ActionContext } from '@/lib/registries/actions'
-import { WORKSPACES, workspacePath, type WorkspaceId } from '@/lib/registries/workspaces'
+import { WORKSPACES, workspacePath, workspacePathWith, type WorkspaceId } from '@/lib/registries/workspaces'
+import { P3_ENABLED } from '@/lib/generationControls'
 import { useStoryContext } from './StoryContextEngine'
 import { useStudioStore } from '@/lib/studioStore'
 import { exportApi } from '@/lib/api'
@@ -23,8 +24,10 @@ export default function CommandPalette({ open, onOpenChange }: { open: boolean; 
 
   const ctx: ActionContext = useMemo(() => ({
     storyId,
-    go: (ws: WorkspaceId) => router.push(workspacePath(storyId, ws)),
+    go: (ws: WorkspaceId, params?: Record<string, string>) =>
+      router.push(params ? workspacePathWith(storyId, ws, params) : workspacePath(storyId, ws)),
     openSidecar: () => store.toggleSidecar(true),
+    openSearch: () => store.setSearchOpen(true),
     toggleFocus: () => store.setFocusMode(!store.focusMode),
     startVoice: () => router.push(workspacePath(storyId, 'assistant')),
     runAnalysis: (panelId: string) => { setActiveAnalysis(panelId); router.push(workspacePath(storyId, 'analyze')) },
@@ -49,31 +52,37 @@ export default function CommandPalette({ open, onOpenChange }: { open: boolean; 
         <Command.Input autoFocus placeholder="Search workspaces, chapters, characters, actions…"
           className="w-full px-4 py-3 bg-transparent text-[#e8eaf6] placeholder-[#5c6391] outline-none border-b border-[#1f2440]" />
         <Command.List className="max-h-[55vh] overflow-y-auto p-2 text-sm">
-          <Command.Empty className="px-3 py-6 text-center text-[#5c6391]">No results.</Command.Empty>
+          <Command.Empty className="px-3 py-6 text-center text-[#8e94bd]">No results.</Command.Empty>
 
-          <Command.Group heading="Navigate" className="text-[10px] uppercase tracking-wide text-[#5c6391] [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1">
+          <Command.Group heading="Navigate" className="text-[10px] uppercase tracking-wide text-[#8e94bd] [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1">
             {WORKSPACES.map((w) => (
               <Command.Item key={w.id} value={`go ${w.label} ${w.description}`} onSelect={() => run(() => ctx.go(w.id))}
                 className="flex items-center gap-2 px-2 py-1.5 rounded text-[#cdd2f0] aria-selected:bg-[#1f2440] cursor-pointer">
                 <w.icon className="w-4 h-4 text-[#9da3c8]" /> Go to {w.label}
               </Command.Item>
             ))}
+            {ACTIONS.filter((a) => a.group === 'Navigate' && (P3_ENABLED || !a.phase3)).map((a) => (
+              <Command.Item key={a.id} value={`${a.label} ${a.keywords ?? ''}`} onSelect={() => run(() => a.run(ctx))}
+                className="px-2 py-1.5 pl-8 rounded text-[#cdd2f0] aria-selected:bg-[#1f2440] cursor-pointer">
+                {a.label}
+              </Command.Item>
+            ))}
           </Command.Group>
 
           {chapters.length > 0 && (
-            <Command.Group heading="Chapters" className="text-[10px] uppercase tracking-wide text-[#5c6391] [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1">
+            <Command.Group heading="Chapters" className="text-[10px] uppercase tracking-wide text-[#8e94bd] [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1">
               {chapters.map((c) => (
                 <Command.Item key={c.chapter_id} value={`chapter ${c.chapter_number} ${c.title}`}
                   onSelect={() => run(() => { setActiveChapter(c.chapter_id); router.push(workspacePath(storyId, 'write')) })}
                   className="flex items-center gap-2 px-2 py-1.5 rounded text-[#cdd2f0] aria-selected:bg-[#1f2440] cursor-pointer">
-                  <span className="text-[#5c6391] text-xs">Ch {c.chapter_number}</span> {c.title || 'Untitled'}
+                  <span className="text-[#8e94bd] text-xs">Ch {c.chapter_number}</span> {c.title || 'Untitled'}
                 </Command.Item>
               ))}
             </Command.Group>
           )}
 
           {characters.length > 0 && (
-            <Command.Group heading="Characters" className="text-[10px] uppercase tracking-wide text-[#5c6391] [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1">
+            <Command.Group heading="Characters" className="text-[10px] uppercase tracking-wide text-[#8e94bd] [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1">
               {characters.map((c) => (
                 <Command.Item key={c.character_id} value={`character ${c.name}`}
                   onSelect={() => run(() => { setActiveCharacter(c.character_id); router.push(workspacePath(storyId, 'characters')) })}
@@ -85,8 +94,8 @@ export default function CommandPalette({ open, onOpenChange }: { open: boolean; 
           )}
 
           {(['Run', 'Export', 'AI', 'View'] as const).map((grp) => (
-            <Command.Group key={grp} heading={grp} className="text-[10px] uppercase tracking-wide text-[#5c6391] [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1">
-              {ACTIONS.filter((a) => a.group === grp).map((a) => (
+            <Command.Group key={grp} heading={grp} className="text-[10px] uppercase tracking-wide text-[#8e94bd] [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1">
+              {ACTIONS.filter((a) => a.group === grp && (P3_ENABLED || !a.phase3)).map((a) => (
                 <Command.Item key={a.id} value={`${a.label} ${a.keywords ?? ''}`} onSelect={() => run(() => a.run(ctx))}
                   className="px-2 py-1.5 rounded text-[#cdd2f0] aria-selected:bg-[#1f2440] cursor-pointer">
                   {a.label}

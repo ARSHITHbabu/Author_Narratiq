@@ -198,7 +198,7 @@ export default function VoiceAgentPanel({
       {/* ── Live / final transcript ──────────────────────────────────────── */}
       {(partial || response?.cleaned_transcript) && (
         <div className="rounded-md border border-[#1f2440] bg-[#0d1124] px-3 py-2">
-          <p className="text-[10px] uppercase tracking-wide text-[#5c6391] mb-1">
+          <p className="text-[10px] uppercase tracking-wide text-[#8e94bd] mb-1">
             {response ? 'You said' : 'Listening'}
           </p>
           <p className="text-sm text-[#cdd2f0] italic">
@@ -221,17 +221,17 @@ export default function VoiceAgentPanel({
           {/* Understood + resolved entities (names, never ids) */}
           {response.resolved_entities && response.resolved_entities.length > 0 && (
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-[10px] text-[#5c6391]">Understood:</span>
+              <span className="text-[10px] text-[#8e94bd]">Understood:</span>
               {response.resolved_entities.map((e, i) => (
                 <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-300">
-                  {e.name}<span className="text-[#5c6391]"> · {e.kind}</span>
+                  {e.name}<span className="text-[#8e94bd]"> · {e.kind}</span>
                 </span>
               ))}
             </div>
           )}
 
           {response.context_used && response.status !== 'needs_clarification' && (
-            <p className="text-[10px] text-[#5c6391]">
+            <p className="text-[10px] text-[#8e94bd]">
               <span className="text-[#7d84b0]">Using:</span> {response.context_used}
             </p>
           )}
@@ -253,7 +253,7 @@ export default function VoiceAgentPanel({
                   ))}
                 </div>
               )}
-              <p className="text-[10px] text-[#5c6391]">Tap the mic and say it.</p>
+              <p className="text-[10px] text-[#8e94bd]">Tap the mic and say it.</p>
             </div>
           )}
 
@@ -305,17 +305,17 @@ export default function VoiceAgentPanel({
           ))}
 
           <div className="flex items-center gap-3 pt-1">
-            <button onClick={clear} className="flex items-center gap-1 text-[11px] text-[#5c6391] hover:text-[#9da3c8]">
+            <button onClick={clear} className="flex items-center gap-1 text-[11px] text-[#8e94bd] hover:text-[#9da3c8]">
               <RotateCcw className="w-3 h-3" /> Clear
             </button>
-            <button onClick={() => setShowDebug((v) => !v)} className="text-[11px] text-[#5c6391] hover:text-[#9da3c8]">
+            <button onClick={() => setShowDebug((v) => !v)} className="text-[11px] text-[#8e94bd] hover:text-[#9da3c8]">
               {showDebug ? 'Hide details' : 'Details'}
             </button>
           </div>
 
           {/* Technical metadata — hidden by default (debug view) */}
           {showDebug && (
-            <div className="rounded-md border border-[#1f2440] bg-[#0b0e1d] px-3 py-2 space-y-0.5 text-[10px] text-[#5c6391] font-mono">
+            <div className="rounded-md border border-[#1f2440] bg-[#0b0e1d] px-3 py-2 space-y-0.5 text-[10px] text-[#8e94bd] font-mono">
               <div>intent: {response.detected_intent || '—'}</div>
               <div>capability: {response.capability} · router: {response.target_router}</div>
               <div>action_type: {response.action_type} · confidence: {(response.confidence * 100).toFixed(0)}%</div>
@@ -333,7 +333,7 @@ export default function VoiceAgentPanel({
       <div className="border-t border-[#1f2440] pt-2">
         <button
           onClick={() => setShowLegacy((v) => !v)}
-          className="flex items-center gap-1 text-[11px] text-[#5c6391] hover:text-[#9da3c8]"
+          className="flex items-center gap-1 text-[11px] text-[#8e94bd] hover:text-[#9da3c8]"
         >
           {showLegacy ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
           Saved dictation → note (upload an audio file)

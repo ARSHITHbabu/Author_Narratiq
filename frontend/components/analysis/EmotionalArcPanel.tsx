@@ -47,7 +47,7 @@ export default function EmotionalArcPanel({ storyId }: Props) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 p-6 h-full">
         <TrendingUp className="w-10 h-10 text-[#2e3454]" />
-        <p className="text-xs text-[#5c6391] text-center">Map the emotional journey across all chapters</p>
+        <p className="text-xs text-[#8e94bd] text-center">Map the emotional journey across all chapters</p>
         <div className="flex items-center gap-2">
           <label className="flex items-center gap-1.5 cursor-pointer">
             <input
@@ -71,7 +71,7 @@ export default function EmotionalArcPanel({ storyId }: Props) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full gap-2 text-[#5c6391]">
+      <div className="flex items-center justify-center h-full gap-2 text-[#8e94bd]">
         <Loader2 className="w-4 h-4 animate-spin" />
         <span className="text-xs">Analysing chapters…</span>
       </div>
@@ -83,7 +83,7 @@ export default function EmotionalArcPanel({ storyId }: Props) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 p-6 h-full">
         <AlertCircle className="w-8 h-8 text-[#2e3454]" />
-        <p className="text-xs text-[#5c6391] text-center">No indexed chapters found. Index chapters first via AI Tools.</p>
+        <p className="text-xs text-[#8e94bd] text-center">No indexed chapters found. Index chapters first via AI Tools.</p>
       </div>
     )
   }
@@ -94,7 +94,7 @@ export default function EmotionalArcPanel({ storyId }: Props) {
         <span className="text-xs text-[#9da3c8]">{arc.length} chapters · emotional journey</span>
         <button
           onClick={load}
-          className="text-[#5c6391] hover:text-amber-400 transition-colors"
+          className="text-[#8e94bd] hover:text-amber-400 transition-colors"
           title="Refresh"
         >
           <RefreshCw className="w-3.5 h-3.5" />
@@ -124,7 +124,7 @@ export default function EmotionalArcPanel({ storyId }: Props) {
         </div>
         <div className="flex gap-0.5 mt-0.5">
           {arc.map((entry: EmotionalArcEntry) => (
-            <div key={entry.chapter_number} className="flex-1 text-[9px] text-[#3d4466] text-center truncate">
+            <div key={entry.chapter_number} className="flex-1 text-[9px] text-[#8a90ba] text-center truncate">
               {entry.chapter_number}
             </div>
           ))}
@@ -157,7 +157,7 @@ export default function EmotionalArcPanel({ storyId }: Props) {
       <div className="px-3 flex flex-col gap-1.5 pb-4">
         {arc.map((entry: EmotionalArcEntry) => (
           <div key={entry.chapter_number} className="flex items-center gap-2 text-xs">
-            <span className="text-[#3d4466] w-10 flex-shrink-0">Ch {entry.chapter_number}</span>
+            <span className="text-[#8a90ba] w-10 flex-shrink-0">Ch {entry.chapter_number}</span>
             <span
               className="w-2 h-2 rounded-full flex-shrink-0"
               style={{ backgroundColor: toneColor(entry.emotional_tone ?? '') }}

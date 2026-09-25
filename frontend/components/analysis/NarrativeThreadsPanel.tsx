@@ -39,14 +39,14 @@ function ThreadCard({ thread, storyId, onUpdated }: { thread: NarrativeThreadOut
         className="w-full flex items-start gap-2 p-3 text-left"
         onClick={() => setOpen(v => !v)}
       >
-        {open ? <ChevronDown className="w-3.5 h-3.5 text-[#5c6391] mt-0.5 flex-shrink-0" /> : <ChevronRight className="w-3.5 h-3.5 text-[#5c6391] mt-0.5 flex-shrink-0" />}
+        {open ? <ChevronDown className="w-3.5 h-3.5 text-[#8e94bd] mt-0.5 flex-shrink-0" /> : <ChevronRight className="w-3.5 h-3.5 text-[#8e94bd] mt-0.5 flex-shrink-0" />}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
             <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${s.badge}`}>
               {s.label}
             </span>
             {thread.introduced_chapter && (
-              <span className="text-[10px] text-[#5c6391]">
+              <span className="text-[10px] text-[#8e94bd]">
                 Ch {thread.introduced_chapter}
                 {thread.last_seen_chapter ? `–${thread.last_seen_chapter}` : ''}
               </span>
@@ -69,7 +69,7 @@ function ThreadCard({ thread, storyId, onUpdated }: { thread: NarrativeThreadOut
                 className={`text-[10px] px-2 py-1 rounded border transition-colors ${
                   thread.status === st
                     ? STATUS_STYLES[st].badge
-                    : 'text-[#5c6391] border-[#2e3454] hover:text-[#9da3c8] hover:border-[#3d4466]'
+                    : 'text-[#8e94bd] border-[#2e3454] hover:text-[#9da3c8] hover:border-[#3d4466]'
                 } disabled:opacity-50`}
               >
                 {st === 'dead_end' ? 'Dead End' : st.charAt(0).toUpperCase() + st.slice(1)}
@@ -212,7 +212,7 @@ export default function NarrativeThreadsPanel({ storyId }: Props) {
 
   if (loadingList && !threads) {
     return (
-      <div className="flex items-center justify-center h-full gap-2 text-[#5c6391]">
+      <div className="flex items-center justify-center h-full gap-2 text-[#8e94bd]">
         <Loader2 className="w-4 h-4 animate-spin" />
         <span className="text-xs">Loading threads…</span>
       </div>
@@ -223,7 +223,7 @@ export default function NarrativeThreadsPanel({ storyId }: Props) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 p-6 h-full">
         <GitBranch className="w-10 h-10 text-[#2e3454]" />
-        <p className="text-xs text-[#5c6391] text-center">Track narrative threads across your manuscript and flag dead ends</p>
+        <p className="text-xs text-[#8e94bd] text-center">Track narrative threads across your manuscript and flag dead ends</p>
         {scanning && !timedOut && (
           <p className="text-[11px] text-[#9da3c8] text-center" role="status">
             Scanning your chapters. This can take several minutes for a long manuscript.
@@ -260,7 +260,7 @@ export default function NarrativeThreadsPanel({ storyId }: Props) {
           >
             {scanning ? '…' : 'Rescan'}
           </button>
-          <button onClick={loadThreads} className="text-[#5c6391] hover:text-amber-400">
+          <button onClick={loadThreads} className="text-[#8e94bd] hover:text-amber-400">
             <RefreshCw className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -285,7 +285,7 @@ export default function NarrativeThreadsPanel({ storyId }: Props) {
             className={`text-[10px] px-2 py-0.5 rounded border transition-colors ${
               filter === f
                 ? 'text-amber-400 bg-amber-500/10 border-amber-500/20'
-                : 'text-[#5c6391] border-[#2e3454] hover:text-[#9da3c8]'
+                : 'text-[#8e94bd] border-[#2e3454] hover:text-[#9da3c8]'
             }`}
           >
             {f === 'dead_end' ? 'Dead Ends' : f.charAt(0).toUpperCase() + f.slice(1)}
@@ -295,7 +295,7 @@ export default function NarrativeThreadsPanel({ storyId }: Props) {
 
       <div className="flex-1 overflow-y-auto px-3 pb-4 flex flex-col gap-2">
         {filtered.length === 0 ? (
-          <p className="text-xs text-[#5c6391] text-center py-6">No threads match this filter.</p>
+          <p className="text-xs text-[#8e94bd] text-center py-6">No threads match this filter.</p>
         ) : (
           filtered.map(thread => (
             <ThreadCard key={thread.thread_id} thread={thread} storyId={storyId} onUpdated={loadThreads} />

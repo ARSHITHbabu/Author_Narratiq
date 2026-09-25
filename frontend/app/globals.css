@@ -135,3 +135,11 @@ body {
 
 .compare-original { background: rgba(255, 80, 80, 0.05); border-color: rgba(255, 80, 80, 0.2); }
 .compare-improved { background: rgba(80, 255, 130, 0.05); border-color: rgba(80, 255, 130, 0.2); }
+
+/* Reading mode (Stage 8.3) — a calmer, narrower measure for reading back. */
+.reading-mode .ProseMirror { font-size: 1.125rem; line-height: 1.95; cursor: default; }
+.reading-mode .ProseMirror p { margin-bottom: 1.1rem; }
+
+/* Skip link (Stage 8.9) — visible only when focused. */
+.skip-link { position: absolute; left: 0.5rem; top: -3rem; z-index: 100; }
+.skip-link:focus { top: 0.5rem; }

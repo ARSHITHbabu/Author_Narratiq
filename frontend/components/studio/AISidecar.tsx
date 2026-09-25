@@ -11,32 +11,43 @@
 // author abandoning their selection.
 
 import dynamic from 'next/dynamic'
-import { X, Mic } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
+import { X, Maximize2, Minimize2 } from 'lucide-react'
 import { useStoryContext } from './StoryContextEngine'
 import { useStudioStore } from '@/lib/studioStore'
-import { workspacePath } from '@/lib/registries/workspaces'
 import { selectionSafeProps, type OwnedSelection } from '@/lib/selectionOwnership'
 
 const AIToolsSidebar = dynamic(() => import('@/components/ai-tools/AIToolsSidebar'), { ssr: false })
 
 export default function AISidecar({ selection = null }: { selection?: OwnedSelection | null }) {
-  const router = useRouter()
   const store = useStudioStore()
   const { storyId, activeChapterId, editor, genreProfile } = useStoryContext()
 
+  // Focus management (8.9): a keyboard or screen-reader user who opens the panel
+  // lands on its heading; closing it returns focus to where they were. Moving
+  // focus does not touch the selection this panel owns (it is React state).
+  useEffect(() => {
+    const from = document.activeElement as HTMLElement | null
+    document.getElementById('ai-sidecar-title')?.focus({ preventScroll: true })
+    return () => { if (from && document.contains(from)) from.focus({ preventScroll: true }) }
+  }, [])
+
   return (
-    <div className="h-full flex flex-col bg-[#0f1220] border-l border-[#1f2440]" {...selectionSafeProps()}>
+    <aside aria-labelledby="ai-sidecar-title" className="h-full flex flex-col bg-[#0f1220] border-l border-[#1f2440]" {...selectionSafeProps()}>
       <div className="h-10 flex items-center justify-between px-3 border-b border-[#1f2440] flex-shrink-0">
-        <span className="text-xs font-medium text-[#e8eaf6]">AI Assistant</span>
+        <h2 id="ai-sidecar-title" className="text-xs font-medium text-[#e8eaf6] focus:outline-none" tabIndex={-1}>AI Assistant</h2>
         <div className="flex items-center gap-1">
-          <button onClick={() => router.push(workspacePath(storyId, 'assistant'))}
-            className="p-1 rounded text-[#9da3c8] hover:text-white hover:bg-[#1f2440]" title="Voice agent">
-            <Mic className="w-3.5 h-3.5" />
+          {/* The voice agent has one entry point: the mic in the context bar. */}
+          <button onClick={() => store.setSidecarExpanded(!store.sidecarExpanded)}
+            aria-label={store.sidecarExpanded ? 'Restore AI assistant width' : 'Expand AI assistant'}
+            aria-pressed={store.sidecarExpanded}
+            className="p-1 rounded text-[#9da3c8] hover:text-white hover:bg-[#1f2440] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/70"
+            title={store.sidecarExpanded ? 'Restore width' : 'Expand for detailed work'}>
+            {store.sidecarExpanded ? <Minimize2 className="w-3.5 h-3.5" aria-hidden="true" /> : <Maximize2 className="w-3.5 h-3.5" aria-hidden="true" />}
           </button>
-          <button onClick={() => store.toggleSidecar(false)}
-            className="p-1 rounded text-[#9da3c8] hover:text-white hover:bg-[#1f2440]" title="Close (⌘\\)">
-            <X className="w-3.5 h-3.5" />
+          <button onClick={() => store.toggleSidecar(false)} aria-label="Close AI assistant"
+            className="p-1 rounded text-[#9da3c8] hover:text-white hover:bg-[#1f2440] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/70" title="Close (⌘\\)">
+            <X className="w-3.5 h-3.5" aria-hidden="true" />
           </button>
         </div>
       </div>
@@ -53,6 +64,6 @@ export default function AISidecar({ selection = null }: { selection?: OwnedSelec
           />
         )}
       </div>
-    </div>
+    </aside>
   )
 }

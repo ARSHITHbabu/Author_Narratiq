@@ -95,7 +95,7 @@ export default function VersionsPanel({ selectedText }: { selectedText?: string 
   const maxContext = limits?.limits.max_context_pins ?? 2
 
   if (status === 'loading') {
-    return <div className="flex justify-center py-8"><Loader2 className="w-4 h-4 animate-spin text-[#5c6391]" /></div>
+    return <div className="flex justify-center py-8"><Loader2 className="w-4 h-4 animate-spin text-[#8e94bd]" /></div>
   }
   if (status === 'error') {
     return (
@@ -115,7 +115,7 @@ export default function VersionsPanel({ selectedText }: { selectedText?: string 
           <PinIcon className="inline w-3 h-3 mr-1 text-amber-400" />
           {limits ? `${limits.usage.pins} of ${limits.limits.max_pins} pins · ${limits.plan} plan · kept ${limits.limits.pin_ttl_days} days` : `${pins.length} pins`}
         </span>
-        <button onClick={load} title="Refresh" className="p-1 rounded text-[#5c6391] hover:text-[#9da3c8]"><RefreshCw className="w-3 h-3" /></button>
+        <button onClick={load} title="Refresh" className="p-1 rounded text-[#8e94bd] hover:text-[#9da3c8]"><RefreshCw className="w-3 h-3" /></button>
       </div>
 
       {(gen.contextPinIds.length > 0 || gen.avoidPinIds.length > 0) && (
@@ -136,7 +136,7 @@ export default function VersionsPanel({ selectedText }: { selectedText?: string 
       )}
 
       {tree.length === 0 ? (
-        <p data-testid="versions-empty" className="text-xs text-[#5c6391] leading-relaxed py-4 text-center">
+        <p data-testid="versions-empty" className="text-xs text-[#8e94bd] leading-relaxed py-4 text-center">
           No pinned versions yet. When an AI result is worth keeping, press <strong>Pin</strong> on it — pinned versions
           appear here for {limits?.limits.pin_ttl_days ?? 7} days.
         </p>
@@ -154,16 +154,16 @@ export default function VersionsPanel({ selectedText }: { selectedText?: string 
                 <button type="button" onClick={() => { setOpen(isOpen ? null : pin.pin_id); if (!isOpen) content(pin).catch(() => {}) }}
                   aria-expanded={isOpen}
                   className="w-full text-left px-2.5 py-2 flex items-start gap-1.5">
-                  {isOpen ? <ChevronDown className="w-3 h-3 mt-0.5 text-[#5c6391]" /> : <ChevronRight className="w-3 h-3 mt-0.5 text-[#5c6391]" />}
+                  {isOpen ? <ChevronDown className="w-3 h-3 mt-0.5 text-[#8e94bd]" /> : <ChevronRight className="w-3 h-3 mt-0.5 text-[#8e94bd]" />}
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5 text-[10px] flex-wrap">
                       {pin.is_favourite && <Star className="w-3 h-3 text-amber-400 fill-amber-400" aria-label="Favourite" />}
                       <span className="font-medium text-[#e8eaf6]">{pin.label || TOOL_LABELS[pin.tool] || pin.tool}</span>
-                      <span className="text-[#5c6391]">{TOOL_LABELS[pin.tool] ?? pin.tool}{toolValue(pin) ? ` · ${toolValue(pin)}` : ''} · {pin.word_count} words</span>
-                      <span className={`ml-auto flex items-center gap-0.5 ${exp.soon ? 'text-amber-300' : 'text-[#5c6391]'}`}><Clock className="w-2.5 h-2.5" />{exp.text}</span>
+                      <span className="text-[#8e94bd]">{TOOL_LABELS[pin.tool] ?? pin.tool}{toolValue(pin) ? ` · ${toolValue(pin)}` : ''} · {pin.word_count} words</span>
+                      <span className={`ml-auto flex items-center gap-0.5 ${exp.soon ? 'text-amber-300' : 'text-[#8e94bd]'}`}><Clock className="w-2.5 h-2.5" />{exp.text}</span>
                     </div>
                     {pin.lineage_depth > 0 && (
-                      <p className="text-[10px] text-[#5c6391]">↳ {orphan ? 'from a version that has expired' : `${pin.derivation || 'derived'} of an earlier version`}</p>
+                      <p className="text-[10px] text-[#8e94bd]">↳ {orphan ? 'from a version that has expired' : `${pin.derivation || 'derived'} of an earlier version`}</p>
                     )}
                     {!isOpen && <p className="text-[11px] text-[#9da3c8] line-clamp-2 font-serif mt-0.5">{pin.preview}</p>}
                   </div>
@@ -253,7 +253,7 @@ function PinDetail(props: {
   return (
     <div className="px-2.5 pb-2.5 space-y-2">
       <p className="text-xs text-[#cdd2f0] font-serif whitespace-pre-wrap max-h-48 overflow-y-auto">{text ?? pin.preview}</p>
-      {pin.source_excerpt && <p className="text-[10px] text-[#5c6391] italic line-clamp-2">From: “{pin.source_excerpt}”</p>}
+      {pin.source_excerpt && <p className="text-[10px] text-[#8e94bd] italic line-clamp-2">From: “{pin.source_excerpt}”</p>}
       <div className="flex flex-wrap gap-1">
         <button className={b} onClick={props.onInsert} title={props.selectedText?.trim() ? 'Replace the selected text with this version' : 'Insert at the cursor'}>
           <ArrowDownToLine className="w-3 h-3" /> {props.selectedText?.trim() ? 'Replace selection' : 'Insert'}
