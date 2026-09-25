@@ -11,6 +11,8 @@ import { P3_ENABLED } from '@/lib/generationControls'
 interface Props {
   storyId:    string
   reloadKey?: number
+  /** open on this sub-tab (World deep link ?tab=ideas / ?tab=cards) */
+  initialTab?: 'cards' | 'ideas'
 }
 
 // Notes and Note Cards are fetched INDEPENDENTLY (QA Issue 7). They used to share
@@ -43,8 +45,9 @@ const CARD_TYPE_STYLES: Record<NoteCardType, string> = {
   general:   'bg-[#252a45] text-[#9da3c8] border-[#2e3454]',
 }
 
-export default function NotesPanel({ storyId, reloadKey }: Props) {
-  const [tab, setTab]               = useState<'notes' | 'cards' | 'ideas'>('notes')
+export default function NotesPanel({ storyId, reloadKey, initialTab }: Props) {
+  const [tab, setTab]               = useState<'notes' | 'cards' | 'ideas'>(
+    initialTab === 'ideas' && !P3_ENABLED ? 'notes' : initialTab ?? 'notes')
   const [notesSection, setNotesSection] = useState<Section<StoryNote>>({ data: [], status: 'loading' })
   const [cardsSection, setCardsSection] = useState<Section<NoteCard>>({ data: [], status: 'loading' })
   const [cardFilter, setCardFilter] = useState<NoteCardType | 'all'>('all')
@@ -159,15 +162,26 @@ export default function NotesPanel({ storyId, reloadKey }: Props) {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Sub-tab toggle */}
-      <div className="flex border-b border-[#1f2440] flex-shrink-0">
+      <div role="tablist" aria-label="Notes views" className="flex border-b border-[#1f2440] flex-shrink-0"
+        onKeyDown={(e) => {
+          const order = (P3_ENABLED ? ['notes', 'cards', 'ideas'] : ['notes', 'cards']) as ('notes' | 'cards' | 'ideas')[]
+          const i = order.indexOf(tab)
+          const n = e.key === 'ArrowRight' ? (i + 1) % order.length : e.key === 'ArrowLeft' ? (i - 1 + order.length) % order.length : -1
+          if (n < 0) return
+          e.preventDefault(); setTab(order[n]); setCreating(null)
+          ;(e.currentTarget.querySelectorAll<HTMLElement>('[role="tab"]')[n])?.focus()
+        }}>
         {((P3_ENABLED ? ['notes', 'cards', 'ideas'] : ['notes', 'cards']) as ('notes' | 'cards' | 'ideas')[]).map(t => (
           <button
             key={t}
+            role="tab"
+            aria-selected={tab === t}
+            tabIndex={tab === t ? 0 : -1}
             onClick={() => { setTab(t); setCreating(null) }}
-            className={`flex-1 py-2 text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-2 text-xs font-medium transition-colors flex items-center justify-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-500/70 ${
               tab === t
                 ? 'text-amber-400 border-b-2 border-amber-500'
-                : 'text-[#5c6391] hover:text-[#9da3c8]'
+                : 'text-[#aeb3d6] hover:text-white'
             }`}
           >
             {t === 'notes' ? 'Story Notes' : t === 'cards' ? 'Note Cards' : 'Ideas'}

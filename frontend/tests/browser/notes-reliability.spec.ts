@@ -32,13 +32,16 @@ async function signIn(page: Page, request: APIRequestContext) {
   }, [cached.token, cached.user])
 }
 
-const WORKSPACES = ['world', 'plan'] as const
-const notesTab = (page: Page) => page.getByRole('button', { name: 'Story Notes', exact: false }).first()
-const cardsTab = (page: Page) => page.getByRole('button', { name: 'Note Cards', exact: false }).first()
+// Stage 8.8: Notes has ONE home, World (Phase 2 Issue 10). The second entry
+// point is now the ?section=notes deep link the Command Palette uses, so both
+// ways an author reaches Notes are still exercised.
+const WORKSPACES = ['world', 'world?section=notes'] as const
+const notesTab = (page: Page) => page.getByRole('tab', { name: 'Story Notes', exact: false }).first()
+const cardsTab = (page: Page) => page.getByRole('tab', { name: 'Note Cards', exact: false }).first()
 
 async function openNotes(page: Page, workspace: string, storyId = STORY_ID!) {
   await page.goto(`/projects/${storyId}/${workspace}`)
-  await page.getByRole('button', { name: /^Notes$/ }).click()
+  await page.getByRole('tab', { name: /^Notes$/ }).click()
 }
 
 test.beforeEach(async ({ page, request }) => {
@@ -151,7 +154,7 @@ test('navigating away mid-flight is a cancellation, not a failure', async ({ pag
     await r.continue()
   })
   await openNotes(page, 'world')
-  await page.getByRole('button', { name: /Story Bible/ }).click()   // leave while loading
+  await page.getByRole('tab', { name: /Story Bible/ }).click()   // leave while loading
   await page.waitForTimeout(4500)
   await expect(page.getByTestId('notes-error')).toHaveCount(0)
   await expect(page.getByText(/could not be loaded/)).toHaveCount(0)
@@ -160,9 +163,9 @@ test('navigating away mid-flight is a cancellation, not a failure', async ({ pag
 test('rapid tab flipping never leaves a stale or empty list', async ({ page }) => {
   await openNotes(page, 'world')
   for (let i = 0; i < 8; i++) {
-    await page.getByRole('button', { name: /Story Bible/ }).click()
+    await page.getByRole('tab', { name: /Story Bible/ }).click()
     await page.waitForTimeout(50)
-    await page.getByRole('button', { name: /^Notes$/ }).click()
+    await page.getByRole('tab', { name: /^Notes$/ }).click()
     await page.waitForTimeout(50)
   }
   await expect(page.getByText('Tide chart margins')).toBeVisible({ timeout: 15_000 })
@@ -185,9 +188,9 @@ test('a slow earlier load cannot overwrite a newer one', async ({ page }) => {
 
   await openNotes(page, 'world')                                  // load 1 — slow
   await page.waitForTimeout(300)                                  // let it be in flight
-  await page.getByRole('button', { name: /Story Bible/ }).click()  // abandons load 1
+  await page.getByRole('tab', { name: /Story Bible/ }).click()  // abandons load 1
   await page.waitForTimeout(200)
-  await page.getByRole('button', { name: /^Notes$/ }).click()      // load 2 — real data
+  await page.getByRole('tab', { name: /^Notes$/ }).click()      // load 2 — real data
 
   await expect(page.getByText('Tide chart margins')).toBeVisible({ timeout: 20_000 })
   await page.waitForTimeout(3500)   // the stale empty answer would land around here
@@ -207,6 +210,6 @@ test('creating a note still appears immediately and survives a revisit', async (
   await page.getByRole('button', { name: /^(Create|Save|Add)/ }).first().click()
   await expect(page.getByText(title)).toBeVisible({ timeout: 15_000 })
 
-  await openNotes(page, 'plan')
+  await openNotes(page, 'world?section=notes')
   await expect(page.getByText(title)).toBeVisible({ timeout: 15_000 })
 })

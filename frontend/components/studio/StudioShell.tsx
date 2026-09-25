@@ -12,7 +12,7 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import {
   Command as CommandIcon, Mic, History, ChevronDown, PanelLeftClose, PanelLeft, LogOut,
 } from 'lucide-react'
-import { WORKSPACES, PROJECTS_WORKSPACE, workspacePath, type WorkspaceId } from '@/lib/registries/workspaces'
+import { WORKSPACES, PROJECTS_WORKSPACE, workspacePath, workspaceForSegment, type WorkspaceId } from '@/lib/registries/workspaces'
 import { useStudioStore } from '@/lib/studioStore'
 import { useStoryContext } from './StoryContextEngine'
 import { projectsApi } from '@/lib/api'
@@ -23,8 +23,9 @@ import ActivityTimeline from './ActivityTimeline'
 import { StoryBibleWatcher } from '@/lib/useStoryBible'
 
 function currentWorkspace(pathname: string, storyId: string): WorkspaceId {
-  const seg = pathname.split(`/projects/${storyId}/`)[1]?.split('/')[0]
-  return (WORKSPACES.find((w) => w.segment === seg)?.id ?? 'write')
+  // Sub-routes (Analyze's /intake and /analytics) resolve to their parent
+  // workspace, so the rail, breadcrumb and workspace memory stay truthful.
+  return workspaceForSegment(pathname.split(`/projects/${storyId}/`)[1]?.split('/')[0])
 }
 
 export default function StudioShell({ children }: { children: React.ReactNode }) {
@@ -149,15 +150,16 @@ export default function StudioShell({ children }: { children: React.ReactNode })
       {/* ── Rail + workspace content ────────────────────────────────────────── */}
       <div className="flex flex-1 overflow-hidden">
         {!railHidden && (
-          <nav className="w-16 flex-shrink-0 border-r border-[#1f2440] bg-[#0f1220] flex flex-col items-center py-2 gap-1">
+          <nav aria-label="Workspaces" className="w-16 flex-shrink-0 border-r border-[#1f2440] bg-[#0f1220] flex flex-col items-center py-2 gap-1">
             {WORKSPACES.map((w) => {
               const Icon = w.icon
               const active = w.id === ws
               return (
-                <button key={w.id} onClick={() => go(w.id)} title={w.description}
-                  className={`w-full flex flex-col items-center gap-0.5 py-2 transition-colors ${active ? 'text-amber-400' : 'text-[#5c6391] hover:text-[#9da3c8]'}`}>
+                <button key={w.id} onClick={() => go(w.id)} title={w.description} aria-label={w.label}
+                  aria-current={active ? 'page' : undefined} data-workspace={w.id}
+                  className={`w-full flex flex-col items-center gap-0.5 py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-500/70 ${active ? 'text-amber-400' : 'text-[#9da3c8] hover:text-white'}`}>
                   <span className={`relative flex items-center justify-center w-9 h-9 rounded-lg ${active ? 'bg-amber-500/10' : 'hover:bg-[#1f2440]'}`}>
-                    <Icon className="w-[18px] h-[18px]" />
+                    <Icon className="w-[18px] h-[18px]" aria-hidden="true" />
                     {active && <span className="absolute -left-2 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-amber-500 rounded" />}
                   </span>
                   <span className="text-[9px]">{w.label}</span>

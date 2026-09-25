@@ -128,8 +128,8 @@ test('P3-09: a result can be sent to the Idea Shelf and appears under Notes → 
   await page.getByRole('button', { name: 'Send to Idea Shelf' }).click()
   await page.getByRole('button', { name: 'Save idea' }).click()
   await expect(page.getByText(/Saved to the Idea Shelf/)).toBeVisible({ timeout: 15_000 })
-  await page.goto(`/projects/${STORY_ID}/plan`)
-  await page.getByRole('button', { name: /^Notes$/ }).first().click().catch(() => {})
-  await page.getByRole('button', { name: 'Ideas' }).click()
+  // Stage 8.8: the Idea Shelf's one home is World › Notes › Ideas (D10).
+  await page.goto(`/projects/${STORY_ID}/world?section=notes&tab=ideas`)
+  await expect(page.getByRole('tab', { name: 'Ideas', selected: true })).toBeVisible()
   await expect(page.getByTestId('idea-card').first()).toBeVisible({ timeout: 15_000 })
 })

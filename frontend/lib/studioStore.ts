@@ -15,6 +15,8 @@ export interface PerStoryMemory {
   lastCharacterId: string | null
   lastAnalysis: string | null
   lastNoteId: string | null
+  /** last open section per multi-section workspace (Plan, World) */
+  lastSections?: Partial<Record<WorkspaceId, string>>
 }
 
 interface LayoutState {
@@ -26,6 +28,7 @@ interface LayoutState {
   focusMode: boolean      // hides rail/binder/sidecar
   zenMode: boolean        // hides everything (paragraph focus)
   typewriter: boolean
+  searchOpen: boolean     // manuscript search & replace (session-only)
 }
 
 interface StudioState extends LayoutState {
@@ -39,6 +42,7 @@ interface StudioState extends LayoutState {
   setCharacter: (storyId: string, characterId: string | null) => void
   setAnalysis: (storyId: string, analysis: string | null) => void
   setNote: (storyId: string, noteId: string | null) => void
+  setSection: (storyId: string, ws: WorkspaceId, section: string) => void
   getStory: (storyId: string) => PerStoryMemory
 
   // layout writers
@@ -50,6 +54,7 @@ interface StudioState extends LayoutState {
   setFocusMode: (on: boolean) => void
   setZenMode: (on: boolean) => void
   toggleTypewriter: () => void
+  setSearchOpen: (open: boolean) => void
 }
 
 const DEFAULT_PER_STORY: PerStoryMemory = {
@@ -74,6 +79,7 @@ export const useStudioStore = create<StudioState>()(
       focusMode: false,
       zenMode: false,
       typewriter: false,
+      searchOpen: false,
 
       getStory: (storyId) => get().byStory[storyId] ?? DEFAULT_PER_STORY,
 
@@ -93,6 +99,13 @@ export const useStudioStore = create<StudioState>()(
       setNote: (storyId, noteId) =>
         set((s) => ({ byStory: { ...s.byStory, [storyId]: { ...DEFAULT_PER_STORY, ...s.byStory[storyId], lastNoteId: noteId } } })),
 
+      setSection: (storyId, ws, section) =>
+        set((s) => {
+          const prev = { ...DEFAULT_PER_STORY, ...s.byStory[storyId] }
+          if (prev.lastSections?.[ws] === section) return s
+          return { byStory: { ...s.byStory, [storyId]: { ...prev, lastSections: { ...prev.lastSections, [ws]: section } } } }
+        }),
+
       toggleRail: () => set((s) => ({ railCollapsed: !s.railCollapsed })),
       toggleBinder: () => set((s) => ({ binderCollapsed: !s.binderCollapsed })),
       toggleSidecar: (open) => set((s) => ({ sidecarOpen: open ?? !s.sidecarOpen })),
@@ -101,6 +114,7 @@ export const useStudioStore = create<StudioState>()(
       setFocusMode: (on) => set({ focusMode: on, zenMode: on ? false : get().zenMode }),
       setZenMode: (on) => set({ zenMode: on, focusMode: on ? false : get().focusMode }),
       toggleTypewriter: () => set((s) => ({ typewriter: !s.typewriter })),
+      setSearchOpen: (open) => set({ searchOpen: open }),
     }),
     {
       name: 'narratiq_studio',

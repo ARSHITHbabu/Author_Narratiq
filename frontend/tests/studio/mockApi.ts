@@ -1,0 +1,94 @@
+// Mocked NarratIQ API for the `studio` Playwright project.
+//
+// The studio specs exercise navigation, layout, modes and accessibility — the
+// frontend's own behaviour — so they run with NO backend: every request to the
+// build-time API origin (NEXT_PUBLIC_API_URL=http://mock-api.test) is fulfilled
+// here from synthetic fixtures. Nothing reaches a real service, and no manuscript
+// text is involved: the fixture chapters are placeholder sentences.
+
+import type { Page, Route } from '@playwright/test'
+
+export const API_ORIGIN = 'http://mock-api.test'
+export const STORY_ID = '11111111-1111-4111-8111-111111111111'
+export const CHAPTER_IDS = [
+  '22222222-2222-4222-8222-222222222201',
+  '22222222-2222-4222-8222-222222222202',
+  '22222222-2222-4222-8222-222222222203',
+]
+
+export interface MockUser { user_id: string; email: string; username: string }
+export const USER_A: MockUser = { user_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', email: 'a@example.test', username: 'author-a' }
+export const USER_B: MockUser = { user_id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', email: 'b@example.test', username: 'author-b' }
+
+const now = '2026-09-25T00:00:00Z'
+const story = {
+  story_id: STORY_ID, user_id: USER_A.user_id, title: 'Fixture Story', description: '',
+  word_count: 36, status: 'draft', created_at: now, updated_at: now,
+}
+const chapters = CHAPTER_IDS.map((id, i) => ({
+  chapter_id: id, story_id: STORY_ID, chapter_number: i + 1, title: `Chapter ${i + 1}`,
+  word_count: 12, created_at: now, updated_at: now,
+  content: `<p>Placeholder paragraph ${i + 1} for layout tests. It has a few plain words.</p>`,
+}))
+
+export interface ApiLog {
+  /** every request as "METHOD /path" */
+  calls: string[]
+  /** requests no fixture matched (served a generic empty body) */
+  unmatched: string[]
+  /** chapter save requests (PUT/PATCH of a chapter) — Reading mode must send none */
+  saves: string[]
+}
+
+type Handler = (route: Route, method: string, path: string) => Promise<boolean> | boolean
+
+function json(route: Route, body: unknown, status = 200) {
+  return route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) })
+}
+
+/** Install the mocked API on a page. Extra handlers run first, so a spec can override. */
+export async function mockApi(page: Page, extra: Handler[] = []): Promise<ApiLog> {
+  const log: ApiLog = { calls: [], unmatched: [], saves: [] }
+  await page.route(`${API_ORIGIN}/**`, async (route) => {
+    const req = route.request()
+    const method = req.method()
+    const path = new URL(req.url()).pathname
+    log.calls.push(`${method} ${path}`)
+    if (method === 'OPTIONS') return route.fulfill({ status: 204 })
+    for (const h of extra) if (await h(route, method, path)) return
+
+    // ── core story context ──────────────────────────────────────────────────
+    if (method === 'GET' && /^\/api\/projects\/?$/.test(path)) return json(route, [story])
+    if (method === 'GET' && path === `/api/projects/${STORY_ID}`) return json(route, story)
+    if (method === 'GET' && path === `/api/stories/${STORY_ID}/chapters`) return json(route, chapters.map(({ content, ...c }) => c))
+    const ch = path.match(/^\/api\/stories\/[^/]+\/chapters\/([^/]+)$/)
+    if (ch) {
+      const found = chapters.find((c) => c.chapter_id === ch[1])
+      if (found && method === 'GET') return json(route, found)
+      if (found && (method === 'PUT' || method === 'PATCH')) { log.saves.push(`${method} ${path}`); return json(route, found) }
+    }
+    if (method === 'GET' && path === `/api/stories/${STORY_ID}/characters`) return json(route, [])
+    if (method === 'GET' && path.endsWith('/genre-profile')) return json(route, null)
+
+    // Generic fallback: an empty but well-formed body. GETs of collections get [],
+    // everything else {}. Recorded so a spec can assert nothing unexpected fired.
+    log.unmatched.push(`${method} ${path}`)
+    if (method === 'GET') return json(route, /s$|list$|history$|notes$|cards$|pins$/.test(path) ? [] : {})
+    return json(route, {})
+  })
+  return log
+}
+
+/** Sign a mocked user in by seeding the same localStorage keys the app's login writes. */
+export async function signIn(page: Page, user: MockUser = USER_A) {
+  await page.addInitScript((u) => {
+    if (!localStorage.getItem('narratiq_token')) {
+      localStorage.setItem('narratiq_token', 'mock-token')
+      localStorage.setItem('narratiq_user', JSON.stringify({ ...u, created_at: '2026-09-25T00:00:00Z' }))
+    }
+  }, user)
+}
+
+export function workspaceUrl(ws: string, query = '') {
+  return `/projects/${STORY_ID}/${ws}${query ? `?${query}` : ''}`
+}

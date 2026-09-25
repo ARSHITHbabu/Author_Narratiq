@@ -5,7 +5,7 @@ import { test, expect, type APIRequestContext, type Page } from '@playwright/tes
 //
 // Executed live during Stage 6 closure (2026-09-22). Two real defects found
 // and fixed in THIS TEST (not the app):
-//   1. The tab is reached via getByRole('button', { name: 'Story Bible' })
+//   1. The tab is reached via getByRole('tab', { name: 'Story Bible' }) (a World section tab since Stage 8)
 //      (a nested sub-tab under the main workspace tabs, visible text "Story
 //      Bible") — the original getByTitle(/story bible/i) matched nothing.
 //   2. The original section-name checks (page.getByText(/characters/i) etc.
@@ -58,7 +58,7 @@ test('generating the story bible renders sections with citations', async ({ page
   // source after two wrong live guesses ("Plan", then assuming it was
   // visible with no navigation at all).
   await page.getByRole('button', { name: 'World', exact: true }).click()
-  const storyBibleTab = page.getByRole('button', { name: 'Story Bible', exact: true })
+  const storyBibleTab = page.getByRole('tab', { name: 'Story Bible', exact: true })
   await expect(storyBibleTab).toBeVisible({ timeout: 15_000 })
   await storyBibleTab.click()
 

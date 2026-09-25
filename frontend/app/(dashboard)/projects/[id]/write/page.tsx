@@ -11,6 +11,7 @@ import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 import { PenLine, Sparkles, Focus, Maximize2, AlignVerticalSpaceAround, PanelRightOpen } from 'lucide-react'
 import ChapterSidebar from '@/components/editor/ChapterSidebar'
 import EditorWithMethods, { type EditorMethods, type LiveSelection } from '@/components/editor/EditorWithMethods'
+import type { EditorSearchFunctions } from '@/components/editor/StoryEditor'
 import AISidecar from '@/components/studio/AISidecar'
 import SelectionToolbar from '@/components/studio/SelectionToolbar'
 import dynamic from 'next/dynamic'
@@ -23,6 +24,9 @@ import { isSelectionSafeTarget, selectionSafeProps } from '@/lib/selectionOwners
 // Loaded on demand — the compare dialog (Radix Dialog + diff) is not needed
 // until an author opens a comparison, so it stays out of the route's first load.
 const VersionCompareView = dynamic(() => import('@/components/generation/VersionCompareView'), { ssr: false })
+// Manuscript search & replace (its one home is Write — Stage 8.1). Floating panel,
+// loaded only when opened (⌘F / Ctrl+F, or "Search & replace" in the palette).
+const SearchPanel = dynamic(() => import('@/components/search/SearchPanel'), { ssr: false })
 
 export default function WriteWorkspace() {
   const { storyId, story, chapters, activeChapter, activeChapterId, setActiveChapter, reloadChapters, registerEditor, updateChapterWordCount } = useStoryContext()
@@ -40,6 +44,61 @@ export default function WriteWorkspace() {
   const [selection, setSelection] = useState<LiveSelection | null>(null)
   const methodsRef = useRef<EditorMethods | null>(null)
   const editorAreaRef = useRef<HTMLDivElement | null>(null)
+
+  // ── Search & replace wiring (restored from the pre-Studio editor) ──────────
+  const searchFnsRef = useRef<EditorSearchFunctions | null>(null)
+  const pendingSearchRef = useRef<{ query: string; caseSensitive: boolean; wholeWord: boolean; targetIndex: number } | null>(null)
+  const activeSearchRef = useRef<{ query: string; caseSensitive: boolean; wholeWord: boolean } | null>(null)
+  const [editorReloadKey, setEditorReloadKey] = useState(0)
+  const closeSearch = useCallback(() => {
+    store.setSearchOpen(false)
+    searchFnsRef.current?.clearSearch()
+    activeSearchRef.current = null
+  }, [store])
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f' && !e.shiftKey) {
+        e.preventDefault()
+        store.setSearchOpen(true)
+      } else if (e.key === 'Escape' && useStudioStore.getState().searchOpen) {
+        closeSearch()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [store, closeSearch])
+
+  // Leaving Write closes the panel so it does not reappear unexpectedly later.
+  useEffect(() => () => { useStudioStore.getState().setSearchOpen(false) }, [])
+
+  const handleJumpToMatch = useCallback(
+    (chapterId: string, localIndex: number, query: string, caseSensitive: boolean, wholeWord: boolean) => {
+      if (activeChapterId === chapterId) {
+        searchFnsRef.current?.applySearch(query, caseSensitive, wholeWord, localIndex)
+        pendingSearchRef.current = null
+      } else {
+        pendingSearchRef.current = { query, caseSensitive, wholeWord, targetIndex: localIndex }
+        setActiveChapter(chapterId)
+      }
+    },
+    [activeChapterId, setActiveChapter],
+  )
+
+  // After a chapter's content loads: land on a pending match, or re-apply the
+  // open query so the author sees this chapter's matches too.
+  const handleContentLoaded = useCallback(() => {
+    const fns = searchFnsRef.current
+    if (!fns) return
+    if (pendingSearchRef.current) {
+      const { query, caseSensitive, wholeWord, targetIndex } = pendingSearchRef.current
+      fns.applySearch(query, caseSensitive, wholeWord, targetIndex)
+      pendingSearchRef.current = null
+    } else if (activeSearchRef.current?.query.trim()) {
+      const { query, caseSensitive, wholeWord } = activeSearchRef.current
+      fns.applySearch(query, caseSensitive, wholeWord, -1)
+    }
+  }, [])
 
   const onMethodsReady = useCallback((m: EditorMethods) => {
     methodsRef.current = m
@@ -115,6 +174,9 @@ export default function WriteWorkspace() {
                 onWordCountChange={handleWordCountChange}
                 onMethodsReady={onMethodsReady}
                 onSelectionChange={setSelection}
+                onSearchReady={(fns) => { searchFnsRef.current = fns }}
+                onContentLoaded={handleContentLoaded}
+                reloadTrigger={editorReloadKey}
               />
             </div>
             {/* Sibling of the scroll area, not a child of it: anchored to the column
@@ -159,6 +221,16 @@ export default function WriteWorkspace() {
       {/* Phase 3 compare/merge dialog — mounted once for the workspace; opened
           from Versions or a similarity badge on either AI surface. */}
       {P3_ENABLED && compareOpen && <VersionCompareView />}
+      {store.searchOpen && activeChapterId && (
+        <SearchPanel
+          storyId={storyId}
+          activeChapterId={activeChapterId}
+          onClose={closeSearch}
+          onJumpToMatch={handleJumpToMatch}
+          onReplaceComplete={(affected) => { if (affected.includes(activeChapterId)) setEditorReloadKey((k) => k + 1) }}
+          onSearchStateChange={(state) => { activeSearchRef.current = state }}
+        />
+      )}
       {store.zenMode && (
         <button onClick={() => store.setZenMode(false)} className="fixed bottom-4 right-4 z-30 text-[11px] px-3 py-1.5 rounded-full border border-[#2e3454] bg-[#13162a] text-[#9da3c8] hover:text-white">Exit Zen (Esc)</button>
       )}

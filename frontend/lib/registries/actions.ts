@@ -11,6 +11,7 @@ export interface ActionContext {
   storyId: string
   go: (ws: WorkspaceId, params?: Record<string, string>) => void
   openSidecar: () => void
+  openSearch: () => void
   toggleFocus: () => void
   startVoice: () => void
   runAnalysis: (panelId: string) => void   // navigates to /analyze?panel=
@@ -23,9 +24,27 @@ export interface ActionDef {
   group: 'Navigate' | 'Run' | 'AI' | 'Export' | 'View'
   keywords?: string
   run: (ctx: ActionContext) => void
+  /** only offered when the Phase 3 UI is enabled */
+  phase3?: boolean
 }
 
 export const ACTIONS: ActionDef[] = [
+  // ── Deep links to a tool's one home (see toolHomes.ts) ──────────────────────
+  { id: 'nav.notes', label: 'Go to Notes', group: 'Navigate', keywords: 'notes note cards world',
+    run: (c) => c.go('world', { section: 'notes' }) },
+  { id: 'nav.ideas', label: 'Go to Idea Shelf', group: 'Navigate', keywords: 'ideas idea shelf notes', phase3: true,
+    run: (c) => c.go('world', { section: 'notes', tab: 'ideas' }) },
+  { id: 'nav.bible', label: 'Go to Story Bible', group: 'Navigate', keywords: 'story bible world lore',
+    run: (c) => c.go('world', { section: 'bible' }) },
+  { id: 'nav.ocr', label: 'Scan handwritten pages', group: 'Navigate', keywords: 'ocr scan photo handwriting',
+    run: (c) => c.go('world', { section: 'ocr' }) },
+  { id: 'nav.pacing', label: 'Go to Pacing', group: 'Navigate', keywords: 'pacing goals target words',
+    run: (c) => c.go('plan', { section: 'pacing' }) },
+  { id: 'nav.plot', label: 'Go to Plot Assistant', group: 'Navigate', keywords: 'plot assistant brainstorm',
+    run: (c) => c.go('plan', { section: 'plot' }) },
+  { id: 'nav.search', label: 'Search & replace in manuscript', group: 'Navigate', keywords: 'search find replace ctrl f',
+    run: (c) => { c.go('write'); c.openSearch() } },
+
   // ── AI ────────────────────────────────────────────────────────────────────
   { id: 'ai.sidecar', label: 'Open AI assistant', group: 'AI', keywords: 'ai sidecar assistant help',
     run: (c) => { c.go('write'); c.openSidecar() } },
