@@ -23,7 +23,7 @@ Safety (added 2026-09-22, after docs/incidents/2026-09-22-database-row-count-dis
 
 Usage:
   FIXTURE_PASSWORD=...  python3 backend/scripts/seed_fixture.py --reset
-  FIXTURE_PASSWORD=...  FIXTURE_EMAIL=other@narratiq.test python3 backend/scripts/seed_fixture.py --reset
+  FIXTURE_PASSWORD=...  FIXTURE_EMAIL=other@narratiq-internal-test.com python3 backend/scripts/seed_fixture.py --reset
 
 DATABASE_URL must point at an allow-listed test database (see db_safety_guard.py);
 this script never prints DATABASE_URL or any credential, only the bare database name.
@@ -39,7 +39,9 @@ sys.path.insert(0, str(_BACKEND_DIR / "tests"))
 
 from db_safety_guard import allowed_test_dbs, is_allowed_test_db_name, refusal_message  # noqa: E402
 
-DEFAULT_FIXTURE_EMAIL = "e2e-fixture@narratiq.test"
+# Not a reserved TLD: email-validator >=2.1 (pulled in via pydantic[email])
+# rejects special-use domains such as .test, so login would answer 422.
+DEFAULT_FIXTURE_EMAIL = "e2e-fixture@narratiq-internal-test.com"
 DEFAULT_FIXTURE_USERNAME = "e2e_fixture"
 
 

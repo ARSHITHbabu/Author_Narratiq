@@ -54,12 +54,13 @@ Everything below still needs action. Nothing here describes shipped behaviour.
 
 - [Phase 3 — Author-Centric AI Workflow & Generation Management](./phases/phase-3-planned/phase-3-author-centric-ai-workflow.md) — **the next phase to build** (Markdown is the source of truth; a [Word copy](./phases/phase-3-planned/phase-3-author-centric-ai-workflow.docx) exists for review)
 - [Phase 1 — AI Writing Tools QA Issues](./issues-and-bugs/open/phase-1-ai-writing-tools-qa-issues.docx) — author-voice preservation across the transform engine, plus a full UI/UX redesign recommendation
-- [Phase 2 — Production Testing Issues](./issues-and-bugs/open/phase-2-production-testing-issues.docx) — 14 defects, several rated High (plot holes, continuity, continuation, voice agent)
 
 ## Open issues
 
-- [Phase 1 identified issues](./issues-and-bugs/open/phase-1-ai-writing-tools-qa-issues.docx)
-- [Phase 2 identified issues](./issues-and-bugs/open/phase-2-production-testing-issues.docx)
+- [Phase 1 identified issues](./issues-and-bugs/open/phase-1-ai-writing-tools-qa-issues.docx) — per-issue Stage 9 status in [`testing/stage-09-qa-rerun-results.md`](./testing/stage-09-qa-rerun-results.md)
+- [OCR image-to-text failure](./issues-and-bugs/ocr-extraction-got-ocr2-dynamiccache-failure.md) — High
+
+Resolved: [Phase 2 identified issues](./issues-and-bugs/resolved/phase-2-production-testing-issues.docx) — all 14 fixed and re-verified 2026-09-27.
 
 Also see the **Known Issues** summary in the [root README](../README.md#known-issues).
 

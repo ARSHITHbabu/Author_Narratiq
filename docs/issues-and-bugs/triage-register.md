@@ -30,12 +30,14 @@ items are genuinely product-sensitive and were brought to the product owner rath
 | Phase 1 — AI Writing Tools | 48 | 0 | 48 | 0 | 0 |
 | Phase 1 — Plot Assistant | 16 | 0 | 14 | 2 | 0 |
 | Phase 1 — AI Suggestions | 16 | 0 | 11 | 5 | 0 |
-| Phase 1 — Cast Generation & Character Mgmt | 14 | 3 | 8 | 3 | 0 |
+| Phase 1 — Cast Generation & Character Mgmt | 14 | 3 | 7 | 4 | 0 |
 | Phase 1 — Story Audit | 15 | 0 | 10 | 5 | 0 |
 | Phase 1 — Writing Analytics | 6 | 0 | 0 | 6 | 0 |
 | Phase 1 — Search (2 sub-reports, merged) | 21 raw → 14 unique | 0 | 9 | 5 | 0 |
 | Phase 1 — Editor UI / Author Workspace | 18 | 0 | 15 | 3 | 0 |
-| **Total (unique defects)** | **161** *(168 raw, 7 removed as Search duplicates)* | **17** | **115** | **29** | **0** |
+| **Total (unique defects)** | **161** *(168 raw, 7 removed as Search duplicates)* | **17** | **114** | **30** | **0** |
+
+*2026-09-27 (Stage 9 task 9.2) — summary corrected: the Cast row read 8 release-blocking / 3 post-launch, but the Cast table below lists 7 (C3, C4, H6–H10) and 4 (M11–M14). Totals corrected from 115 / 29 to 114 / 30. No issue's own classification changed.*
 
 Merge note: the Search module has two sub-reports (9 + 12 = 21 raw issues) that substantially restate
 the same underlying defects. 7 issues in Report 1 are near-duplicates of Report 2 and are recorded
@@ -45,22 +47,29 @@ below as cross-references, not counted twice.
 
 ## Phase 2 — Production Testing (all 14 — all Resolved)
 
-| ID | Title | Severity | Classification | Checklist task | Closed |
-|---|---|---|---|---|---|
-| P2-1 | Selection toolbar doesn't dismiss, blocks controls | Medium–High | Resolved | 3.8 | 2026-07-26 |
-| P2-2 | Plot hole detection fails on invalid AI output | High | Resolved | 3.4 | 2026-07-26 |
-| P2-3 | Writing analytics page not scrollable | Medium | Resolved | 3.9 | 2026-07-26 |
-| P2-4 | Voice agent doesn't execute recognized actions | High | Resolved | 3.6 | 2026-07-26 |
-| P2-5 | Voice agent reports success without verifying completion | High | Resolved | 3.7 | 2026-07-26 |
-| P2-6 | OCR module shows no upload interface | High | Resolved | 3.10 | 2026-07-26 |
-| P2-7 | Notes module loads inconsistently | Medium–High | Resolved | 3.11 | 2026-07-26 |
-| P2-8 | Story Bible hallucinates content outside the manuscript | Critical | Resolved | 3.2, 3.3 | 2026-07-26 |
-| P2-9 | Character recognition not synced with added profiles | Medium–High | Resolved | 3.12 | 2026-07-26 |
-| P2-10 | Notes/Threads duplicated across navigation | Medium | Resolved (Stage 8, branch `claude/stage-8-studio-workspaces`, not yet on `main`) | 8.8 | 2026-09-25 |
-| P2-11 | Floating toolbar appears when AI sidebar is open | Medium | Resolved | 3.8 | 2026-07-26 |
-| P2-12 | Scene outline generation produces nothing | High | Resolved | 3.1 | 2026-07-24 |
-| P2-13 | Chapter continuation generation fails | High | Resolved | 3.1 | 2026-07-24 |
-| P2-14 | Continuity analysis not functional | High | Resolved | 3.4 | 2026-07-26 |
+| ID | Title | Severity | Classification | Checklist task | Closed | Fixing commit | Stage 9 re-run (2026-09-27) |
+|---|---|---|---|---|---|---|---|
+| P2-1 | Selection toolbar doesn't dismiss, blocks controls | Medium–High | Resolved | 3.8 | 2026-07-26 | `52fe407` | PASS — `selection-toolbar.spec.ts` 17/17 live; test 9 ×10 |
+| P2-2 | Plot hole detection fails on invalid AI output | High | Resolved | 3.4 | 2026-07-26 | `ba822c3` | PASS — `test_extract_json_audit.py` (backend suite) |
+| P2-3 | Writing analytics page not scrollable | Medium | Resolved | 3.9 | 2026-07-26 | `52fe407` | PASS — `analytics-scroll.spec.ts` 9/9 live |
+| P2-4 | Voice agent doesn't execute recognized actions | High | Resolved | 3.6 | 2026-07-26 | `ba822c3` | PASS — `test_voice_execution.py`; `voice-agent-action.spec.ts` 1/1 live |
+| P2-5 | Voice agent reports success without verifying completion | High | Resolved | 3.7 | 2026-07-26 | `ba822c3` | PASS — `test_voice_execution.py`, `test_voice_unit.py` |
+| P2-6 | OCR module shows no upload interface | High | Resolved | 3.10 | 2026-07-26 | `52fe407` | PASS — `ocr-panel.spec.ts` 5/5 live |
+| P2-7 | Notes module loads inconsistently | Medium–High | Resolved | 3.11 | 2026-07-26 | `52fe407` | PASS — `notes-reliability.spec.ts` 13/13 live |
+| P2-8 | Story Bible hallucinates content outside the manuscript | Critical | Resolved | 3.2, 3.3 | 2026-07-26 | `ba822c3` | PASS — `test_story_bible_outcomes.py`, `test_story_bible_quality.py`; `story-bible-generation.spec.ts` live |
+| P2-9 | Character recognition not synced with added profiles | Medium–High | Resolved | 3.12 | 2026-07-26 | `52fe407` | PASS — `test_character_hint_sync.py`, `test_cast_hint_sync_integration.py`; `character-hint-sync.spec.ts` 3/3 live |
+| P2-10 | Notes/Threads duplicated across navigation | Medium | Resolved (Stage 8; on `main` since the PR #5 merge, `6debfe2`) | 8.8 | 2026-09-25 | `99bd8e0` | PASS — `tool-homes.spec.ts`, `studio/navigation.spec.ts` |
+| P2-11 | Floating toolbar appears when AI sidebar is open | Medium | Resolved | 3.8 | 2026-07-26 | `52fe407` | PASS — `selection-toolbar.spec.ts` (with P2-1) |
+| P2-12 | Scene outline generation produces nothing | High | Resolved | 3.1 | 2026-07-24 | `cb0144a` | PASS — `test_generation_limits.py` |
+| P2-13 | Chapter continuation generation fails | High | Resolved | 3.1 | 2026-07-24 | `cb0144a` | PASS — `test_generation_limits.py` |
+| P2-14 | Continuity analysis not functional | High | Resolved | 3.4 | 2026-07-26 | `ba822c3`, `105d8ae` | PASS — `test_extract_json_audit.py`, `test_continuity_citation_validation.py` |
+
+**Stage 9 re-run (task 9.2, 2026-09-27):** all 14 Phase 2 issues re-verified on pod `6uavswo19trx9n`
+(backend suite on `narratiq_test`; live browser specs against an isolated stack bound to the same test
+database). Evidence per row above; full logs and counts in `docs/testing/stage-09-qa-rerun-results.md`.
+The report was moved to `resolved/` (task 9.7). "Fixing commit" is the commit that added the regression
+test that proves the fix — the Stage 3 commits are coarse (`cb0144a` 3.1, `ba822c3` to 3.7, `52fe407` to
+end of Stage 3), so they bound the fix rather than isolate it.
 
 **Note on P2-10 (updated 2026-09-25, Stage 8 task 8.8):** fixed. Notes, note cards and the Idea
 Shelf now live only in World → Notes; Narrative Threads lives only in Analyze. The one remaining

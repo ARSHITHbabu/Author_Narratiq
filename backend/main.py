@@ -426,10 +426,34 @@ async def upload_too_large_handler(request: Request, exc: UploadTooLargeError) -
     )
 
 
+# Stage 9 (S1): cap upload bodies while they stream in, before multipart
+# parsing. Added BEFORE CORSMiddleware so CORS still wraps the 413 response.
+from middleware.body_limit import UploadBodyLimitMiddleware
+app.add_middleware(
+    UploadBodyLimitMiddleware,
+    rules=[
+        ("POST", r"/api/ocr/extract/[^/]+",       lambda: settings.max_ocr_upload_mb),
+        ("POST", r"/api/manuscript/upload/[^/]+", lambda: settings.max_manuscript_upload_mb),
+        ("POST", r"/api/stories/[^/]+/audio",     lambda: settings.max_audio_upload_mb),
+        ("POST", r"/api/voice/transcribe",        lambda: settings.max_voice_audio_mb),
+    ],
+)
+
+
+def _runpod_origin_regex() -> str | None:
+    """Stage 9 (S2): trust only THIS pod's proxy hosts, not every RunPod pod.
+    Previously `https://.*\\.proxy\\.runpod\\.net` admitted any tenant's pod."""
+    import re as _re
+    pod_id = (os.environ.get("RUNPOD_POD_ID") or "").strip()
+    if not pod_id or pod_id == "local":
+        return None
+    return rf"https://{_re.escape(pod_id)}-\d+\.proxy\.runpod\.net"
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
-    allow_origin_regex=r"https://.*\.proxy\.runpod\.net",
+    allow_origin_regex=_runpod_origin_regex(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

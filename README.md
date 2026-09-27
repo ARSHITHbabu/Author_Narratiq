@@ -224,7 +224,8 @@ Full interactive documentation at `/docs`.
 
 Tracked in [`docs/issues-and-bugs/open/`](docs/issues-and-bugs/) — see
 [Phase 1 QA issues](docs/issues-and-bugs/open/phase-1-ai-writing-tools-qa-issues.docx) and
-[Phase 2 production testing issues](docs/issues-and-bugs/open/phase-2-production-testing-issues.docx).
+[Phase 2 production testing issues](docs/issues-and-bugs/resolved/phase-2-production-testing-issues.docx)
+(all 14 resolved and re-verified 2026-09-27).
 (A code-level audit, `NarratIQ_Project_Recovery_Report.docx`, is referenced by older documents but is
 not present in this repository.) Highest priority:
 

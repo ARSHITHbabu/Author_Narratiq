@@ -274,7 +274,9 @@ async def translate(request: Request, data: TranslationRequest, current_user: Us
 
 @router.post("/translate/stream")
 @limiter.limit(settings.rate_limit_realtime_ai, key_func=get_user_id)
-async def translate_stream(request: Request, data: TranslationRequest, current_user: User = Depends(get_current_user)):
+async def translate_stream(request: Request, data: TranslationRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    # Stage 9: a supplied story_id must be the caller's (C7-6), as on /translate.
+    _owned_story_id(data.story_id, current_user, db)
     return _sse_stream(ai_service.stream_translate(data.text, data.target_language, data.source_language or "en"))
 
 

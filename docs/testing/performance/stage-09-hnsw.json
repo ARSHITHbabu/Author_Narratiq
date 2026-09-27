@@ -1,0 +1,30 @@
+{
+  "stories": 100,
+  "chunks_per_story": 580,
+  "k": 8,
+  "total_indexed_chunks": 57440,
+  "build_seconds": 556.6,
+  "ef_search": "40",
+  "iterative_scan": "off",
+  "plan": [
+    "Limit  (cost=2131.87..2131.89 rows=8 width=45)",
+    "  ->  Sort  (cost=2131.87..2133.30 rows=572 width=45)",
+    "  ->  Seq Scan on chapter_chunks (filter: embedding IS NOT NULL AND story_id = \u2026) \u2014 vector literal elided"
+  ],
+  "large_story": {
+    "chunks": 580,
+    "p50_ms": 7.92,
+    "p95_ms": 8.4,
+    "min_rows_returned": 8,
+    "mean_rows_returned": 8,
+    "mean_recall_at_k": 1.0
+  },
+  "small_story": {
+    "chunks": 20,
+    "p50_ms": 7.03,
+    "p95_ms": 7.56,
+    "min_rows_returned": 8,
+    "mean_rows_returned": 8,
+    "mean_recall_at_k": 1.0
+  }
+}

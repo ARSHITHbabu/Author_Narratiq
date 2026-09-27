@@ -346,8 +346,10 @@ def mark_suggestion_used(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    # Stage 9 (I3): scoped to the caller — another user's session is 404.
     session = db.query(PlotAssistantSession).filter(
-        PlotAssistantSession.session_id == session_id
+        PlotAssistantSession.session_id == session_id,
+        PlotAssistantSession.user_id == current_user.user_id,
     ).first()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")

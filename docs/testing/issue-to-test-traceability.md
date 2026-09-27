@@ -52,7 +52,7 @@ is a reasonable, explicitly-flagged follow-up, not silently dropped.
 | P2-7 | Notes module loads inconsistently | 3.11 | `frontend/tests/browser/notes-reliability.spec.ts` | Reliability assertions failing |
 | P2-8 | Story Bible hallucinates content outside the manuscript | 3.2, 3.3 | `test_story_bible_outcomes.py` (89 tests), `test_story_bible_quality.py` | Grounding/citation assertions failing |
 | P2-9 | Character recognition not synced with added profiles | 3.12 | `test_character_hint_sync.py`, `test_cast_hint_sync_integration.py` | Sync assertions failing |
-| P2-10 | Notes/Threads duplicated across navigation | 8.8 | **None yet — not fixed.** Correctly still open; tracked at task 8.8, not here | N/A until fixed |
+| P2-10 | Notes/Threads duplicated across navigation | 8.8 | `frontend/tests/tool-homes.spec.ts` ("Notes and Narrative Threads are no longer duplicated"), `frontend/tests/studio/navigation.spec.ts` — *updated 2026-09-27 (Stage 9 task 9.2); fixed in Stage 8, on `main` since PR #5* | A tool registered in two workspace homes |
 | P2-11 | Floating toolbar appears when AI sidebar is open | 3.8 | `frontend/tests/browser/selection-toolbar.spec.ts` | Same suite as P2-1 |
 | P2-12 | Scene outline generation produces nothing | 3.1 | `test_generation_limits.py` (schema-mismatch regression — the `beats`/`outline` field bug) | Schema-contract assertion failing |
 | P2-13 | Chapter continuation generation fails | 3.1 | `test_generation_limits.py` (token-budget regression) | Token-budget assertion failing |

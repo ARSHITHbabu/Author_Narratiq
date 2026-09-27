@@ -72,6 +72,19 @@ async def interpret(db, user, transcript: str, context, session_id: str | None =
     timings = {"stt_ms": 0, "llm_ms": 0, "route_ms": 0, "exec_ms": 0}
     story_id = getattr(context, "story_id", None)
 
+    # Stage 9 (I5): the client-supplied context is untrusted. A story that is
+    # not the caller's is the same 404 as a missing one (services/ownership.py),
+    # and a chapter id must belong to that owned story — otherwise another
+    # author's names or chapter text could reach vocabulary, clarification or
+    # the prompt. A chapter id with no story cannot be checked, so it is unused.
+    from services.ownership import owned_story_or_none, owned_chapter
+    owned_story_or_none(story_id, user.user_id, db)
+    if getattr(context, "chapter_id", None):
+        if story_id:
+            owned_chapter(context.chapter_id, story_id, user.user_id, db)
+        else:
+            context.chapter_id = None
+
     session = _get_or_create_session(db, user.user_id, story_id, session_id)
     memory = VoiceSessionContextManager.load(session.session_id, db)
     command_id = str(uuid.uuid4())

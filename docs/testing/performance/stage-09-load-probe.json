@@ -1,0 +1,278 @@
+{
+  "started": "2026-09-27T18:24:53.568188Z",
+  "base": "http://127.0.0.1:8100",
+  "bg_ai_concurrency": 3,
+  "embedding_concurrency": 2,
+  "single": {
+    "_indexing": {
+      "chapters": 6,
+      "ok": true,
+      "seconds": 67.2
+    },
+    "refine": {
+      "n": 5,
+      "p50_ms": 6421,
+      "p95_ms": 9702,
+      "min_ms": 2504,
+      "max_ms": 9702,
+      "status_codes": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ]
+    },
+    "tone": {
+      "n": 5,
+      "p50_ms": 737,
+      "p95_ms": 762,
+      "min_ms": 736,
+      "max_ms": 762,
+      "status_codes": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ]
+    },
+    "emotion": {
+      "n": 5,
+      "p50_ms": 3188,
+      "p95_ms": 3460,
+      "min_ms": 3035,
+      "max_ms": 3460,
+      "status_codes": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ]
+    },
+    "age-adapt": {
+      "n": 5,
+      "p50_ms": 3081,
+      "p95_ms": 3107,
+      "min_ms": 3035,
+      "max_ms": 3107,
+      "status_codes": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ]
+    },
+    "style": {
+      "n": 5,
+      "p50_ms": 954,
+      "p95_ms": 956,
+      "min_ms": 950,
+      "max_ms": 956,
+      "status_codes": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ]
+    },
+    "author-style": {
+      "n": 5,
+      "p50_ms": 3899,
+      "p95_ms": 4459,
+      "min_ms": 3598,
+      "max_ms": 4459,
+      "status_codes": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ]
+    },
+    "translate": {
+      "n": 5,
+      "p50_ms": 3298,
+      "p95_ms": 3345,
+      "min_ms": 3276,
+      "max_ms": 3345,
+      "status_codes": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ]
+    },
+    "suggestions": {
+      "n": 5,
+      "p50_ms": 5329,
+      "p95_ms": 5402,
+      "min_ms": 5205,
+      "max_ms": 5402,
+      "status_codes": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ]
+    },
+    "plot-assistant": {
+      "n": 5,
+      "p50_ms": 1664,
+      "p95_ms": 2229,
+      "min_ms": 1561,
+      "max_ms": 2229,
+      "status_codes": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ]
+    },
+    "continue": {
+      "n": 5,
+      "p50_ms": 14372,
+      "p95_ms": 16474,
+      "min_ms": 13949,
+      "max_ms": 16474,
+      "status_codes": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ]
+    },
+    "outline": {
+      "n": 5,
+      "p50_ms": 7586,
+      "p95_ms": 8156,
+      "min_ms": 7394,
+      "max_ms": 8156,
+      "status_codes": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ]
+    },
+    "semantic-search": {
+      "n": 5,
+      "p50_ms": 230,
+      "p95_ms": 247,
+      "min_ms": 224,
+      "max_ms": 247,
+      "status_codes": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ]
+    },
+    "continuity": {
+      "n": 5,
+      "p50_ms": 3140,
+      "p95_ms": 3260,
+      "min_ms": 2969,
+      "max_ms": 3260,
+      "status_codes": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ]
+    },
+    "plot-holes": {
+      "n": 5,
+      "p50_ms": 3257,
+      "p95_ms": 3348,
+      "min_ms": 3237,
+      "max_ms": 3348,
+      "status_codes": [
+        200,
+        200,
+        200,
+        200,
+        200
+      ]
+    }
+  },
+  "background_story_bible": {
+    "1": {
+      "accepted": 1,
+      "finished": 1,
+      "statuses": [
+        "completed"
+      ],
+      "completion_s": [
+        67.7
+      ],
+      "start_codes": [
+        200
+      ]
+    },
+    "3": {
+      "accepted": 3,
+      "finished": 3,
+      "statuses": [
+        "completed",
+        "completed",
+        "completed"
+      ],
+      "completion_s": [
+        53.2,
+        55.2,
+        57.2
+      ],
+      "start_codes": [
+        200,
+        200,
+        200
+      ]
+    },
+    "6": {
+      "accepted": 6,
+      "finished": 6,
+      "statuses": [
+        "completed",
+        "completed",
+        "completed",
+        "completed",
+        "completed",
+        "completed"
+      ],
+      "completion_s": [
+        44.3,
+        48.4,
+        50.5,
+        77.0,
+        83.1,
+        83.1
+      ],
+      "start_codes": [
+        200,
+        200,
+        200,
+        200,
+        200,
+        200
+      ]
+    }
+  },
+  "vllm_queue": {
+    "samples": 1668,
+    "max_waiting": 0.0,
+    "max_running": 3.0,
+    "mean_waiting": 0.0
+  },
+  "finished": "2026-09-27T18:40:31.455795Z"
+}

@@ -40,6 +40,15 @@ def _check_story_access(story_id: str, user_id: str, db: Session) -> Story:
     return story
 
 
+def _check_chapter_in_story(chapter_id: str, story_id: str, db: Session) -> Chapter:
+    """Stage 9 (I4): the chapter must belong to the (already owner-checked)
+    story, so an owned story_id cannot be paired with a foreign chapter_id."""
+    chapter = db.query(Chapter).filter(Chapter.chapter_id == chapter_id, Chapter.story_id == story_id).first()
+    if not chapter:
+        raise HTTPException(status_code=404, detail="Chapter not found")
+    return chapter
+
+
 @router.get("/{story_id}/chapters", response_model=list[ChapterOut])
 def list_chapters(story_id: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     _check_story_access(story_id, current_user.user_id, db)
@@ -199,6 +208,7 @@ def delete_chapter(story_id: str, chapter_id: str, current_user: User = Depends(
 @router.get("/{story_id}/chapters/{chapter_id}/versions", response_model=list[VersionOut])
 def list_versions(story_id: str, chapter_id: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     _check_story_access(story_id, current_user.user_id, db)
+    _check_chapter_in_story(chapter_id, story_id, db)
     return (
         db.query(StoryVersion)
         .filter(StoryVersion.chapter_id == chapter_id)
@@ -210,6 +220,7 @@ def list_versions(story_id: str, chapter_id: str, current_user: User = Depends(g
 @router.get("/{story_id}/chapters/{chapter_id}/versions/{version_id}", response_model=VersionWithContent)
 def get_version(story_id: str, chapter_id: str, version_id: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     _check_story_access(story_id, current_user.user_id, db)
+    _check_chapter_in_story(chapter_id, story_id, db)
     version = db.query(StoryVersion).filter(StoryVersion.version_id == version_id, StoryVersion.chapter_id == chapter_id).first()
     if not version:
         raise HTTPException(status_code=404, detail="Version not found")

@@ -1,0 +1,8 @@
+[concurrent:tone] c=1 {'n': 1, 'p50_ms': 722, 'p95_ms': 722, 'min_ms': 722, 'max_ms': 722, 'wall_ms': 722, 'errors': []}
+[concurrent:tone] c=3 {'n': 3, 'p50_ms': 771, 'p95_ms': 774, 'min_ms': 746, 'max_ms': 774, 'wall_ms': 774, 'errors': []}
+[concurrent:tone] c=6 {'n': 6, 'p50_ms': 840, 'p95_ms': 842, 'min_ms': 750, 'max_ms': 842, 'wall_ms': 844, 'errors': []}
+[concurrent:tone] c=10 {'n': 10, 'p50_ms': 884, 'p95_ms': 918, 'min_ms': 781, 'max_ms': 918, 'wall_ms': 921, 'errors': []}
+[concurrent:plot-assistant] c=1 {'n': 1, 'p50_ms': 1416, 'p95_ms': 1416, 'min_ms': 1416, 'max_ms': 1416, 'wall_ms': 1417, 'errors': []}
+[concurrent:plot-assistant] c=3 {'n': 3, 'p50_ms': 2447, 'p95_ms': 2569, 'min_ms': 2200, 'max_ms': 2569, 'wall_ms': 2570, 'errors': []}
+[concurrent:plot-assistant] c=6 {'n': 6, 'p50_ms': 4210, 'p95_ms': 4529, 'min_ms': 3840, 'max_ms': 4529, 'wall_ms': 4531, 'errors': []}
+[concurrent:plot-assistant] c=10 {'n': 10, 'p50_ms': 6773, 'p95_ms': 7381, 'min_ms': 6041, 'max_ms': 7381, 'wall_ms': 7384, 'errors': []}

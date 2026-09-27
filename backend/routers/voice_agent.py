@@ -472,7 +472,8 @@ async def voice_stream(websocket: WebSocket):
             stt.cleanup()
         if session_id and db:
             try:
-                sess = db.query(VoiceSession).filter(VoiceSession.session_id == session_id).first()
+                sess = db.query(VoiceSession).filter(VoiceSession.session_id == session_id,
+                                                     VoiceSession.user_id == user.user_id).first()
                 if sess and sess.status == "active":
                     sess.status = "completed"
                     sess.ended_at = datetime.utcnow()

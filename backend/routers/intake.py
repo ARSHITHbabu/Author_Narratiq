@@ -11,6 +11,7 @@ from middleware.rate_limit import limiter, get_user_id
 from models import Story, StoryIntake, GenreProfile
 from schemas import IntakeRequest, IntakeResponse, IntakeConfirm, GenreProfile as GenreProfileSchema
 from routers.auth import get_current_user, User
+from services.ownership import owned_story
 from services.ai_service import detect_genre
 from exceptions import AIServiceUnavailableError
 
@@ -113,6 +114,9 @@ def confirm_intake(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    # Stage 9 (I2): the story must belong to the caller before its intake is
+    # read, its genre profile written, or analysis passes scheduled.
+    owned_story(story_id, current_user.user_id, db)
     intake = db.query(StoryIntake).filter(
         StoryIntake.intake_id == data.intake_id,
         StoryIntake.story_id  == story_id,
@@ -178,6 +182,8 @@ def get_genre_profile(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    # Stage 9 (I1): foreign and unknown stories are both 404.
+    owned_story(story_id, current_user.user_id, db)
     gp = db.query(GenreProfile).filter(GenreProfile.story_id == story_id).first()
     if not gp:
         return None

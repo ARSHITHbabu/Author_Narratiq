@@ -21,7 +21,7 @@ was written. Use this mapping when following a reference out of an archived docu
 | `RUNPOD_DEPLOYMENT.md` | [`docs/operations/runpod-deployment.md`](../operations/runpod-deployment.md) |
 | `docs/RUNPOD_ENVIRONMENT_VARIABLE_RECOVERY.md` | [`docs/operations/runpod-environment-variables.md`](../operations/runpod-environment-variables.md) |
 | `issues_i_found_phase1.docx` | [`docs/issues-and-bugs/open/phase-1-ai-writing-tools-qa-issues.docx`](../issues-and-bugs/open/phase-1-ai-writing-tools-qa-issues.docx) |
-| `issues_i_found_phase2.docx` | [`docs/issues-and-bugs/open/phase-2-production-testing-issues.docx`](../issues-and-bugs/open/phase-2-production-testing-issues.docx) |
+| `issues_i_found_phase2.docx` | [`docs/issues-and-bugs/resolved/phase-2-production-testing-issues.docx`](../issues-and-bugs/resolved/phase-2-production-testing-issues.docx) |
 | `NarratIQ_AI_Production_Implementation_Report.docx` | [`docs/phases/phase-1-completed/phase-1-production-implementation-report.docx`](../phases/phase-1-completed/phase-1-production-implementation-report.docx) |
 | `NarratIQ_AI_Documentation_v3_Phase1_Status_Update.docx` | [`docs/phases/phase-1-completed/phase-1-status-update.docx`](../phases/phase-1-completed/phase-1-status-update.docx) |
 | `NarratIQ_AI_Phase2_Intelligence_Expansion_Roadmap.docx` | [`docs/phases/phase-2-completed/phase-2-intelligence-expansion-roadmap.docx`](../phases/phase-2-completed/phase-2-intelligence-expansion-roadmap.docx) |

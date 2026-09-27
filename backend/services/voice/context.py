@@ -63,7 +63,9 @@ def build_bundle(context, memory, db) -> ContextBundle:
         b.used.append(f"chapter {b.chapter_number}" if b.chapter_number else "current chapter")
     elif b.chapter_id:
         from models import Chapter
-        ch = db.query(Chapter).filter(Chapter.chapter_id == b.chapter_id).first()
+        # Stage 9 (I5): never load a chapter outside the bound story.
+        ch = db.query(Chapter).filter(Chapter.chapter_id == b.chapter_id,
+                                      Chapter.story_id == b.story_id).first()
         if ch and ch.content:
             b.chapter_text = _strip_html(ch.content)
             b.used.append(f"chapter {ch.chapter_number} (saved)")

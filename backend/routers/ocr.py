@@ -268,11 +268,14 @@ async def confirm_ocr(
         )
 
     # ── Fetch upload and authorise ────────────────────────────────────────────
-    upload = db.query(OcrUpload).filter(OcrUpload.upload_id == data.upload_id).first()
+    # Stage 9 (I6): scoped in the query — a foreign upload is the same 404 as
+    # a missing one, so the response never confirms that an id exists.
+    upload = db.query(OcrUpload).filter(
+        OcrUpload.upload_id == data.upload_id,
+        OcrUpload.user_id == current_user.user_id,
+    ).first()
     if not upload:
         raise HTTPException(status_code=404, detail="Upload not found")
-    if upload.user_id != current_user.user_id:
-        raise HTTPException(status_code=403, detail="Not authorised to confirm this upload")
 
     # BUG-2: idempotency guard — each upload may only be confirmed once.
     # A second call with the same upload_id would otherwise produce duplicate
@@ -309,7 +312,7 @@ async def confirm_ocr(
             Story.user_id == current_user.user_id,
         ).first()
         if not story:
-            raise HTTPException(status_code=403, detail="Not authorised to modify this chapter")
+            raise HTTPException(status_code=404, detail="Chapter not found")
 
         # Save a version snapshot before appending
         last_ver = (
@@ -567,11 +570,11 @@ async def update_story_note(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    note = db.query(StoryNote).filter(StoryNote.note_id == note_id).first()
+    note = db.query(StoryNote).filter(
+        StoryNote.note_id == note_id, StoryNote.user_id == current_user.user_id,
+    ).first()
     if not note:
         raise HTTPException(status_code=404, detail="Note not found")
-    if note.user_id != current_user.user_id:
-        raise HTTPException(status_code=403, detail="Not authorised to edit this note")
     if data.title is not None:
         note.title = data.title
     content_changed = data.content is not None
@@ -591,11 +594,11 @@ def delete_story_note(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    note = db.query(StoryNote).filter(StoryNote.note_id == note_id).first()
+    note = db.query(StoryNote).filter(
+        StoryNote.note_id == note_id, StoryNote.user_id == current_user.user_id,
+    ).first()
     if not note:
         raise HTTPException(status_code=404, detail="Note not found")
-    if note.user_id != current_user.user_id:
-        raise HTTPException(status_code=403, detail="Not authorised to delete this note")
     db.delete(note)
     db.commit()
     return Response(status_code=204)

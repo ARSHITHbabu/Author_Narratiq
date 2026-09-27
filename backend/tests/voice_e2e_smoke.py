@@ -22,7 +22,7 @@ from services.ai_service import get_bge
 from services.voice.catalog import build_catalog_embeddings
 from services.voice import agent as voice_agent
 
-TEST_EMAIL = "voice-e2e@narratiq.test"
+TEST_EMAIL = "voice-e2e@narratiq-internal-test.com"  # .test is rejected by email-validator >=2.1
 
 
 def purge(db, user):

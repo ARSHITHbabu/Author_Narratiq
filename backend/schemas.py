@@ -466,7 +466,9 @@ class AuthorStyleRequest(BaseModel):
     story_id: Optional[str] = None
     chapter_id: Optional[str] = None
     text: str
-    author: str
+    # Stage 9: catalog keys are short; bound adversarial input (it is never
+    # placed in a prompt — see ai_service._resolve_author_style).
+    author: str = Field(..., max_length=100)
 
 
 class AuthorStyleOption(BaseModel):

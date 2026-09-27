@@ -43,16 +43,16 @@ Repository verification during checklist construction changed three things. Each
 | 1 — Backup and RunPod Infrastructure | 9 | 5 | 4 | 0 | **Complete\*** |
 | 2 — Environment and Service Verification | 6 | 4 | 2 | 0 | Implemented — **gate open**‡ |
 | 3 — Phase 2 Production Defect Resolution | 13 | 13 | 0 | 0 | **Complete** |
-| 4 — Phase 1 Retrieval and Data Correctness | 16 | 16 | 0 | 0 | **Complete** |
+| 4 — Phase 1 Retrieval and Data Correctness | 16 | 14 | 2 | 0 | **Gate reopened**¶ |
 | 5 — Phase 1 AI Generation Quality | 16 | 15 | 1 | 0 | Implemented — **gate open**\*\* |
 | 6 — Test Automation and CI | 7 | 3 | 4 | 0 | **Complete\*\*\*** (CI deferred by decision) |
 | 7 — Phase 3 Implementation | 15 | 10 | 5 | 0 | Implemented — **gate open**† |
-| 8 — Editor UI and Workspace Redesign | 11 | 5 | 6 | 0 | Implemented — **gate open**§ |
-| 9 — Full Regression Testing and UAT | 7 | 0 | 7 | 0 | Not Started |
+| 8 — Editor UI and Workspace Redesign | 11 | 6 | 5 | 0 | Implemented — **gate open**§ |
+| 9 — Full Regression Testing and UAT | 7 | 0 | 7 | 0 | Implemented — **gate open**◊ |
 | 10 — Production Readiness | 9 | 0 | 9 | 0 | Not Started |
 | 11 — Documentation Reconciliation | 9 | 0 | 9 | 0 | Not Started |
 | 12 — Release Validation | 3 | 0 | 3 | 0 | Not Started |
-| **Total** | **131** | **81** | **50** | **0** | **In Progress** |
+| **Total** | **131** | **80** | **51** | **0** | **In Progress** |
 
 > The stage table counts **main tasks**. Stage 1 shows 0 completed because task 1.1 is still open — six of its seven subtasks are done; the seventh, the off-pod copy, is deferred. The counts below track actionable checkboxes and are the authoritative progress measure. *(2026-09-21 — superseded for Stage 1: task 1.1 is now complete, the off-pod copy having actually been done. See the `*` below.)*
 >
@@ -68,7 +68,11 @@ Repository verification during checklist construction changed three things. Each
 >
 > **†Stage 7 (2026-09-25) — implemented and accepted by the author (APPROVE COMPLETION); gate NOT fully closed.** 10 of 15 main tasks ticked. 7.3, 7.4, 7.10, 7.12 and 7.15 are implemented and verified but held open on named items: ⌘Z single-step undo browser re-check (author manual), migration test in CI (CI deferred), Tier-2 warning-text quality, golden-set author review of voice matching, real day-8 cleanup verification, and the intermittent selection-toolbar test 9. UAT remains Stage 9. Full evidence, approved deviations and the carried-forward list are in the note under the Stage 7 Completion Gate. Nothing here is a silent gap.
 >
-> **§Stage 8 (2026-09-25) — implemented on branch `claude/stage-8-studio-workspaces`, not yet merged to `main`; gate NOT closed.** 5 of 11 main tasks ticked (8.1, 8.2, 8.7, 8.8, 8.10), verified in the cloud with a mocked-API Playwright suite. 8.3, 8.4 and 8.5 are implemented and wait on author review; 8.6 waits on a live pod browser run; 8.9 waits on a screen-reader pass (its CI item is deferred with 6.1); 8.11 needs real authors. Entered on the product owner's explicit override while the Stage 7 gate is open. Phase 2 Issue 10 is closed. See the Stage 8 section and `docs/testing/manual-verification/stage-08-manual-verification-guide.md`.
+> **◊Stage 9 (2026-09-27) — automated and mechanical work implemented and verified; gate OPEN; checklist updated on the product owner's "APPROVE CHECKLIST UPDATE ONLY" instruction.** Entered on the owner's explicit override while the Stage 2, 5, 7 and 8 gates are open (the override closes none of them). 30 Stage 9 boxes ticked, no main task complete. Open: real-author UAT (9.6, `docs/testing/stage-09-uat-guide.md`), the manuscript-upload UI gap, latency-target approval, the security threshold (dependency advisories and the prompt-injection finding await decisions), CI items (deferred with 6.1), the Phase 1 post-launch acceptances. Evidence: `docs/testing/stage-09-regression-results.md`, `stage-09-qa-rerun-results.md`, `stage-09-security-findings.md`, `performance-baselines.md`.
+>
+> **¶Stage 4 (2026-09-27) — gate reopened by the Stage 9 reconciliation, not by new defects.** Three sub-items were ticked without the capability or evidence: 4.8 "Detect duplicate character records" (never built), and 4.9's description-consistency and mention-classification items. They, parents 4.8 and 4.9, the gate's Cast line and Gate 3a are now unticked. Three other Stage 4 boxes kept their ticks with corrected evidence (4.3, 4.5, 4.6 — new Stage 9 tests). Decisions needed: CAST-C4 (does manual merge close it?), CAST-H9, CAST-H10.
+>
+> **§Stage 8 (2026-09-25; updated 2026-09-27) — implemented and merged to `main` (PR #5, `6debfe2`); gate NOT closed.** 6 of 11 main tasks ticked (8.1, 8.2, 8.6, 8.7, 8.8, 8.10 — 8.6 closed 2026-09-27 by the Stage 9 live browser run), verified in the cloud with a mocked-API Playwright suite. 8.3, 8.4 and 8.5 are implemented and wait on author review; 8.9 waits on a screen-reader pass (its CI item is deferred with 6.1); 8.11 needs real authors. Entered on the product owner's explicit override while the Stage 7 gate is open. Phase 2 Issue 10 is closed. See the Stage 8 section and `docs/testing/manual-verification/stage-08-manual-verification-guide.md`.
 >
 > **\*\*\*Stage 6's "Complete" label (2026-09-22), approved under an explicitly revised scope, not fully done in the stage's original sense:** 3 of 7 main tasks are ticked (6.2, 6.3, 6.6). Task 6.1 (CI pipeline) is **intentionally deferred by explicit author decision** — a working GitHub Actions setup was built, verified locally, then removed, because the project's priority right now is finishing core product features, not CI infrastructure; it will be reconsidered near final production readiness. Task 6.6 closes under an **author-approved revised acceptance criterion** (Phase 2 fully mapped + Stage 5 at task granularity; Phase 1's 147 individual issue numbers explicitly deferred as a separate future task). Tasks 6.4, 6.5 and 6.7 stay unticked as parent tasks — each is substantially done (6.4: 7/9 journeys live-verified; 6.5: 6/7 sub-items; 6.7: 4/5 sub-items) with specific, honestly-open remainders (2 real product gaps in 6.4 — manuscript-upload frontend UI missing, audio transcription justified-manual; 6.5's scheduling is N/A while CI is deferred and its deliberate-regression proof wasn't performed; 6.7's Dependabot line is GitHub-specific and deferred with 6.1). The full backend suite is verified green (499 passed, 0 failed) both before and after the CI-file removal. See the Stage 6 Completion Gate note and the delivered Stage 6 closure report for the complete evidence trail. Nothing here is a silent gap — every open item is named in the Completion Gate's "carried forward" list.
 
@@ -84,10 +88,10 @@ Repository verification during checklist construction changed three things. Each
 >
 > **One new frontend defect was discovered during the author's own manual verification, not fixed under this task:** the Logout control disappears on pointer hover before it can be clicked, so logout could not be completed or confirmed working. Recorded under task 1.8; not yet triaged into a stage — see the note there.
 
-**Total actionable checkboxes:** 1158 (2026-09-25 Stage 8, after merging `main`: unchanged; Stage 8 converted boxes only. Regex count 1158 / 786.) *Earlier note:* 1158 (2026-09-25 Stage 5 cloud pass: +8 new sub-items under the Stage 5 Completion Gate, two per live-review defect D1–D4 — the cloud-verified fix [ticked] and live pod confirmation [unticked]. Regex count of `^\s*- \[( |x)\]`: 1158 / 732.) *Earlier note:* 1150 (2026-09-25 Stage 7 update: +4 new, deliberately UNTICKED carried-forward sub-items added under 7.3, 7.10 and 7.15 so open work stays visible. Independently re-verified by direct regex count of list-item markers `^\s*- \[( |x)\]` before (1146 / 601) and after (1150 / 725) the edit.) *Earlier note:* 1146 (2026-09-21 Stage 5 closure evaluation: +3 new ticked sub-items at 5.4/5.6, recording manual author verification and the sidecar fix, over a **corrected** pre-edit base of **1143**. The previously recorded "1146 / 562" had been counted with a regex that also matched three prose mentions of the checkbox syntax on the Formula and Total lines. The true pre-edit figures were **1143 / 561**, verified by counting only list-item markers `^\s*- \[( |x)\]`.) *Earlier note, kept for traceability:* (whole-file; was 1138 before this Stage 5 pass began, 1143 after its first continuation — +8 net new sub-items total added while detailing per-task evidence across both passes; independently re-verified by direct regex count of every `- [x]`/`- [ ]` marker, per the same counting discipline used for the 1134→1135 reconciliation)
-**Currently completed:** 786 (2026-09-25 Stage 8: +54 ticked — 53 in the Stage 8 section and task 3.13's Phase 2 Issue 10 box. Regex-verified 1158 / 786 after merging `main` into the Stage 8 branch.) *Earlier note:* 732 (2026-09-25 Stage 5 cloud pass: +4 ticked, the four D1–D4 "root cause fixed" sub-items; 5.14's three items, 5.8's two boxes and the gate lines stay unticked. Regex-verified 1158 / 732.) *Earlier note:* 728 (2026-09-25 Stage 2 cloud pass: +4 ticked — 2.5's routing subtask, parent 2.5, the "Environment document UNVERIFIED items closed" gate line, and 2.6's port-list subtask — and −1 unticked, 2.2's disputed RunPod-UI subtask; net +3. Total unchanged at 1150. Independently verified by regex count of list-item markers `^\s*- \[( |x)\]`: 1150 total / 728 ticked.) *Earlier note:* 725 (2026-09-25 Stage 7: +124 newly ticked checkboxes, all within the Stage 7 section — 124 of Stage 7's 140; the 16 still open are named carry-forwards, not silent gaps.) *Earlier note:* 601 (2026-09-22 Stage 6 closure: +41 newly ticked checkboxes, all within the Stage 6 section — tasks 6.2, 6.3 and 6.6 fully complete [the latter under the author-approved revised acceptance criterion], plus genuinely-done sub-items within 6.4, 6.5 and 6.7. Independently verified by direct regex count of every `- [x]`/`- [ ]` marker, same counting discipline as prior reconciliations: 601 ticked, 545 unticked, 1146 total — no checkbox lines were added or removed, only converted.) *Earlier note:* 560 (2026-09-21 closure evaluation: from the corrected 561, +3 manual-verification/sidecar sub-items, −4 unticked because they were not actually complete: 5.14's three partial items and the "All 15 Story Audit issues closed or accepted" gate line. Stage 5 section: 156 of 172.)
-**Remaining:** 372
-**Overall project completion:** 67.9% (786 ÷ 1158) after the Stage 8 cloud pass. *Earlier:* 63.2% (732 ÷ 1158) after the 2026-09-25 Stage 5 cloud pass (the percentage dips because 8 boxes were added, 4 of them still open). *Earlier:* 63.3% (728 ÷ 1150), up from 63.0% (725 ÷ 1150) after the 2026-09-25 Stage 2 cloud pass. *Earlier:* 63.0% (725 ÷ 1150), up from 52.4% (601 ÷ 1146). Stage 7 is implemented and accepted but its gate is not fully closed (see † above). *Earlier:* 52.4% (601 ÷ 1146), up from 48.9%. Stage 6 is the fourth stage, after Stage 0, Stage 3 and Stage 4, to close (under its explicitly revised scope — CI/GitHub Actions deferred by author decision, 6.6 under a revised, approved criterion). Stage 5's gate remains separately open (see its own Completion Gate note) — Stage 6 was entered via the author's explicit override of that dependency, recorded at the top of the Stage 6 section.
+**Total actionable checkboxes:** 1158 (2026-09-27 Stage 9 checklist update: unchanged — boxes converted and annotated only. Regex count of `^\s*- \[( |x)\]`: 1158 / 817.) *Earlier note:* 1158 (2026-09-25 Stage 8, after merging `main`: unchanged; Stage 8 converted boxes only. Regex count 1158 / 786.) *Earlier note:* 1158 (2026-09-25 Stage 5 cloud pass: +8 new sub-items under the Stage 5 Completion Gate, two per live-review defect D1–D4 — the cloud-verified fix [ticked] and live pod confirmation [unticked]. Regex count of `^\s*- \[( |x)\]`: 1158 / 732.) *Earlier note:* 1150 (2026-09-25 Stage 7 update: +4 new, deliberately UNTICKED carried-forward sub-items added under 7.3, 7.10 and 7.15 so open work stays visible. Independently re-verified by direct regex count of list-item markers `^\s*- \[( |x)\]` before (1146 / 601) and after (1150 / 725) the edit.) *Earlier note:* 1146 (2026-09-21 Stage 5 closure evaluation: +3 new ticked sub-items at 5.4/5.6, recording manual author verification and the sidecar fix, over a **corrected** pre-edit base of **1143**. The previously recorded "1146 / 562" had been counted with a regex that also matched three prose mentions of the checkbox syntax on the Formula and Total lines. The true pre-edit figures were **1143 / 561**, verified by counting only list-item markers `^\s*- \[( |x)\]`.) *Earlier note, kept for traceability:* (whole-file; was 1138 before this Stage 5 pass began, 1143 after its first continuation — +8 net new sub-items total added while detailing per-task evidence across both passes; independently re-verified by direct regex count of every `- [x]`/`- [ ]` marker, per the same counting discipline used for the 1134→1135 reconciliation)
+**Currently completed:** 817 (2026-09-27 Stage 9: +39 ticked — 30 in Stage 9, 6 in Stage 5 [5.8 ×2, D1–D4 live], 1 in Stage 7 [toolbar test 9], 2 in Stage 8 [8.6 item and parent]; −8 unticked as factually unsupported — 4.8 duplicate detection, 4.9 ×2, parents 4.8 and 4.9, the Stage 4 Cast gate line, Gate 3a, 6.5's regression-alert item. Net +31. Regex-verified 1158 / 817.) *Earlier note:* 786 (2026-09-25 Stage 8: +54 ticked — 53 in the Stage 8 section and task 3.13's Phase 2 Issue 10 box. Regex-verified 1158 / 786 after merging `main` into the Stage 8 branch.) *Earlier note:* 732 (2026-09-25 Stage 5 cloud pass: +4 ticked, the four D1–D4 "root cause fixed" sub-items; 5.14's three items, 5.8's two boxes and the gate lines stay unticked. Regex-verified 1158 / 732.) *Earlier note:* 728 (2026-09-25 Stage 2 cloud pass: +4 ticked — 2.5's routing subtask, parent 2.5, the "Environment document UNVERIFIED items closed" gate line, and 2.6's port-list subtask — and −1 unticked, 2.2's disputed RunPod-UI subtask; net +3. Total unchanged at 1150. Independently verified by regex count of list-item markers `^\s*- \[( |x)\]`: 1150 total / 728 ticked.) *Earlier note:* 725 (2026-09-25 Stage 7: +124 newly ticked checkboxes, all within the Stage 7 section — 124 of Stage 7's 140; the 16 still open are named carry-forwards, not silent gaps.) *Earlier note:* 601 (2026-09-22 Stage 6 closure: +41 newly ticked checkboxes, all within the Stage 6 section — tasks 6.2, 6.3 and 6.6 fully complete [the latter under the author-approved revised acceptance criterion], plus genuinely-done sub-items within 6.4, 6.5 and 6.7. Independently verified by direct regex count of every `- [x]`/`- [ ]` marker, same counting discipline as prior reconciliations: 601 ticked, 545 unticked, 1146 total — no checkbox lines were added or removed, only converted.) *Earlier note:* 560 (2026-09-21 closure evaluation: from the corrected 561, +3 manual-verification/sidecar sub-items, −4 unticked because they were not actually complete: 5.14's three partial items and the "All 15 Story Audit issues closed or accepted" gate line. Stage 5 section: 156 of 172.)
+**Remaining:** 341
+**Overall project completion:** 70.6% (817 ÷ 1158) after the 2026-09-27 Stage 9 checklist update. *Earlier:* 67.9% (786 ÷ 1158) after the Stage 8 cloud pass. *Earlier:* 63.2% (732 ÷ 1158) after the 2026-09-25 Stage 5 cloud pass (the percentage dips because 8 boxes were added, 4 of them still open). *Earlier:* 63.3% (728 ÷ 1150), up from 63.0% (725 ÷ 1150) after the 2026-09-25 Stage 2 cloud pass. *Earlier:* 63.0% (725 ÷ 1150), up from 52.4% (601 ÷ 1146). Stage 7 is implemented and accepted but its gate is not fully closed (see † above). *Earlier:* 52.4% (601 ÷ 1146), up from 48.9%. Stage 6 is the fourth stage, after Stage 0, Stage 3 and Stage 4, to close (under its explicitly revised scope — CI/GitHub Actions deferred by author decision, 6.6 under a revised, approved criterion). Stage 5's gate remains separately open (see its own Completion Gate note) — Stage 6 was entered via the author's explicit override of that dependency, recorded at the top of the Stage 6 section.
 
 > *Counting-basis note (2026-07-25):* the recorded total of 1125 is a **whole-file** checkbox count. The formula above says Stages 0–12, which counts **1111** — the 14-box difference is the Final Project Completion Checklist and the register sections. The existing basis is retained so the figures stay comparable across updates; the formula wording and the basis should be reconciled in Stage 11.
 
@@ -97,6 +101,12 @@ Repository verification during checklist construction changed three things. Each
 
 ## Next Task to Execute
 
+> ### ⚑ 2026-09-27 — Stage 9: automated work done, gate OPEN — owner UAT and decisions pending
+>
+> Stage 9's regression, QA re-run, performance, security and isolation work is implemented and verified on pod `6uavswo19trx9n` (full backend suite 738 passed / 0 failed; live browser 62/64 with the known upload-UI gap and the manual audio spec; isolation defects I1–I7 and upload/CORS findings fixed). The checklist was updated on the owner's "APPROVE CHECKLIST UPDATE ONLY" instruction. **Next: the owner runs the manual items** (`docs/testing/stage-09-uat-guide.md`) **and decides the pending items** — dependency upgrades, the prompt-injection fix, latency targets, BGE-M3 on GPU, the optional `chapter_chunks.story_id` index, the Phase 1 product decisions (CAST-C4/H9/H10, SEARCH-4, Translation, the 30 post-launch acceptances) and the reopened Stage 4 items. **Stage 10 has NOT been analysed, planned or started.**
+>
+> ⚑ Superseded — the Stage 5 note below is kept for traceability.
+>
 > ### ⚑ 2026-09-25 — Stage 5 cloud pass: implementation complete, gate OPEN — manual verification pending
 >
 > Same two-agent Cloud workflow, branch `claude/project-thread-yeshmd`. The four 2026-09-22 live-review defects (D1–D4) have root-cause fixes verified in the cloud, 5.14's three partial items now have dedicated mechanisms, and 5.8 has a measurement harness. Nothing author-judged or live-only was ticked: see `docs/testing/manual-verification/stage-05-manual-verification-guide.md`. Migration `0023` must be applied on the pod after a backup (MV-5.0). **Next: Stage 7 carry-forwards, then Stage 8**, after the Stage 5 completion review.
@@ -1277,7 +1287,7 @@ Repository verification during checklist construction changed three things. Each
   - **Implementation checklist:**
     - [x] Confirm the issue is carried into task 8.8 with both source references — *2026-07-26; **traceability re-verified end to end**, see the audit below. No product code, tests, builds or service work performed — the definition of done forbids them.*
   - **Verification:**
-    - [x] Task 8.8 explicitly closes Phase 2 Issue 10 — *2026-09-25: closed by task 8.8 on branch `claude/stage-8-studio-workspaces` (not yet on `main`). Original note follows.* *⏳ **intentionally open and future-dependent — not blocked, not forgotten.** This asserts an event in Stage 8; it can only be ticked when task 8.8 is actually implemented. Ticking it now would claim a future outcome. Task 8.8's own verification list carries the matching item, and its gate (Stage 8, line ~2354) repeats it.*
+    - [x] Task 8.8 explicitly closes Phase 2 Issue 10 — *2026-09-25: closed by task 8.8 on branch `claude/stage-8-studio-workspaces`, merged to `main` in PR #5 (`6debfe2`). Original note follows.* *⏳ **intentionally open and future-dependent — not blocked, not forgotten.** This asserts an event in Stage 8; it can only be ticked when task 8.8 is actually implemented. Ticking it now would claim a future outcome. Task 8.8's own verification list carries the matching item, and its gate (Stage 8, line ~2354) repeats it.*
   - **Definition of done:** Deferral is recorded and traceable; no work performed in this stage. — **MET 2026-07-26.**
   - **Progress notes:**
     - *2026-07-26 — traceability audit, documentation only.* **Task 8.8 carries all six required references:** Phase 2 Issue **10**; Editor UI Medium **16** and **17**; the back-reference *"(deferred from task 3.13)"*; Phase 3 decision **D10**; the implementation item *"Remove the Notes and Narrative Threads navigation duplication"*; and the verification item *"**Phase 2 Issue 10 explicitly closed here**"*. The Stage 8 gate repeats "Phase 2 Issue 10 closed" independently.
@@ -1375,7 +1385,7 @@ Repository verification during checklist construction changed three things. Each
     - [x] Add plot-importance weighting to ranking — *built from real, already-existing signal (key_events count) plus the new 4.5 signal (character_arc_notes/relationship_changes presence), capped at 0.08 so it can only break near-ties, never override genuine relevance*
   - **Verification:**
     - [x] Fixture test: known plot-critical passages appear in the top results — *`tests/test_plot_importance_ranking.py`, 5 tests*
-    - [x] Fixture test: no "not in the story" answer for a fact that is in the story — *covered by 4.4's tests*
+    - [x] Fixture test: no "not in the story" answer for a fact that is in the story — *covered by 4.4's tests* — *2026-09-27 (Stage 9): evidence corrected — 4.4's tests only use absent facts. Real evidence now: `test_stage9_targeted_issues.py::test_PA_C7_fact_in_the_story_is_not_reported_missing`, 3/3 live*
   - **Definition of done:** The highest-ranked evidence is the most relevant evidence. ✅
 
 - [x] **4.4 — Distinguish retrieval failure from knowledge failure** — *2026-09-21, implemented and verified live against the real model.*
@@ -1411,7 +1421,7 @@ Repository verification during checklist construction changed three things. Each
     - [x] Strengthen the story-reasoning layer over summaries — *feeds 4.3's plot-importance ranking and 4.16's Story Bible arc-status fix*
     - [x] Re-index existing chapters via `POST /api/stories/{id}/chapters/sync-summaries` — *endpoint unchanged, calls the same updated pipeline; verified via `summarize_and_embed_chapter` directly*
   - **Verification:**
-    - [x] Fixture test: known revelations appear in the generated summaries — *`tests/test_chapter_arc_fields.py`, 7 tests, including a live end-to-end run*
+    - [x] Fixture test: known revelations appear in the generated summaries — *`tests/test_chapter_arc_fields.py`, 7 tests, including a live end-to-end run* — *2026-09-27 (Stage 9): evidence corrected — `test_chapter_arc_fields.py` checks field types, not revelation content. Real evidence now: `test_stage9_targeted_issues.py::test_PA_H10_revelation_reaches_the_stored_summary`, 3/3 live*
     - [x] Re-indexing completes without error on an existing story — *confirmed via the same test*
   - **Definition of done:** Summaries carry enough signal for story-wide reasoning. ✅
 
@@ -1428,7 +1438,7 @@ Repository verification during checklist construction changed three things. Each
     - [x] Apply alias matching in retrieval name-mention boosting — *`retrieve_character_context:1401`*
     - [x] Apply alias matching in mention detection — *`index_character_mentions:3045`; this was the specifically uncertain item and is now confirmed*
   - **Verification:**
-    - [x] Fixture test: a query using an alias retrieves the correct character's context — *`tests/test_alias_resolution.py`, 8 tests*
+    - [x] Fixture test: a query using an alias retrieves the correct character's context — *`tests/test_alias_resolution.py`, 8 tests* — *2026-09-27 (Stage 9): evidence corrected — `test_alias_resolution.py` tests the name regex only. Real evidence now: `test_stage9_targeted_issues.py::test_PA_C4_CAST_C3_alias_in_question_retrieves_that_character`*
     - [x] Database-state check: aliases persist against the right character — *covered by 4.8's merge tests, which exercise real alias persistence*
   - **Definition of done:** One character with several names is treated as one character everywhere. ✅
 
@@ -1447,7 +1457,7 @@ Repository verification during checklist construction changed three things. Each
     - [x] Integration test: generate cast, assert the unresolved queue reflects the result immediately — *`tests/test_cast_hint_sync_integration.py`, 2 tests, real DB, reproducing confirm_cast's exact sequence*
   - **Definition of done:** Cast generation leaves the character state internally consistent. ✅
 
-- [x] **4.8 — Character deduplication and consolidation** — *2026-09-21. The highest data-integrity risk in Stage 4. Enumerated all 8 FK-enforced tables + 3 denormalized JSON-array columns referencing `characters.character_id` before writing any code. New module `services/character_merge.py` + `POST /{story_id}/characters/{id}/merge`. Found and fixed one real bug during testing: `Character`'s ORM `cascade="all, delete-orphan"` on profile/mentions/arc_snapshots/intelligence evaluates against relationship-collection state, not raw FK writes — a reassigned arc-snapshot was silently getting cascade-deleted anyway until an explicit `db.flush()` was added after each reassignment step.*
+- [ ] **4.8 — Character deduplication and consolidation** — *2026-09-21. The highest data-integrity risk in Stage 4. Enumerated all 8 FK-enforced tables + 3 denormalized JSON-array columns referencing `characters.character_id` before writing any code. New module `services/character_merge.py` + `POST /{story_id}/characters/{id}/merge`. Found and fixed one real bug during testing: `Character`'s ORM `cascade="all, delete-orphan"` on profile/mentions/arc_snapshots/intelligence evaluates against relationship-collection state, not raw FK writes — a reassigned arc-snapshot was silently getting cascade-deleted anyway until an explicit `db.flush()` was added after each reassignment step.* **2026-09-27 (Stage 9 reconciliation): reopened — the "Detect duplicate character records" sub-item was never built.**
   - **Source:** Cast Generation Critical **4**; Medium **13**, **14**
   - **Area:** Backend / Database
   - **Priority:** High
@@ -1455,7 +1465,7 @@ Repository verification during checklist construction changed three things. Each
   - **Blocked by:** None
   - **Can run in parallel:** No — depends on aliases
   - **Implementation checklist:**
-    - [x] Detect duplicate character records created across chapters — *out of scope for the merge operation itself (no auto-detection heuristic was requested or built); the merge endpoint takes an explicit survivor+duplicate pair, which is the safer author-confirmed path*
+    - [ ] Detect duplicate character records created across chapters — *out of scope for the merge operation itself (no auto-detection heuristic was requested or built); the merge endpoint takes an explicit survivor+duplicate pair, which is the safer author-confirmed path* — **2026-09-27 (Stage 9 reconciliation): unticked — no detection was built (the note above says so); CAST-C4 needs a product decision on whether manual merge closes it**
     - [x] Provide a merge operation preserving both records' data — *`merge_characters()`: role/status via existing `_ROLE_PRIORITY`/`_STATUS_PRIORITY` (reused from `extract_cast`'s merge logic for consistency), aliases unioned, profile fields richer-non-empty-wins, intelligence kept-and-marked-stale (not field-spliced — it's derived analysis, not authored fact), arc snapshots reassigned-or-dropped per-chapter, mentions always reassigned, relationships reassigned/self-collapsed/collision-dropped with `RelationshipIntelligence` kept in lockstep, and all 3 denormalized `character_ids`/`co_character_ids` JSON arrays swapped across the whole story*
     - [x] Consolidate fragmented character memory story-wide — *mentions and arc snapshots reassigned to the survivor, not discarded*
     - [x] Ensure merges re-embed the surviving profile — *`merge_character` endpoint schedules `_embed_profile` as a background task on success*
@@ -1467,7 +1477,7 @@ Repository verification during checklist construction changed three things. Each
     - [x] Conflict handling — *unique-constraint collisions (duplicate relationship edge) and self-relationship collapse both tested explicitly*
   - **Definition of done:** Each character exists exactly once with complete story-wide memory. ✅
 
-- [x] **4.9 — Character classification and relationship accuracy** — *2026-09-21. Measured first, per this task's own instruction. Finding: `extract_cast` scored 4/4 = 100% role classification accuracy on the ground-truth fixture, invented zero characters, and correctly did not promote an explicitly minor/unnamed mention ("a single loyal harbor guard"). No prompt or logic change made — there is no measured problem to fix, and changing a working system without evidence would risk a regression for no demonstrated gain.*
+- [ ] **4.9 — Character classification and relationship accuracy** — *2026-09-21. Measured first, per this task's own instruction. Finding: `extract_cast` scored 4/4 = 100% role classification accuracy on the ground-truth fixture, invented zero characters, and correctly did not promote an explicitly minor/unnamed mention ("a single loyal harbor guard"). No prompt or logic change made — there is no measured problem to fix, and changing a working system without evidence would risk a regression for no demonstrated gain.* **2026-09-27 (Stage 9 reconciliation): reopened — two sub-items were ticked without evidence (description consistency, mention classification).**
   - **Source:** Cast Generation High **6**, **7**, **8**, **9**, **10**; Medium **11**, **12**
   - **Area:** AI / Backend
   - **Priority:** Medium
@@ -1478,8 +1488,8 @@ Repository verification during checklist construction changed three things. Each
     - [x] Improve role classification accuracy — *measured at 100% on the fixture; no change made (nothing to improve on this evidence)*
     - [x] Improve importance ranking so minor characters are not promoted — *measured: the one explicitly minor/unnamed mention in the fixture was correctly NOT promoted to a character entry*
     - [ ] Fix relationship extraction errors — *NOT APPLICABLE — see note below, no such extraction pipeline exists*
-    - [x] Make character description generation consistent across runs — *not separately measured beyond role classification; no evidence of a problem surfaced*
-    - [x] Fix mention classification errors — *covered by 4.6/4.7's verification of `index_character_mentions`*
+    - [ ] Make character description generation consistent across runs — *not separately measured beyond role classification; no evidence of a problem surfaced* — **2026-09-27 (Stage 9 reconciliation): unticked — "not separately measured" is not evidence of completion; CAST-H9 needs a measurement or explicit acceptance**
+    - [ ] Fix mention classification errors — *covered by 4.6/4.7's verification of `index_character_mentions`* — **2026-09-27 (Stage 9 reconciliation): unticked — the cited 4.6/4.7 tests exercise alias/hint matching, not classification; CAST-H10 remains without direct evidence**
     - [x] Fix mention-to-character linking failures — *covered by 4.6's alias-matching verification, which is exactly the linking mechanism*
   - **Verification:**
     - [x] Fixture test with known cast: roles, importance and relationships match ground truth within an agreed tolerance — *`tests/test_cast_classification_accuracy.py`, 3 tests, 100% role accuracy measured and pinned as a regression guard*
@@ -1618,15 +1628,15 @@ Repository verification during checklist construction changed three things. Each
     - *2026-09-21 (first pass) — original observations confirmed unrecoverable; proceeded via independent objective-criteria measurement; 2 reproducible findings fixed and verified on two manuscripts; author confirmation step left open by design.*
     - *2026-09-21 (closing pass) — author manually tested against their own real manuscript: 2 of 2 original findings confirmed fixed, plus 1 new genuine finding reported. Investigated, found a second unrelated pre-existing fabrication bug along the way, fixed both with a combination of a strengthened prompt and — once prompting alone proved insufficiently reliable — a deterministic post-processing safety net. Re-verified 9/9 reliable. Task closed.*
 
-### Stage 4 Completion Gate — **CLOSED 2026-09-21**
+### Stage 4 Completion Gate — **CLOSED 2026-09-21; REOPENED 2026-09-27** (Stage 9 reconciliation: 4.8 and 4.9 had sub-items ticked without the capability or evidence — see those tasks)
 
 - [x] All 16 Plot Assistant issues closed or accepted — *4.1-4.5 implemented and verified; issues underlying 4.1-4.4's Critical/High items addressed directly*
-- [x] All 14 Cast Generation & Character Management issues closed or accepted — *4.6 (verified), 4.7 (verified), 4.8 (implemented), 4.9 (measured, no gap found — relationship-extraction item recorded as not applicable to this codebase)*
+- [ ] All 14 Cast Generation & Character Management issues closed or accepted — *4.6 (verified), 4.7 (verified), 4.8 (implemented), 4.9 (measured, no gap found — relationship-extraction item recorded as not applicable to this codebase)* — **2026-09-27 (Stage 9 reconciliation): unticked — 4.8 and 4.9 reopened (see above)**
 - [x] All 21 Search issues (both sub-reports, merged) closed or accepted — *4.10-4.12 verified already correct, 4.13 implemented, 4.14 verified*
 - [x] Retrieval scope matches the D-1 decision and is visible in the UI — *4.1, `scope_used` field + frontend toggle/badge*
 - [x] Retrieval regression suite green in CI — *green LOCALLY, which is this criterion's substance (96 Stage 4 tests + 121 for 4.16's later additions, all passing; `tests/run_stage4_retrieval_suite.sh`). Literal "in CI" is not yet true for ANY stage in this project — no `.github/workflows/` exists anywhere — so holding Stage 4 alone to a project-wide gap that Stage 6 exists specifically to close would be inconsistent with how this document has already treated cross-stage dependencies (e.g. Stage 1's gate closed with items deferred to Stage 11). Recorded as met in substance; Stage 6 task 6.1 does the wiring.*
 - [x] No character appears as both recognised and unrecognised — *4.7 verified: `confirm_cast` reconciles the hints queue in the same transaction as character creation*
-- [x] **Gate 3a — Retrieval correct** passed — *2026-09-21, all six criteria above independently met*
+- [ ] **Gate 3a — Retrieval correct** passed — *2026-09-21, all six criteria above independently met* — **2026-09-27 (Stage 9 reconciliation): unticked — one of its six criteria (Cast issues) is no longer met**
 
 > **2026-09-21 — Stage 4 CLOSED.** All 16 main tasks are complete and verified; the gate is closed. 4.16 (Story Bible quality) was the last item open, pending the author's own manual test — completed the same day: the author confirmed both automated fixes pass on their own real 3-chapter manuscript, and reported one genuine new finding (a carried possession shown as a physical description) plus, during its investigation, a second and more serious pre-existing defect was uncovered independently (a formatting example in the prompt being hallucinated as an invented character). Both were root-caused, fixed — the possession issue with a deterministic post-processing safety net once prompt-only tuning proved unreliable (measured 5/9 → 9/9) — and re-verified with 11 new regression tests, 121/121 passing across the full story-bible test surface. Two genuine analysis corrections are recorded in place rather than silently fixed, from the original implementation pass: task 4.7 was initially (wrongly) flagged as unimplemented by an earlier pass that checked only the read-only preview endpoint; 4.3's own source citation (`ai_service.py:1187`) was found stale during implementation. **CI wiring** (the one literal sub-item under 4.15) is recorded as met in substance and formally owned by Stage 6, consistent with how earlier stage gates in this document have treated cross-stage dependencies.
 
@@ -1805,8 +1815,8 @@ Repository verification during checklist construction changed three things. Each
     - [x] 2.6 Remove generic emotional templates — explicit "avoid generic emotional phrasing ('her heart raced', 'tears welled up') unless the original already leans that way"
     - [x] 2.7 Preserve authorial emotional restraint — "if the original passage is already emotionally restrained or understated, PRESERVE that restraint"
   - **Verification:**
-    - [ ] Golden-set emotion scenarios re-measured — **not covered by the golden-set harness** (the harness only drives tone/style/age_adapt; emotion was deliberately excluded from the no-change/strength architecture per the approved design, so it doesn't share those scenarios' measurement path). Prompt content itself is verified by inspection and by `tests/test_prompt_registry.py`'s byte-identity/version-selection tests; not independently re-measured with before/after similarity numbers. *2026-09-25 (Stage 5 cloud pass): the harness now exists — `backend/tests/measure_emotion_set.py` (4 emotions × low/high intensity × 3 golden passages; similarity bands, cross-emotion distinctness, shared-phrase rate), its metric logic proven against a mocked transform in `tests/test_stage5_prompts_and_guard.py::test_emotion_harness_metrics_and_report_shape`. The live run needs the pod: MV-5.8-A. Stays unticked.*
-    - [ ] Distinct emotions produce measurably distinct outputs — not independently measured. *2026-09-25: measurable now (`mean_cross_emotion_similarity`, `shared_phrase_rate` in `measure_emotion_set.py`); the live number is MV-5.8-A. Stays unticked.*
+    - [x] Golden-set emotion scenarios re-measured — **not covered by the golden-set harness** (the harness only drives tone/style/age_adapt; emotion was deliberately excluded from the no-change/strength architecture per the approved design, so it doesn't share those scenarios' measurement path). Prompt content itself is verified by inspection and by `tests/test_prompt_registry.py`'s byte-identity/version-selection tests; not independently re-measured with before/after similarity numbers. *2026-09-25 (Stage 5 cloud pass): the harness now exists — `backend/tests/measure_emotion_set.py` (4 emotions × low/high intensity × 3 golden passages; similarity bands, cross-emotion distinctness, shared-phrase rate), its metric logic proven against a mocked transform in `tests/test_stage5_prompts_and_guard.py::test_emotion_harness_metrics_and_report_shape`. The live run needs the pod: MV-5.8-A. Stays unticked.* — *2026-09-27 (Stage 9): MV-5.8-A run live: `measure_emotion_set.py`, 48 scenarios, unchanged outputs 0 (`backend/tests/fixtures/emotion_measurement_stage9_20260927.json`)*
+    - [x] Distinct emotions produce measurably distinct outputs — not independently measured. *2026-09-25: measurable now (`mean_cross_emotion_similarity`, `shared_phrase_rate` in `measure_emotion_set.py`); the live number is MV-5.8-A. Stays unticked.* — *2026-09-27 (Stage 9): mean cross-emotion similarity 0.4985 (max 0.6365; the guide's warning line is ~0.85), shared-phrase rate 0.109 — same report*
   - **Definition of done:** Emotional transforms preserve subtlety and differentiate correctly. — **Prompt-level instructions in place and version-traceable; not golden-set-measured. Flagged as a real gap, not claimed done.**
 
 - [x] **5.9 — Audience adaptation issues** *(deterministic parts met; one known false-positive limitation — see 5.5; subjective parts pending author review)*
@@ -1956,7 +1966,7 @@ Repository verification during checklist construction changed three things. Each
     - [x] Integrate story intelligence into analytics (Medium 6) — reads `StoryEmotionalArc`/`StoryPacingMap` (Stage 4 data), read-only, never generates anything; `story_intelligence_available: false` when neither exists for the story, so the frontend can distinguish "no data yet" from "data says nothing"
   - **Verification:**
     - [x] Every displayed metric has an explanation reachable in the UI — `frontend/app/(dashboard)/projects/[id]/analytics/page.tsx` renders each metric card's `explanation` inline (not hidden behind a hover-only tooltip, so it's visible without interaction) plus a title attribute
-    - [x] `tests/test_analytics_service.py` — 22/22 passing: pins both bug fixes directly (`queue`→1 syllable not 4; straight vs. curly dialogue quotes produce equal ratios), genre-benchmark resolution (case/whitespace-insensitive, unknown-genre fallback), zero-chapter divide-by-zero safety, full-payload shape with and without story-intelligence data
+    - [x] `tests/test_analytics_service.py` — 22/22 passing: pins both bug fixes directly (`queue`→1 syllable not 4; straight vs. curly dialogue quotes produce equal ratios), genre-benchmark resolution (case/whitespace-insensitive, unknown-genre fallback), zero-chapter divide-by-zero safety, full-payload shape without story-intelligence data — *2026-09-27 (Stage 9): wording corrected — no with-data test exists*
     - [x] Verified live end-to-end: `GET /api/stories/{id}/analytics` against the real running backend returns the full metrics+explanation+benchmark payload; frontend rebuilt (`npm run build`, clean `tsc --noEmit`) and restarted to serve the new page
     - [ ] Author review confirms the numbers are interpretable — **not closed by this pass**; part of the required manual testing procedure
   - **Definition of done:** No analytics number is presented without meaning. — **Met** for every metric the backend now returns; final interpretability judgment is the required author review.
@@ -2033,13 +2043,13 @@ Repository verification during checklist construction changed three things. Each
 Each defect has two boxes: the root-cause fix, verified in the cloud with deterministic tests, and live confirmation on the pod, which only a pod run can tick (`backend/tests/test_known_stage5_defects.py`, marker `known_stage5_defect`, now asserts the fixed behaviour). Procedures: `docs/testing/manual-verification/stage-05-manual-verification-guide.md`.
 
 - [x] **D1 — Narrative Threads scan: root cause fixed** — the scan was invisible (the panel polled once after 10 s; the outcome was only logged) and one-word/short names were filtered out. Now: one status row per story (`narrative_thread_scans`, migration 0023, UNIQUE story_id), `GET …/narrative-threads/scan-status`, one active scan per story (a second POST returns the same scan), completed / completed_empty / failed outcomes with an author-safe error code, orphaned scans failed at startup, extraction in batches of 3 with guided JSON and an object root, and a panel that loads the status on mount and polls with backoff for up to 10 minutes. Cloud: `tests/test_stage5_persistence.py` (lifecycle, concurrency, outcomes, ownership, orphan sweep), `tests/test_stage5_prompts_and_guard.py` (both root shapes, unreadable batches)
-- [ ] D1 — confirmed live on the pod (MV-5.D1)
+- [x] D1 — confirmed live on the pod (MV-5.D1) — *2026-09-27 (Stage 9): MV-5.KD: `test_known_stage5_defects.py -m known_stage5_defect` 4/4 passed on pod `6uavswo19trx9n` against the real model*
 - [x] **D2 — Manuscript Report: saved and re-fetchable** — `manuscript_reports` (migration 0023, UNIQUE story_id, upsert), `GET /api/stories/{id}/manuscript-report` (404 when none; `is_stale` from a fingerprint over chapter id, `Chapter.updated_at`, summary `generated_at` and stale flag), the panel loads the saved report with its generated time and a stale notice, and the ValueError path no longer echoes exception text. Reports stay in backups (author work product). Cloud: `tests/test_stage5_persistence.py` (round trip, single row, stale ×2, cross-user 404, unreadable row, cascade)
-- [ ] D2 — confirmed live on the pod (MV-5.D2)
+- [x] D2 — confirmed live on the pod (MV-5.D2) — *2026-09-27 (Stage 9): MV-5.KD: `test_known_stage5_defects.py -m known_stage5_defect` 4/4 passed on pod `6uavswo19trx9n` against the real model*
 - [x] **D3 — Plot Hole Detection parse failure: root-cause mitigation** (see also 3.4) — `complete_structured(guided_json=True)` asks vLLM for guided JSON with a 400/TypeError fallback, the output budget scales with chapter count (1400–2400 tokens), and parse-failure logs describe the output's shape without its text. Cloud: `tests/test_stage5_prompts_and_guard.py` (guided on/off, 400 fallback, AI-unavailable not swallowed, no text in logs, budget)
-- [ ] D3 — confirmed live on the pod (MV-5.D3)
+- [x] D3 — confirmed live on the pod (MV-5.D3) — *2026-09-27 (Stage 9): MV-5.KD: `test_known_stage5_defects.py -m known_stage5_defect` 4/4 passed on pod `6uavswo19trx9n` against the real model*
 - [x] **D4 — Style "Thriller" unchanged: root cause fixed** — style prompt **v3** names craft levers for each picker style instead of forbidding genre markers; at `strong` the "already written in this style" shortcut is skipped; a style-only near-no-op guard retries once and otherwise returns `no_change` with an honest reason, which the sidebar and toolbar now show instead of presenting unchanged text as a rewrite. Every other transform resolves to its v2 prompt under v3; `PROMPT_VERSION=v2` is the rollback. Cloud: `tests/test_stage5_prompts_and_guard.py`
-- [ ] D4 — confirmed live on the pod (MV-5.D4)
+- [x] D4 — confirmed live on the pod (MV-5.D4) — *2026-09-27 (Stage 9): MV-5.KD: `test_known_stage5_defects.py -m known_stage5_defect` 4/4 passed on pod `6uavswo19trx9n` against the real model*
 
 ---
 
@@ -2154,7 +2164,7 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
     - [x] Automate the unnecessary-change rate — no-change/lock invariant tests, verified live (10/10 passing against real vLLM)
     - [x] Automate continuity false-positive measurement — existing (`test_continuity_citation_validation.py`, `measure_continuity_depth.py`)
     - [x] Automate Story Bible provenance validation — existing (`test_story_bible_outcomes.py`, 89 tests) + this stage's live browser citation check
-    - [x] Alert on regression beyond an agreed threshold — threshold-based sanity check against the recorded Stage 5 baseline, accounting for its own recorded run-to-run variance
+    - [ ] Alert on regression beyond an agreed threshold — threshold-based sanity check against the recorded Stage 5 baseline, accounting for its own recorded run-to-run variance — **2026-09-27 (Stage 9 reconciliation): unticked — the cited `test_similarity_supporting_context_is_within_recorded_variance_band` only re-reads the stored baseline and generates nothing, so it cannot detect a regression**
     - [ ] Run on a schedule rather than per-commit if GPU cost requires it — **N/A, CI deferred.** Runs on demand instead
   - **Verification:**
     - [ ] A deliberate prompt regression is detected by the harness — **not performed this round** (would require deliberately worsening a real prompt, confirming red, then reverting); honestly left open rather than assumed
@@ -2499,7 +2509,7 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
     - [x] Track realised cost against the §32 model — *2026-09-25: storage per pin within the model; D5/D6 compute cost measured; `[pin_metrics]` logged daily*
     - [x] Extend the Stage 6 suite with Phase 3 coverage — *2026-09-25: 107 new backend tests, 3 unit specs, 1 browser spec, live `tests/manual_phase3_live_e2e.py` (18/18)*
     - [ ] Real day-8 cleanup verification (§36.4 step 4) — *carried forward: the sweep deleted an expired pin live (08:47:48, `cleanup_rows=1`), but a full real 7-day free-plan cycle has not yet elapsed*
-    - [ ] Intermittent `selection-toolbar.spec.ts` test 9 (Escape order) — *carried forward: fails ~1 in 3 runs; pre-existing race in the PRE-2 dismissal logic (re-selecting the identical range does not clear `dismissed`), code path not changed by Stage 7; recommended for the Stage 8 toolbar redesign*
+    - [x] Intermittent `selection-toolbar.spec.ts` test 9 (Escape order) — *carried forward: fails ~1 in 3 runs; pre-existing race in the PRE-2 dismissal logic (re-selecting the identical range does not clear `dismissed`), code path not changed by Stage 7; recommended for the Stage 8 toolbar redesign* — *2026-09-27 (Stage 9): 10/10 on the live stack (`--repeat-each=10`) and passing in the full live run; fixed in Stage 8 (`isDismissedFor`)*
   - **Verification:**
     - [ ] Every §46 and §47 item ticked — *not met — open items above; UAT is Stage 9*
   - **Definition of done:** Phase 3 is complete by its own published standard.
@@ -2534,7 +2544,7 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
 **Source:** `docs/issues-and-bugs/open/phase-1-ai-writing-tools-qa-issues.docx` — Editor UI sub-report (**18** issues); Phase 2 Issue 10 (deferred from task 3.13); production gap PG-09
 **Prerequisite:** A named design owner. This is a UX programme, not a ticket queue. — *Met 2026-09-25: Arshith Babu.*
 
-> **2026-09-25 — entry override and design owner.** The Stage 7 gate is still open (see its carried-forward list). Stage 8 was entered on the product owner's explicit instruction of 2026-09-25 11:08 UTC: *"STAGES 0–7 = HISTORICAL / ALREADY PROCESSED; STAGE 8 = NEXT IMPLEMENTATION STAGE"*. That instruction is the entry override; it does not close any Stage 7 item. **Design owner:** Arshith Babu, confirmed by him on 2026-09-25 at 12:46 UTC. Work is on branch `claude/stage-8-studio-workspaces`: cut from `main` at `06850cf`; its first commit (the pins-router fix) reached `main` in PR #3; `main` at `abbb4f1` (which adds Stage 2 and Stage 5 from PR #2) was merged back in on 2026-09-25. The Stage 8 work itself is not on `main`. Evidence below marked *cloud* comes from the mocked-API Playwright studio suite (`frontend/tests/studio/`, 65 tests) and unit tests; nothing here was run against a live pod. The live checks are in `docs/testing/manual-verification/stage-08-manual-verification-guide.md`.
+> **2026-09-25 — entry override and design owner.** The Stage 7 gate is still open (see its carried-forward list). Stage 8 was entered on the product owner's explicit instruction of 2026-09-25 11:08 UTC: *"STAGES 0–7 = HISTORICAL / ALREADY PROCESSED; STAGE 8 = NEXT IMPLEMENTATION STAGE"*. That instruction is the entry override; it does not close any Stage 7 item. **Design owner:** Arshith Babu, confirmed by him on 2026-09-25 at 12:46 UTC. Work is on branch `claude/stage-8-studio-workspaces`: cut from `main` at `06850cf`; its first commit (the pins-router fix) reached `main` in PR #3; `main` at `abbb4f1` (which adds Stage 2 and Stage 5 from PR #2) was merged back in on 2026-09-25. The Stage 8 work itself reached `main` in PR #5 (`6debfe2`, 2026-09-25). Evidence below marked *cloud* comes from the mocked-API Playwright studio suite (`frontend/tests/studio/`, 65 tests) and unit tests; nothing here was run against a live pod. The live checks are in `docs/testing/manual-verification/stage-08-manual-verification-guide.md`.
 
 ---
 
@@ -2617,7 +2627,7 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
     - [ ] Author review across a full drafting session and a full editing session — *open — author review, MV guide §5*
   - **Definition of done:** Drafting and editing feel like different activities.
 
-- [ ] **8.6 — Dedicated space for advanced AI and Phase 3 surfaces** — *2026-09-25: implemented; open on the live pod browser run*
+- [x] **8.6 — Dedicated space for advanced AI and Phase 3 surfaces** — *2026-09-25: implemented; live pod browser run passed 2026-09-27 (Stage 9)*
   - **Source:** Editor UI High **15**
   - **Area:** Frontend
   - **Priority:** High
@@ -2629,7 +2639,7 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
     - [x] Home the Phase 3 pin, compare, lock and preservation surfaces — *2026-09-25: Versions group in the sidecar; compare dialog expands*
     - [x] Integrate the rewritten `SelectionToolbar` from tasks 3.8 and 5.4 — *2026-09-25: Edit mode only; Escape race fixed (Stage 7 toolbar test 9)*
   - **Verification:**
-    - [ ] Every Phase 3 capability is reachable and usable — *reachable in cloud (`tests/studio/phase3.spec.ts`, mocked); usable against real AI needs the live `--project=browser` run, MV guide §2*
+    - [x] Every Phase 3 capability is reachable and usable — *reachable in cloud (`tests/studio/phase3.spec.ts`, mocked); usable against real AI needs the live `--project=browser` run, MV guide §2* — *2026-09-27 (Stage 9): live `--project=browser` run against real AI: `phase3-pins-compare` 4/4, `lock-and-strength` 4/4, `sidecar-lock-and-strength` 3/3, `selection-toolbar` 17/17 (MV-8.2)*
   - **Definition of done:** Advanced AI is not squeezed into a narrow panel.
 
 - [x] **8.7 — Scalability for future features** — *2026-09-25: cloud*
@@ -2731,6 +2741,8 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
 # Stage 9 — Full Regression Testing and UAT
 
 **Entry condition:** Stage 8 gate passed.
+
+> **2026-09-27 — entry override.** Entered on the product owner's explicit instruction ("I explicitly approve overriding the Stage 9 entry condition") while the Stage 2, 5, 7 and 8 gates are open; this closes none of them. Work ran on pod `6uavswo19trx9n` against the allow-listed `narratiq_test` database. Evidence: `docs/testing/stage-09-regression-results.md`, `stage-09-qa-rerun-results.md`, `stage-09-security-findings.md`, `performance-baselines.md`, `stage-09-uat-guide.md`.
 **Source:** Master Execution Plan §11; both QA reports; `docs/testing/author-feature-test-checklist.docx`
 
 ---
@@ -2743,13 +2755,13 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
   - **Blocked by:** None
   - **Can run in parallel:** No
   - **Implementation checklist:**
-    - [ ] Run the complete backend integration suite
-    - [ ] Run the complete Playwright suite
-    - [ ] Run the AI quality harness
-    - [ ] Run migration up/down verification
-    - [ ] Investigate and fix every failure
+    - [x] Run the complete backend integration suite — *2026-09-27 (Stage 9): 738 passed, 0 failed (final run); known-defect suite 4/4; Stage 4 retrieval suite 96/96. `docs/testing/stage-09-regression-results.md`*
+    - [x] Run the complete Playwright suite — *2026-09-27 (Stage 9): unit 99, studio 65, a11y 13, variants 20 all passed; live `--project=browser` 62 passed / 1 failed (manuscript-upload — the known 6.4 product gap) / 1 skipped (audio — needs a real recording). Same doc*
+    - [x] Run the AI quality harness — *2026-09-27 (Stage 9): invariants 12/12; golden set (all 12 within noise of after_v2), D4 Thriller, voice convergence, emotion, suggestions, preservation, continuity depth — same doc*
+    - [x] Run migration up/down verification — *2026-09-27 (Stage 9): `run_migration_roundtrip.sh` PASS on seeded `narratiq_test` (head → 0018 → head → head no-op; 7/7 author tables byte-identical)*
+    - [ ] Investigate and fix every failure — *2026-09-27 (Stage 9): every failure investigated and every defect within scope fixed (Story Intelligence router 500s, isolation I1–I7, test-infrastructure faults); **open** on the manuscript-upload UI gap (a missing feature, outside Stage 9 scope)*
   - **Verification:**
-    - [ ] Entire suite green on a clean pod
+    - [ ] Entire suite green on a clean pod — *2026-09-27 (Stage 9): not met — `manuscript-upload.spec.ts` fails by design until the upload UI exists; audio spec needs a manual recording*
   - **Definition of done:** Nothing regressed across nine stages of change.
 
 - [ ] **9.2 — Re-run both QA reports as suites**
@@ -2760,13 +2772,13 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
   - **Blocked by:** None
   - **Can run in parallel:** No
   - **Implementation checklist:**
-    - [ ] Re-run all 14 Phase 2 scenarios
-    - [ ] Re-run all 154 Phase 1 scenarios or their automated equivalents
-    - [ ] Record pass/fail per issue
-    - [ ] Reconcile against the Stage 0 triage labels
+    - [x] Re-run all 14 Phase 2 scenarios — *2026-09-27 (Stage 9): 14/14 PASS; evidence per issue in `docs/issues-and-bugs/triage-register.md` and `docs/testing/stage-09-qa-rerun-results.md`*
+    - [ ] Re-run all 154 Phase 1 scenarios or their automated equivalents — *2026-09-27 (Stage 9): all automated equivalents re-run and all 147 unique issues mapped; 64 need author judgement (UAT) and 12 a manual pod check, so not all are re-run*
+    - [x] Record pass/fail per issue — *2026-09-27 (Stage 9): all 147 Phase 1 + 14 Phase 2 issues have a recorded status and evidence in `docs/testing/stage-09-qa-rerun-results.md`*
+    - [x] Reconcile against the Stage 0 triage labels — *2026-09-27 (Stage 9): reconciled; register Cast summary corrected (Phase 1 totals are 114 release-blocking / 30 post-launch / 3 resolved); discrepancies listed in the QA re-run doc*
   - **Verification:**
-    - [ ] Every release-blocking issue passes
-    - [ ] Every deferred issue is explicitly accepted
+    - [ ] Every release-blocking issue passes — *2026-09-27 (Stage 9): not met — 27 of 114 pass on automated evidence; the rest need UAT, open owning items, manual checks or product decisions*
+    - [ ] Every deferred issue is explicitly accepted — *2026-09-27 (Stage 9): awaiting the product owner's acceptance of the 30 post-launch issues*
   - **Definition of done:** Issue closure is demonstrated, not asserted.
 
 - [ ] **9.3 — Performance testing**
@@ -2777,14 +2789,14 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
   - **Blocked by:** None
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Measure p50/p95 latency per AI endpoint
-    - [ ] Test concurrent users against `BG_AI_CONCURRENCY=3` and `EMBEDDING_CONCURRENCY=2`
-    - [ ] Measure pgvector HNSW latency at realistic corpus size
-    - [ ] Measure behaviour at the 60-chapter plot-hole cap
-    - [ ] Measure vLLM queue depth under load
-    - [ ] Record baselines for ongoing comparison
+    - [x] Measure p50/p95 latency per AI endpoint — *2026-09-27 (Stage 9): 14 endpoints, `docs/testing/performance-baselines.md` §1*
+    - [x] Test concurrent users against `BG_AI_CONCURRENCY=3` and `EMBEDDING_CONCURRENCY=2` — *2026-09-27 (Stage 9): 1/3/6/10 concurrent authors, 0 errors; semaphore queueing observed at 6 background jobs, all completed (§2–§3)*
+    - [x] Measure pgvector HNSW latency at realistic corpus size — *2026-09-27 (Stage 9): 57,440 chunks: p95 8.4 ms, recall 1.00; finding: story-filtered retrieval uses a seq scan, no `story_id` index (§4)*
+    - [x] Measure behaviour at the 60-chapter plot-hole cap — *2026-09-27 (Stage 9): 60 chapters 9.4 s; at 61, 60 analysed and the cap note shown (§5)*
+    - [x] Measure vLLM queue depth under load — *2026-09-27 (Stage 9): 1,668 samples from `/metrics`: max waiting 0, max running 3 (§2)*
+    - [x] Record baselines for ongoing comparison — *2026-09-27 (Stage 9): `docs/testing/performance-baselines.md` + `docs/testing/performance/stage-09-*`*
   - **Verification:**
-    - [ ] Latency targets defined and met
+    - [ ] Latency targets defined and met — *2026-09-27 (Stage 9): targets PROPOSED in `performance-baselines.md` §6; awaiting product-owner approval*
   - **Definition of done:** Performance characteristics are known, not guessed.
 
 - [ ] **9.4 — Security testing**
@@ -2795,15 +2807,15 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
   - **Blocked by:** None
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Auth bypass attempts
-    - [ ] JWT expiry and revocation behaviour
-    - [ ] Upload guard bypass — Content-Length spoofing
-    - [ ] Rate-limit effectiveness at the D-3 target worker count
-    - [ ] Prompt injection via manuscript content into AI features
-    - [ ] `_AUTHOR_STYLES` safety registry under adversarial input — Hemingway, Woolf, Christie, unknown strings
-    - [ ] Dependency vulnerability review
+    - [x] Auth bypass attempts — *2026-09-27 (Stage 9): every authenticated route refuses missing / malformed / wrong-key / alg=none / expired / orphaned / no-sub tokens (`test_security_stage9.py`)*
+    - [x] JWT expiry and revocation behaviour — *2026-09-27 (Stage 9): expiry and signature enforced (tests); no server-side revocation — documented finding J1, deferred to Stage 10 by decision*
+    - [x] Upload guard bypass — Content-Length spoofing — *2026-09-27 (Stage 9): bypass confirmed (S1) and fixed with `middleware/body_limit.py`; honest, chunked and understated bodies all 413 on all four upload routes (tests)*
+    - [x] Rate-limit effectiveness at the D-3 target worker count — *2026-09-27 (Stage 9): 429 + `Retry-After` at the single-worker target (tests); in-memory/per-process and unlimited routes documented (R1)*
+    - [x] Prompt injection via manuscript content into AI features — *2026-09-27 (Stage 9): 9 features probed (`scripts/security/prompt_injection_probe.py`); Plot Assistant and Refine follow injected instructions — finding P1, open, decision needed*
+    - [x] `_AUTHOR_STYLES` safety registry under adversarial input — Hemingway, Woolf, Christie, unknown strings — *2026-09-27 (Stage 9): Hemingway/Woolf/Christie aliases, unknown, injection-style and overlong input tested; raw input never reaches the prompt; `author` now bounded*
+    - [x] Dependency vulnerability review — *2026-09-27 (Stage 9): pip-audit of the installed runtime (3 Critical / 63 High) and `npm audit` (1 Critical / 14 High) — findings D1–D3, open, decision needed*
   - **Verification:**
-    - [ ] No finding above the agreed severity threshold remains open
+    - [ ] No finding above the agreed severity threshold remains open — *2026-09-27 (Stage 9): NOT met — dependency advisories D1/D3 open (and P1 if rated High). `docs/testing/stage-09-security-findings.md`*
   - **Definition of done:** Known attack surfaces are tested and closed.
 
 - [ ] **9.5 — Cross-user data isolation testing**
@@ -2815,13 +2827,13 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
   - **Can run in parallel:** Yes
   - **Context:** Highest-value security test. Multi-tenant manuscript data with no verified isolation test is a serious pre-launch gap. Write this early even though it is verified here.
   - **Implementation checklist:**
-    - [ ] Create two test users with separate stories
-    - [ ] Attempt cross-user access on every story-scoped endpoint
-    - [ ] Attempt cross-user access on chapters, characters, notes, bibles, pins, audio and OCR
-    - [ ] Verify the permission seam in `StoryContextEngine.tsx` — documented as always granting access today
-    - [ ] Add the isolation suite to CI
+    - [x] Create two test users with separate stories — *2026-09-27 (Stage 9): `test_cross_user_isolation.py` fixture — two fully populated authors*
+    - [x] Attempt cross-user access on every story-scoped endpoint — *2026-09-27 (Stage 9): route-driven sweep of all 144 id-bearing route/methods (path, query, body); completeness test guards new routes*
+    - [x] Attempt cross-user access on chapters, characters, notes, bibles, pins, audio and OCR — *2026-09-27 (Stage 9): covered by the sweep plus explicit tests incl. multipart uploads; defects I1–I7 found and fixed*
+    - [x] Verify the permission seam in `StoryContextEngine.tsx` — documented as always granting access today — *2026-09-27 (Stage 9): display-only; the server refuses the same actions (`test_story_context_engine_seam_is_display_only`)*
+    - [ ] Add the isolation suite to CI — *2026-09-27 (Stage 9): deferred with task 6.1 (CI deferred by decision); suite runs via `run_full_regression.sh`*
   - **Verification:**
-    - [ ] Every cross-user attempt returns 403 or 404, never data
+    - [x] Every cross-user attempt returns 403 or 404, never data — *2026-09-27 (Stage 9): no data returned, none reached a prompt, the other author's rows byte-identical; foreign ids indistinguishable from missing (after I1–I7 fixes)*
   - **Definition of done:** No user can reach another user's manuscript by any route.
 
 - [ ] **9.6 — User acceptance testing with real authors**
@@ -2852,19 +2864,19 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
   - **Blocked by:** None
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] `git mv` closed issue documents to `docs/issues-and-bugs/resolved/`
-    - [ ] Record the fixing commit for each
-    - [ ] Create a new open document for any remaining accepted issues
-    - [ ] Update `docs/issues-and-bugs/README.md`
-    - [ ] Update `docs/README.md` open-issues section
+    - [x] `git mv` closed issue documents to `docs/issues-and-bugs/resolved/` — *2026-09-27 (Stage 9): Phase 2 report moved to `resolved/` with a plain filesystem move (per instruction: no staging); the Phase 1 report stays in `open/`*
+    - [x] Record the fixing commit for each — *2026-09-27 (Stage 9): Phase 2 table in `triage-register.md` now has a Fixing-commit and Stage 9 re-run column*
+    - [ ] Create a new open document for any remaining accepted issues — *2026-09-27 (Stage 9): waits on UAT and the post-launch acceptances*
+    - [x] Update `docs/issues-and-bugs/README.md` — *2026-09-27 (Stage 9): Open/Resolved sections, OCR defect listed, stale root-cause claim corrected*
+    - [x] Update `docs/README.md` open-issues section — *2026-09-27 (Stage 9): Phase 2 now listed as resolved; links repaired (also root `README.md`, `docs/archive/README.md`)*
   - **Verification:**
-    - [ ] No resolved issue remains in `open/`
+    - [ ] No resolved issue remains in `open/` — *2026-09-27 (Stage 9): the Phase 1 report is partly resolved and stays in `open/` until UAT*
   - **Definition of done:** The issue folder reflects reality.
 
 ### Stage 9 Completion Gate
 
 - [ ] Full regression suite green
-- [ ] Both QA reports re-run with recorded per-issue outcomes
+- [x] Both QA reports re-run with recorded per-issue outcomes — *2026-09-27 (Stage 9): `docs/testing/stage-09-qa-rerun-results.md`*
 - [ ] Zero open Critical issues
 - [ ] All High issues fixed or explicitly accepted per D-6
 - [ ] Performance baselines recorded and met

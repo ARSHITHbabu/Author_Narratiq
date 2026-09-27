@@ -1,0 +1,484 @@
+{
+  "scenarios": [
+    {
+      "passage_id": "gothic-1",
+      "emotion": "joy",
+      "intensity": "low",
+      "text_similarity": 0.5481,
+      "content_similarity": 0.8795249855138421,
+      "unchanged": false,
+      "output": "The house, untouched for eleven years, held the quiet stillness of its long absence. The air clung to the silence, cold and carrying a faint, sweet scent of dust. Mira moved softly, her footsteps barely disturbing the stale calm. There was no one left to answer her, and she preferred it that way."
+    },
+    {
+      "passage_id": "gothic-1",
+      "emotion": "joy",
+      "intensity": "low",
+      "text_similarity": 0.6435,
+      "content_similarity": 0.9119177341645704,
+      "unchanged": false,
+      "output": "The house had not been opened in eleven years, and the air inside clung to the shape of that absence—still, cold, faintly sweet with dust. Mira moved quietly through the rooms, her footsteps barely disturbing the silence. There was no one left to answer, and the quiet echoed softly around her, a gentle hum that seemed to carry the weight of time itself."
+    },
+    {
+      "passage_id": "gothic-1",
+      "emotion": "sadness",
+      "intensity": "low",
+      "text_similarity": 0.7937,
+      "content_similarity": 0.9460562710640564,
+      "unchanged": false,
+      "output": "The house had not been opened in eleven years, and the air inside retained the shape of that absence—still, cold, faintly sweet with dust. Mira moved quietly through the rooms, her footsteps barely disturbing the silence. There was no one left to answer."
+    },
+    {
+      "passage_id": "gothic-1",
+      "emotion": "sadness",
+      "intensity": "low",
+      "text_similarity": 0.5185,
+      "content_similarity": 0.8961249288550966,
+      "unchanged": false,
+      "output": "The house, untouched for eleven years, held the quiet weight of its abandonment. The air inside clung to the stillness, chilly and faintly sweet with the scent of dust. Mira moved through the rooms, her footsteps soft on the carpet, but there was no sound to break the silence. No one remained to answer her silent calls."
+    },
+    {
+      "passage_id": "gothic-1",
+      "emotion": "fear",
+      "intensity": "low",
+      "text_similarity": 0.7604,
+      "content_similarity": 0.9485585928612144,
+      "unchanged": false,
+      "output": "The house had not been opened in eleven years, and the air inside clung to that long, silent absence—still, cold, faintly sweet with dust. Mira moved quietly, her footsteps barely disturbing the thick silence. There was no one left to answer."
+    },
+    {
+      "passage_id": "gothic-1",
+      "emotion": "fear",
+      "intensity": "low",
+      "text_similarity": 0.7857,
+      "content_similarity": 0.948998757253539,
+      "unchanged": false,
+      "output": "The house had not been opened in eleven years, and the air inside clung to that long absence—still, cold, faintly sweet with dust. Mira moved quietly, her footsteps barely disturbing the silence. There was no one left to answer."
+    },
+    {
+      "passage_id": "gothic-1",
+      "emotion": "anger",
+      "intensity": "low",
+      "text_similarity": 0.4991,
+      "content_similarity": 0.8796359771030604,
+      "unchanged": false,
+      "output": "The house had lain untouched for eleven years, its air thick with the lingering silence of neglect—still, cold, faintly sweet with the dust that seemed to have found a permanent home. Mira moved through the rooms, her footsteps echoing off the walls, but there was no one left to hear them. No one to answer the questions that lingered unspoken in the heavy, musty air."
+    },
+    {
+      "passage_id": "gothic-1",
+      "emotion": "anger",
+      "intensity": "low",
+      "text_similarity": 0.5272,
+      "content_similarity": 0.8667708820059772,
+      "unchanged": false,
+      "output": "The house had lain dormant for eleven years, its air thick with the lingering silence, cold and still, carrying the faint, cloying scent of dust. Mira moved through the rooms, her footsteps echoing softly on the hardwood floors, but there was no one to hear them. No one left to answer."
+    },
+    {
+      "passage_id": "gothic-1",
+      "emotion": "joy",
+      "intensity": "high",
+      "text_similarity": 0.2947,
+      "content_similarity": 0.8430776266072204,
+      "unchanged": false,
+      "output": "The house, untouched for eleven years, exhaled the silence of its abandonment—a thick, unyielding stillness that clung to every corner, a cold embrace that seemed to seep through her bones. The air itself bore the scent of long-forgotten dust, a faint sweetness that teased her nostrils like the memory of something once cherished but now lost. Mira moved quietly, her footsteps barely stirring the stagnant atmosphere. There was no one left to answer, no voice to fill the void, no warmth to greet her. Each creak of the floorboards under her feet sounded like the distant echo of a life that had slipped away, leaving only the hollow shell of this place behind."
+    },
+    {
+      "passage_id": "gothic-1",
+      "emotion": "joy",
+      "intensity": "high",
+      "text_similarity": 0.315,
+      "content_similarity": 0.8569023312868035,
+      "unchanged": false,
+      "output": "The house, untouched for eleven long years, exhaled a breath of stillness, its air thick with the scent of abandonment—a faint, sweet perfume of dust that clung like a ghostly residue. Mira moved quietly through the foyer, her footsteps barely disturbing the silence. There was no one left to answer, no echo to her presence, no warmth to greet her. The cold seeped into her bones, a physical reminder of the years that had passed without her. She did not call out; instead, she let the house wrap itself around her, its very walls whispering tales of solitude and time's relentless march."
+    },
+    {
+      "passage_id": "gothic-1",
+      "emotion": "sadness",
+      "intensity": "high",
+      "text_similarity": 0.2685,
+      "content_similarity": 0.812938453140731,
+      "unchanged": false,
+      "output": "The house, untouched for eleven years, exhaled the stale breath of neglect—a thick, unyielding silence that clung to every corner. The air, heavy and cold, seemed to have absorbed the very essence of its abandonment, each molecule saturated with the scent of forgotten days, a faint, acrid sweetness of dust that clung to her nostrils like tears. Mira moved through the shadows, her footsteps silent on the worn carpet, the floorboards creaking underfoot like the groans of a long-dead giant. No one lingered here now; there was no one left to hear her, no voice to echo back from the past."
+    },
+    {
+      "passage_id": "gothic-1",
+      "emotion": "sadness",
+      "intensity": "high",
+      "text_similarity": 0.4888,
+      "content_similarity": 0.8846998201294468,
+      "unchanged": false,
+      "output": "The house, untouched for eleven years, exhaled a breath of absence, each molecule of air still, cold, and faintly sweet with dust. Mira moved through the silence, her footsteps barely disturbing the stillness. There was no one left to answer—no echo, no response, just the hollow ache of empty rooms whispering their secrets to the empty walls."
+    },
+    {
+      "passage_id": "gothic-1",
+      "emotion": "fear",
+      "intensity": "high",
+      "text_similarity": 0.3363,
+      "content_similarity": 0.8261237730842284,
+      "unchanged": false,
+      "output": "The house, untouched for eleven years, exhaled a stale, oppressive silence. The air clung to the walls like a thick, invisible blanket, heavy with the weight of neglect. A faint, sickly sweet scent of dust lingered, each particle suspended in the dim light as if holding its breath. Mira moved quietly, her footsteps barely disturbing the stillness. No one remained here, no voice to echo hers. Her fingers trembled slightly as they brushed against the cold, unyielding wood of the doorframe."
+    },
+    {
+      "passage_id": "gothic-1",
+      "emotion": "fear",
+      "intensity": "high",
+      "text_similarity": 0.3428,
+      "content_similarity": 0.8096673508349372,
+      "unchanged": false,
+      "output": "The house loomed before her, its weight pressing down like a tombstone, and the air inside clung to the silence of eleven long, unbreathed years—still, cold, and faintly sweet with the acrid tang of dust. Mira moved slowly, each step echoing like a hollow drumbeat in the vast, empty chambers. No sound broke the oppressive quiet; there was no one left to answer, no voice to fill the void. The darkness seemed to reach out, thick and suffocating, as if the very walls were closing in, squeezing the breath from her lungs. Her fingers trembled as they brushed against the cold, smooth surface of the doorframe, and she felt the chill seep into her bones."
+    },
+    {
+      "passage_id": "gothic-1",
+      "emotion": "anger",
+      "intensity": "high",
+      "text_similarity": 0.1732,
+      "content_similarity": 0.8108050224849157,
+      "unchanged": false,
+      "output": "The house, untouched for eleven long years, exhaled a stale breath that clung to every surface like a ghost's touch. The air, thick and heavy, seemed to mock the silence with its oppressive stillness. A faint, acrid sweetness lingered, a testament to the dust that had settled like a shroud. Mira moved through the rooms, her footsteps muffled by the silence, each step echoing with the weight of abandonment. No one remained to answer her, and the house knew it, creaking and groaning under the burden of its own emptiness."
+    },
+    {
+      "passage_id": "gothic-1",
+      "emotion": "anger",
+      "intensity": "high",
+      "text_similarity": 0.4484,
+      "content_similarity": 0.8366131001472576,
+      "unchanged": false,
+      "output": "The house loomed like a forgotten tomb, its silence a palpable weight. The air inside clung to the shape of eleven long years of neglect—still, cold, and thick with the sickly sweetness of untouched dust. Mira moved through the darkness, each step echoing with the hollow promise of echoes. No one lingered here now; there was no one left to answer her unspoken questions, no one to fill the void with a familiar voice."
+    },
+    {
+      "passage_id": "tech-1",
+      "emotion": "joy",
+      "intensity": "low",
+      "text_similarity": 0.6852,
+      "content_similarity": 0.8745319068551105,
+      "unchanged": false,
+      "output": "The sensor array registered a slight uptick at 03:14, four minutes ahead of schedule. Priya noted the discrepancy and reran the calibration. The result remained consistent."
+    },
+    {
+      "passage_id": "tech-1",
+      "emotion": "joy",
+      "intensity": "low",
+      "text_similarity": 0.5751,
+      "content_similarity": 0.8483837421391884,
+      "unchanged": false,
+      "output": "The sensor array logged a spike at 03:14, four minutes early relative to the established cycle. Priya's fingers traced the cool lines of the console, her breath a gentle mist in the quiet room. She ran the calibration a second time, the hum of the machinery a soothing background note. The result did not change, but there was a subtle thrill in the air, a hint of anticipation that lingered just beyond the surface of her thoughts."
+    },
+    {
+      "passage_id": "tech-1",
+      "emotion": "sadness",
+      "intensity": "low",
+      "text_similarity": 0.6553,
+      "content_similarity": 0.8855574253359046,
+      "unchanged": false,
+      "output": "The sensor array recorded a slight uptick at 03:14, four minutes ahead of schedule. Priya noted the irregularity and reran the calibration, her fingers moving methodically over the controls. The results remained unchanged."
+    },
+    {
+      "passage_id": "tech-1",
+      "emotion": "sadness",
+      "intensity": "low",
+      "text_similarity": 0.7773,
+      "content_similarity": 0.93884791055244,
+      "unchanged": false,
+      "output": "The sensor array logged a spike at 03:14, four minutes early relative to the established cycle. Priya noted the anomaly and reran the calibration a second time. The result remained unchanged. The hum of the machinery seemed quieter, as if mourning its own predictability."
+    },
+    {
+      "passage_id": "tech-1",
+      "emotion": "fear",
+      "intensity": "low",
+      "text_similarity": 0.7556,
+      "content_similarity": 0.9473818840147123,
+      "unchanged": false,
+      "output": "The sensor array logged a spike at 03:14, four minutes early relative to the established cycle. Priya's fingers hovered over the keyboard as she flagged the anomaly. She ran the calibration a second time, her breath catching slightly with each beep and whir of the machine. The result did not change."
+    },
+    {
+      "passage_id": "tech-1",
+      "emotion": "fear",
+      "intensity": "low",
+      "text_similarity": 0.6081,
+      "content_similarity": 0.8856083584217235,
+      "unchanged": false,
+      "output": "The sensor array logged a spike at 03:14, four minutes early relative to the established cycle. Priya's fingers hovered over the keyboard as she flagged the anomaly, her breath catching slightly with each passing second. She ran the calibration a second time, her eyes narrowing as she watched the readouts. The result did not change, and a faint unease settled in her stomach, a subtle tightening that spread through her limbs."
+    },
+    {
+      "passage_id": "tech-1",
+      "emotion": "anger",
+      "intensity": "low",
+      "text_similarity": 0.5891,
+      "content_similarity": 0.852616222104253,
+      "unchanged": false,
+      "output": "The sensor array logged a spike at 03:14, four minutes early relative to the established cycle. Priya's fingers drummed lightly on the console, her breath growing shorter with each passing second. She ran the calibration a second time, her mind racing as the numbers flashed across the screen—unchanged. The air in the room seemed to thicken, heavy with the weight of frustration."
+    },
+    {
+      "passage_id": "tech-1",
+      "emotion": "anger",
+      "intensity": "low",
+      "text_similarity": 0.6,
+      "content_similarity": 0.9152768448742326,
+      "unchanged": false,
+      "output": "The sensor array logged a spike at 03:14, four minutes early relative to the established cycle. Priya’s fingers drummed lightly on the console, each tap a sharp reminder of the deviation from the norm. She ran the calibration a second time, her breath hitching slightly as she waited for the results. The screen flashed back the same anomaly, unyielding and frustratingly consistent."
+    },
+    {
+      "passage_id": "tech-1",
+      "emotion": "joy",
+      "intensity": "high",
+      "text_similarity": 0.5319,
+      "content_similarity": 0.8591220419266833,
+      "unchanged": false,
+      "output": "The sensor array logged a spike at 03:14, a full four minutes early, shattering the rigid predictability of the established cycle. Priya’s fingers flew over the keyboard, her breath quickening as she flagged the anomaly. She ran the calibration a second time, her mind racing, each keystroke a sharp, urgent note. The result did not change, but in that moment, the room seemed to vibrate with the potential for discovery, every fiber of her being tingling with a thrilling anticipation."
+    },
+    {
+      "passage_id": "tech-1",
+      "emotion": "joy",
+      "intensity": "high",
+      "text_similarity": 0.4812,
+      "content_similarity": 0.8366899752733185,
+      "unchanged": false,
+      "output": "The sensor array logged a spike at 03:14, four minutes early relative to the established cycle. Priya's fingers danced across the keyboard with a newfound energy, her breath quickening as she reran the calibration. The screen flashed with numbers, each one a tiny triumph or failure, but nothing changed. Her mind buzzed with a vibrant, almost painful exhilaration, every nerve ending tingling with the thrill of discovery. The room seemed to hum with a charged silence, the air thick with anticipation."
+    },
+    {
+      "passage_id": "tech-1",
+      "emotion": "sadness",
+      "intensity": "high",
+      "text_similarity": 0.4821,
+      "content_similarity": 0.8338301802871904,
+      "unchanged": false,
+      "output": "The sensor array recorded a spike at 03:14, precisely four minutes off the norm. Priya's fingers trembled as she flagged the anomaly, her breath catching in her throat. She reran the calibration, her mind racing with possibilities, each one more troubling than the last. The result remained unchanged, a stark, unyielding truth that gnawed at her insides like a cold wind slicing through her bones."
+    },
+    {
+      "passage_id": "tech-1",
+      "emotion": "sadness",
+      "intensity": "high",
+      "text_similarity": 0.6703,
+      "content_similarity": 0.8631716691181271,
+      "unchanged": false,
+      "output": "The sensor array logged a spike at 03:14, four minutes early relative to the established cycle. Priya's fingers trembled as she flagged the anomaly, her breath catching in her chest. She ran the calibration a second time, each click of the keyboard a sharp, lonely echo in the empty lab. The result did not change, leaving a cold, heavy weight settling in her stomach."
+    },
+    {
+      "passage_id": "tech-1",
+      "emotion": "fear",
+      "intensity": "high",
+      "text_similarity": 0.3506,
+      "content_similarity": 0.7470499668363757,
+      "unchanged": false,
+      "output": "The sensor array hissed sharply at 03:14, four minutes precariously early. Priya's fingers trembled as she flagged the anomaly, her breath catching in her throat. She reran the calibration, her heart pounding like a drum against her ribcage. Each second felt like an eternity as she stared at the unyielding readout, the numbers flashing before her eyes in a dizzying blur. Her hands grew slick with sweat, and the cool metal of the console felt suddenly scorching beneath her touch. The silence in the room seemed to amplify the tension, every tick of the clock echoing in her ears."
+    },
+    {
+      "passage_id": "tech-1",
+      "emotion": "fear",
+      "intensity": "high",
+      "text_similarity": 0.5081,
+      "content_similarity": 0.8035089156110128,
+      "unchanged": false,
+      "output": "The sensor array logged a spike at 03:14, four minutes early—precisely the kind of deviation that sent a shiver down her spine. Priya's fingers trembled as she flagged the anomaly, each keystroke echoing in the silent room. She reran the calibration, her breath hitching when the result did not budge. Her stomach twisted into a knot, and the air felt thick and oppressive, pressing against her chest with every labored breath."
+    },
+    {
+      "passage_id": "tech-1",
+      "emotion": "anger",
+      "intensity": "high",
+      "text_similarity": 0.2764,
+      "content_similarity": 0.7531907654139371,
+      "unchanged": false,
+      "output": "The sensor array spiked at 03:14, a full four minutes ahead of schedule, and Priya's gut clenched with a sharp, icy pain. She stared at the readings, her fingers trembling as she reran the calibration. The screen flashed the same damn numbers back at her, each one a taunt, a mocking whisper in her ear. This wasn't just an anomaly; it was a violation, a deliberate sabotage. Her breath came in short, furious gasps, each inhale filling her lungs with the acrid stench of failure. How dare it? How dare this system betray her? She felt the heat of rage rising in her cheeks, her vision narrowing to a tunnel of pure, unadulterated fury. This wasn't over. Not by a long shot."
+    },
+    {
+      "passage_id": "tech-1",
+      "emotion": "anger",
+      "intensity": "high",
+      "text_similarity": 0.5872,
+      "content_similarity": 0.843814443023709,
+      "unchanged": false,
+      "output": "The sensor array logged a spike at 03:14, four minutes early—precisely when her patience snapped. Priya's fingers trembled as she flagged the anomaly, her breath growing ragged with each passing second. She ran the calibration a second time, her mind racing with frustration. The result did not change; the machine stubbornly refused to budge, and with it, her temper flared."
+    },
+    {
+      "passage_id": "adventure-1",
+      "emotion": "joy",
+      "intensity": "low",
+      "text_similarity": 0.7342,
+      "content_similarity": 0.9188237724885312,
+      "unchanged": false,
+      "output": "The bridge creaked and gave way with a sound like a long-held breath finally released. Kael didn't turn his head. There was nothing behind them worth the brief pause it would take to glance back."
+    },
+    {
+      "passage_id": "adventure-1",
+      "emotion": "joy",
+      "intensity": "low",
+      "text_similarity": 0.5954,
+      "content_similarity": 0.802350102210454,
+      "unchanged": false,
+      "output": "The bridge groaned and collapsed with a sound like the last whisper of a sigh. Kael didn't turn to look. There was nothing behind, just the air thinning with each step forward."
+    },
+    {
+      "passage_id": "adventure-1",
+      "emotion": "sadness",
+      "intensity": "low",
+      "text_similarity": 0.6439,
+      "content_similarity": 0.8520000489940935,
+      "unchanged": false,
+      "output": "The bridge groaned beneath their feet, a sound like the slow release of a held breath. Kael kept his gaze straight ahead, the chill of the wind biting at his cheeks. There was nothing behind them worth the half-second it would take to turn."
+    },
+    {
+      "passage_id": "adventure-1",
+      "emotion": "sadness",
+      "intensity": "low",
+      "text_similarity": 0.5224,
+      "content_similarity": 0.7987962511775654,
+      "unchanged": false,
+      "output": "The bridge groaned and collapsed with a sound like a long, drawn-out exhale. Kael kept his gaze straight ahead, the chill of the wind biting at his cheeks. There was nothing left to see, nothing worth the flicker of attention it would take to glance back."
+    },
+    {
+      "passage_id": "adventure-1",
+      "emotion": "fear",
+      "intensity": "low",
+      "text_similarity": 0.5158,
+      "content_similarity": 0.7722745848985167,
+      "unchanged": false,
+      "output": "The bridge groaned and collapsed behind them with a sound like a deep, drawn-out exhale. Kael kept his gaze fixed straight ahead, the chill of the wind biting at his neck. There was nothing to see in the darkness behind, but the thought lingered, a faint echo in his mind."
+    },
+    {
+      "passage_id": "adventure-1",
+      "emotion": "fear",
+      "intensity": "low",
+      "text_similarity": 0.6174,
+      "content_similarity": 0.8233279714107454,
+      "unchanged": false,
+      "output": "The bridge groaned and split apart with a sound like a deep, drawn-out exhale. Kael didn't turn his head. There was nothing back there that would be worth the fraction of a second it would take to glance over."
+    },
+    {
+      "passage_id": "adventure-1",
+      "emotion": "anger",
+      "intensity": "low",
+      "text_similarity": 0.4163,
+      "content_similarity": 0.7792940862388218,
+      "unchanged": false,
+      "output": "The bridge groaned and collapsed with a sound like the last, desperate exhale of a dying creature. Kael didn't turn his head. What lay behind was irrelevant—worthless, really, compared to the seconds it would take to glance back. The wind rushed past, sharp and biting, as if nature itself disapproved of his hesitation."
+    },
+    {
+      "passage_id": "adventure-1",
+      "emotion": "anger",
+      "intensity": "low",
+      "text_similarity": 0.375,
+      "content_similarity": 0.7711859745608464,
+      "unchanged": false,
+      "output": "The bridge groaned and collapsed beneath them with a sound like the last whisper of a dying hope. Kael didn't turn to see what was left behind—there was nothing there that mattered enough to waste even a fleeting glance. The earth shook slightly from the impact, sending tiny stones skittering across the ground. Each step felt heavier, as if the very air was pressing down harder with each passing second."
+    },
+    {
+      "passage_id": "adventure-1",
+      "emotion": "joy",
+      "intensity": "high",
+      "text_similarity": 0.5426,
+      "content_similarity": 0.8262090929464857,
+      "unchanged": false,
+      "output": "The bridge gave way behind them with a sound like a held breath finally let go. Kael’s muscles tensed, every nerve ending electric with the rush of adrenaline. The air tasted sharp and sweet, each inhalation a burst of pure oxygen. He didn’t dare look back; there was nothing worth the half-second it would cost. The ground rushed up to meet them, each step a thrilling plunge into the unknown."
+    },
+    {
+      "passage_id": "adventure-1",
+      "emotion": "joy",
+      "intensity": "high",
+      "text_similarity": 0.3852,
+      "content_similarity": 0.7573661007100204,
+      "unchanged": false,
+      "output": "The bridge groaned and collapsed beneath them with a sound like the earth itself exhaling a sigh of relief. Kael didn't turn, his muscles coiled like tightly strung violin strings, every nerve ending alert to the rush of air and the wild throb of his heartbeat against his ribcage. There was nothing behind them—nothing—that could justify the risk of even a fleeting glance. The wind whipped around them, carrying the scent of salt and freedom, and Kael felt the thrill of escape coursing through his veins, sharp and exhilarating."
+    },
+    {
+      "passage_id": "adventure-1",
+      "emotion": "sadness",
+      "intensity": "high",
+      "text_similarity": 0.5967,
+      "content_similarity": 0.9032274099424416,
+      "unchanged": false,
+      "output": "The bridge gave way beneath them with a sound like a held breath finally let loose, a sigh that echoed in the hollow of their souls. Kael did not turn to look back. There was nothing behind them—no hope, no past, no connection—that could justify the precious half-second it would take to turn and see. The air grew colder, heavier, as if mourning the loss of something irreplaceable."
+    },
+    {
+      "passage_id": "adventure-1",
+      "emotion": "sadness",
+      "intensity": "high",
+      "text_similarity": 0.4743,
+      "content_similarity": 0.7902643719927874,
+      "unchanged": false,
+      "output": "The bridge crumbled away behind them with a sound like the last gasp of a dying thing. Kael did not turn to face the void, for there was no sight, no sound, no scent left behind—only the sharp tang of concrete dust in his nostrils, the cold wind cutting through his bones, and the hollow echo of their steps as they fled into the night."
+    },
+    {
+      "passage_id": "adventure-1",
+      "emotion": "fear",
+      "intensity": "high",
+      "text_similarity": 0.3294,
+      "content_similarity": 0.7727077465864698,
+      "unchanged": false,
+      "output": "The bridge groaned and crumbled beneath their feet with a sound like the last, shuddering exhale of a dying beast. Kael's muscles tensed, every nerve ending on high alert as he forced himself not to turn. What lay behind was nothing—nothing that could be seen, heard, or felt, but the void screamed in his mind, a hollow, echoing chasm of dread. Each second without looking back felt like an eternity, each heartbeat a drumroll of impending doom. There was nothing behind them, yet the knowledge did little to quell the icy grip of fear that coiled around his chest, threatening to strangle him."
+    },
+    {
+      "passage_id": "adventure-1",
+      "emotion": "fear",
+      "intensity": "high",
+      "text_similarity": 0.3211,
+      "content_similarity": 0.7624609275374786,
+      "unchanged": false,
+      "output": "The bridge groaned and snapped with a sound like the final, shuddering exhale of a dying beast. Kael’s muscles tensed, every nerve on edge, as the earth beneath his feet dropped away in a silent scream. He didn’t dare turn around; the abyss behind him was a chasm of blackness, an unfathomable void. There was no time to spare, no second to be lost to fear. The wind howled through the gap, a mocking, relentless chorus, as if the very air itself was laughing at his desperate flight."
+    },
+    {
+      "passage_id": "adventure-1",
+      "emotion": "anger",
+      "intensity": "high",
+      "text_similarity": 0.2875,
+      "content_similarity": 0.7536068674056976,
+      "unchanged": false,
+      "output": "The bridge snapped beneath them with a shuddering groan, like the last, desperate gasp of a dying beast. Kael didn't turn, didn't dare. What lay behind was nothing but the echo of their past, a void they couldn't afford to linger in. The air stung with the acrid smell of steel and burning wood, each breath a sharp reminder of the precariousness of their escape. His fingers dug into the rough fabric of his jacket, knuckles white with the tension of barely contained fury. Every fiber of his being screamed for retribution, for the chance to make those who had brought them to this pay a thousandfold. But now was not the time. Now, they had to run."
+    },
+    {
+      "passage_id": "adventure-1",
+      "emotion": "anger",
+      "intensity": "high",
+      "text_similarity": 0.2941,
+      "content_similarity": 0.7452122483319746,
+      "unchanged": false,
+      "output": "The bridge shattered beneath them with a sound like the final, desperate exhale of a dying beast. Kael didn't spare a glance, didn't want to see the twisted metal and splintered wood collapsing into the churning waters below. There was no time for looking back—no time for anything but the relentless push forward. The wind bit at his face, sharp and cold, carrying the acrid scent of burning wood and metal. Each step felt like a betrayal, each footfall a denial of the reality unfolding behind them. They had to keep moving, had to ignore the sickening pull of what they were leaving behind. The bridge's collapse echoed in his bones, a cruel reminder of their desperate flight."
+    }
+  ],
+  "distinctness": [
+    {
+      "passage_id": "gothic-1",
+      "intensity": "low",
+      "mean_cross_emotion_similarity": 0.6365,
+      "shared_phrase_rate": 0.1795
+    },
+    {
+      "passage_id": "gothic-1",
+      "intensity": "high",
+      "mean_cross_emotion_similarity": 0.4194,
+      "shared_phrase_rate": 0.1039
+    },
+    {
+      "passage_id": "tech-1",
+      "intensity": "low",
+      "mean_cross_emotion_similarity": 0.5748,
+      "shared_phrase_rate": 0.1145
+    },
+    {
+      "passage_id": "tech-1",
+      "intensity": "high",
+      "mean_cross_emotion_similarity": 0.4696,
+      "shared_phrase_rate": 0.0799
+    },
+    {
+      "passage_id": "adventure-1",
+      "intensity": "low",
+      "mean_cross_emotion_similarity": 0.5258,
+      "shared_phrase_rate": 0.1397
+    },
+    {
+      "passage_id": "adventure-1",
+      "intensity": "high",
+      "mean_cross_emotion_similarity": 0.3646,
+      "shared_phrase_rate": 0.0368
+    }
+  ],
+  "summary": {
+    "scenarios": 48,
+    "mean_text_similarity": 0.511,
+    "unchanged_outputs": 0,
+    "mean_cross_emotion_similarity": 0.4985,
+    "max_cross_emotion_similarity": 0.6365,
+    "mean_shared_phrase_rate": 0.109
+  },
+  "label": "stage9_20260927",
+  "prompt_version": "v3"
+}

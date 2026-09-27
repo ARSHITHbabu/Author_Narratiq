@@ -1,0 +1,18 @@
+{
+  "60": {
+    "status": 200,
+    "latency_ms": 9441,
+    "chapters_analyzed": 60,
+    "issues": 1,
+    "cap_note_shown": false,
+    "detail": null
+  },
+  "61": {
+    "status": 200,
+    "latency_ms": 8399,
+    "chapters_analyzed": 60,
+    "issues": 1,
+    "cap_note_shown": true,
+    "detail": null
+  }
+}

@@ -1,0 +1,180 @@
+{
+  "results": [
+    {
+      "passage_id": "repetitive-structure",
+      "weakness": "repetitive sentence structure / monotonous rhythm",
+      "n_suggestions": 2,
+      "weakness_detected": true,
+      "categories": [
+        "Lack of Scene Detail",
+        "Repetitive Actions"
+      ],
+      "has_priority_field": true,
+      "soft_praise_hits": 0,
+      "raw_suggestions": [
+        {
+          "id": 1,
+          "category": "Repetitive Actions",
+          "observation": "The repeated use of 'She' for every action makes the narrative feel monotonous and lacks variety.",
+          "recommendation": "Vary the pronouns and actions to add rhythm and interest. For example: 'She entered the room, saw the note on the table, picked it up, read it twice, put it down, and walked back out.'",
+          "priority": "high",
+          "text": "The repeated use of 'She' for every action makes the narrative feel monotonous and lacks variety.",
+          "reason": "The repeated use of 'She' for every action makes the narrative feel monotonous and lacks variety. Vary the pronouns and actions to add rhythm and interest. For example: 'She entered the room, saw the note on the table, picked it up, read it twice, put it down, and walked back out.'"
+        },
+        {
+          "id": 2,
+          "category": "Lack of Scene Detail",
+          "observation": "The scene lacks any descriptive elements or sensory details that could engage the reader more deeply.",
+          "recommendation": "Add sensory details and descriptions to make the scene more vivid. For example: 'She entered the dimly lit room, her eyes scanning the polished oak table. There, a single sheet of paper lay untouched, its edges curling slightly. She picked it up, the texture of the paper rough against her fingers. She read it twice, the words blurring before her eyes. She put it down, the weight of the moment settling in her chest, and walked back out, the door creaking softly behind her.'",
+          "priority": "medium",
+          "text": "The scene lacks any descriptive elements or sensory details that could engage the reader more deeply.",
+          "reason": "The scene lacks any descriptive elements or sensory details that could engage the reader more deeply. Add sensory details and descriptions to make the scene more vivid. For example: 'She entered the dimly lit room, her eyes scanning the polished oak table. There, a single sheet of paper lay untouched, its edges curling slightly. She picked it up, the texture of the paper rough against her fingers. She read it twice, the words blurring before her eyes. She put it down, the weight of the moment settling in her chest, and walked back out, the door creaking softly behind her.'"
+        }
+      ]
+    },
+    {
+      "passage_id": "telling-not-showing",
+      "weakness": "telling emotion directly instead of showing it",
+      "n_suggestions": 2,
+      "weakness_detected": true,
+      "categories": [
+        "Emotional Overload",
+        "Unclear Stakes"
+      ],
+      "has_priority_field": true,
+      "soft_praise_hits": 0,
+      "raw_suggestions": [
+        {
+          "id": 1,
+          "category": "Emotional Overload",
+          "observation": "The excerpt lists multiple emotions (furious, sad, betrayed) without showing how Maria reacts to them.",
+          "recommendation": "Show Maria's physical reactions or actions that reflect her emotions. For example, 'Maria clenched her fists, her knuckles turning white, and her eyes stung with unshed tears.'",
+          "priority": "high",
+          "text": "The excerpt lists multiple emotions (furious, sad, betrayed) without showing how Maria reacts to them.",
+          "reason": "The excerpt lists multiple emotions (furious, sad, betrayed) without showing how Maria reacts to them. Show Maria's physical reactions or actions that reflect her emotions. For example, 'Maria clenched her fists, her knuckles turning white, and her eyes stung with unshed tears.'"
+        },
+        {
+          "id": 2,
+          "category": "Unclear Stakes",
+          "observation": "The excerpt does not indicate any immediate stakes or consequences for Maria\u2019s emotional state.",
+          "recommendation": "Introduce a specific consequence or decision point that arises from her emotions. For example, 'She stormed out of the room, slamming the door behind her, and now faced the choice of confronting her friend or ignoring her.'",
+          "priority": "medium",
+          "text": "The excerpt does not indicate any immediate stakes or consequences for Maria\u2019s emotional state.",
+          "reason": "The excerpt does not indicate any immediate stakes or consequences for Maria\u2019s emotional state. Introduce a specific consequence or decision point that arises from her emotions. For example, 'She stormed out of the room, slamming the door behind her, and now faced the choice of confronting her friend or ignoring her.'"
+        }
+      ]
+    },
+    {
+      "passage_id": "generic-dialogue",
+      "weakness": "flat, generic dialogue with no character voice",
+      "n_suggestions": 2,
+      "weakness_detected": true,
+      "categories": [
+        "Dialogue Tags",
+        "Stilted Dialogue"
+      ],
+      "has_priority_field": true,
+      "soft_praise_hits": 0,
+      "raw_suggestions": [
+        {
+          "id": 1,
+          "category": "Dialogue Tags",
+          "observation": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+          "recommendation": "Replace the repetitive 'said' tags with actions or internal thoughts to add variety and depth. For example: 'Hello,' she said, smiling. He looked at her and replied, 'How are you?' She smiled and said, 'I am fine.' He nodded and said, 'That is good.'",
+          "priority": "high",
+          "text": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+          "reason": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said. Replace the repetitive 'said' tags with actions or internal thoughts to add variety and depth. For example: 'Hello,' she said, smiling. He looked at her and replied, 'How are you?' She smiled and said, 'I am fine.' He nodded and said, 'That is good.'"
+        },
+        {
+          "id": 2,
+          "category": "Stilted Dialogue",
+          "observation": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+          "recommendation": "Make the dialogue more natural by removing the formalities. For instance: 'Hey,' she said. 'How\u2019s it going?' he asked. 'Pretty good,' she replied. 'Cool,' he said.",
+          "priority": "medium",
+          "text": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+          "reason": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said. Make the dialogue more natural by removing the formalities. For instance: 'Hey,' she said. 'How\u2019s it going?' he asked. 'Pretty good,' she replied. 'Cool,' he said."
+        }
+      ]
+    },
+    {
+      "passage_id": "info-dump",
+      "weakness": "exposition dumped directly rather than woven in",
+      "n_suggestions": 2,
+      "weakness_detected": true,
+      "categories": [
+        "Exposition",
+        "Narrative Risk"
+      ],
+      "has_priority_field": true,
+      "soft_praise_hits": 0,
+      "raw_suggestions": [
+        {
+          "id": 1,
+          "category": "Exposition",
+          "observation": "The passage is entirely expository, providing historical background without any immediate scene or character interaction.",
+          "recommendation": "Convert this into a scene where the narrator interacts with someone who mentions the founding of Everholt, or integrate this information into a relevant scene or dialogue.",
+          "priority": "high",
+          "text": "The passage is entirely expository, providing historical background without any immediate scene or character interaction.",
+          "reason": "The passage is entirely expository, providing historical background without any immediate scene or character interaction. Convert this into a scene where the narrator interacts with someone who mentions the founding of Everholt, or integrate this information into a relevant scene or dialogue."
+        },
+        {
+          "id": 2,
+          "category": "Narrative Risk",
+          "observation": "There is no clear stake or immediate relevance to the current narrative, which could risk losing the reader's interest.",
+          "recommendation": "Introduce a character or event that directly connects this historical information to the current plot or a character's motivation.",
+          "priority": "medium",
+          "text": "There is no clear stake or immediate relevance to the current narrative, which could risk losing the reader's interest.",
+          "reason": "There is no clear stake or immediate relevance to the current narrative, which could risk losing the reader's interest. Introduce a character or event that directly connects this historical information to the current plot or a character's motivation."
+        }
+      ]
+    },
+    {
+      "passage_id": "flat-description",
+      "weakness": "vague adjectives with no sensory specificity",
+      "n_suggestions": 2,
+      "weakness_detected": true,
+      "categories": [
+        "Lack of Scene",
+        "Repetitive Adjectives"
+      ],
+      "has_priority_field": true,
+      "soft_praise_hits": 0,
+      "raw_suggestions": [
+        {
+          "id": 2,
+          "category": "Lack of Scene",
+          "observation": "The excerpt consists entirely of descriptive adjectives without any action, dialogue, or character presence.",
+          "recommendation": "Convert this into a scene by adding actions, dialogue, or internal thoughts. For example, include a character's reaction to the house or a description of someone entering the house and interacting with its features.",
+          "priority": "high",
+          "text": "The excerpt consists entirely of descriptive adjectives without any action, dialogue, or character presence.",
+          "reason": "The excerpt consists entirely of descriptive adjectives without any action, dialogue, or character presence. Convert this into a scene by adding actions, dialogue, or internal thoughts. For example, include a character's reaction to the house or a description of someone entering the house and interacting with its features."
+        },
+        {
+          "id": 1,
+          "category": "Repetitive Adjectives",
+          "observation": "The adjectives 'nice', 'big', 'spacious', and 'very nice' are all used to describe the house and its features.",
+          "recommendation": "Replace some of the repetitive adjectives with more specific or varied descriptors. For example, use 'cozy' instead of 'nice' for the house, and 'lush' instead of 'nice' for the garden.",
+          "priority": "medium",
+          "text": "The adjectives 'nice', 'big', 'spacious', and 'very nice' are all used to describe the house and its features.",
+          "reason": "The adjectives 'nice', 'big', 'spacious', and 'very nice' are all used to describe the house and its features. Replace some of the repetitive adjectives with more specific or varied descriptors. For example, use 'cozy' instead of 'nice' for the house, and 'lush' instead of 'nice' for the garden."
+        }
+      ]
+    }
+  ],
+  "recall_rate": 1.0,
+  "distinct_categories_across_set": [
+    "Dialogue Tags",
+    "Emotional Overload",
+    "Exposition",
+    "Lack of Scene",
+    "Lack of Scene Detail",
+    "Narrative Risk",
+    "Repetitive Actions",
+    "Repetitive Adjectives",
+    "Stilted Dialogue",
+    "Unclear Stakes"
+  ],
+  "distinct_category_count": 10,
+  "any_soft_praise": false,
+  "all_have_priority": true
+}

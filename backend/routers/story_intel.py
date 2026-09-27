@@ -56,8 +56,10 @@ router = APIRouter(tags=["story-intelligence"])
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
-def _get_owned_story(story_id: str, user: dict, db: Session) -> Story:
-    story = db.query(Story).filter_by(story_id=story_id, user_id=user["user_id"]).first()
+def _get_owned_story(story_id: str, user, db: Session) -> Story:
+    # Stage 9: get_current_user returns a User row, not a dict. Indexing it
+    # raised TypeError, so every route here answered 500 — owner included.
+    story = db.query(Story).filter_by(story_id=story_id, user_id=user.user_id).first()
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
     return story
@@ -78,7 +80,7 @@ async def trigger_analysis(
     from services.story_intel_orchestrator import run_analysis_background
     job_id = await run_analysis_background(
         story_id=story_id,
-        user_id=user["user_id"],
+        user_id=user.user_id,
         triggered_by="manual",
         passes=req.passes,
         force_refresh=req.force_refresh or False,
