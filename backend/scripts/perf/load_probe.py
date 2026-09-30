@@ -12,6 +12,12 @@ database (never the live `narratiq` database):
   background   C simultaneous background jobs (story bible) to observe the
            BG_AI_CONCURRENCY semaphore: queueing time vs failures
   vllm     vLLM queue depth sampled from :9001/metrics during every phase
+  ramp     (Stage 10, task 10.8) capacity: C simultaneous ACTIVE authors, each
+           looping for --ramp-seconds with a think time between actions and a
+           realistic mix (70% rewrite tools, 20% Plot Assistant Q&A, 10%
+           search); a --pro-share of them run on the pro plan with Tier-2
+           strict consistency (decision D6: one extra LLM call per generation).
+           Per level: p95 per class, errors, vLLM queue depth.
 
 Every synthetic user/story it creates is deleted at the end, by the exact ids
 it created. Output: one JSON report (--out).
@@ -67,12 +73,12 @@ class Fixture:
         self.db = SessionLocal()
         self.user_ids: list[str] = []
 
-    def author(self, chapters: int = 3) -> dict:
+    def author(self, chapters: int = 3, plan: str | None = None) -> dict:
         from models import Chapter, Story, User
         from routers.auth import create_token, hash_password
         tag = uuid.uuid4().hex[:10]
         u = User(email=f"perf-{tag}@narratiq-internal-test.com", username=f"perf{tag}",
-                 hashed_password=hash_password(uuid.uuid4().hex))
+                 hashed_password=hash_password(uuid.uuid4().hex), plan=plan)
         self.db.add(u); self.db.flush()
         s = Story(user_id=u.user_id, title=f"Perf probe {tag}")
         self.db.add(s); self.db.flush()
@@ -243,6 +249,68 @@ async def phase_background(base, fx, levels, report):
     report["background_story_bible"] = out
 
 
+RAMP_MIX = [("rewrite", 0.70), ("qa", 0.20), ("search", 0.10)]
+REWRITE_TOOLS = ["tone", "refine", "style"]
+
+
+async def phase_ramp(base, fx, levels, seconds, think, pro_share, vllm_samples, report, settle=0):
+    """Capacity ramp (Stage 10, 10.8). An 'active author' performs one AI action,
+    then thinks for `think` seconds (uniform ±50%), for `seconds` seconds."""
+    import random
+    rng = random.Random(10)
+    out = {}
+    max_level = max(levels)
+    n_pro = int(round(max_level * pro_share))
+    # One indexed chapter per author: Q&A and search then retrieve over real
+    # embeddings; the chapter count barely changes per-request cost.
+    authors = [fx.author(chapters=1, plan="pro" if i < n_pro else None) for i in range(max_level)]
+    async with httpx.AsyncClient(base_url=base, timeout=900, limits=httpx.Limits(max_connections=400)) as c:
+        # Index once, so Q&A and search retrieve over real embeddings, then let the
+        # follow-on background work (mentions, hints) finish so it does not
+        # contaminate the first level (seen in the first Stage 10 run).
+        await asyncio.gather(*[index_story(c, a) for a in authors])
+        await asyncio.sleep(settle)
+        for level in levels:
+            samples: dict[str, list[float]] = {k: [] for k, _ in RAMP_MIX}
+            errors: dict[str, int] = {}
+            v_before = len(vllm_samples)
+            deadline = time.monotonic() + seconds
+
+            async def author_loop(a, is_pro):
+                await asyncio.sleep(rng.uniform(0, think))          # stagger starts
+                while time.monotonic() < deadline:
+                    r = rng.random()
+                    cls = "rewrite" if r < 0.70 else ("qa" if r < 0.90 else "search")
+                    eps = {e[0]: e for e in _endpoints(a)}
+                    if cls == "rewrite":
+                        _n, m, path, body = eps[rng.choice(REWRITE_TOOLS)]
+                        if is_pro and path in ("/api/ai/tone", "/api/ai/style"):
+                            body = {**body, "controls": {"consistency": "strict"}}
+                    elif cls == "qa":
+                        _n, m, path, body = eps["plot-assistant"]
+                    else:
+                        _n, m, path, body = eps["semantic-search"]
+                    ms, code = await _timed(c, m, path, body, a["headers"])
+                    if 200 <= code < 300:
+                        samples[cls].append(ms)
+                    else:
+                        errors[str(code)] = errors.get(str(code), 0) + 1
+                    await asyncio.sleep(rng.uniform(think * 0.5, think * 1.5))
+
+            await asyncio.gather(*[author_loop(a, i < n_pro) for i, a in enumerate(authors[:level])])
+            vs = vllm_samples[v_before:]
+            out[str(level)] = {
+                **{cls: _stats(v) for cls, v in samples.items()},
+                "errors": errors,
+                "requests": sum(len(v) for v in samples.values()) + sum(errors.values()),
+                "vllm_max_waiting": max((x.get("num_requests_waiting", 0) for x in vs), default=None),
+                "vllm_max_running": max((x.get("num_requests_running", 0) for x in vs), default=None),
+            }
+            print(f"[ramp] authors={level} {out[str(level)]}", flush=True)
+    report["ramp"] = {"seconds_per_level": seconds, "think_seconds": think, "pro_share": pro_share, "settle": settle,
+                      "mix": dict(RAMP_MIX), "levels": out}
+
+
 async def main_async(args):
     fx = Fixture()
     report = {"started": datetime.utcnow().isoformat() + "Z", "base": args.base,
@@ -265,6 +333,9 @@ async def main_async(args):
                 await phase_concurrent(args.base, fx, args.levels, ep, report)
         if "background" in phases:
             await phase_background(args.base, fx, args.bg_levels, report)
+        if "ramp" in phases:
+            await phase_ramp(args.base, fx, args.ramp_levels, args.ramp_seconds, args.think,
+                             args.pro_share, vllm, report, settle=args.settle)
     finally:
         stop.set()
         await sampler
@@ -289,6 +360,11 @@ def main():
     ap.add_argument("--levels", type=lambda s: [int(x) for x in s.split(",")], default=[1, 3, 6, 10])
     ap.add_argument("--bg-levels", type=lambda s: [int(x) for x in s.split(",")], default=[1, 3, 6])
     ap.add_argument("--concurrent-endpoints", default="tone,plot-assistant")
+    ap.add_argument("--ramp-levels", type=lambda s: [int(x) for x in s.split(",")], default=[10, 20, 40, 60])
+    ap.add_argument("--ramp-seconds", type=int, default=120)
+    ap.add_argument("--think", type=float, default=30.0, help="mean seconds between one author's AI actions")
+    ap.add_argument("--settle", type=int, default=0, help="seconds to wait after indexing before the first level")
+    ap.add_argument("--pro-share", type=float, default=0.0, help="share of authors on pro with Tier-2 consistency")
     asyncio.run(main_async(ap.parse_args()))
 
 

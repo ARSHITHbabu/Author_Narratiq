@@ -1,4 +1,5 @@
 import { test, expect, type APIRequestContext, type Page } from '@playwright/test'
+import { seedBrowserSession, sessionToken } from './_session'
 
 // Phase 2 QA Issue 3 — the Writing Analytics page was unreachable below the fold.
 // Checklist task 3.9.
@@ -22,12 +23,9 @@ async function signIn(page: Page, request: APIRequestContext) {
     const res = await request.post(`${API_URL}/api/auth/login`, { data: { email: EMAIL, password: PASSWORD } })
     expect(res.ok(), `login failed: ${res.status()}`).toBe(true)
     const body = await res.json()
-    cached = { token: body.access_token, user: JSON.stringify(body.user) }
+    cached = { token: sessionToken(res), user: JSON.stringify(body.user) }
   }
-  await page.addInitScript(([t, u]) => {
-    window.localStorage.setItem('narratiq_token', t)
-    window.localStorage.setItem('narratiq_user', u)
-  }, [cached.token, cached.user])
+  await seedBrowserSession(page, cached.token)
 }
 
 const lastSection = (page: Page) => page.getByTestId('analytics-last-section')

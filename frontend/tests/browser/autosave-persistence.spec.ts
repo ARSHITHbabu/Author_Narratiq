@@ -1,4 +1,5 @@
 import { test, expect, type APIRequestContext, type Page } from '@playwright/test'
+import { seedBrowserSession, sessionToken } from './_session'
 
 // Stage 6 task 6.4 — critical journey: login -> project -> chapter -> autosave -> reload persistence.
 //
@@ -30,7 +31,7 @@ async function authSession(request: APIRequestContext): Promise<{ token: string;
     })
     expect(res.ok(), `login failed: ${res.status()}`).toBe(true)
     const body = await res.json()
-    cachedToken = body.access_token
+    cachedToken = sessionToken(res)
     cachedUser = JSON.stringify(body.user)
   }
   return { token: cachedToken!, user: cachedUser! }
@@ -53,10 +54,7 @@ async function openEditorInFreshStory(page: Page, request: APIRequestContext): P
   expect(created.ok(), `story creation failed: ${created.status()}`).toBe(true)
   const story = await created.json()
 
-  await page.addInitScript(([t, u]) => {
-    window.localStorage.setItem('narratiq_token', t)
-    window.localStorage.setItem('narratiq_user', u)
-  }, [token, user])
+  await seedBrowserSession(page, token)
   await page.goto(`/projects/${story.story_id}`)
   await page.locator('.ProseMirror').first().waitFor({ state: 'visible' })
   return story.story_id as string

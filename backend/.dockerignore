@@ -1,0 +1,11 @@
+# Never bake secrets, author data or local state into an image.
+.env
+.env.*
+uploads/
+__pycache__/
+**/__pycache__/
+*.pyc
+.pytest_cache/
+*.dump
+*.sql
+tests/

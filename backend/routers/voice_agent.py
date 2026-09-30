@@ -1,7 +1,7 @@
 """
 Real-Time Voice Agent router.
 
-  WS   /api/voice/stream                      — streaming mic → partials → final plan
+  WS   /api/voice/stream?ticket=              — streaming mic → partials → final plan
   POST /api/voice/transcribe                  — one-shot audio blob → transcript
   POST /api/voice/interpret                   — STT-free agent core (primary test surface)
   POST /api/voice/sessions/{id}/remember      — push a client-executed result into memory (B)
@@ -31,7 +31,8 @@ from schemas import (VoiceInterpretRequest, VoiceAgentResponse, VoiceTranscribeR
                      VoiceContext, VoiceWorkflowConfirmRequest, VoiceSessionHistory,
                      VoiceSessionOut, VoiceCommandOut, VoiceAnalyticsSummary,
                      VoiceNodeResultRequest, VoiceNodeResultResponse)
-from routers.auth import get_current_user, decode_token
+from routers.auth import consume_ws_ticket, get_current_user
+from middleware.origins import origin_allowed
 from services.voice import agent as voice_agent
 from services.voice import analytics as voice_analytics
 from services.voice import lifecycle
@@ -368,20 +369,37 @@ async def voice_stream(websocket: WebSocket):
         await websocket.close()
         return
 
-    # ── Authenticate via ?token= query param ─────────────────────────────────
-    token = websocket.query_params.get("token", "")
+    # ── Authenticate via a single-use ?ticket= (Stage 10, 10.7) ──────────────
+    # The session JWT is an HttpOnly cookie on the frontend's origin and never
+    # reaches page script, so it cannot be put in a socket URL. The page asks
+    # POST /api/auth/ws-ticket (cookie-authenticated, same origin) for a
+    # 60-second single-use ticket instead; a ticket in a URL or log is useless
+    # once used or expired. The old ?token= parameter is no longer accepted.
+    # Browsers always send Origin on a WebSocket handshake; only NarratIQ's own
+    # pages may open this socket (cross-site WebSocket hijacking defence).
+    origin = websocket.headers.get("origin", "")
+    if origin and not origin_allowed(origin):
+        await websocket.send_json({"type": "error", "code": "forbidden_origin",
+                                   "message": "This voice connection did not come from NarratIQ."})
+        await websocket.close()
+        return
+
+    ticket = websocket.query_params.get("ticket", "")
     user = None
     db = None
     try:
         from database import SessionLocal
         db = SessionLocal()
-        user_id = decode_token(token)              # raises 401 on bad token
+        user_id = consume_ws_ticket(ticket)
+        if not user_id:
+            raise ValueError("invalid ticket")
         user = db.query(User).filter(User.user_id == user_id).first()
         if not user:
             raise ValueError("user not found")
     except Exception:
         await websocket.send_json({"type": "error", "code": "unauthorized",
-                                   "message": "Invalid or missing token"})
+                                   "message": "Your voice session could not be verified. "
+                                              "Close and reopen the voice panel to try again."})
         await websocket.close()
         if db:
             db.close()

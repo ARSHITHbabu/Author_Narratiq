@@ -29,7 +29,49 @@ class User(Base):
     # Phase 3 (migration 0022, spec §13.4). NULL resolves to "free" in
     # services/plans.get_limits(); assignment is manual/admin for now (D2).
     plan = Column(String, nullable=True, default="free")
+    # Stage 10 (10.7 / S10-F, migration 0024). Every session token carries the
+    # value current at sign-in; bumping it (password change, account deletion)
+    # ends every session of this account at once. Ordinary logout does NOT bump
+    # it — it revokes only its own session (RevokedSession).
+    token_version = Column(Integer, nullable=False, default=0, server_default="0")
     stories = relationship("Story", back_populates="user")
+
+
+class RevokedSession(Base):
+    """One signed-out session (Stage 10, 10.7 / S10-F, migration 0024).
+
+    Keyed by the token's `jti`. Kept only until the token would have expired
+    anyway (`expires_at`), then swept hourly — so the table is bounded by
+    sign-outs within one token lifetime."""
+    __tablename__ = "revoked_sessions"
+    jti        = Column(String, primary_key=True)
+    user_id    = Column(String, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False, index=True)
+    expires_at = Column(DateTime, nullable=False, index=True)
+    revoked_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+
+class ErrorEvent(Base):
+    """Built-in error tracking (Stage 10, 10.2 / S10-C, migration 0024).
+
+    Deliberately holds NO user id, request body, manuscript text or secret:
+    only the error type, the route *template*, a status code, a request id and
+    a scrubbed, length-capped message/stack (services/error_tracking.py).
+    Occurrences of the same fingerprint within a window are counted on one
+    row, so an error storm cannot grow the table without bound."""
+    __tablename__ = "error_events"
+    event_id    = Column(String, primary_key=True, default=gen_uuid)
+    source      = Column(String, nullable=False)            # backend | frontend
+    kind        = Column(String, nullable=False)            # exception class / client error name
+    route       = Column(String, nullable=True)             # route template, never a concrete id-bearing path
+    method      = Column(String, nullable=True)
+    status_code = Column(Integer, nullable=True)
+    request_id  = Column(String, nullable=True)
+    message     = Column(Text, nullable=True)               # scrubbed, ≤ 500 chars
+    stack       = Column(Text, nullable=True)               # scrubbed, ≤ 4000 chars
+    fingerprint = Column(String(64), nullable=False, index=True)
+    occurrences = Column(Integer, nullable=False, default=1)
+    first_seen  = Column(DateTime, nullable=False, default=datetime.utcnow)
+    last_seen   = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
 
 
 class Story(Base):

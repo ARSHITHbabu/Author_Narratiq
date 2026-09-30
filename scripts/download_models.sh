@@ -8,6 +8,16 @@
 #   HF_TOKEN=hf_xxx bash scripts/download_models.sh
 #
 # Safe to re-run — skips directories that are already populated.
+#
+# Stage 10 (task 10.5): every model is pinned to an exact Hugging Face commit —
+# the revision verified on the pod (read from each model directory's
+# .cache/huggingface/download/*.metadata on 2026-09-29). An unpinned download
+# silently took whatever the repository's main branch held that day. To roll a
+# model back or forward, set the matching *_REVISION variable to the commit and
+# follow docs/operations/model-versions.md.
+QWEN_REVISION="${NARRATIQ_QWEN_REVISION:-a09a35458c702b33eeacc393d103063234e8bc28}"
+BGE_REVISION="${NARRATIQ_BGE_REVISION:-5617a9f61b028005a4858fdac845db406aefb181}"
+GOT_REVISION="${NARRATIQ_GOT_OCR_REVISION:-979938bf89ccdc949c0131ddd3841e24578a4742}"
 
 set -euo pipefail
 
@@ -36,6 +46,7 @@ download_model() {
     local repo_id="$1"
     local local_dir="$2"
     local friendly_name="$3"
+    local revision="$4"
 
     if [ -f "${local_dir}/config.json" ]; then
         echo ""
@@ -45,11 +56,12 @@ download_model() {
 
     echo ""
     echo "[download] ${friendly_name}"
-    echo "  From : ${repo_id}"
+    echo "  From : ${repo_id} @ ${revision}"
     echo "  To   : ${local_dir}"
     mkdir -p "${local_dir}"
 
     hf download "${repo_id}" \
+        --revision "${revision}" \
         --local-dir "${local_dir}"
 
     echo "  Done : ${friendly_name}"
@@ -62,17 +74,20 @@ echo "Downloading models. Qwen2.5-7B-Instruct is ~14 GB — be patient."
 download_model \
     "Qwen/Qwen2.5-7B-Instruct" \
     "${MODEL_BASE_DIR}/Qwen2.5-7B-Instruct" \
-    "Qwen2.5-7B-Instruct (LLM, ~14 GB)"
+    "Qwen2.5-7B-Instruct (LLM, ~14 GB)" \
+    "${QWEN_REVISION}"
 
 download_model \
     "BAAI/bge-m3" \
     "${MODEL_BASE_DIR}/bge-m3" \
-    "BGE-M3 (embeddings, ~570 MB)"
+    "BGE-M3 (embeddings, ~570 MB)" \
+    "${BGE_REVISION}"
 
 download_model \
     "stepfun-ai/GOT-OCR2_0" \
     "${MODEL_BASE_DIR}/GOT-OCR2_0" \
-    "GOT-OCR2.0 (handwritten OCR, ~1.4 GB)"
+    "GOT-OCR2.0 (handwritten OCR, ~1.4 GB)" \
+    "${GOT_REVISION}"
 
 # ── 4. Summary ────────────────────────────────────────────────────────────────
 echo ""

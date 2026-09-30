@@ -239,9 +239,12 @@ function assertNoCrash(page, ctx, label) {
       if (!regResp || !regResp.ok) {
         fail('API register failed — cannot test auth flow')
       } else {
-        const regData = await regResp.json()
-        authToken = regData.access_token
-        ok(`API register: got token (${authToken?.slice(0, 20)}...)`)
+        // Stage 10 (10.7): the session is an HttpOnly cookie, not a body field.
+        const setCookie = regResp.headers.get('set-cookie') || ''
+        const m = setCookie.match(/narratiq_session=([^;]*)/)
+        authToken = m ? decodeURIComponent(m[1]) : null
+        if (authToken) ok('API register: session cookie set')
+        else fail('API register: no narratiq_session cookie in the response')
 
         // Now test login via the browser UI
         const ctx = await newPage(context)
@@ -272,18 +275,15 @@ function assertNoCrash(page, ctx, label) {
       }
     }
 
-    // ── 5. Dashboard directly (inject token into localStorage) ──────────
+    // ── 5. Dashboard directly (seed the session cookie) ─────────────────
     section('5. Dashboard — loads with pre-seeded auth token')
     if (authToken) {
       const ctx = await newPage(context)
       const { page, consoleErrors, pageErrors } = ctx
       await page.goto(FRONTEND, { waitUntil: 'domcontentloaded', timeout: 10000 })
 
-      // Seed localStorage with valid token
-      await page.evaluate(({ token, user, email }) => {
-        localStorage.setItem('narratiq_token', token)
-        localStorage.setItem('narratiq_user', JSON.stringify({ email, username: user }))
-      }, { token: authToken, user: SMOKE_USER, email: SMOKE_EMAIL })
+      // Stage 10: the session is an HttpOnly cookie on the frontend origin.
+      await page.context().addCookies([{ name: 'narratiq_session', value: authToken, url: FRONTEND, httpOnly: true, sameSite: 'Lax' }])
 
       await page.goto(`${FRONTEND}/dashboard`, { waitUntil: 'networkidle', timeout: 20000 })
       await page.waitForTimeout(2000)
@@ -323,10 +323,8 @@ function assertNoCrash(page, ctx, label) {
         const ctx = await newPage(context)
         const { page, consoleErrors, pageErrors } = ctx
         await page.goto(FRONTEND, { waitUntil: 'domcontentloaded', timeout: 10000 })
-        await page.evaluate(({ token, user, email }) => {
-          localStorage.setItem('narratiq_token', token)
-          localStorage.setItem('narratiq_user', JSON.stringify({ email, username: user }))
-        }, { token: authToken, user: SMOKE_USER, email: SMOKE_EMAIL })
+        // Stage 10: the session is an HttpOnly cookie on the frontend origin.
+        await page.context().addCookies([{ name: 'narratiq_session', value: authToken, url: FRONTEND, httpOnly: true, sameSite: 'Lax' }])
 
         await page.goto(`${FRONTEND}/projects/${storyId}`, { waitUntil: 'networkidle', timeout: 30000 })
         await page.waitForTimeout(3000)

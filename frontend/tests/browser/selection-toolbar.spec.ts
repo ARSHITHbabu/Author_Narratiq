@@ -1,4 +1,5 @@
 import { test, expect, type APIRequestContext, type Locator, type Page } from '@playwright/test'
+import { seedBrowserSession, sessionToken } from './_session'
 
 // PRE-2 browser verification (Phase 2 QA Issues 1 and 11) — checklist task 3.8.
 //
@@ -30,7 +31,7 @@ const editorArea = (page: Page) => page.locator('.ProseMirror')
 const firstParagraph = (page: Page) => page.locator('.ProseMirror p').first()
 
 // Auth endpoints are rate-limited to 5/minute per IP, so the suite signs in ONCE
-// through the API and seeds the same JWT the app itself stores. The login form is
+// through the API and seeds the session cookies the app's own sign-in sets. The login form is
 // not what these tests are about.
 const API_URL = process.env.E2E_API_URL ?? 'http://localhost:8000'
 let cachedToken: string | null = null
@@ -44,7 +45,7 @@ async function authSession(request: APIRequestContext): Promise<{ token: string;
     })
     expect(res.ok(), `login failed: ${res.status()}`).toBe(true)
     const body = await res.json()
-    cachedToken = body.access_token
+    cachedToken = sessionToken(res)
     cachedUser = JSON.stringify(body.user)
   }
   return { token: cachedToken!, user: cachedUser! }
@@ -52,11 +53,8 @@ async function authSession(request: APIRequestContext): Promise<{ token: string;
 
 async function signIn(page: Page, request: APIRequestContext) {
   const { token, user } = await authSession(request)
-  // The same two keys the app writes on a real sign-in.
-  await page.addInitScript(([t, u]) => {
-    window.localStorage.setItem('narratiq_token', t)
-    window.localStorage.setItem('narratiq_user', u)
-  }, [token, user])
+  // The same cookies the app's own sign-in sets (Stage 10, HttpOnly session).
+  await seedBrowserSession(page, token)
 }
 
 async function openWrite(page: Page) {

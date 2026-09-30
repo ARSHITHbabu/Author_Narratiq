@@ -32,6 +32,9 @@ class _JsonFormatter(logging.Formatter):
             "module":  record.name,
             "event":   record.getMessage(),
         }
+        rid = getattr(record, "request_id", None)
+        if rid and rid != "-":
+            payload["request_id"] = rid
         if record.exc_info:
             payload["exc"] = self.formatException(record.exc_info)
         return json.dumps(payload, ensure_ascii=False)
@@ -62,6 +65,10 @@ def setup_logging(level: str = "INFO", fmt: str = "text") -> None:
                 datefmt="%Y-%m-%d %H:%M:%S",
             )
         )
+
+    # Stage 10 (10.2): every record carries the request id (JSON adds it as a field).
+    from middleware.request_context import RequestIdLogFilter
+    handler.addFilter(RequestIdLogFilter())
 
     root.addHandler(handler)
 

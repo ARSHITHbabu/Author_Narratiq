@@ -29,6 +29,9 @@
 #   narratiq-<UTC timestamp>.dump.sha256    checksum of the archive
 #   narratiq-globals-<UTC timestamp>.sql    role definitions (no password hashes)
 #   narratiq-globals-<UTC timestamp>.sql.sha256
+#   narratiq-<UTC timestamp>.manifest.json  integrity manifest of the same snapshot (Stage 10)
+#   narratiq-uploads-<UTC timestamp>.tar.gz uploaded OCR images and audio (Stage 10)
+#   narratiq-<UTC timestamp>.SHA256SUMS     checksums of every file in the set (Stage 10)
 #   and appends an entry to BACKUP-RECORD.txt
 #
 # Exit codes
@@ -471,7 +474,11 @@ ATTEMPT=0
 while :; do
     DUMP_FILE="${BACKUP_DIR}/narratiq-${TIMESTAMP}${SUFFIX}.dump"
     GLOBALS_FILE="${BACKUP_DIR}/narratiq-globals-${TIMESTAMP}${SUFFIX}.sql"
+    MANIFEST_FILE="${BACKUP_DIR}/narratiq-${TIMESTAMP}${SUFFIX}.manifest.json"
+    UPLOADS_FILE="${BACKUP_DIR}/narratiq-uploads-${TIMESTAMP}${SUFFIX}.tar.gz"
+    SUMS_FILE="${BACKUP_DIR}/narratiq-${TIMESTAMP}${SUFFIX}.SHA256SUMS"
     if [ ! -e "${DUMP_FILE}" ] && [ ! -e "${GLOBALS_FILE}" ] \
+       && [ ! -e "${MANIFEST_FILE}" ] && [ ! -e "${UPLOADS_FILE}" ] \
        && [ ! -e "${DUMP_FILE}.sha256" ] && [ ! -e "${GLOBALS_FILE}.sha256" ]; then
         break
     fi
@@ -486,16 +493,17 @@ GLOBALS_SHA="${GLOBALS_FILE}.sha256"
 
 # ── Dump ──────────────────────────────────────────────────────────────────────
 # Read-only, MVCC snapshot — the running backend keeps serving while this happens.
-CREATED_FILES+=("${DUMP_FILE}")
-# Phase 3 decision D9: ai_generation_pins holds temporary, expiring AI drafts
-# (never manuscript content — chapters, characters and story bible live in
-# their own fully-backed-up tables). Its DEFINITION is dumped so a restore
-# recreates the table; its ROWS are excluded so pins add zero backup bytes.
-pg_dump --format=custom --compress=6 --file="${DUMP_FILE}" \
-    --exclude-table-data=public.ai_generation_pins \
-    || fail "pg_dump failed. No usable backup was produced."
-chmod 600 "${DUMP_FILE}" 2>/dev/null || true
-log "Wrote $(basename "${DUMP_FILE}") ($(du -h "${DUMP_FILE}" | cut -f1))"
+CREATED_FILES+=("${DUMP_FILE}" "${MANIFEST_FILE}" "${UPLOADS_FILE}")
+# Stage 10 (10.1): dump + integrity manifest + uploads from ONE snapshot
+# (scripts/backup_snapshot.py). Phase 3 decision D9: ai_generation_pins rows
+# are excluded (temporary AI drafts, never manuscript content); its DEFINITION
+# is still dumped so a restore recreates the table.
+python3 "${REPO_ROOT}/scripts/backup_snapshot.py" dump \
+    --dump "${DUMP_FILE}" --manifest "${MANIFEST_FILE}" \
+    --uploads-dir "${NARRATIQ_UPLOADS_DIR:-${REPO_ROOT}/backend/uploads}" --uploads-archive "${UPLOADS_FILE}" \
+    || fail "The snapshot dump failed. No usable backup was produced."
+chmod 600 "${DUMP_FILE}" "${MANIFEST_FILE}" "${UPLOADS_FILE}" 2>/dev/null || true
+log "Wrote $(basename "${DUMP_FILE}") ($(du -h "${DUMP_FILE}" | cut -f1)) + manifest + uploads archive"
 
 # Roles are not in pg_dump output; without them a restore onto a rebuilt pod fails on
 # the first ALTER ... OWNER TO. --no-role-passwords keeps SCRAM verifiers off disk.
@@ -514,17 +522,20 @@ DATA_ENTRIES="$(pg_restore --list "${DUMP_FILE}" 2>/dev/null | grep -c 'TABLE DA
 log "Archive verified — ${TOC_ENTRIES} catalogue entries, ${DATA_ENTRIES} table-data entries"
 
 # ── Checksums ─────────────────────────────────────────────────────────────────
-CREATED_FILES+=("${DUMP_SHA}" "${GLOBALS_SHA}")
+CREATED_FILES+=("${DUMP_SHA}" "${GLOBALS_SHA}" "${SUMS_FILE}")
 ( cd "${BACKUP_DIR}" && sha256sum "$(basename "${DUMP_FILE}")"    > "$(basename "${DUMP_SHA}")" ) \
     || fail "Could not write the checksum for $(basename "${DUMP_FILE}")."
 ( cd "${BACKUP_DIR}" && sha256sum "$(basename "${GLOBALS_FILE}")" > "$(basename "${GLOBALS_SHA}")" ) \
     || fail "Could not write the checksum for $(basename "${GLOBALS_FILE}")."
-chmod 600 "${DUMP_SHA}" "${GLOBALS_SHA}" 2>/dev/null || true
+( cd "${BACKUP_DIR}" && sha256sum "$(basename "${DUMP_FILE}")" "$(basename "${MANIFEST_FILE}")" \
+      "$(basename "${UPLOADS_FILE}")" "$(basename "${GLOBALS_FILE}")" > "$(basename "${SUMS_FILE}")" ) \
+    || fail "Could not write the set checksums."
+chmod 600 "${DUMP_SHA}" "${GLOBALS_SHA}" "${SUMS_FILE}" 2>/dev/null || true
 
 # Read the checksums back and confirm they match the files on disk. This is the one
 # place a full re-hash is worth its cost — it proves the bytes that landed on the
 # volume are the bytes that were hashed.
-( cd "${BACKUP_DIR}" && sha256sum -c --quiet "$(basename "${DUMP_SHA}")" "$(basename "${GLOBALS_SHA}")" ) \
+( cd "${BACKUP_DIR}" && sha256sum -c --quiet "$(basename "${DUMP_SHA}")" "$(basename "${GLOBALS_SHA}")" "$(basename "${SUMS_FILE}")" ) \
     || fail "Checksum verification failed immediately after writing — the volume may be faulty."
 DUMP_HASH="$(cut -d' ' -f1 "${DUMP_SHA}")"
 log "SHA-256 verified: ${DUMP_HASH}"
@@ -554,8 +565,10 @@ log "SHA-256 verified: ${DUMP_HASH}"
     echo "                 -h ${PGHOST} -p ${PGPORT} -U ${PGUSER} -d ${PGDATABASE} \\"
     echo "                 ${BACKUP_DIR}/$(basename "${DUMP_FILE}")"
     echo "             # --clean DROPS existing objects. Take a pre-restore dump first."
-    echo "Off-pod:     NO — ${BACKUP_DIR} is on the RunPod network volume. It survives pod"
-    echo "             recreation, but not deletion or loss of the volume itself."
+    echo "Integrity:   $(basename "${MANIFEST_FILE}") — verify by restore:"
+    echo "             python3 scripts/verify_backup.py --set $(basename "${DUMP_FILE}" .dump)"
+    echo "Off-pod:     NO (deferred, Stage 10 decision S10-B) — ${BACKUP_DIR} is on the RunPod"
+    echo "             network volume. It survives pod recreation, but not loss of the volume itself."
 } >> "${RECORD_FILE}" || warn "Backup succeeded but the record file could not be updated."
 chmod 600 "${RECORD_FILE}" 2>/dev/null || true
 log "Recorded in $(basename "${RECORD_FILE}")"

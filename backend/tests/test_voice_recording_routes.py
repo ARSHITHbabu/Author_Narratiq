@@ -85,7 +85,8 @@ def _auth(client, db, slot="primary"):
         "email": email, "username": f"u{uuid.uuid4().hex[:8]}", "password": "RouteTest!2026",
     })
     assert r.status_code in (200, 201), r.text
-    headers = {"Authorization": f"Bearer {r.json()['access_token']}"}
+    # Stage 10 (10.7): the session token is the HttpOnly cookie, not a body field.
+    headers = {"Authorization": f"Bearer {r.cookies.get('narratiq_session')}"}
     _ACCOUNTS[slot] = (headers, email)
     return headers, db.query(User).filter(User.email == email).first()
 

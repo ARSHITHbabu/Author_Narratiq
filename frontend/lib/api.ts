@@ -1,23 +1,46 @@
 import axios from 'axios'
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+// Stage 10 (10.7) — same-origin API. The browser calls /api/* on the frontend's
+// own origin and Next.js forwards it to the backend (next.config.js rewrites),
+// so the HttpOnly session cookie is first-party and never visible to script.
+// NEXT_PUBLIC_HTTP_API_BASE exists only for the mocked-API studio test build.
+const BASE = process.env.NEXT_PUBLIC_HTTP_API_BASE || ''
+// The backend's own public URL — used ONLY for the voice WebSocket, which
+// Next.js does not proxy reliably. It authenticates with a one-time ticket.
+const WS_BACKEND = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+
+const CSRF_COOKIE = 'narratiq_csrf'
+const CSRF_HEADER = 'X-CSRF-Token'
+const UNSAFE = new Set(['post', 'put', 'patch', 'delete'])
+
+export function csrfToken(): string | null {
+  if (typeof document === 'undefined') return null
+  const m = document.cookie.match(new RegExp(`(?:^|; )${CSRF_COOKIE}=([^;]*)`))
+  return m ? decodeURIComponent(m[1]) : null
+}
 
 const api = axios.create({ baseURL: BASE })
 
 api.interceptors.request.use((config) => {
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('narratiq_token')
-    if (token) config.headers.Authorization = `Bearer ${token}`
+  if (UNSAFE.has((config.method || 'get').toLowerCase())) {
+    const t = csrfToken()
+    if (t) config.headers[CSRF_HEADER] = t
   }
   return config
 })
 
+// Pages that must never bounce to /login on a 401 (they ARE the sign-in flow),
+// and the session probe itself (a 401 there just means "not signed in").
+const NO_REDIRECT_PAGES = ['/login', '/register']
+
 api.interceptors.response.use(
   (r) => r,
   (err) => {
-    if (err.response?.status === 401 && typeof window !== 'undefined') {
-      localStorage.removeItem('narratiq_token')
-      localStorage.removeItem('narratiq_user')
+    const url: string = err.config?.url || ''
+    if (err.response?.status === 401 && typeof window !== 'undefined'
+        && !url.endsWith('/api/auth/me')
+        && !NO_REDIRECT_PAGES.some((p) => window.location.pathname.startsWith(p))) {
+      try { localStorage.removeItem('narratiq_user') } catch {}
       window.location.href = '/login'
     }
     return Promise.reject(err)
@@ -31,6 +54,15 @@ export const authApi = {
   login: (email: string, password: string) =>
     api.post('/api/auth/login', { email, password }),
   me: () => api.get('/api/auth/me'),
+  // Ends THIS session only; other devices stay signed in.
+  logout: () => api.post('/api/auth/logout'),
+  // Ends every other session; this device receives a fresh one.
+  changePassword: (currentPassword: string, newPassword: string) =>
+    api.post('/api/auth/change-password', { current_password: currentPassword, new_password: newPassword }),
+  // Permanent. `confirm` must be the word DELETE, typed by the author.
+  deleteAccount: (password: string, confirm: string) =>
+    api.delete('/api/auth/account', { data: { password, confirm } }),
+  wsTicket: () => api.post<{ ticket: string; expires_in: number }>('/api/auth/ws-ticket'),
 }
 
 // ── Projects ──────────────────────────────────────────────────────────────────
@@ -525,11 +557,11 @@ export const activityApi = {
     api.get(`/api/stories/${storyId}/activity`, { params: params ?? {} }),
 }
 
-// WebSocket URL for the streaming mic endpoint (token in query param).
-export function voiceWsUrl(token: string): string {
-  const httpBase = BASE.replace(/\/$/, '')
-  const wsBase = httpBase.replace(/^http/, 'ws')
-  return `${wsBase}/api/voice/stream?token=${encodeURIComponent(token)}`
+// WebSocket URL for the streaming mic endpoint. `ticket` is single-use and
+// short-lived (POST /api/auth/ws-ticket); the session token never leaves its cookie.
+export function voiceWsUrl(ticket: string): string {
+  const wsBase = WS_BACKEND.replace(/\/$/, '').replace(/^http/, 'ws')
+  return `${wsBase}/api/voice/stream?ticket=${encodeURIComponent(ticket)}`
 }
 
 export default api

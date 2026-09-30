@@ -24,6 +24,9 @@ const VARIANT_ENV: Record<string, Record<string, string>> = {
   'p3-off': { NEXT_PUBLIC_P3_ENABLED: 'false' },
 }
 const env = {
+  // Stage 10: HTTP goes to NEXT_PUBLIC_HTTP_API_BASE (same-origin '' in the
+  // product); the mock build points it, and the voice socket URL, at the mock.
+  NEXT_PUBLIC_HTTP_API_BASE: 'http://mock-api.test',
   NEXT_PUBLIC_API_URL: 'http://mock-api.test',
   NEXT_DIST_DIR: VARIANT === 'default' ? '.next-studio' : `.next-studio-${VARIANT}`,
   NEXT_TELEMETRY_DISABLED: '1',

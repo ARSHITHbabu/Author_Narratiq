@@ -1,4 +1,5 @@
 import { test, expect, type APIRequestContext, type Page } from '@playwright/test'
+import { seedBrowserSession, sessionToken } from './_session'
 
 // Stage 5 tasks 5.4 (sentence locking) and 5.6 (strength control) — full
 // browser verification, not just backend helpers: frontend selection →
@@ -40,7 +41,7 @@ async function authSession(request: APIRequestContext): Promise<{ token: string;
     const res = await request.post(`${API_URL}/api/auth/login`, { data: { email: EMAIL, password: PASSWORD } })
     expect(res.ok(), `login failed: ${res.status()}`).toBe(true)
     const body = await res.json()
-    cachedToken = body.access_token
+    cachedToken = sessionToken(res)
     cachedUser = JSON.stringify(body.user)
   }
   return { token: cachedToken!, user: cachedUser! }
@@ -48,10 +49,7 @@ async function authSession(request: APIRequestContext): Promise<{ token: string;
 
 async function signIn(page: Page, request: APIRequestContext) {
   const { token, user } = await authSession(request)
-  await page.addInitScript(([t, u]) => {
-    window.localStorage.setItem('narratiq_token', t)
-    window.localStorage.setItem('narratiq_user', u)
-  }, [token, user])
+  await seedBrowserSession(page, token)
 }
 
 async function openWrite(page: Page) {

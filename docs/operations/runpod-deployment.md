@@ -287,12 +287,13 @@ python3 -m vllm.entrypoints.openai.api_server \
 # Terminal 2 — backend. MUST run from backend/ so config.py finds ./.env
 cd /workspace/narratiq-ai/backend
 python3 -m alembic upgrade head
-python3 -m uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1
+python3 -m uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1 --no-access-log --no-proxy-headers
 
-# Terminal 3 — frontend
+# Terminal 3 — frontend (Stage 10: HTTP goes same-origin through Next.js to
+# BACKEND_INTERNAL_URL; NEXT_PUBLIC_API_URL is used only by the voice WebSocket)
 cd /workspace/narratiq-ai/frontend
 echo "NEXT_PUBLIC_API_URL=https://${RUNPOD_POD_ID}-8000.proxy.runpod.net" > .env.local
-npm run build && npm start -- --port 3000
+BACKEND_INTERNAL_URL=http://127.0.0.1:8000 npm run build && npm start -- --port 3000
 ```
 
 Two traps specific to the manual path:
@@ -308,6 +309,14 @@ Two traps specific to the manual path:
   ```
 
 ---
+
+## Worker count and proxy headers — REQUIRED flags (Stage 10, task 10.4)
+
+**Exactly one uvicorn worker** (decision D-3). Rate limits (slowapi, in-memory), voice-socket tickets, AI concurrency semaphores and the operational counters live in process memory; with N workers each limit would be multiplied by N and a voice ticket issued by one worker would be unknown to another. `startup/worker_guard.py` **refuses to start** when it detects more than one worker (`--workers`, `-w`, `WEB_CONCURRENCY`, or a multi-worker parent process) unless `ALLOW_MULTI_WORKER=yes` — set that only after moving the rate-limit storage to Redis (`storage_uri=` on the `Limiter` in `middleware/rate_limit.py`, a code change) and the tickets to shared storage.
+
+**`--no-proxy-headers` is required.** Measured on the pod: traffic arrives Cloudflare → RunPod proxy → Next.js (same pod) → backend, and `X-Forwarded-For` is `<client>, <Cloudflare edge>` with an edge address that changes on every request. Uvicorn's default proxy handling rewrites the client address to that edge address, which gave every request its own rate-limit bucket — sign-in brute-force protection silently never triggered. `middleware/rate_limit.client_ip` interprets the headers itself (Cloudflare's `CF-Connecting-IP`, trusted only from `TRUSTED_PROXY_CIDRS`: loopback and RunPod's `100.64.0.0/10`). The backend logs an ERROR at startup if uvicorn runs without the flag. `start-narratiq.sh` and `backend/docker-entrypoint.sh` pass both flags.
+
+Verified live 2026-09-29: five failed sign-ins through the public frontend URL, then HTTP 429 with `Retry-After: 60`; the same client through the direct `:8000` URL shares the bucket; another client keeps its own.
 
 ## Common Errors and Fixes
 

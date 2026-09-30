@@ -2,7 +2,7 @@
 //
 // The studio specs exercise navigation, layout, modes and accessibility — the
 // frontend's own behaviour — so they run with NO backend: every request to the
-// build-time API origin (NEXT_PUBLIC_API_URL=http://mock-api.test) is fulfilled
+// build-time API origin (NEXT_PUBLIC_HTTP_API_BASE=http://mock-api.test) is fulfilled
 // here from synthetic fixtures. Nothing reaches a real service, and no manuscript
 // text is involved: the fixture chapters are placeholder sentences.
 
@@ -58,10 +58,22 @@ export async function mockApi(page: Page, extra: Handler[] = []): Promise<ApiLog
     for (const h of extra) if (await h(route, method, path)) return
 
     // ── auth: the email picks the fixture user ──────────────────────────────
+    // Stage 10 (10.7): the app learns who is signed in from GET /api/auth/me
+    // (the real session is an HttpOnly cookie), so the mock keeps a per-page
+    // signed-in user instead of the app reading a token from localStorage.
     if (method === 'POST' && path === '/api/auth/login') {
       const email = (req.postDataJSON() ?? {}).email
       const u = [USER_A, USER_B].find((x) => x.email === email) ?? USER_A
-      return json(route, { access_token: `mock-token-${u.username}`, token_type: 'bearer', user: { ...u, created_at: now } })
+      signedIn.set(page, u)
+      return json(route, { user: { ...u, created_at: now } })
+    }
+    if (method === 'GET' && path === '/api/auth/me') {
+      const u = signedIn.get(page)
+      return u ? json(route, { ...u, created_at: now }) : json(route, { detail: 'Not authenticated' }, 401)
+    }
+    if (method === 'POST' && path === '/api/auth/logout') {
+      signedIn.delete(page)
+      return json(route, { logged_out: true })
     }
 
     // ── core story context ──────────────────────────────────────────────────
@@ -101,9 +113,12 @@ export async function mockApi(page: Page, extra: Handler[] = []): Promise<ApiLog
   return log
 }
 
-/** Sign a mocked user in by seeding the same localStorage keys the app's login
- *  writes. Only on the first document of the test (sessionStorage marker), so a
- *  later logout in the same test is not undone by the next navigation. */
+/** Who the mocked backend treats as signed in, per page (Stage 10: the app asks
+ *  GET /api/auth/me). A logout clears it for the rest of the test. */
+const signedIn = new WeakMap<Page, MockUser>()
+
+/** Sign a mocked user in: the mocked /api/auth/me answers with this user until
+ *  the test logs out. */
 export async function signIn(page: Page, user: MockUser = USER_A) {
   // STUDIO_LATE_SELECTIONCHANGE_MS delivers the editor's selectionchange events
   // late, so ProseMirror's 20 ms post-focus selection sync lands in the window
@@ -121,13 +136,7 @@ export async function signIn(page: Page, user: MockUser = USER_A) {
       } as typeof Document.prototype.addEventListener
     }, late)
   }
-  await page.addInitScript((u) => {
-    if (!sessionStorage.getItem('mock-signed-in')) {
-      sessionStorage.setItem('mock-signed-in', '1')
-      localStorage.setItem('narratiq_token', 'mock-token')
-      localStorage.setItem('narratiq_user', JSON.stringify({ ...u, created_at: '2026-09-25T00:00:00Z' }))
-    }
-  }, user)
+  signedIn.set(page, user)
 }
 
 export function workspaceUrl(ws: string, query = '') {

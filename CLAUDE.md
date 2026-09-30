@@ -16,14 +16,16 @@ NCCL_P2P_DISABLE=1 NCCL_SHM_DISABLE=1 python3 -m vllm.entrypoints.openai.api_ser
   --tensor-parallel-size 2 --max-model-len 16384 \
   --host 0.0.0.0 --port 9001
 
-# Backend
-cd backend && python3 -m uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1
+# Backend — exactly one worker (D-3; the startup guard refuses more) and
+# --no-proxy-headers (client_ip() reads CF-Connecting-IP itself; see Stage 10 below)
+cd backend && python3 -m uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1 --no-access-log --no-proxy-headers
 
 # Frontend
 cd frontend && npm run dev
 
 # Frontend environment (RunPod proxy URL) — written automatically by start-narratiq.sh.
-# NEXT_PUBLIC_API_URL is inlined at BUILD time; changing it requires `npm run build`.
+# NEXT_PUBLIC_API_URL is inlined at BUILD time and (since Stage 10) used ONLY for the
+# voice WebSocket; all HTTP is same-origin /api/* rewritten to BACKEND_INTERNAL_URL.
 echo 'NEXT_PUBLIC_API_URL=https://{POD_ID}-8000.proxy.runpod.net' > frontend/.env.local
 ```
 
@@ -48,7 +50,7 @@ curl -X POST http://localhost:8000/api/stories/{id}/chapters/sync-summaries \
 
 **Backend startup sequence** (`main.py` `lifespan`): orphan-job recovery → upload dirs → model paths validated → BGE-M3 loaded synchronously via `get_bge()` → voice capability index → pgvector self-check → vLLM health check → warmup request → ready.
 
-Only two conditions are hard failures (`RuntimeError`): **missing model weights** (`main.py:178-186`) and a **broken pgvector query path** (`main.py:221-226`). If vLLM is unreachable the backend logs a warning, sets `app.state.llm_ready = False` and **continues in degraded mode** (`main.py:235-241`) — `/api/health` reports `"vllm": "unavailable"` and AI endpoints return 503.
+Only two conditions are hard failures (`RuntimeError`): **missing model weights** (`main.py:178-186`) and a **broken pgvector query path** (`main.py:221-226`). If vLLM is unreachable the backend logs a warning and **continues in degraded mode** — AI endpoints return 503. Since Stage 10 `/api/health` probes vLLM **live** (cached 10 s) and answers **503 with `"status":"degraded"`** while vLLM or BGE-M3 is not ready; `"backend":"ready"` is the "API is serving" signal.
 
 **AI text generation:** All LLM calls go through `_complete()` / `_stream_generate()` in `backend/services/ai_service.py` via the OpenAI-compatible vLLM endpoint. Model: `Qwen2.5-7B-Instruct`.
 
@@ -58,7 +60,7 @@ Only two conditions are hard failures (`RuntimeError`): **missing model weights*
 
 **Background tasks:** `asyncio.create_task()` — no Redis or external queue. Used for re-embedding after profile updates.
 
-**Auth:** JWT in `localStorage['narratiq_token']`. 401 interceptor in `frontend/lib/api.ts` clears token and redirects to `/login`.
+**Auth (Stage 10):** the JWT is an **HttpOnly cookie** (`narratiq_session`) on the frontend's own origin — the browser calls `/api/*` same-origin and `next.config.js` rewrites it to the backend, so no page script can read the token and nothing is in localStorage. CSRF: double-submit (`narratiq_csrf` cookie → `X-CSRF-Token` header, `middleware/csrf.py`) for cookie-authenticated state changes. `Authorization: Bearer` still works for tooling and tests. Tokens carry `jti` + `ver`: logout revokes that session only (`revoked_sessions`); password change / account deletion bump `users.token_version` (all sessions end). The voice WebSocket uses a single-use 60 s ticket (`POST /api/auth/ws-ticket`). The frontend learns who is signed in from `GET /api/auth/me`; a 401 redirects to `/login`.
 
 **Character RAG:** Hybrid retrieval — cosine similarity on BGE-M3 embeddings + name-mention boost. 800-token budget cap per context window.
 
@@ -244,7 +246,7 @@ Runs at startup (first step in `lifespan()`), before model loading:
 ### JWT Staging Plan (Deferred)
 
 Phase 3 partial: removed hardcoded `ALGORITHM`/`ACCESS_TOKEN_EXPIRE_MINUTES` from `auth.py`. Both now configurable.
-Phase B (future): HttpOnly cookie migration requires frontend auth flow changes.
+Phase B: **done in Stage 10 (task 10.7)** — HttpOnly cookie sessions, CSRF, server-side revocation; see "Auth (Stage 10)" above.
 
 ### Bugs Fixed
 
@@ -291,3 +293,20 @@ Two legacy files still reference the old port and are superseded: `start.sh:25` 
 **`extra="forbid"`.** `Settings` rejects any `.env` key that is not a declared field, with a non-empty value, at import time. Adding a key to `backend/.env` without adding the field to `config.py` will prevent the backend from starting.
 
 `SECRET_KEY` is a **required** env var with no default. The backend refuses to start without it (validator rejects keys shorter than 32 chars). `start-narratiq.sh` auto-generates one into `backend/.env` on first run if absent. To generate manually: `python3 -c "import secrets; print(secrets.token_hex(32))"`. JWT tokens are signed with this key — changing it invalidates all active sessions.
+
+## Stage 10 — Production readiness (2026-09-29)
+
+| Area | Where |
+|------|-------|
+| Backups: snapshot dump + integrity manifest (per-table content hashes, vectors included) + uploads archive; restore verification into `narratiq_restorecheck`; GFS retention; off-pod copy **deferred** (hook `NARRATIQ_OFFPOD_COMMAND`) | `scripts/backup_snapshot.py`, `verify_backup.py`, `backup_retention.py`, `periodic_backup_loop.sh`; runbook `docs/operations/backup-and-restore.md` |
+| Monitoring: live `/api/health`, `/api/ops/{status,metrics,errors}` (header `X-Ops-Token` = `OPS_TOKEN`), built-in scrubbed error tracking (`error_events`), request ids, JSON logs, watchdog → `/workspace/logs/alerts.jsonl` (no external channel, S10-D) | `routers/ops.py`, `services/error_tracking.py`, `middleware/request_context.py`, `scripts/watchdog.py`; `docs/operations/monitoring-and-alerting.md` |
+| Containers (dev; RunPod stays production) | `backend/Dockerfile`, `frontend/Dockerfile`, `docker-compose.yml`, `scripts/verify_containers.sh`; `docs/operations/containers.md` |
+| One worker enforced; `--no-proxy-headers`; rate-limit key = `CF-Connecting-IP` from trusted proxies | `startup/worker_guard.py`, `middleware/rate_limit.py` (`TRUSTED_PROXY_CIDRS`) |
+| Rollback: downgrade walk test, pinned model revisions, `.next.prev` + `scripts/rollback_frontend.sh` | `docs/operations/rollback.md`, `model-versions.md`, `backend/tests/run_downgrade_walk.py` |
+| Account deletion (`DELETE /api/auth/account`), chapter-deletion fix, orphan upload sweep, published policy (`/data-policy`) | `services/account_deletion.py`, `docs/policies/data-retention-and-deletion.md` |
+| Sessions / CSRF / WS tickets | `routers/auth.py`, `middleware/csrf.py`, migration `0024` |
+| Incident response, severity levels, postmortem template | `docs/operations/incident-response.md`, `docs/incidents/TEMPLATE.md` |
+
+`backend/requirements.txt` is now the single source of truth (equals the pod runtime); `start-narratiq.sh` installs from it and uses `npm ci`. Migration `0024` = `users.token_version`, `revoked_sessions`, `error_events`.
+
+**Shell gotcha found in Stage 10:** never `pkill -f`/`pgrep -f` a pattern like `next start` or `uvicorn main:app` from an interactive tool command — the tool's own command line contains the pattern and gets killed. Use PID files (`/tmp/narratiq-logs/*.pid`) or run the kill from a script file.

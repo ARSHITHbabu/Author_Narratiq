@@ -127,7 +127,7 @@ Base.metadata.create_all(bind=engine)
 run_db_migrations(engine)
 "
 python3 -m alembic upgrade head
-python3 -m uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1 --no-access-log
+python3 -m uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1 --no-access-log --no-proxy-headers
 ```
 
 > **Found during Stage 6 CI closure (2026-09-22): `alembic upgrade head` alone

@@ -89,6 +89,11 @@ def run_db_migrations(eng) -> None:
     _add_col("chapter_chunks",     "character_ids", "TEXT DEFAULT '[]'")
     _add_col("chapter_summaries",  "character_ids", "TEXT DEFAULT '[]'")
 
+    # users — session generation counter (Stage 10, 10.7). Alembic 0024 adds it
+    # too; kept here because every request's auth check reads it, so a backend
+    # that imports before `alembic upgrade` must not crash on the first login.
+    _add_col("users", "token_version", "INTEGER NOT NULL DEFAULT 0")
+
     # Embedding columns — only add as TEXT on SQLite (legacy local dev).
     # On PostgreSQL, create_all() creates them as vector(1024) automatically;
     # adding them here as TEXT would create a type mismatch with HNSW indexes.

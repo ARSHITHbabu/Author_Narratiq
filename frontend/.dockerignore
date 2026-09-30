@@ -1,0 +1,8 @@
+node_modules
+.next
+.next.prev
+.next-studio*
+.studio-results
+test-results
+.env
+.env.*

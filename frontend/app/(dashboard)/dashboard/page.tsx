@@ -90,8 +90,17 @@ export default function DashboardPage() {
             <span className="text-sm text-[#9da3c8] hidden sm:block">
               {user?.username}
             </span>
+            <Link
+              href="/account"
+              className="text-[#8e94bd] hover:text-[#9da3c8] p-2 rounded-lg transition-colors"
+              title="Account settings"
+              aria-label="Account settings"
+            >
+              <User className="w-4 h-4" />
+            </Link>
             <button
-              onClick={logout}
+              onClick={() => void logout()}
+              aria-label="Sign out"
               className="text-[#8e94bd] hover:text-[#9da3c8] p-2 rounded-lg transition-colors"
               title="Sign out"
             >

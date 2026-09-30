@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { reportClientError } from '@/lib/errorReporting'
 import Link from 'next/link'
 import { AlertTriangle, RotateCcw, ArrowLeft } from 'lucide-react'
 
@@ -13,6 +14,7 @@ export default function EditorError({
 }) {
   useEffect(() => {
     console.error('[EditorError]', error)
+    reportClientError(error, 'editor')      // Stage 10 (10.2): NarratIQ's own error tracking
   }, [error])
 
   return (

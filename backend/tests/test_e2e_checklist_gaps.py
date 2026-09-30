@@ -215,7 +215,8 @@ def test_register_then_login_again_sees_the_same_projects():
             "email": email, "username": f"jwtrt{tag}", "password": "correct horse battery staple 42",
         })
         assert r.status_code in (200, 201), r.text
-        token1 = r.json()["access_token"] if "access_token" in r.json() else r.json().get("token")
+        # Stage 10 (10.7): the session token is the HttpOnly cookie, not a body field.
+        token1 = r.cookies.get("narratiq_session")
         assert token1
 
         headers1 = {"Authorization": f"Bearer {token1}"}
@@ -224,7 +225,7 @@ def test_register_then_login_again_sees_the_same_projects():
 
         r2 = client.post("/api/auth/login", json={"email": email, "password": "correct horse battery staple 42"})
         assert r2.status_code == 200, r2.text
-        token2 = r2.json()["access_token"] if "access_token" in r2.json() else r2.json().get("token")
+        token2 = r2.cookies.get("narratiq_session")
         headers2 = {"Authorization": f"Bearer {token2}"}
 
         projects = client.get("/api/projects/", headers=headers2).json()

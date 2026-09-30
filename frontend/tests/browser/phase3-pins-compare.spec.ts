@@ -1,4 +1,5 @@
 import { test, expect, type APIRequestContext, type Page } from '@playwright/test'
+import { seedBrowserSession, sessionToken } from './_session'
 
 // Stage 7 (Phase 3) — real-browser verification of the author loop:
 // generate → pin → Versions → compare → per-block merge → insert, plus the
@@ -28,13 +29,10 @@ async function signIn(page: Page, request: APIRequestContext) {
     const res = await request.post(`${API_URL}/api/auth/login`, { data: { email: EMAIL, password: PASSWORD } })
     expect(res.ok()).toBe(true)
     const body = await res.json()
-    token = body.access_token
+    token = sessionToken(res)
     userJson = JSON.stringify(body.user)
   }
-  await page.addInitScript(([t, u]) => {
-    window.localStorage.setItem('narratiq_token', t)
-    window.localStorage.setItem('narratiq_user', u)
-  }, [token, userJson])
+  await seedBrowserSession(page, token)
 }
 
 const toolbar = (page: Page) => page.getByRole('toolbar', { name: 'AI actions for the selected text' })
@@ -56,7 +54,7 @@ async function generate(page: Page, tone: string) {
 test.beforeAll(async ({ request }) => {
   // Start from zero pins for this fixture story so counts are deterministic.
   const res = await request.post(`${API_URL}/api/auth/login`, { data: { email: EMAIL, password: PASSWORD } })
-  const t = (await res.json()).access_token
+  const t = sessionToken(res)
   const pins = await (await request.get(`${API_URL}/api/stories/${STORY_ID}/ai/pins`, { headers: { Authorization: `Bearer ${t}` } })).json()
   for (const p of pins.pins) await request.delete(`${API_URL}/api/stories/${STORY_ID}/ai/pins/${p.pin_id}`, { headers: { Authorization: `Bearer ${t}` } })
 })

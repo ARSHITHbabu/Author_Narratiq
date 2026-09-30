@@ -1,0 +1,70 @@
+# NarratIQ local development stack (Stage 10, task 10.3).
+#
+#   docker compose up --build            # PostgreSQL + pgvector, backend, frontend
+#   bash scripts/verify_containers.sh    # clean build + end-to-end check
+#
+# RunPod + start-narratiq.sh remains the production deployment. This file makes
+# the stack reproducible on any Docker host (see docs/operations/containers.md).
+#
+# vLLM is not a service here: it needs a large NVIDIA GPU. Point VLLM_BASE_URL at
+# a running vLLM (default: one on the Docker host at :9001). Without it the
+# backend starts in its documented degraded mode — /api/health reports
+# "vllm":"unavailable" (HTTP 503) and AI features answer 503 — while writing,
+# saving, search and everything else works.
+#
+# Model weights are mounted read-only from NARRATIQ_MODELS_DIR (BGE-M3 at least;
+# the backend refuses to start without the embeddings model).
+#
+# This compose file is for DEVELOPMENT: the database password and SECRET_KEY
+# defaults below are placeholders. Never point it at real manuscripts.
+name: narratiq
+
+services:
+  db:
+    image: pgvector/pgvector:0.8.0-pg16
+    environment:
+      POSTGRES_USER: narratiq
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-narratiq-dev-only}
+      POSTGRES_DB: narratiq
+    volumes:
+      - narratiq-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U narratiq -d narratiq"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    build: ./backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg2://narratiq:${POSTGRES_PASSWORD:-narratiq-dev-only}@db:5432/narratiq
+      SECRET_KEY: ${SECRET_KEY:-dev-only-secret-key-change-me-0123456789abcdef}
+      VLLM_BASE_URL: ${VLLM_BASE_URL:-http://host.docker.internal:9001/v1}
+      CORS_ORIGINS: '["http://localhost:3000","http://127.0.0.1:3000"]'
+      RUN_MIGRATIONS: "1"
+      BGE_DEVICE: cpu
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ${NARRATIQ_MODELS_DIR:-./models}:/models:ro
+      - narratiq-uploads:/app/backend/uploads
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        BACKEND_INTERNAL_URL: http://backend:8000
+        NEXT_PUBLIC_API_URL: http://localhost:8000
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+
+volumes:
+  narratiq-pgdata:
+  narratiq-uploads:

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Mic, Square, RotateCcw, Loader2, AlertCircle, ChevronDown, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { useVoiceAgent } from './useVoiceAgent'
+import { useAuth } from '@/lib/auth'
 import WorkflowStepList from './WorkflowStepList'
 import ConfirmActionDialog from './ConfirmActionDialog'
 import type { VoiceContextSnapshot, WorkflowNode } from '@/lib/types'
@@ -77,6 +78,7 @@ export default function VoiceAgentPanel({
   getSelectedText, getFullText, insertText, getSelectionRange, replaceRange, onOpenChapter,
 }: Props) {
   const router = useRouter()
+  const { logout } = useAuth()
   const [showLegacy, setShowLegacy] = useState(false)
   const [showDebug, setShowDebug] = useState(false)
   // Selection captured at the moment the mic is pressed (before focus can shift),
@@ -118,11 +120,9 @@ export default function VoiceAgentPanel({
       else toast.info(`Open the ${kind === 'ocr' ? 'OCR' : 'Manuscript'} panel to choose a file.`)
     },
     onLogout: () => {
-      localStorage.removeItem('narratiq_token')
-      localStorage.removeItem('narratiq_user')
-      router.push('/login')
+      void logout().finally(() => router.push('/login'))
     },
-  }), [storyId, getSelectedText, getFullText, insertText, onOpenChapter, router])
+  }), [storyId, getSelectedText, getFullText, insertText, onOpenChapter, router, logout])
 
   const {
     status, partial, response, error, nodeResults, pendingConfirm,

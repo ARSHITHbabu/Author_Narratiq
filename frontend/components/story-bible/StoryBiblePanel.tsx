@@ -100,9 +100,9 @@ export default function StoryBiblePanel({ storyId }: Props) {
 
   const downloadDocx = () => {
     const url = storyBibleApi.exportUrl(storyId)
-    const token = typeof window !== 'undefined' ? localStorage.getItem('narratiq_token') : null
-    fetch(url, { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.blob())
+    // Same-origin request: the session cookie goes with it (Stage 10, 10.7).
+    fetch(url, { credentials: 'same-origin' })
+      .then(r => { if (!r.ok) throw new Error(String(r.status)); return r.blob() })
       .then(blob => {
         const a = document.createElement('a')
         a.href = URL.createObjectURL(blob)

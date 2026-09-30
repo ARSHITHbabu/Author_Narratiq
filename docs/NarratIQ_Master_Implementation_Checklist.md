@@ -49,10 +49,10 @@ Repository verification during checklist construction changed three things. Each
 | 7 — Phase 3 Implementation | 15 | 10 | 5 | 0 | Implemented — **gate open**† |
 | 8 — Editor UI and Workspace Redesign | 11 | 6 | 5 | 0 | Implemented — **gate open**§ |
 | 9 — Full Regression Testing and UAT | 7 | 0 | 7 | 0 | Implemented — **gate open**◊ |
-| 10 — Production Readiness | 9 | 0 | 9 | 0 | Not Started |
+| 10 — Production Readiness | 9 | 3 | 6 | 0 | Implemented — **gate open**△ |
 | 11 — Documentation Reconciliation | 9 | 0 | 9 | 0 | Not Started |
 | 12 — Release Validation | 3 | 0 | 3 | 0 | Not Started |
-| **Total** | **131** | **80** | **51** | **0** | **In Progress** |
+| **Total** | **131** | **83** | **48** | **0** | **In Progress** |
 
 > The stage table counts **main tasks**. Stage 1 shows 0 completed because task 1.1 is still open — six of its seven subtasks are done; the seventh, the off-pod copy, is deferred. The counts below track actionable checkboxes and are the authoritative progress measure. *(2026-09-21 — superseded for Stage 1: task 1.1 is now complete, the off-pod copy having actually been done. See the `*` below.)*
 >
@@ -67,6 +67,8 @@ Repository verification during checklist construction changed three things. Each
 > **‡Stage 2 (2026-09-25, cloud pass) — repository implementation complete; gate OPEN — MANUAL VERIFICATION PENDING.** 4 of 6 main tasks ticked (2.5 newly closed). 2.2 stays open on the team-secret-store copy and a now-disputed RunPod-UI record (one previously ticked subtask was unticked); 2.6 stays open on real-pod runs. Remaining checks: `docs/testing/manual-verification/stage-02-manual-verification-guide.md`.
 >
 > **†Stage 7 (2026-09-25) — implemented and accepted by the author (APPROVE COMPLETION); gate NOT fully closed.** 10 of 15 main tasks ticked. 7.3, 7.4, 7.10, 7.12 and 7.15 are implemented and verified but held open on named items: ⌘Z single-step undo browser re-check (author manual), migration test in CI (CI deferred), Tier-2 warning-text quality, golden-set author review of voice matching, real day-8 cleanup verification, and the intermittent selection-toolbar test 9. UAT remains Stage 9. Full evidence, approved deviations and the carried-forward list are in the note under the Stage 7 Completion Gate. Nothing here is a silent gap.
+>
+> **△Stage 10 (2026-09-30) — implemented, re-verified after a pod reset, and accepted by the product owner (APPROVE COMPLETION) for the verified internal scope; gate OPEN.** 58 Stage 10 boxes ticked; 10.4, 10.6 and 10.7 closed. Open: the off-pod backup copy and person-delivered alerts (DEFERRED — EXTERNAL SERVICE, S10-B/S10-D — not failures), the Docker build and pinning (MV-10.3), the full code/model rollback (MV-10.5) and Gate 8, the Tier-2 capacity figure (partial) and onboarding-limit acceptance (MV-10.8), and the tabletop exercise (MV-10.9). Decisions S10-A…S10-I and four non-blocking follow-ups are recorded at the top of the Stage 10 section.
 >
 > **◊Stage 9 (2026-09-27) — automated and mechanical work implemented and verified; gate OPEN; checklist updated on the product owner's "APPROVE CHECKLIST UPDATE ONLY" instruction.** Entered on the owner's explicit override while the Stage 2, 5, 7 and 8 gates are open (the override closes none of them). 30 Stage 9 boxes ticked, no main task complete. Open: real-author UAT (9.6, `docs/testing/stage-09-uat-guide.md`), the manuscript-upload UI gap, latency-target approval, the security threshold (dependency advisories and the prompt-injection finding await decisions), CI items (deferred with 6.1), the Phase 1 post-launch acceptances. Evidence: `docs/testing/stage-09-regression-results.md`, `stage-09-qa-rerun-results.md`, `stage-09-security-findings.md`, `performance-baselines.md`.
 >
@@ -88,10 +90,10 @@ Repository verification during checklist construction changed three things. Each
 >
 > **One new frontend defect was discovered during the author's own manual verification, not fixed under this task:** the Logout control disappears on pointer hover before it can be clicked, so logout could not be completed or confirmed working. Recorded under task 1.8; not yet triaged into a stage — see the note there.
 
-**Total actionable checkboxes:** 1158 (2026-09-27 Stage 9 checklist update: unchanged — boxes converted and annotated only. Regex count of `^\s*- \[( |x)\]`: 1158 / 817.) *Earlier note:* 1158 (2026-09-25 Stage 8, after merging `main`: unchanged; Stage 8 converted boxes only. Regex count 1158 / 786.) *Earlier note:* 1158 (2026-09-25 Stage 5 cloud pass: +8 new sub-items under the Stage 5 Completion Gate, two per live-review defect D1–D4 — the cloud-verified fix [ticked] and live pod confirmation [unticked]. Regex count of `^\s*- \[( |x)\]`: 1158 / 732.) *Earlier note:* 1150 (2026-09-25 Stage 7 update: +4 new, deliberately UNTICKED carried-forward sub-items added under 7.3, 7.10 and 7.15 so open work stays visible. Independently re-verified by direct regex count of list-item markers `^\s*- \[( |x)\]` before (1146 / 601) and after (1150 / 725) the edit.) *Earlier note:* 1146 (2026-09-21 Stage 5 closure evaluation: +3 new ticked sub-items at 5.4/5.6, recording manual author verification and the sidecar fix, over a **corrected** pre-edit base of **1143**. The previously recorded "1146 / 562" had been counted with a regex that also matched three prose mentions of the checkbox syntax on the Formula and Total lines. The true pre-edit figures were **1143 / 561**, verified by counting only list-item markers `^\s*- \[( |x)\]`.) *Earlier note, kept for traceability:* (whole-file; was 1138 before this Stage 5 pass began, 1143 after its first continuation — +8 net new sub-items total added while detailing per-task evidence across both passes; independently re-verified by direct regex count of every `- [x]`/`- [ ]` marker, per the same counting discipline used for the 1134→1135 reconciliation)
-**Currently completed:** 817 (2026-09-27 Stage 9: +39 ticked — 30 in Stage 9, 6 in Stage 5 [5.8 ×2, D1–D4 live], 1 in Stage 7 [toolbar test 9], 2 in Stage 8 [8.6 item and parent]; −8 unticked as factually unsupported — 4.8 duplicate detection, 4.9 ×2, parents 4.8 and 4.9, the Stage 4 Cast gate line, Gate 3a, 6.5's regression-alert item. Net +31. Regex-verified 1158 / 817.) *Earlier note:* 786 (2026-09-25 Stage 8: +54 ticked — 53 in the Stage 8 section and task 3.13's Phase 2 Issue 10 box. Regex-verified 1158 / 786 after merging `main` into the Stage 8 branch.) *Earlier note:* 732 (2026-09-25 Stage 5 cloud pass: +4 ticked, the four D1–D4 "root cause fixed" sub-items; 5.14's three items, 5.8's two boxes and the gate lines stay unticked. Regex-verified 1158 / 732.) *Earlier note:* 728 (2026-09-25 Stage 2 cloud pass: +4 ticked — 2.5's routing subtask, parent 2.5, the "Environment document UNVERIFIED items closed" gate line, and 2.6's port-list subtask — and −1 unticked, 2.2's disputed RunPod-UI subtask; net +3. Total unchanged at 1150. Independently verified by regex count of list-item markers `^\s*- \[( |x)\]`: 1150 total / 728 ticked.) *Earlier note:* 725 (2026-09-25 Stage 7: +124 newly ticked checkboxes, all within the Stage 7 section — 124 of Stage 7's 140; the 16 still open are named carry-forwards, not silent gaps.) *Earlier note:* 601 (2026-09-22 Stage 6 closure: +41 newly ticked checkboxes, all within the Stage 6 section — tasks 6.2, 6.3 and 6.6 fully complete [the latter under the author-approved revised acceptance criterion], plus genuinely-done sub-items within 6.4, 6.5 and 6.7. Independently verified by direct regex count of every `- [x]`/`- [ ]` marker, same counting discipline as prior reconciliations: 601 ticked, 545 unticked, 1146 total — no checkbox lines were added or removed, only converted.) *Earlier note:* 560 (2026-09-21 closure evaluation: from the corrected 561, +3 manual-verification/sidecar sub-items, −4 unticked because they were not actually complete: 5.14's three partial items and the "All 15 Story Audit issues closed or accepted" gate line. Stage 5 section: 156 of 172.)
-**Remaining:** 341
-**Overall project completion:** 70.6% (817 ÷ 1158) after the 2026-09-27 Stage 9 checklist update. *Earlier:* 67.9% (786 ÷ 1158) after the Stage 8 cloud pass. *Earlier:* 63.2% (732 ÷ 1158) after the 2026-09-25 Stage 5 cloud pass (the percentage dips because 8 boxes were added, 4 of them still open). *Earlier:* 63.3% (728 ÷ 1150), up from 63.0% (725 ÷ 1150) after the 2026-09-25 Stage 2 cloud pass. *Earlier:* 63.0% (725 ÷ 1150), up from 52.4% (601 ÷ 1146). Stage 7 is implemented and accepted but its gate is not fully closed (see † above). *Earlier:* 52.4% (601 ÷ 1146), up from 48.9%. Stage 6 is the fourth stage, after Stage 0, Stage 3 and Stage 4, to close (under its explicitly revised scope — CI/GitHub Actions deferred by author decision, 6.6 under a revised, approved criterion). Stage 5's gate remains separately open (see its own Completion Gate note) — Stage 6 was entered via the author's explicit override of that dependency, recorded at the top of the Stage 6 section.
+**Total actionable checkboxes:** 1158 (2026-09-30 Stage 10 checklist update: unchanged — boxes converted and annotated only. Regex count of `^\s*- \[( |x)\]`: 1158 / 875.) *Earlier note:* 1158 (2026-09-27 Stage 9 checklist update: unchanged — boxes converted and annotated only. Regex count of `^\s*- \[( |x)\]`: 1158 / 817.) *Earlier note:* 1158 (2026-09-25 Stage 8, after merging `main`: unchanged; Stage 8 converted boxes only. Regex count 1158 / 786.) *Earlier note:* 1158 (2026-09-25 Stage 5 cloud pass: +8 new sub-items under the Stage 5 Completion Gate, two per live-review defect D1–D4 — the cloud-verified fix [ticked] and live pod confirmation [unticked]. Regex count of `^\s*- \[( |x)\]`: 1158 / 732.) *Earlier note:* 1150 (2026-09-25 Stage 7 update: +4 new, deliberately UNTICKED carried-forward sub-items added under 7.3, 7.10 and 7.15 so open work stays visible. Independently re-verified by direct regex count of list-item markers `^\s*- \[( |x)\]` before (1146 / 601) and after (1150 / 725) the edit.) *Earlier note:* 1146 (2026-09-21 Stage 5 closure evaluation: +3 new ticked sub-items at 5.4/5.6, recording manual author verification and the sidecar fix, over a **corrected** pre-edit base of **1143**. The previously recorded "1146 / 562" had been counted with a regex that also matched three prose mentions of the checkbox syntax on the Formula and Total lines. The true pre-edit figures were **1143 / 561**, verified by counting only list-item markers `^\s*- \[( |x)\]`.) *Earlier note, kept for traceability:* (whole-file; was 1138 before this Stage 5 pass began, 1143 after its first continuation — +8 net new sub-items total added while detailing per-task evidence across both passes; independently re-verified by direct regex count of every `- [x]`/`- [ ]` marker, per the same counting discipline used for the 1134→1135 reconciliation)
+**Currently completed:** 875 (2026-09-30 Stage 10: +58 ticked, all in the Stage 10 section — 49 task items and verifications, 3 parents [10.4, 10.6, 10.7], 6 gate lines [backup running, rate limiting, deletion, JWT, incident response, Gate 7]; nothing unticked. Regex-verified 1158 / 875.) *Earlier note:* 817 (2026-09-27 Stage 9: +39 ticked — 30 in Stage 9, 6 in Stage 5 [5.8 ×2, D1–D4 live], 1 in Stage 7 [toolbar test 9], 2 in Stage 8 [8.6 item and parent]; −8 unticked as factually unsupported — 4.8 duplicate detection, 4.9 ×2, parents 4.8 and 4.9, the Stage 4 Cast gate line, Gate 3a, 6.5's regression-alert item. Net +31. Regex-verified 1158 / 817.) *Earlier note:* 786 (2026-09-25 Stage 8: +54 ticked — 53 in the Stage 8 section and task 3.13's Phase 2 Issue 10 box. Regex-verified 1158 / 786 after merging `main` into the Stage 8 branch.) *Earlier note:* 732 (2026-09-25 Stage 5 cloud pass: +4 ticked, the four D1–D4 "root cause fixed" sub-items; 5.14's three items, 5.8's two boxes and the gate lines stay unticked. Regex-verified 1158 / 732.) *Earlier note:* 728 (2026-09-25 Stage 2 cloud pass: +4 ticked — 2.5's routing subtask, parent 2.5, the "Environment document UNVERIFIED items closed" gate line, and 2.6's port-list subtask — and −1 unticked, 2.2's disputed RunPod-UI subtask; net +3. Total unchanged at 1150. Independently verified by regex count of list-item markers `^\s*- \[( |x)\]`: 1150 total / 728 ticked.) *Earlier note:* 725 (2026-09-25 Stage 7: +124 newly ticked checkboxes, all within the Stage 7 section — 124 of Stage 7's 140; the 16 still open are named carry-forwards, not silent gaps.) *Earlier note:* 601 (2026-09-22 Stage 6 closure: +41 newly ticked checkboxes, all within the Stage 6 section — tasks 6.2, 6.3 and 6.6 fully complete [the latter under the author-approved revised acceptance criterion], plus genuinely-done sub-items within 6.4, 6.5 and 6.7. Independently verified by direct regex count of every `- [x]`/`- [ ]` marker, same counting discipline as prior reconciliations: 601 ticked, 545 unticked, 1146 total — no checkbox lines were added or removed, only converted.) *Earlier note:* 560 (2026-09-21 closure evaluation: from the corrected 561, +3 manual-verification/sidecar sub-items, −4 unticked because they were not actually complete: 5.14's three partial items and the "All 15 Story Audit issues closed or accepted" gate line. Stage 5 section: 156 of 172.)
+**Remaining:** 283
+**Overall project completion:** 75.6% (875 ÷ 1158) after the 2026-09-30 Stage 10 checklist update. *Earlier:* 70.6% (817 ÷ 1158) after the 2026-09-27 Stage 9 checklist update. *Earlier:* 67.9% (786 ÷ 1158) after the Stage 8 cloud pass. *Earlier:* 63.2% (732 ÷ 1158) after the 2026-09-25 Stage 5 cloud pass (the percentage dips because 8 boxes were added, 4 of them still open). *Earlier:* 63.3% (728 ÷ 1150), up from 63.0% (725 ÷ 1150) after the 2026-09-25 Stage 2 cloud pass. *Earlier:* 63.0% (725 ÷ 1150), up from 52.4% (601 ÷ 1146). Stage 7 is implemented and accepted but its gate is not fully closed (see † above). *Earlier:* 52.4% (601 ÷ 1146), up from 48.9%. Stage 6 is the fourth stage, after Stage 0, Stage 3 and Stage 4, to close (under its explicitly revised scope — CI/GitHub Actions deferred by author decision, 6.6 under a revised, approved criterion). Stage 5's gate remains separately open (see its own Completion Gate note) — Stage 6 was entered via the author's explicit override of that dependency, recorded at the top of the Stage 6 section.
 
 > *Counting-basis note (2026-07-25):* the recorded total of 1125 is a **whole-file** checkbox count. The formula above says Stages 0–12, which counts **1111** — the 14-box difference is the Final Project Completion Checklist and the register sections. The existing basis is retained so the figures stay comparable across updates; the formula wording and the basis should be reconciled in Stage 11.
 
@@ -101,6 +103,12 @@ Repository verification during checklist construction changed three things. Each
 
 ## Next Task to Execute
 
+> ### ⚑ 2026-09-30 — Stage 10: implemented and re-verified, gate OPEN — owner checks and deferred items pending
+>
+> The pod was found reset (`dlztfq3ppte0wm`); it was rebuilt with `start-narratiq.sh`, the newest hourly backup was restored and verified (a real 10.1 rehearsal), and every Stage 10 suite was re-run (see the Stage 10 section). The product owner approved completion for the verified internal scope. **Next: the owner runs the remaining manual items** (`docs/testing/manual-verification/stage-10-manual-verification-guide.md` — MV-10.3 Docker build, MV-10.5 code rollback, MV-10.8 capacity acceptance, MV-10.9 tabletop; MV-10.7/10.6 are optional UX checks) **and decides when to attach the deferred external services** (S10-B, S10-D). **Stage 11 has NOT been analysed, planned or started.**
+>
+> ⚑ Superseded — the Stage 9 note below is kept for traceability.
+>
 > ### ⚑ 2026-09-27 — Stage 9: automated work done, gate OPEN — owner UAT and decisions pending
 >
 > Stage 9's regression, QA re-run, performance, security and isolation work is implemented and verified on pod `6uavswo19trx9n` (full backend suite 738 passed / 0 failed; live browser 62/64 with the known upload-UI gap and the manual audio spec; isolation defects I1–I7 and upload/CORS findings fixed). The checklist was updated on the owner's "APPROVE CHECKLIST UPDATE ONLY" instruction. **Next: the owner runs the manual items** (`docs/testing/stage-09-uat-guide.md`) **and decides the pending items** — dependency upgrades, the prompt-injection fix, latency targets, BGE-M3 on GPU, the optional `chapter_chunks.story_id` index, the Phase 1 product decisions (CAST-C4/H9/H10, SEARCH-4, Translation, the 30 post-launch acceptances) and the reopened Stage 4 items. **Stage 10 has NOT been analysed, planned or started.**
@@ -2894,6 +2902,21 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
 **Entry condition:** Stage 9 gate passed. Tasks 10.1–10.3 and 10.9 may start much earlier — they are fully parallel with every other stage.
 **Source:** Master Execution Plan §12 — production gaps PG-02 … PG-07, PG-11 … PG-15
 
+> **Stage 10 decisions (recorded 2026-09-30 from the product owner's Stage 10 completion approval; S10-A and S10-H stated in that approval, the rest as implemented in code and runbooks):**
+> - **S10-A** — Stage 10 entry override **approved**: the internally achievable Stage 10 work proceeded while Stage 9 user/deferred verification items remain open. The override closes no Stage 9 item.
+> - **S10-B** — No off-pod/external backup storage in Stage 10; `NARRATIQ_OFFPOD_COMMAND` is the ready hook.
+> - **S10-C** — No external error-tracking service; built-in `error_events`, `POST /api/client-errors`, `GET /api/ops/errors` instead.
+> - **S10-D** — No external alert delivery or off-pod uptime checks; `NARRATIQ_ALERT_COMMAND` and the watchdog heartbeat file are the hooks.
+> - **S10-E** — HttpOnly session cookie, same-origin `/api` proxy, CSRF double-submit; Bearer header kept for tooling.
+> - **S10-F** — Sign-out ends one device's session; a password change ends every other session; account deletion ends all.
+> - **S10-G** — Account deletion is an immediate hard delete in one transaction.
+> - **S10-H** — RPO ≤ 1 hour and RTO ≤ 2 hours are **approved engineering targets, not unconditional guarantees**. Current result (2026-09-30 rehearsal on reset pod `dlztfq3ppte0wm`): fresh pod to ready ≈ 16 min with models on the volume; restore 0.6 s for the live set and 45.8 s for a 276 MB bulk set (20,000 vectors). Volume loss is not covered until an off-pod copy exists.
+> - **S10-I** — Latency targets (`docs/testing/performance-baselines.md` §6) **approved as performance targets**.
+>
+> **Stage 10 non-blocking follow-ups (recorded 2026-09-30, not done):** (1) `docs/operations/backup-and-restore.md` §4 — document the `NARRATIQ_ACKNOWLEDGE_EMPTY_RESTART` step for restoring a set with no author data; (2) scope `scripts/rollback_frontend.sh` to the NarratIQ frontend process/port — it currently stops every Next.js process on the pod; (3) `docs/testing/performance-baselines.md` still says the S10-I targets are not approved; (4) refresh stale pod/date references in `docs/testing/manual-verification/stage-10-manual-verification-guide.md`.
+>
+> **Stage 10 status (2026-09-30):** re-verified after a pod reset — see the Stage 10 re-verification report (backend 780 passed / 0 failed; Stage 10 + security + isolation 83; scripts 12/12; retrieval 96; migration round-trip and downgrade walk PASS; frontend unit 99 / studio 65 / a11y 13 / variants 20; live browser 61 passed with the known upload-UI gap and one intermittent toolbar test). Tasks 10.4, 10.6 and 10.7 closed. The gate stays open on the deferred external-service items, the Docker build, the full code/model rollback, the Tier-2 capacity figure, the onboarding-limit acceptance and the tabletop exercise.
+
 ---
 
 - [ ] **10.1 — Automated backup and rehearsed restore**
@@ -2904,17 +2927,17 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
   - **Blocked by:** None
   - **Can run in parallel:** Yes — **start immediately**
   - **Implementation checklist:**
-    - [ ] Schedule automated `pg_dump` to off-pod storage
-    - [ ] Exclude `ai_generation_pins` per Phase 3 decision D9
-    - [ ] Define retention and rotation
-    - [ ] Verify backup integrity automatically
-    - [ ] Document the restore procedure step by step
-    - [ ] **Rehearse a full restore into a clean database**
-    - [ ] Define and document RPO and RTO
-    - [ ] Include uploaded audio and OCR files in the backup scope
+    - [ ] Schedule automated `pg_dump` to off-pod storage — *2026-09-30: **DEFERRED — EXTERNAL SERVICE** (S10-B). Hourly on-pod backups run; `NARRATIQ_OFFPOD_COMMAND` is the ready hook. Not a failure*
+    - [x] Exclude `ai_generation_pins` per Phase 3 decision D9 — *2026-09-30: manifests record it as excluded; `verify_backup.py` requires it to restore empty*
+    - [x] Define retention and rotation — *2026-09-30: `scripts/backup_retention.py` (24 recent + 7 daily, `.keep` and last verified set never pruned); retention tests pass; live loop "4 sets, keeping 4"*
+    - [x] Verify backup integrity automatically — *2026-09-30: `verify_backup.py` restore-verifies every 24 h (per-table content hashes, vectors, upload SHA-256); tamper tests FAIL correctly; watchdog `backup_verify_failed`*
+    - [x] Document the restore procedure step by step — *2026-09-30: `docs/operations/backup-and-restore.md` §4, followed as written on the reset pod. Follow-up (non-blocking): document the `NARRATIQ_ACKNOWLEDGE_EMPTY_RESTART` step for a restored set with no author data*
+    - [x] **Rehearse a full restore into a clean database** — *2026-09-30: pod `dlztfq3ppte0wm` found reset; hourly set `narratiq-20260929T204217Z` restored into the fresh cluster (58/58 tables hash-identical to its manifest). Populated rehearsals with the same scripts: 48 rows/9 chapters/8 vectors/2 uploads, and bulk 21,042 rows/1,000 chapters/20,000 vectors (backup 22.4 s, restore 45.8 s) — all PASS*
+    - [x] Define and document RPO and RTO — *2026-09-30: RPO ≤ 1 h, RTO ≤ 2 h approved as engineering targets (S10-H), not guarantees. Measured: fresh pod to ready ≈ 16 min with models on the volume; restore step 0.6 s (live) / 45.8 s (276 MB bulk set)*
+    - [x] Include uploaded audio and OCR files in the backup scope — *2026-09-30: uploads archive with per-file SHA-256 in every set; changed-upload tamper test FAILs verification*
   - **Verification:**
-    - [ ] A restore rehearsal from an automated backup succeeds end to end
-    - [ ] Restored data passes row-count and spot-check validation
+    - [x] A restore rehearsal from an automated backup succeeds end to end — *2026-09-30: the hourly set was restored on the reset pod and matched its manifest; that set held no author data, so populated sets were rehearsed through the same production scripts (see above)*
+    - [x] Restored data passes row-count and spot-check validation — *2026-09-30: 58/58 tables (live) and 21,042 rows/20,000 vectors (bulk) matched by row count and per-column content hash*
   - **Definition of done:** Manuscript loss is recoverable, proven by rehearsal.
 
 - [ ] **10.2 — Monitoring and alerting**
@@ -2926,15 +2949,15 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
   - **Can run in parallel:** Yes
   - **Context:** Degraded mode — AI returning 503 while health looks fine — is currently invisible until an author complains.
   - **Implementation checklist:**
-    - [ ] Add error tracking (Sentry or equivalent) to backend and frontend
-    - [ ] Add uptime monitoring on `/api/health`
-    - [ ] Alert specifically on `"vllm": "unavailable"`
-    - [ ] Alert on rising AI failure and degraded-output rates
-    - [ ] Alert on background job failures and orphan recovery activity
-    - [ ] Set `LOG_FORMAT=json` for aggregation
-    - [ ] Define the on-call notification path
+    - [x] Add error tracking (Sentry or equivalent) to backend and frontend — *2026-09-30: built-in equivalent (S10-C): `error_events` + `POST /api/client-errors` + `GET /api/ops/errors`, scrubbed and de-duplicated; `test_monitoring_stage10.py`; live frontend report stored with quoted text and email scrubbed. Person-delivered notification is the separate on-call item below*
+    - [x] Add uptime monitoring on `/api/health` — *2026-09-30: on-pod watchdog (`backend_unreachable`); checks from outside the pod deferred (S10-D)*
+    - [x] Alert specifically on `"vllm": "unavailable"` — *2026-09-30: live: vLLM paused 17:49:53, health 503 by 17:50:04, alert 17:50:34, resumed 17:50:40, resolved 17:51:04*
+    - [x] Alert on rising AI failure and degraded-output rates — *2026-09-30: `ai_unavailable_rate`, `server_error_rate`, `degraded_output_rate`; `scripts/tests/test_watchdog.py`*
+    - [x] Alert on background job failures and orphan recovery activity — *2026-09-30: `background_job_failures`, `orphan_recovery`; `scripts/tests/test_watchdog.py`*
+    - [x] Set `LOG_FORMAT=json` for aggregation — *2026-09-30: written to `backend/.env` by `start-narratiq.sh`; live logs are JSON with `request_id`*
+    - [ ] Define the on-call notification path — *2026-09-30: **DEFERRED — EXTERNAL SERVICE** (S10-D). The path is defined (read `alerts.jsonl`); delivery to a person needs a channel via `NARRATIQ_ALERT_COMMAND` (MV-10.2-B). Not a failure*
   - **Verification:**
-    - [ ] Deliberately stopping vLLM triggers an alert
+    - [x] Deliberately stopping vLLM triggers an alert — *2026-09-30: raised and recorded in `/workspace/logs/alerts.jsonl` (see above); delivery to a person stays open with the on-call item*
   - **Definition of done:** Production problems are detected by monitoring, not by users.
 
 - [ ] **10.3 — Containerisation**
@@ -2945,16 +2968,16 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
   - **Blocked by:** None
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Create a Dockerfile for the backend
-    - [ ] Create a Dockerfile for the frontend
-    - [ ] Create a compose file for local development with PostgreSQL + pgvector
-    - [ ] Pin all base image and dependency versions
-    - [ ] Document the relationship to `start-narratiq.sh`
+    - [ ] Create a Dockerfile for the backend — *2026-09-30: file exists, never built (no Docker on RunPod); open until MV-10.3*
+    - [ ] Create a Dockerfile for the frontend — *2026-09-30: file exists, never built; open until MV-10.3*
+    - [ ] Create a compose file for local development with PostgreSQL + pgvector — *2026-09-30: `docker-compose.yml` exists, never run; open until MV-10.3*
+    - [ ] Pin all base image and dependency versions — *2026-09-30: tags and `backend/requirements.txt` pinned; image digests can only be recorded from a first real build (MV-10.3)*
+    - [x] Document the relationship to `start-narratiq.sh` — *2026-09-30: `docs/operations/containers.md`*
   - **Verification:**
-    - [ ] A clean container build produces a working stack
+    - [ ] A clean container build produces a working stack — *2026-09-30: NEEDS USER TESTING on a Docker host (MV-10.3)*
   - **Definition of done:** Deployment does not depend solely on a bash script and a RunPod base image.
 
-- [ ] **10.4 — Shared rate-limit storage**
+- [x] **10.4 — Shared rate-limit storage** — *2026-09-30: closed on the Stage 10 re-verification evidence.*
   - **Source:** Production gap **PG-05**; `backend/middleware/rate_limit.py:67`
   - **Area:** Security / Backend
   - **Priority:** High
@@ -2963,12 +2986,12 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
   - **Can run in parallel:** Yes
   - **Context:** slowapi is constructed with no `storage_uri`. `SLOWAPI_STORAGE_URI` is read by nothing. In-memory storage is per-process, so limits multiply by worker count.
   - **Implementation checklist:**
-    - [ ] Apply the D-3 decision
-    - [ ] If multi-worker: provision Redis and pass `storage_uri=` to the `Limiter`
-    - [ ] Remove or implement the misleading `SLOWAPI_STORAGE_URI` reference
-    - [ ] If staying single-worker: document the constraint prominently and add a startup guard that warns when `--workers > 1`
+    - [x] Apply the D-3 decision — *2026-09-30: single uvicorn worker (live `--workers 1`)*
+    - [x] If multi-worker: provision Redis and pass `storage_uri=` to the `Limiter` — *2026-09-30: not applicable: single worker by D-3*
+    - [x] Remove or implement the misleading `SLOWAPI_STORAGE_URI` reference — *2026-09-30: removed from code and `.env.example`; remaining doc mentions state it is inert*
+    - [x] If staying single-worker: document the constraint prominently and add a startup guard that warns when `--workers > 1` — *2026-09-30: stricter than asked: `startup/worker_guard.py` refuses to start (live: `--workers 2` failed in both workers, nothing listening)*
   - **Verification:**
-    - [ ] Rate limits verified effective at the target worker count
+    - [x] Rate limits verified effective at the target worker count — *2026-09-30: live through the public proxy: 401 ×5 then 429*
   - **Definition of done:** Rate limiting works as documented at the deployed worker count.
 
 - [ ] **10.5 — Rollback procedure**
@@ -2979,16 +3002,16 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
   - **Blocked by:** None
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Document code rollback
-    - [ ] Document and **test** Alembic downgrade paths against a populated database
-    - [ ] Document model-version rollback
-    - [ ] Document frontend rollback including the build-time API URL
-    - [ ] Rehearse a full rollback
+    - [x] Document code rollback — *2026-09-30: `docs/operations/rollback.md` §2*
+    - [x] Document and **test** Alembic downgrade paths against a populated database — *2026-09-30: `run_downgrade_walk.py` PASS (0024→0016→0024, 16 steps, 57 tables, per-column hashes) and `run_migration_roundtrip.sh` PASS*
+    - [x] Document model-version rollback — *2026-09-30: `rollback.md` §5, `docs/operations/model-versions.md` (documented, not performed)*
+    - [x] Document frontend rollback including the build-time API URL — *2026-09-30: `rollback.md` §4; live swap to the previous build served `/login`, `/data-policy`, `/account`, `/api/health` (200) and swapped back in 4 s. Follow-up (non-blocking): scope `rollback_frontend.sh` to the NarratIQ frontend port — it stops every Next.js process on the pod*
+    - [ ] Rehearse a full rollback — *2026-09-30: schema and frontend rehearsed; code checkout and model rollback not performed (MV-10.5)*
   - **Verification:**
-    - [ ] Rollback rehearsal succeeds without data loss
+    - [ ] Rollback rehearsal succeeds without data loss — *2026-09-30: open until the full rollback is rehearsed*
   - **Definition of done:** A bad release can be reversed within the documented RTO.
 
-- [ ] **10.6 — Data retention and deletion policy**
+- [x] **10.6 — Data retention and deletion policy** — *2026-09-30: closed on the Stage 10 re-verification evidence.*
   - **Source:** Production gap **PG-07**
   - **Area:** Product / Backend / Security
   - **Priority:** Medium
@@ -2996,18 +3019,18 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
   - **Blocked by:** None
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Define account deletion behaviour
-    - [ ] Define manuscript deletion behaviour including embeddings and chunks
-    - [ ] Define retention for audio uploads and OCR images beyond the existing 24h/72h TTL
-    - [ ] Define pin retention per Phase 3 decision D3
-    - [ ] Implement an account and data deletion endpoint
-    - [ ] Publish the policy
+    - [x] Define account deletion behaviour — *2026-09-30: `docs/policies/data-retention-and-deletion.md` §2 (S10-G)*
+    - [x] Define manuscript deletion behaviour including embeddings and chunks — *2026-09-30: policy §2*
+    - [x] Define retention for audio uploads and OCR images beyond the existing 24h/72h TTL — *2026-09-30: policy §1 (orphan-file sweep, account deletion)*
+    - [x] Define pin retention per Phase 3 decision D3 — *2026-09-30: policy §1*
+    - [x] Implement an account and data deletion endpoint — *2026-09-30: `DELETE /api/auth/account`; live: wrong password 403 "Nothing was deleted", missing `DELETE` 422, correct 200, sign-in refused afterwards*
+    - [x] Publish the policy — *2026-09-30: `/data-policy` answers 200 without signing in*
   - **Verification:**
-    - [ ] Account deletion removes all associated rows including vector columns
-    - [ ] Database-state check confirms no orphaned data
+    - [x] Account deletion removes all associated rows including vector columns — *2026-09-30: `test_account_deletion_stage10.py` (all 9 vector columns, files, another author untouched)*
+    - [x] Database-state check confirms no orphaned data — *2026-09-30: live scan after deletion: 0 rows in any table reference the deleted user or story*
   - **Definition of done:** Authors can delete their data and it is genuinely deleted.
 
-- [ ] **10.7 — JWT HttpOnly cookie migration**
+- [x] **10.7 — JWT HttpOnly cookie migration** — *2026-09-30: closed on automated and live evidence; the browser walk-through MV-10.7-A/B/C stays in the manual guide as an optional UX check.*
   - **Source:** Production gap **PG-15**; `CLAUDE.md` "Phase B (future)"
   - **Area:** Security / Backend / Frontend
   - **Priority:** Medium
@@ -3016,14 +3039,14 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
   - **Can run in parallel:** Yes
   - **Context:** JWT currently in `localStorage['narratiq_token']` — XSS-exfiltratable.
   - **Implementation checklist:**
-    - [ ] Migrate token storage to HttpOnly cookies
-    - [ ] Update the frontend auth flow and the 401 interceptor in `frontend/lib/api.ts`
-    - [ ] Add CSRF protection appropriate to cookie auth
-    - [ ] Verify the WebSocket voice agent still authenticates
-    - [ ] Verify session persistence across reload
+    - [x] Migrate token storage to HttpOnly cookies — *2026-09-30: live cookie `HttpOnly; Secure; SameSite=lax`; no token in any response body*
+    - [x] Update the frontend auth flow and the 401 interceptor in `frontend/lib/api.ts` — *2026-09-30: frontend unit 99, studio 65, live browser 61 passed on cookie sessions*
+    - [x] Add CSRF protection appropriate to cookie auth — *2026-09-30: live 403 for missing header, wrong token and foreign Origin*
+    - [x] Verify the WebSocket voice agent still authenticates — *2026-09-30: live: one-time ticket accepted; reused ticket, legacy `?token=` and foreign Origin refused; `voice-agent-action.spec` passed*
+    - [x] Verify session persistence across reload — *2026-09-30: live (cookie jar only)*
   - **Verification:**
-    - [ ] Token is not reachable from JavaScript
-    - [ ] Full auth flow passes end to end
+    - [x] Token is not reachable from JavaScript — *2026-09-30: HttpOnly flag live; the legacy `narratiq_token` localStorage key is removed on load*
+    - [x] Full auth flow passes end to end — *2026-09-30: live: register, CSRF, per-device sign-out with token revocation, password change signing out other devices, account deletion*
   - **Definition of done:** Session tokens are not exposed to client-side script.
 
 - [ ] **10.8 — Load and capacity planning**
@@ -3034,12 +3057,12 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
   - **Blocked by:** None
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Determine max concurrent authors on one GPU pod using the 9.3 baselines
-    - [ ] Model GPU capacity against Phase 3 Tier-2 consistency cost (D6)
-    - [ ] Define the scaling trigger
-    - [ ] Document the onboarding limit
+    - [x] Determine max concurrent authors on one GPU pod using the 9.3 baselines — *2026-09-30: 60 active authors (free plans), `docs/operations/capacity-planning.md`*
+    - [ ] Model GPU capacity against Phase 3 Tier-2 consistency cost (D6) — *2026-09-30: **PARTIAL / NEEDS FURTHER MEASUREMENT.** The GPU is not the limit (vLLM never queued); CPU embeddings are. With 50 % Tier-2 users the capacity is only a range (10–60 active authors) and was not re-measured*
+    - [x] Define the scaling trigger — *2026-09-30: `capacity-planning.md` §4*
+    - [ ] Document the onboarding limit — *2026-09-30: proposed (60 active / ~150–200 registered) in `capacity-planning.md`; awaiting product-owner acceptance (MV-10.8)*
   - **Verification:**
-    - [ ] Capacity figure validated by a load test
+    - [x] Capacity figure validated by a load test — *2026-09-30: re-validated on pod `dlztfq3ppte0wm`: 60 authors × 4 min, 455 requests, 0 errors; rewrite p95 3.1 s, Q&A p95 2.9 s, search p95 0.34 s (within S10-I targets); vLLM max waiting 0*
   - **Definition of done:** The supported concurrent user count is a known number.
 
 - [ ] **10.9 — Incident response process**
@@ -3051,28 +3074,28 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
   - **Can run in parallel:** Yes
   - **Context:** The RunPod incident report demonstrates the capability already exists — formalise it.
   - **Implementation checklist:**
-    - [ ] Define severity levels
-    - [ ] Define the on-call and escalation path
-    - [ ] Adopt the existing incident report as the postmortem template
-    - [ ] Define where incident reports are filed — `docs/incidents/`
-    - [ ] Document the port-exposure diagnostic as a known-issue runbook entry
+    - [x] Define severity levels — *2026-09-30: `docs/operations/incident-response.md` §1*
+    - [x] Define the on-call and escalation path — *2026-09-30: `incident-response.md` §2 (person-delivered alerts are the deferred 10.2 item)*
+    - [x] Adopt the existing incident report as the postmortem template — *2026-09-30: `docs/incidents/TEMPLATE.md`*
+    - [x] Define where incident reports are filed — `docs/incidents/` — *2026-09-30: `incident-response.md` §4*
+    - [x] Document the port-exposure diagnostic as a known-issue runbook entry — *2026-09-30: `incident-response.md` §5*
   - **Verification:**
-    - [ ] A tabletop exercise runs cleanly through the process
+    - [ ] A tabletop exercise runs cleanly through the process — *2026-09-30: NEEDS USER TESTING (MV-10.9)*
   - **Definition of done:** The next incident follows a process, not improvisation.
 
 ### Stage 10 Completion Gate
 
-- [ ] Automated backup running; **restore rehearsed successfully**
-- [ ] Monitoring and alerting live; degraded mode raises an alert
-- [ ] Containerisation complete
-- [ ] Rate limiting correct at the target worker count
-- [ ] Rollback rehearsed for code, schema and models
-- [ ] Data retention and deletion policy implemented and published
-- [ ] JWT migrated to HttpOnly cookies
-- [ ] Capacity limit known and documented
-- [ ] Incident response process documented
-- [ ] **Gate 7 — Backup and recovery verified** passed
-- [ ] **Gate 8 — Deployment and rollback tested** passed
+- [x] Automated backup running; **restore rehearsed successfully** — *2026-09-30: hourly on-pod backups running (first set on the new pod 18:32:54); restore rehearsed (10.1). Off-pod copy deferred (S10-B)*
+- [ ] Monitoring and alerting live; degraded mode raises an alert — *2026-09-30: alerts raised and recorded (PASS); delivery to a person deferred (S10-D), so this line stays open*
+- [ ] Containerisation complete — *2026-09-30: open until MV-10.3*
+- [x] Rate limiting correct at the target worker count — *2026-09-30: 10.4*
+- [ ] Rollback rehearsed for code, schema and models — *2026-09-30: schema and frontend only so far*
+- [x] Data retention and deletion policy implemented and published — *2026-09-30: 10.6*
+- [x] JWT migrated to HttpOnly cookies — *2026-09-30: 10.7*
+- [ ] Capacity limit known and documented — *2026-09-30: free-plan figure validated; Tier-2 figure partial; onboarding limit awaits acceptance*
+- [x] Incident response process documented — *2026-09-30: 10.9 documentation items; the tabletop exercise is still open*
+- [x] **Gate 7 — Backup and recovery verified** passed — *2026-09-30: Master Execution Plan definition met: automated backup running, restore rehearsed from a real backup into a clean database, RPO/RTO documented*
+- [ ] **Gate 8 — Deployment and rollback tested** passed — *2026-09-30: the fresh-pod bring-up succeeded, but code/model rollback and the container build are not yet done*
 
 ---
 

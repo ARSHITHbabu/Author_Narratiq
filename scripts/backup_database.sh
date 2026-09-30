@@ -1,10 +1,16 @@
 #!/bin/bash
 # Take a logical backup of the live NarratIQ PostgreSQL database.
 #
-# Produces three files in BACKUP_DIR, all mode 600:
-#   narratiq-<UTC timestamp>.dump          pg_dump custom-format archive (compressed)
-#   narratiq-<UTC timestamp>.dump.sha256   SHA-256 of the archive, for corruption detection
-#   narratiq-globals-<UTC timestamp>.sql   role definitions, without password hashes
+# Produces one backup SET in BACKUP_DIR, all mode 600:
+#   narratiq-<UTC timestamp>.dump            pg_dump custom-format archive (compressed)
+#   narratiq-<UTC timestamp>.dump.sha256     SHA-256 of the archive (kept for older tooling)
+#   narratiq-<UTC timestamp>.manifest.json   integrity manifest of the SAME snapshot: per-table
+#                                            row counts + content hashes (vectors included),
+#                                            chapter-text hash, embedding counts, upload hashes
+#   narratiq-uploads-<UTC timestamp>.tar.gz  uploaded OCR images and audio (backend/uploads)
+#   narratiq-globals-<UTC timestamp>.sql     role definitions, without password hashes
+#   narratiq-<UTC timestamp>.SHA256SUMS      SHA-256 of every file above
+# (Stage 10, task 10.1. scripts/verify_backup.py restores a set and checks all of it.)
 #
 # The archive is verified with `pg_restore --list` before the script reports success;
 # a partial archive is deleted rather than left behind looking like a backup.
@@ -20,8 +26,9 @@
 #   bash scripts/backup_database.sh
 #
 # Environment overrides:
-#   BACKUP_DIR   destination directory   (default: /workspace/backups)
-#   ENV_FILE     path to backend/.env    (default: <repo root>/backend/.env)
+#   BACKUP_DIR           destination directory   (default: /workspace/backups)
+#   ENV_FILE             path to backend/.env    (default: <repo root>/backend/.env)
+#   NARRATIQ_UPLOADS_DIR uploads to archive      (default: <repo root>/backend/uploads)
 
 set -Eeuo pipefail
 
@@ -33,6 +40,10 @@ TIMESTAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 DUMP_FILE="${BACKUP_DIR}/narratiq-${TIMESTAMP}.dump"
 GLOBALS_FILE="${BACKUP_DIR}/narratiq-globals-${TIMESTAMP}.sql"
 CHECKSUM_FILE="${DUMP_FILE}.sha256"
+MANIFEST_FILE="${BACKUP_DIR}/narratiq-${TIMESTAMP}.manifest.json"
+UPLOADS_FILE="${BACKUP_DIR}/narratiq-uploads-${TIMESTAMP}.tar.gz"
+SUMS_FILE="${BACKUP_DIR}/narratiq-${TIMESTAMP}.SHA256SUMS"
+UPLOADS_DIR="${NARRATIQ_UPLOADS_DIR:-${REPO_ROOT}/backend/uploads}"
 
 die() { echo "ERROR: $*" >&2; exit 1; }
 
@@ -42,7 +53,8 @@ cleanup_partial() {
     local status=$?
     if [ "${status}" -ne 0 ]; then
         local removed=""
-        for f in "${DUMP_FILE}" "${GLOBALS_FILE}" "${CHECKSUM_FILE}"; do
+        for f in "${DUMP_FILE}" "${GLOBALS_FILE}" "${CHECKSUM_FILE}" "${MANIFEST_FILE}" \
+                 "${UPLOADS_FILE}" "${SUMS_FILE}" "${GLOBALS_FILE}.sha256"; do
             if [ -e "${f}" ]; then rm -f "${f}"; removed="yes"; fi
         done
         if [ -n "${removed}" ]; then
@@ -161,16 +173,18 @@ fi
 
 # ── Dump ──────────────────────────────────────────────────────────────────────
 echo ""
-echo "── Dumping database"
+echo "── Dumping database, integrity manifest and uploads (one snapshot)"
+# backup_snapshot.py runs pg_dump inside an exported snapshot and computes the
+# manifest from that same snapshot, so the two always describe the same data.
 # Phase 3 decision D9: ai_generation_pins holds temporary, expiring AI drafts
-# (never manuscript content — chapters, characters and story bible live in
-# their own fully-backed-up tables). Its DEFINITION is dumped so a restore
-# recreates the table; its ROWS are excluded so pins add zero backup bytes.
-pg_dump --format=custom --compress=6 --file="${DUMP_FILE}" \
-    --exclude-table-data=public.ai_generation_pins \
-    || die "pg_dump failed. No backup was produced."
-chmod 600 "${DUMP_FILE}"
-echo "  Wrote $(basename "${DUMP_FILE}") ($(du -h "${DUMP_FILE}" | cut -f1))"
+# (never manuscript content). Its DEFINITION is dumped so a restore recreates
+# the table; its ROWS are excluded (backup_snapshot.EXCLUDED_DATA).
+python3 "${REPO_ROOT}/scripts/backup_snapshot.py" dump \
+    --dump "${DUMP_FILE}" --manifest "${MANIFEST_FILE}" \
+    --uploads-dir "${UPLOADS_DIR}" --uploads-archive "${UPLOADS_FILE}" \
+    || die "The snapshot dump failed. No backup was produced."
+chmod 600 "${DUMP_FILE}" "${MANIFEST_FILE}" "${UPLOADS_FILE}" 2>/dev/null || true
+echo "  Wrote $(basename "${DUMP_FILE}") ($(du -h "${DUMP_FILE}" | cut -f1)), $(basename "${MANIFEST_FILE}"), $(basename "${UPLOADS_FILE}") ($(du -h "${UPLOADS_FILE}" | cut -f1))"
 
 # Roles are not included in pg_dump output. Without them a restore onto a rebuilt pod
 # fails on the first `ALTER ... OWNER TO`. --no-role-passwords keeps SCRAM verifiers off
@@ -197,19 +211,29 @@ echo "  Archive readable — ${TOC_ENTRIES} catalogue entries, ${DATA_ENTRIES} t
 # ── Checksum ──────────────────────────────────────────────────────────────────
 # Recorded at creation time so later corruption is detectable.
 ( cd "${BACKUP_DIR}" && sha256sum "$(basename "${DUMP_FILE}")" > "$(basename "${CHECKSUM_FILE}")" )
-chmod 600 "${CHECKSUM_FILE}"
-echo "  SHA-256: $(cut -d' ' -f1 "${CHECKSUM_FILE}")"
+( cd "${BACKUP_DIR}" && sha256sum "$(basename "${GLOBALS_FILE}")" > "$(basename "${GLOBALS_FILE}").sha256" )
+( cd "${BACKUP_DIR}" && sha256sum "$(basename "${DUMP_FILE}")" "$(basename "${MANIFEST_FILE}")" \
+      "$(basename "${UPLOADS_FILE}")" "$(basename "${GLOBALS_FILE}")" > "$(basename "${SUMS_FILE}")" )
+chmod 600 "${CHECKSUM_FILE}" "${GLOBALS_FILE}.sha256" "${SUMS_FILE}"
+# Read back: proves the bytes on the volume are the bytes that were hashed.
+( cd "${BACKUP_DIR}" && sha256sum -c --quiet "$(basename "${SUMS_FILE}")" ) \
+    || die "Checksum verification failed immediately after writing — the volume may be faulty."
+echo "  SHA-256 (dump): $(cut -d' ' -f1 "${CHECKSUM_FILE}") — all set checksums verified"
 
 echo ""
 echo "======================================================"
 echo " Backup complete"
 echo "======================================================"
 echo "  ${DUMP_FILE}"
+echo "  ${MANIFEST_FILE}"
+echo "  ${UPLOADS_FILE}"
 echo "  ${GLOBALS_FILE}"
-echo "  ${CHECKSUM_FILE}"
+echo "  ${SUMS_FILE}"
 if [ "${PERMS_ENFORCED}" = "no" ]; then
     echo ""
     echo " NOTE: file permissions are not enforced on this volume — see the warning above."
 fi
 echo ""
-echo " This backup is on the pod. It is not safe until a copy exists off-pod."
+echo " This backup is on the pod's network volume. An off-pod copy is DEFERRED (Stage 10,"
+echo " decision S10-B): it does not protect against loss of the volume itself."
+echo " Verify it by restoring:  python3 scripts/verify_backup.py --set narratiq-${TIMESTAMP}"

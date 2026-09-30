@@ -81,11 +81,16 @@ def main() -> int:
         r = s.post(f"{BASE}/api/auth/register", json={
             "email": f"smoke{sfx}@example.com", "username": f"smoke{sfx}",
             "password": "SmokeTest123!"}, timeout=30)
-        ok = r.status_code == 200 and "access_token" in r.json()
-        check("signup returns token", ok, f"status={r.status_code}")
+        # Stage 10 (10.7): the session is an HttpOnly cookie; the body holds only the user.
+        token = r.cookies.get("narratiq_session")
+        ok = r.status_code == 200 and bool(token) and "access_token" not in r.json()
+        check("signup sets a session cookie (no token in body)", ok, f"status={r.status_code}")
         if not ok:
             return _summary()
-        s.headers["Authorization"] = f"Bearer {r.json()['access_token']}"
+        # Tooling authenticates with the Bearer header; drop the cookies so every
+        # request below is the header path (no CSRF token needed).
+        s.cookies.clear()
+        s.headers["Authorization"] = f"Bearer {token}"
     except Exception as e:
         check("signup", False, repr(e)); return _summary()
 
@@ -93,8 +98,9 @@ def main() -> int:
     try:
         r = s.post(f"{BASE}/api/auth/login", json={
             "email": f"smoke{sfx}@example.com", "password": "SmokeTest123!"}, timeout=30)
-        check("login returns token", r.status_code == 200 and "access_token" in r.json(),
+        check("login sets a session cookie", r.status_code == 200 and bool(r.cookies.get("narratiq_session")),
               f"status={r.status_code}")
+        s.cookies.clear()
     except Exception as e:
         check("login", False, repr(e))
 

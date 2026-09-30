@@ -2,62 +2,77 @@
 # Floating ranges (>=) previously let a fresh install pull a newer release whose
 # behaviour differed (e.g. SQLAlchemy bind-parsing, async client changes), which
 # is how "it worked, then broke after a reinstall" happened. Pin, don't float.
+#
+# Stage 10 (task 10.3; Stage 9 finding D2): this file is now the ONE source of
+# truth for the backend's Python packages. Every pin below equals the version
+# that is actually installed and running on the pod, where the full backend
+# suite passes (2026-09-29: 738 passed before the Stage 10 changes). Previously
+# the pins had drifted from reality (FastAPI 0.111 pinned, 0.141 running) and
+# four required packages were missing (rapidfuzz, jellyfish, websockets,
+# verovio). start-narratiq.sh installs from this file; the backend container
+# image (backend/Dockerfile) installs from it too.
+#
+# vLLM is NOT here: it runs as its own server with its own pinned install
+# (start-narratiq.sh VLLM_VERSION; requirements.vllm.txt). Several web packages
+# below (fastapi, uvicorn, pydantic, openai) are shared with vLLM 0.9.2, and the
+# versions here are the ones pip resolved alongside it on the pod.
 
 # ── Web framework ─────────────────────────────────────────────────────────────
-fastapi==0.111.0
-uvicorn[standard]==0.30.1
+fastapi==0.141.0
+uvicorn[standard]==0.54.0
 sqlalchemy==2.0.30
-pydantic==2.7.1
-pydantic-settings==2.3.0
+pydantic==2.13.5
+pydantic-settings==2.15.0
+email-validator==2.3.0          # pydantic EmailStr (register/login schemas)
 # 2026-09-22: bumped 3.3.0 -> 3.4.0 for CVE-2024-33663 / GHSA-6c5p-j8vq-pqhj
 # (CRITICAL, algorithm confusion) + PYSEC-2024-233 (MODERATE, JWE decompression
-# bomb). Non-major patch bump, jwt.encode/decode API unchanged. This app only
-# uses HS256 (config.py jwt_algorithm) with a symmetric secret and decode()'s
-# own algorithms=[...] allowlist, so the ECDSA/algorithm-header-trust
-# precondition the CVE describes was not present in our usage either way —
-# upgraded anyway since the fix is free on an auth-critical dependency.
-# Verified: full backend suite green after the bump.
+# bomb). This app only uses HS256 with a symmetric secret and decode()'s own
+# algorithms=[...] allowlist. Verified: full backend suite green after the bump.
 python-jose[cryptography]==3.4.0
 bcrypt==4.0.1
-python-multipart==0.0.9
+python-multipart==0.0.32
 aiofiles==23.2.1
-httpx==0.27.0
-python-dotenv==1.0.1
+httpx==0.27.2
+python-dotenv==1.2.3
 alembic==1.13.1
 slowapi==0.1.9
 
 # ── Database: PostgreSQL driver + pgvector binding (REQUIRED) ─────────────────
-# The app uses PostgreSQL 16 + pgvector exclusively. SQLite is no longer used.
-# These were previously undeclared — a fresh install could silently miss them.
-psycopg2-binary==2.9.12
-pgvector==0.4.2
+psycopg2-binary==2.9.13
+pgvector==0.5.0
 
 # ── AI inference client ───────────────────────────────────────────────────────
 # FastAPI talks to vLLM via the OpenAI-compatible API.
-# vLLM itself is installed separately on the GPU server (see requirements.vllm.txt).
 openai==1.90.0
 
 # ── Embeddings (BGE-M3, runs in-process) ─────────────────────────────────────
-sentence-transformers==5.5.1
+sentence-transformers==5.7.0
 
-# ── OCR (GOT-OCR2.0 — end-to-end handwriting recognition) ───────────────────
-# GOT-OCR2.0 (stepfun-ai/GOT-OCR2_0): single-pass full-page OCR.
-#   ViT-large encoder + Qwen-1.5-0.5B decoder. ~1.2 GB VRAM (float16).
-#   Uses GPU when ≥2.5 GB VRAM is free; automatically falls back to CPU.
+# ── OCR (GOT-OCR2.0) ─────────────────────────────────────────────────────────
 # transformers is pinned to the validated version; do NOT float it — vLLM and
 # GOT-OCR2.0 are sensitive to transformers API changes.
 transformers==4.57.6
-# torch is installed separately as the CUDA build (2.7.0+cu128 for Blackwell sm_120;
-# see start-narratiq.sh / CLAUDE.md). Keep a floor here, not an exact pin, so the
-# GPU wheel is not overwritten by a CPU build.
+# torch is installed separately as the CUDA build (2.7.0+cu128 on the pod; the
+# CPU build in the container image). Keep a floor here, not an exact pin, so the
+# GPU wheel is not overwritten by a CPU build. Verified runtime: 2.7.0+cu128.
 torch>=2.7.0
-Pillow==12.2.0
-pillow-heif==1.3.0
-sentencepiece==0.2.1
-accelerate==1.13.0
-tiktoken>=0.7.0
-einops>=0.8.0
-transformers_stream_generator>=0.0.4
-python-docx>=1.1.0
-reportlab>=4.0.0
-faster-whisper>=1.0.3
+Pillow==12.3.0
+pillow-heif==1.8.0
+sentencepiece==0.2.2
+accelerate==1.15.0
+tiktoken==0.14.0
+einops==0.8.2
+transformers_stream_generator==0.0.5
+verovio==6.3.0                  # GOT-OCR2.0 music-notation rendering path
+python-docx==1.2.0
+reportlab==5.0.1
+
+# ── Audio (faster-whisper) ───────────────────────────────────────────────────
+faster-whisper==1.2.1
+
+# ── Voice agent ──────────────────────────────────────────────────────────────
+# services/voice/vocabulary.py imports these at module load; without them the
+# voice_agent router fails to import and the backend will not start.
+rapidfuzz==3.14.6
+jellyfish==1.2.1
+websockets==17.1               # FastAPI WebSocket endpoint /api/voice/stream

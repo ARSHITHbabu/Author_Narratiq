@@ -24,9 +24,9 @@ class UserOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class Token(BaseModel):
-    access_token: str
-    token_type: str
+class SessionOut(BaseModel):
+    """Sign-in / register response (Stage 10, 10.7). The session token is set
+    as an HttpOnly cookie and is deliberately NOT part of this body."""
     user: UserOut
 
 

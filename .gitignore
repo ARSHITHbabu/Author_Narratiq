@@ -1,5 +1,7 @@
 # Next.js
 frontend/.next/
+# Stage 10 (10.5): previous frontend build kept for rollback by start-narratiq.sh
+frontend/.next.prev/
 frontend/node_modules/
 
 # Python bytecode
@@ -135,4 +137,6 @@ docs/**/*.pyc
 
 # Stage 8 mocked-API studio suite: separate build dir and results
 frontend/.next-studio*/
+# Stage 9/10 live-browser test build (NEXT_DIST_DIR=.next-e2e)
+frontend/.next-e2e/
 frontend/.studio-results/

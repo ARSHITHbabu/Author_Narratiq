@@ -10,7 +10,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import {
-  Command as CommandIcon, History, ChevronDown, PanelLeftClose, PanelLeft, LogOut,
+  Command as CommandIcon, History, ChevronDown, PanelLeftClose, PanelLeft, LogOut, UserCog,
 } from 'lucide-react'
 import { WORKSPACES, PROJECTS_WORKSPACE, workspacePath, workspaceForSegment, type WorkspaceId } from '@/lib/registries/workspaces'
 import { useStudioStore } from '@/lib/studioStore'
@@ -141,7 +141,13 @@ export default function StudioShell({ children }: { children: React.ReactNode })
               >
                 <p className="px-3 py-1 text-xs text-[#9da3c8] truncate">{user?.username}</p>
                 <DropdownMenu.Item
-                  onSelect={() => logout()}
+                  onSelect={() => router.push('/account')}
+                  className="w-full text-left px-3 py-1.5 text-sm text-[#cdd2f0] hover:bg-[#1f2440] focus:bg-[#1f2440] focus:outline-none cursor-pointer flex items-center gap-2 outline-none"
+                >
+                  <UserCog className="w-3.5 h-3.5" /> Account
+                </DropdownMenu.Item>
+                <DropdownMenu.Item
+                  onSelect={() => void logout()}
                   className="w-full text-left px-3 py-1.5 text-sm text-[#cdd2f0] hover:bg-[#1f2440] focus:bg-[#1f2440] focus:outline-none cursor-pointer flex items-center gap-2 outline-none"
                 >
                   <LogOut className="w-3.5 h-3.5" /> Log out

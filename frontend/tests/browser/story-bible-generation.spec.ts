@@ -1,4 +1,5 @@
 import { test, expect, type APIRequestContext, type Page } from '@playwright/test'
+import { seedBrowserSession, sessionToken } from './_session'
 
 // Stage 6 task 6.4 — critical journey: generate story bible -> five sections
 // render with provenance.
@@ -35,7 +36,7 @@ async function authSession(request: APIRequestContext) {
     const res = await request.post(`${API_URL}/api/auth/login`, { data: { email: EMAIL, password: PASSWORD } })
     expect(res.ok(), `login failed: ${res.status()}`).toBe(true)
     const body = await res.json()
-    cachedToken = body.access_token
+    cachedToken = sessionToken(res)
     cachedUser = JSON.stringify(body.user)
   }
   return { token: cachedToken!, user: cachedUser! }
@@ -45,10 +46,7 @@ test('generating the story bible renders sections with citations', async ({ page
   test.setTimeout(5 * 60 * 1000) // generation alone can take 1-3 real minutes; the citation wait below covers it
 
   const { token, user } = await authSession(request)
-  await page.addInitScript(([t, u]) => {
-    window.localStorage.setItem('narratiq_token', t)
-    window.localStorage.setItem('narratiq_user', u)
-  }, [token, user])
+  await seedBrowserSession(page, token)
   await page.goto(`/projects/${STORY_ID}`)
   await page.locator('.ProseMirror').first().waitFor({ state: 'visible' })
 

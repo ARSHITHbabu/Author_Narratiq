@@ -1,4 +1,5 @@
 import { test, expect, type APIRequestContext, type Page } from '@playwright/test'
+import { seedBrowserSession, sessionToken } from './_session'
 
 // Stage 6 task 6.4 — critical journey: upload audio -> transcript returned.
 //
@@ -52,7 +53,7 @@ async function authSession(request: APIRequestContext) {
     const res = await request.post(`${API_URL}/api/auth/login`, { data: { email: EMAIL, password: PASSWORD } })
     expect(res.ok(), `login failed: ${res.status()}`).toBe(true)
     const body = await res.json()
-    cachedToken = body.access_token
+    cachedToken = sessionToken(res)
     cachedUser = JSON.stringify(body.user)
   }
   return { token: cachedToken!, user: cachedUser! }
@@ -60,10 +61,7 @@ async function authSession(request: APIRequestContext) {
 
 test('uploading an audio file returns a non-empty cleaned transcript', async ({ page, request }) => {
   const { token, user } = await authSession(request)
-  await page.addInitScript(([t, u]) => {
-    window.localStorage.setItem('narratiq_token', t)
-    window.localStorage.setItem('narratiq_user', u)
-  }, [token, user])
+  await seedBrowserSession(page, token)
   // Audio transcription's one home is the Assistant workspace (Stage 8 Tool Homes).
   await page.goto(`/projects/${STORY_ID}/assistant`)
 

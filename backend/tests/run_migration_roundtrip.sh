@@ -8,6 +8,9 @@
 #   → downgrade 0018 → assert: Phase 3 objects gone, author data byte-identical,
 #     the idea card SURVIVES as an ordinary note card (spec §36.3)
 #   → upgrade head again → assert schema restored and idempotent
+#   (Stage 10: head is read from the migration scripts, not hard-coded, and the
+#    0024 session/error-tracking objects are checked too. The step-by-step walk
+#    with per-column proofs is tests/run_downgrade_walk.py.)
 #   → remove the rows this script created.
 #
 # Refuses to run unless DATABASE_URL names an allow-listed test database
@@ -89,8 +92,10 @@ st = json.load(open("/tmp/.narratiq_roundtrip.json"))
 insp = inspect(eng)
 fails = []
 if insp.has_table("ai_generation_pins"): fails.append("ai_generation_pins still exists after downgrade")
-for t in ("narrative_thread_scans", "manuscript_reports"):   # 0023 (Stage 5)
+for t in ("narrative_thread_scans", "manuscript_reports",   # 0023 (Stage 5)
+          "revoked_sessions", "error_events"):              # 0024 (Stage 10)
     if insp.has_table(t): fails.append(f"{t} still exists after downgrade")
+if "token_version" in {c["name"] for c in insp.get_columns("users")}: fails.append("users.token_version remains")
 cols = {c["name"] for c in insp.get_columns("note_cards")}
 if cols & {"target_chapter_id", "tags", "status", "source_pin_id"}: fails.append(f"note_cards Phase 3 columns remain: {cols}")
 if "plan" in {c["name"] for c in insp.get_columns("users")}: fails.append("users.plan remains")
@@ -139,10 +144,16 @@ for t, uq in (("narrative_thread_scans", "uq_narrative_thread_scans_story_id"),
               ("manuscript_reports", "uq_manuscript_reports_story_id")):   # 0023 (Stage 5)
     if not insp.has_table(t): fails.append(f"{t} missing after re-upgrade")
     elif uq not in {u["name"] for u in insp.get_unique_constraints(t)}: fails.append(f"{uq} missing")
+for t in ("revoked_sessions", "error_events"):                 # 0024 (Stage 10)
+    if not insp.has_table(t): fails.append(f"{t} missing after re-upgrade")
+from alembic.config import Config
+from alembic.script import ScriptDirectory
+_cfg = Config("alembic.ini"); _cfg.set_main_option("script_location", "migrations")
+HEAD = ScriptDirectory.from_config(_cfg).get_current_head()
 with eng.begin() as c:
     ver = c.execute(text("SELECT version_num FROM alembic_version")).scalar()
     card = c.execute(text("SELECT status FROM note_cards WHERE card_id = :i"), dict(i=st["card_id"])).first()
-    if ver != "0023": fails.append(f"alembic version {ver} != 0023")
+    if ver != HEAD: fails.append(f"alembic version {ver} != head {HEAD}")
     if card is None or card.status != "open": fails.append("idea card not readable as open after re-upgrade")
     c.execute(text("DELETE FROM note_cards WHERE card_id = :i"), dict(i=st["card_id"]))
     c.execute(text("UPDATE users SET plan = NULL WHERE user_id = :u"), dict(u=st["uid"]))

@@ -189,12 +189,32 @@ async def _regenerate_summary(
         db.close()
 
 
+def _delete_chapter_dependents(db: Session, chapter_id: str) -> None:
+    """Stage 10 (10.6) defect fix. Deleting a chapter failed with a database
+    integrity error as soon as the chapter had been indexed: its summary,
+    character mentions, hints and arc snapshots hold a NOT NULL chapter_id with
+    no cascade, so the ORM tried to set it to NULL. Those rows are derived
+    from this chapter's text alone, so they go with it; timeline events keep
+    their text and just lose the chapter link. Chunks and versions already
+    cascade through the Chapter relationships; pins and note cards are SET
+    NULL by the database."""
+    from models import (ChapterSummary, CharacterArcSnapshot, CharacterHint,
+                        CharacterMention, StoryTimelineEvent)
+    for model in (ChapterSummary, CharacterMention, CharacterHint, CharacterArcSnapshot):
+        db.query(model).filter(model.chapter_id == chapter_id).delete(synchronize_session=False)
+    (db.query(StoryTimelineEvent).filter(StoryTimelineEvent.chapter_id == chapter_id)
+       .update({StoryTimelineEvent.chapter_id: None}, synchronize_session=False))
+    db.flush()
+    db.expire_all()
+
+
 @router.delete("/{story_id}/chapters/{chapter_id}")
 def delete_chapter(story_id: str, chapter_id: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     _check_story_access(story_id, current_user.user_id, db)
     chapter = db.query(Chapter).filter(Chapter.chapter_id == chapter_id, Chapter.story_id == story_id).first()
     if not chapter:
         raise HTTPException(status_code=404, detail="Chapter not found")
+    _delete_chapter_dependents(db, chapter_id)
     db.delete(chapter)
     db.commit()
     # Re-number remaining chapters

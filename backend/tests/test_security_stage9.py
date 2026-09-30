@@ -3,9 +3,8 @@ Stage 9 task 9.4 — security testing (automatable part).
 
   * auth bypass: every route that depends on get_current_user refuses a
     missing, malformed, wrong-key, alg=none, expired or orphaned token;
-  * JWT behaviour: expiry and signature enforced; logout has NO server-side
-    revocation (documented finding, deferred to Stage 10 by decision) —
-    pinned here so a future revocation change is noticed;
+  * JWT behaviour: expiry and signature enforced; logout revokes the session
+    server-side (finding J1, closed in Stage 10 — see test_sessions_stage10.py);
   * upload guard (finding S1): oversized bodies are refused with 413 before
     multipart parsing, whether Content-Length is honest, absent (chunked) or
     understated;
@@ -121,13 +120,14 @@ def test_token_lifetime_matches_configuration():
     assert abs(lifetime_min - settings.jwt_expire_minutes) < 2
 
 
-def test_logout_does_not_revoke_the_token_documented_finding():
-    """FINDING (Stage 9, Medium, deferred to Stage 10 by decision): logout is
-    client-side only. A copied token keeps working until it expires. When
-    server-side revocation lands, invert this assertion."""
+def test_logout_revokes_the_token_finding_j1_closed():
+    """FINDING J1 (Stage 9, Medium) — closed in Stage 10 (10.7 / S10-F): logout
+    now revokes the session server-side, so a copied token stops working.
+    (Inverted from the Stage 9 assertion, as that test instructed.)"""
     with two_authors() as (_db, a, _b, client):
-        client.post("/api/auth/logout", headers=a.headers)
         assert client.get("/api/projects/", headers=a.headers).status_code == 200
+        client.post("/api/auth/logout", headers=a.headers)
+        assert client.get("/api/projects/", headers=a.headers).status_code == 401
 
 
 # ── Upload guard (S1) ────────────────────────────────────────────────────────

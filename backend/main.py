@@ -22,6 +22,8 @@ import models  # noqa: F401
 
 from exceptions import AIResponseTruncatedError, AIServiceUnavailableError, ApiError, UploadTooLargeError
 from middleware.rate_limit import limiter
+from services import error_tracking
+from services.error_tracking import counters as ai_counters
 
 from routers import auth, projects, chapters, intake, plot_assistant, ai_transform, ocr, manuscript, export, characters, plot_holes, manuscript_report
 from routers import search as search_router
@@ -31,6 +33,7 @@ from routers import voice_agent
 from routers import activity
 from routers import copyright_risk
 from routers import ai_workspace
+from routers import ops as ops_router
 
 Base.metadata.create_all(bind=engine)
 run_db_migrations(engine)   # add new columns to existing tables
@@ -218,14 +221,44 @@ def _log_pin_storage_metrics() -> None:
         db.close()
 
 
+def _sweep_auth_and_errors() -> None:
+    """Stage 10: drop revoked-session rows whose token has expired anyway
+    (10.7), prune error records past retention / the row cap (10.2), and
+    remove unreferenced upload files older than 6 h (10.6). Counts only."""
+    from database import SessionLocal
+    from models import RevokedSession
+    from services.error_tracking import prune_events
+    db = SessionLocal()
+    try:
+        gone = (db.query(RevokedSession)
+                  .filter(RevokedSession.expires_at < datetime.utcnow())
+                  .delete(synchronize_session=False))
+        db.commit()
+    except Exception as exc:                       # noqa: BLE001
+        db.rollback()
+        gone = 0
+        logger.error("[cleanup] revoked-session sweep failed: %s", type(exc).__name__)
+    finally:
+        db.close()
+    pruned = prune_events(settings.error_event_retention_days, settings.error_event_max_rows)
+    if gone or pruned:
+        logger.info("[cleanup] revoked_sessions_expired=%d error_events_pruned=%d", gone, pruned)
+    # Upload files no row points to any more (10.6): e.g. a file whose post-
+    # commit removal failed during an account deletion.
+    from services.account_deletion import remove_orphan_upload_files
+    remove_orphan_upload_files([settings.upload_dir_audio, settings.upload_dir_ocr])
+
+
 async def _run_periodic_cleanup() -> None:
     """Startup sweep then hourly OCR + audio file cleanup + voice analytics
-    rollup + expired pin cleanup (Phase 3). Pin metrics are logged daily."""
+    rollup + expired pin cleanup (Phase 3) + expired revoked sessions and
+    error-record pruning (Stage 10). Pin metrics are logged daily."""
     await _cleanup_ocr_images()
     await _cleanup_audio_files()
     await _rollup_voice_analytics()
     await _cleanup_expired_pins()      # startup catch-up (spec E18)
     _log_pin_storage_metrics()
+    await asyncio.to_thread(_sweep_auth_and_errors)
     ticks = 0
     while True:
         await asyncio.sleep(_OCR_CLEANUP_INTERVAL_SECS)
@@ -242,15 +275,28 @@ async def _run_periodic_cleanup() -> None:
                 _log_pin_storage_metrics()
         except Exception as exc:
             logger.error("[pin_cleanup] periodic sweep failed: %s", type(exc).__name__)
+        try:
+            await asyncio.to_thread(_sweep_auth_and_errors)
+        except Exception as exc:                   # noqa: BLE001
+            logger.error("[cleanup] auth/error sweep failed: %s", type(exc).__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # ── Startup ───────────────────────────────────────────────────────────────
 
+    # ── Single-worker guard (Stage 10, 10.4; decision D-3) ────────────────────
+    from startup.worker_guard import enforce_single_worker, warn_if_uvicorn_proxy_headers
+    enforce_single_worker(settings.allow_multi_worker)
+    warn_if_uvicorn_proxy_headers()
+
     # ── Orphan job recovery (before accepting any requests) ───────────────────
     from startup.orphan_recovery import recover_orphaned_jobs
-    await recover_orphaned_jobs()
+    _orphans = await recover_orphaned_jobs()
+    # Exposed to /api/ops/metrics so the watchdog can alert on a recovery.
+    app.state.orphan_recovery = {"at": datetime.utcnow().isoformat() + "Z",
+                                 "total": sum((_orphans or {}).values()),
+                                 "by_table": {k: v for k, v in (_orphans or {}).items() if v}}
 
     # ── Phase 3: fail fast on an unsupported pin backend; validate the
     #    context budget against the model window (spec §35) ─────────────────────
@@ -383,6 +429,7 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded) -> JSONRe
 
 @app.exception_handler(AIServiceUnavailableError)
 async def ai_unavailable_handler(request: Request, exc: AIServiceUnavailableError) -> JSONResponse:
+    ai_counters.incr("ai_unavailable")
     return JSONResponse(
         status_code=503,
         content={
@@ -400,6 +447,7 @@ async def ai_truncated_handler(request: Request, exc: AIResponseTruncatedError) 
     # handlers read `e.response.data.detail` (see AIToolsSidebar.tsx); without
     # it the author would see a generic "Failed to generate" toast instead of
     # the actionable reason.
+    ai_counters.incr("ai_truncated")
     return JSONResponse(
         status_code=422,
         content={
@@ -408,6 +456,28 @@ async def ai_truncated_handler(request: Request, exc: AIResponseTruncatedError) 
             "detail":  exc.message,
         },
     )
+
+
+@app.exception_handler(Exception)
+async def unhandled_error_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Stage 10 (10.2): every unhandled exception becomes a scrubbed error
+    record (services/error_tracking.py) and an author-readable 500 that says
+    what happened and what to do — never a raw exception or stack trace."""
+    route = getattr(request.scope.get("route"), "path", None)
+    rid = getattr(request.state, "request_id", None)
+    await asyncio.to_thread(
+        error_tracking.record_event, source="backend", kind=type(exc).__name__, route=route,
+        method=request.method, status_code=500, request_id=rid, message=str(exc),
+        stack=error_tracking.stack_locations(exc))
+    logger.error("[error] unhandled %s on %s %s (request_id=%s)",
+                 type(exc).__name__, request.method, route or "<unmatched>", rid)
+    message = ("Something went wrong on our side, and this action did not finish. "
+               "Your saved work is unaffected. Please try again in a moment.")
+    # This response is sent by Starlette's outermost error middleware, outside
+    # RequestContextMiddleware, so the request id header is added here.
+    return JSONResponse(status_code=500, content={"error": "internal_error", "message": message,
+                                                  "detail": message, "request_id": rid},
+                        headers={"X-Request-ID": rid} if rid else None)
 
 
 @app.exception_handler(ApiError)
@@ -440,15 +510,21 @@ app.add_middleware(
 )
 
 
-def _runpod_origin_regex() -> str | None:
-    """Stage 9 (S2): trust only THIS pod's proxy hosts, not every RunPod pod.
-    Previously `https://.*\\.proxy\\.runpod\\.net` admitted any tenant's pod."""
-    import re as _re
-    pod_id = (os.environ.get("RUNPOD_POD_ID") or "").strip()
-    if not pod_id or pod_id == "local":
-        return None
-    return rf"https://{_re.escape(pod_id)}-\d+\.proxy\.runpod\.net"
+# One definition of "our own origins" (CORS, CSRF, voice socket).
+from middleware.origins import runpod_origin_regex as _runpod_origin_regex
 
+
+# Stage 10 (10.7): CSRF check for cookie-authenticated requests. Added before
+# CORSMiddleware so CORS still wraps a 403 refusal.
+from middleware.csrf import CSRFMiddleware
+app.add_middleware(
+    CSRFMiddleware,
+    session_cookie=settings.session_cookie_name,
+    csrf_cookie=settings.csrf_cookie_name,
+    header_name=settings.csrf_header_name,
+    allowed_origins=lambda: settings.cors_origins,
+    allowed_origin_regex=_runpod_origin_regex,
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -457,7 +533,13 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Request-ID"],
 )
+
+# Stage 10 (10.2): request id + response counters. Outermost of the app's own
+# middleware so it sees the final status of every response, CORS included.
+from middleware.request_context import RequestContextMiddleware
+app.add_middleware(RequestContextMiddleware)
 
 app.include_router(auth.router,           prefix="/api/auth")
 app.include_router(projects.router,       prefix="/api/projects")
@@ -488,57 +570,34 @@ app.include_router(activity.router,          prefix="/api/stories")
 # ── Copyright / Plagiarism Risk Detection ───────────────────────────────────────
 app.include_router(copyright_risk.router,    prefix="/api/stories")
 app.include_router(ai_workspace.router,      prefix="/api/stories")
+# ── Operations (Stage 10, 10.2) — ops-token protected; client error intake ─────
+app.include_router(ops_router.router,        prefix="/api/ops")
+app.include_router(ops_router.public_router)
 
 
 @app.get("/api/health")
 async def health():
-    vllm_status = "ready" if getattr(app.state, "llm_ready",       False) else "unavailable"
-    bge_status  = "ready" if getattr(app.state, "embeddings_ready", False) else "loading"
+    """Liveness + dependency readiness (Stage 10, 10.2).
 
-    gpu_info: dict = {}
-    try:
-        import torch
-        if torch.cuda.is_available():
-            gpu_info = {
-                "count":           torch.cuda.device_count(),
-                "tensor_parallel": settings.tensor_parallel_size,
-                "vram_per_gpu_gb": round(torch.cuda.get_device_properties(0).total_memory / 1024**3, 1),
-                "total_vram_gb":   round(
-                    torch.cuda.get_device_properties(0).total_memory / 1024**3
-                    * torch.cuda.device_count(), 1
-                ),
-            }
-    except Exception:
-        pass
-
-    return {
-        "status":   "ok",
+    vLLM is probed LIVE (cached briefly, services/health_probe.py), so a vLLM
+    that dies after startup shows up here. When the backend is up but AI or
+    embeddings are not ready, `status` is "degraded" and the HTTP status is
+    503, so an uptime check that only looks at the status code still sees it.
+    Internal configuration (vLLM URL, model, GPU) is no longer public; it is
+    at the ops-token-protected /api/ops/status."""
+    from services.health_probe import vllm_ready
+    llm_ok = await vllm_ready()
+    app.state.llm_ready = llm_ok
+    bge_ok = bool(getattr(app.state, "embeddings_ready", False))
+    degraded = not (llm_ok and bge_ok)
+    body = {
+        "status":   "degraded" if degraded else "ok",
         "version":  "3.0.0",
         "platform": "NarratIQ AI",
         "backend":  "ready",
-        "vllm":     vllm_status,
-        "bge_m3":   bge_status,
+        "vllm":     "ready" if llm_ok else "unavailable",
+        "bge_m3":   "ready" if bge_ok else "loading",
         "got_ocr":  "lazy",
-        "gpu":      gpu_info,
-        "config": {
-            "vllm_url":        settings.vllm_base_url,
-            "vllm_model":      settings.vllm_model_name,
-            "max_model_len":   settings.max_model_len,
-            "gpu_memory_util": settings.gpu_memory_utilization,
-        },
     }
+    return JSONResponse(status_code=503 if degraded else 200, content=body)
 
-
-@app.get("/api/stats")
-def stats():
-    from database import SessionLocal
-    from models import User, Story, Chapter
-    db = SessionLocal()
-    try:
-        return {
-            "users":    db.query(User).count(),
-            "stories":  db.query(Story).count(),
-            "chapters": db.query(Chapter).count(),
-        }
-    finally:
-        db.close()

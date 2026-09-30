@@ -161,52 +161,25 @@ fi
 echo "  transformers ${TRANSFORMERS_VER:-not installed} — OK"
 
 # ── 1f. Backend Python dependencies ──────────────────────────
-echo "  Installing backend Python packages..."
-pip install \
-  "sqlalchemy==2.0.30" \
-  "psycopg2-binary>=2.9.9" \
-  "pgvector>=0.3.0" \
-  "python-jose[cryptography]==3.4.0" \
-  "bcrypt==4.0.1" \
-  "aiofiles==23.2.1" \
-  "httpx>=0.27.0,<0.28" \
-  "alembic==1.13.1" \
-  "transformers==4.57.6" \
-  "sentence-transformers>=3.0.0" \
-  "accelerate>=0.30.0" \
-  "python-multipart>=0.0.9" \
-  "python-dotenv>=1.0.0" \
-  "Pillow>=11.1.0" \
-  "pillow-heif>=1.0.0" \
-  "sentencepiece>=0.2.0" \
-  "tiktoken" \
-  "einops" \
-  "transformers_stream_generator" \
-  "verovio" \
-  "python-docx>=1.1.0" \
-  "reportlab>=4.0.0" \
-  "faster-whisper>=1.0.3" \
-  "slowapi==0.1.9" \
-  "rapidfuzz>=3.0.0" \
-  "jellyfish>=1.0.0" \
-  "websockets>=12.0" \
-  >> "$LOG_DIR/pip-backend.log" 2>&1
-# Voice Agent deps:
-#   rapidfuzz + jellyfish — story-vocabulary fuzzy/phonetic correction
-#     (services/voice/vocabulary.py imports these at module load; without them the
-#      voice_agent router fails to import and the backend will not start).
-#   websockets           — FastAPI WS endpoint /api/voice/stream (streaming mic).
-#   ctranslate2 + av (PyAV, bundles ffmpeg) come transitively via faster-whisper —
-#     no system ffmpeg package is required at runtime.
+echo "  Installing backend Python packages (backend/requirements.txt)..."
+# Stage 10 (10.3; Stage 9 finding D2): backend/requirements.txt is the single
+# source of truth — every version pinned to the set verified on the pod
+# (2026-09-29: `pip install --dry-run -r requirements.txt` installs nothing on
+# the running pod). torch keeps its CUDA wheel from step 1d: the file only sets
+# a floor for it. The voice agent's rapidfuzz/jellyfish/websockets and GOT-OCR's
+# verovio are in the file (they were missing from it before).
+pip install -r "$BACKEND_DIR/requirements.txt" >> "$LOG_DIR/pip-backend.log" 2>&1
 # Also ensure HF download tooling is available (needed for model downloads)
 pip install -q "huggingface-hub>=0.24.0" "hf-transfer>=0.1.8" >> "$LOG_DIR/pip-backend.log" 2>&1
 echo "  Backend packages — OK"
 
 # ── 1g. Frontend npm install (only when node_modules missing) -
 if [ ! -d "$FRONTEND_DIR/node_modules" ]; then
-  echo "  node_modules missing — running npm install (~1-2 min)..."
+  echo "  node_modules missing — running npm ci (~1-2 min)..."
   cd "$FRONTEND_DIR"
-  npm install >> "$LOG_DIR/npm-install.log" 2>&1
+  # Stage 10 (10.3): `npm ci` installs exactly package-lock.json and never
+  # rewrites it, so every pod gets the same dependency tree.
+  npm ci >> "$LOG_DIR/npm-install.log" 2>&1
   echo "  npm install — OK"
 else
   echo "  node_modules — OK"
@@ -246,6 +219,9 @@ from huggingface_hub import snapshot_download
 model_dir = os.environ.get("MODEL_BASE_DIR", "/workspace/models")
 snapshot_download(
     repo_id="deepdml/faster-whisper-large-v3-turbo-ct2",
+    # Stage 10 (10.5): pinned to the revision verified on the pod
+    # (docs/operations/model-versions.md); override with NARRATIQ_WHISPER_REVISION.
+    revision=os.environ.get("NARRATIQ_WHISPER_REVISION", "4df90f75321148c3a29a9e2351b7ddf8f5b115a8"),
     local_dir=os.path.join(model_dir, "faster-whisper-large-v3-turbo"),
     local_dir_use_symlinks=False,
 )
@@ -266,7 +242,9 @@ if [ ! -d "$HOME/.cache/huggingface/hub/models--Systran--faster-whisper-${STT_PA
   echo "  Missing: partial STT model (faster-whisper-${STT_PARTIAL_MODEL}) — downloading (~140 MB)..."
   python3 - <<PYEOF
 from huggingface_hub import snapshot_download
-snapshot_download(repo_id="Systran/faster-whisper-${STT_PARTIAL_MODEL}")
+# Stage 10 (10.5): the default "base" model is pinned to the revision verified on the pod.
+_rev = "ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66" if "${STT_PARTIAL_MODEL}" == "base" else None
+snapshot_download(repo_id="Systran/faster-whisper-${STT_PARTIAL_MODEL}", revision=_rev)
 print("  partial STT model (faster-whisper-${STT_PARTIAL_MODEL}) downloaded")
 PYEOF
 else
@@ -366,6 +344,21 @@ if ! grep -q "^SECRET_KEY=" "$ENV_FILE" 2>/dev/null; then
 else
   echo "  SECRET_KEY: OK"
 fi
+
+# Stage 10 (10.2): shared secret for /api/ops/* and the pod watchdog. Generated
+# once, like SECRET_KEY; without it the ops endpoints answer 404 and the
+# watchdog watches /api/health only.
+if ! grep -q "^OPS_TOKEN=" "$ENV_FILE" 2>/dev/null; then
+  echo "OPS_TOKEN=$(python3 -c "import secrets; print(secrets.token_hex(24))")" >> "$ENV_FILE"
+  echo "  [setup] Generated OPS_TOKEN (ops endpoints + watchdog) in backend/.env"
+fi
+# Stage 10 (10.2): structured logs (one JSON object per line, with request_id).
+# An operator who prefers text logs sets LOG_FORMAT=text in backend/.env.
+if ! grep -q "^LOG_FORMAT=" "$ENV_FILE" 2>/dev/null; then
+  echo "LOG_FORMAT=json" >> "$ENV_FILE"
+fi
+PERSISTENT_LOG_DIR="/workspace/logs"      # survives a pod restart, unlike $LOG_DIR
+mkdir -p "$PERSISTENT_LOG_DIR"
 
 # ══════════════════════════════════════════════════════════════
 # STEP 4c — PostgreSQL: start, create DB, enable pgvector,
@@ -535,6 +528,7 @@ python3 -m uvicorn main:app \
   --port    $BACKEND_PORT \
   --workers 1 \
   --no-access-log \
+  --no-proxy-headers \
   > "$LOG_DIR/backend.log" 2>&1 &
 
 BACKEND_PID=$!
@@ -543,7 +537,10 @@ echo "  Backend PID: $BACKEND_PID"
 # BGE-M3 loading takes 30-60s — wait up to 90s with a clear error if it fails.
 BACKEND_READY=0
 for i in $(seq 1 45); do
-  if curl -sf "http://localhost:${BACKEND_PORT}/api/health" 2>/dev/null | grep -q '"status":"ok"'; then
+  # "backend":"ready" = the API is serving. /api/health answers 503 with
+  # "status":"degraded" while vLLM or BGE-M3 is not ready (Stage 10, 10.2),
+  # so the status code alone is not the readiness signal here.
+  if curl -s "http://localhost:${BACKEND_PORT}/api/health" 2>/dev/null | grep -q '"backend":"ready"'; then
     echo "  Backend ready after $((i*2))s"
     BACKEND_READY=1
     break
@@ -608,18 +605,26 @@ NEXT_PUBLIC_API_URL=${BACKEND_PUBLIC_URL}
 EOF
 echo "  NEXT_PUBLIC_API_URL=${BACKEND_PUBLIC_URL}"
 
-# Clear ALL stale build artifacts so the rebuild emits fresh, self-consistent
-# chunk hashes and no deleted-chunk references survive. Without this, old .next/
-# files survive pod restarts and stale CSS/JS (and stale chunk manifests) ship.
-echo "  Removing stale build artifacts (.next + next cache)..."
-rm -rf "$FRONTEND_DIR/.next"
+# Clear stale build artifacts so the rebuild emits fresh, self-consistent chunk
+# hashes and no deleted-chunk references survive. Stage 10 (10.5): the previous
+# build is MOVED to .next.prev rather than deleted, so a bad frontend release can
+# be rolled back in seconds with scripts/rollback_frontend.sh. It is never served
+# from there — only the directory named .next is.
+echo "  Moving the previous build to .next.prev (rollback copy) and clearing caches..."
+rm -rf "$FRONTEND_DIR/.next.prev"
+[ -d "$FRONTEND_DIR/.next" ] && mv "$FRONTEND_DIR/.next" "$FRONTEND_DIR/.next.prev"
 rm -rf "$FRONTEND_DIR/node_modules/.cache" 2>/dev/null || true
 
 echo "  Building cleanly (~30-60s)..."
 # Pass the computed URL explicitly: Next.js gives an OS-level NEXT_PUBLIC_API_URL
 # precedence over .env.local (demonstrated 2026-09-25, runpod-environment-variables.md
 # §11 item 2), so a stale value left in the RunPod UI would otherwise be baked in.
-if ! NEXT_PUBLIC_API_URL="${BACKEND_PUBLIC_URL}" npm run build > "$LOG_DIR/frontend-build.log" 2>&1; then
+# Stage 10 (10.7): the browser calls /api/* on the frontend's own origin and
+# Next.js forwards it to BACKEND_INTERNAL_URL (next.config.js rewrites), so the
+# session cookie is first-party. NEXT_PUBLIC_API_URL is now used only for the
+# voice WebSocket, which connects to the backend directly with a one-time ticket.
+if ! BACKEND_INTERNAL_URL="http://127.0.0.1:${BACKEND_PORT}" NEXT_PUBLIC_API_URL="${BACKEND_PUBLIC_URL}" \
+     npm run build > "$LOG_DIR/frontend-build.log" 2>&1; then
   echo "  ERROR: Frontend build FAILED. Check: tail -40 $LOG_DIR/frontend-build.log"
   tail -20 "$LOG_DIR/frontend-build.log" || true
   exit 1
@@ -653,14 +658,34 @@ echo "  Frontend PID: $FRONTEND_PID  (BUILD_ID: $(cat "$FRONTEND_DIR/.next/BUILD
 #           persistence investigation in storage-and-persistence.md)
 # ══════════════════════════════════════════════════════════════
 echo ""
-echo "[7/7] Periodic backup loop..."
+echo "[7/8] Periodic backup loop..."
 PERIODIC_BACKUP_PIDFILE="$LOG_DIR/periodic-backup.pid"
 if [ -f "$PERIODIC_BACKUP_PIDFILE" ] && kill -0 "$(cat "$PERIODIC_BACKUP_PIDFILE" 2>/dev/null)" 2>/dev/null; then
   echo "  Already running (PID $(cat "$PERIODIC_BACKUP_PIDFILE"))"
 else
-  nohup bash /workspace/narratiq-ai/scripts/periodic_backup_loop.sh >> "$LOG_DIR/periodic-backup.log" 2>&1 &
+  nohup bash /workspace/narratiq-ai/scripts/periodic_backup_loop.sh >> "$PERSISTENT_LOG_DIR/periodic-backup.log" 2>&1 &
   echo $! > "$PERIODIC_BACKUP_PIDFILE"
-  echo "  Started (PID $!, every ${NARRATIQ_PERIODIC_BACKUP_INTERVAL_HOURS:-4}h, keeps last ${NARRATIQ_PERIODIC_BACKUP_RETENTION_COUNT:-12} backups)"
+  echo "  Started (PID $!, every ${NARRATIQ_PERIODIC_BACKUP_INTERVAL_HOURS:-1}h; keeps ${NARRATIQ_BACKUP_KEEP_RECENT:-24} recent + ${NARRATIQ_BACKUP_KEEP_DAILY_DAYS:-7} daily; restore-verified every ${NARRATIQ_BACKUP_VERIFY_EVERY_HOURS:-24}h)"
+  echo "  Log: $PERSISTENT_LOG_DIR/periodic-backup.log"
+fi
+
+# ══════════════════════════════════════════════════════════════
+# STEP 8 — Watchdog (Stage 10, 10.2): turns health, error, job and
+#           backup signals into alerts in $PERSISTENT_LOG_DIR/alerts.jsonl
+#           (and NARRATIQ_ALERT_COMMAND, if set — no external channel is
+#           configured by default; decision S10-D).
+# ══════════════════════════════════════════════════════════════
+echo ""
+echo "[8/8] Watchdog..."
+WATCHDOG_PIDFILE="$LOG_DIR/watchdog.pid"
+if [ -f "$WATCHDOG_PIDFILE" ] && kill -0 "$(cat "$WATCHDOG_PIDFILE" 2>/dev/null)" 2>/dev/null; then
+  echo "  Already running (PID $(cat "$WATCHDOG_PIDFILE"))"
+else
+  OPS_TOKEN="$(grep '^OPS_TOKEN=' "$BACKEND_DIR/.env" | head -1 | cut -d= -f2-)" \
+  NARRATIQ_BACKEND_URL="http://127.0.0.1:${BACKEND_PORT}" \
+    nohup python3 /workspace/narratiq-ai/scripts/watchdog.py >> "$PERSISTENT_LOG_DIR/watchdog.log" 2>&1 &
+  echo $! > "$WATCHDOG_PIDFILE"
+  echo "  Started (PID $!). Alerts: $PERSISTENT_LOG_DIR/alerts.jsonl"
 fi
 
 # ══════════════════════════════════════════════════════════════

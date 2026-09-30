@@ -71,9 +71,14 @@ fi
 section "2. Backend — health endpoint"
 # ══════════════════════════════════════════════════════════════
 
-HEALTH=$(curl -sf "$BACKEND/api/health" 2>/dev/null)
-if echo "$HEALTH" | grep -q '"status":"ok"'; then
-  ok "Backend health endpoint returns {status: ok}"
+# No -f: /api/health answers 503 with "status":"degraded" while vLLM or BGE-M3
+# is not ready (Stage 10, 10.2); the body still says which dependency is down.
+HEALTH=$(curl -s "$BACKEND/api/health" 2>/dev/null)
+if echo "$HEALTH" | grep -q '"status":"degraded"'; then
+  fail "Backend is up but DEGRADED: $HEALTH"
+fi
+if echo "$HEALTH" | grep -q '"backend":"ready"'; then
+  ok "Backend health endpoint reports the backend ready"
   BGE=$(echo "$HEALTH" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('bge_m3',''))" 2>/dev/null)
   if [ "$BGE" = "ready" ]; then
     ok "BGE-M3 embeddings model loaded"
@@ -127,24 +132,29 @@ SMOKE_EMAIL="smoketest_$(date +%s)@example.com"
 SMOKE_USER="smoketest$(date +%s)"
 SMOKE_PASS="SmokePass123!"
 
-REGISTER=$(curl -sf -X POST "$BACKEND/api/auth/register" \
+# Stage 10 (10.7): the session is an HttpOnly cookie (narratiq_session); the
+# body carries only the user. This script uses the cookie value as a Bearer
+# token, which the backend still accepts for tooling.
+REGISTER_HEADERS=$(mktemp)
+REGISTER=$(curl -sf -D "$REGISTER_HEADERS" -X POST "$BACKEND/api/auth/register" \
   -H "Content-Type: application/json" \
   -d "{\"email\":\"$SMOKE_EMAIL\",\"username\":\"$SMOKE_USER\",\"password\":\"$SMOKE_PASS\"}" 2>/dev/null)
+TOKEN=$(grep -i '^set-cookie: narratiq_session=' "$REGISTER_HEADERS" | head -1 | sed -E 's/^[Ss]et-[Cc]ookie: narratiq_session=([^;]*).*/\1/' | tr -d '\r')
+rm -f "$REGISTER_HEADERS"
 
-if echo "$REGISTER" | grep -q '"access_token"'; then
-  ok "Register endpoint returns JWT token"
-  TOKEN=$(echo "$REGISTER" | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])" 2>/dev/null)
+if [ -n "$TOKEN" ] && echo "$REGISTER" | grep -q '"user"'; then
+  ok "Register endpoint sets the session cookie"
 else
   fail "Register failed: $REGISTER"
   TOKEN=""
 fi
 
 if [ -n "$TOKEN" ]; then
-  LOGIN=$(curl -sf -X POST "$BACKEND/api/auth/login" \
+  LOGIN=$(curl -sf -i -X POST "$BACKEND/api/auth/login" \
     -H "Content-Type: application/json" \
     -d "{\"email\":\"$SMOKE_EMAIL\",\"password\":\"$SMOKE_PASS\"}" 2>/dev/null)
-  if echo "$LOGIN" | grep -q '"access_token"'; then
-    ok "Login endpoint returns JWT token"
+  if echo "$LOGIN" | grep -qi '^set-cookie: narratiq_session='; then
+    ok "Login endpoint sets the session cookie"
   else
     fail "Login failed: $LOGIN"
   fi

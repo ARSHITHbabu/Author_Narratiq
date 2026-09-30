@@ -6,7 +6,7 @@
 // (auto-running safe steps, holding mutating steps for confirmation).
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { voiceApi, voiceWsUrl } from '@/lib/api'
+import { authApi, voiceApi, voiceWsUrl } from '@/lib/api'
 import { executeVoiceAction, resultKindFor, type VoiceActionContext, type VoiceActionResult } from '@/lib/voiceActions'
 import type { VoiceAgentResponse, VoiceContextSnapshot, WorkflowNode } from '@/lib/types'
 import { toast } from 'sonner'
@@ -143,11 +143,17 @@ export function useVoiceAgent({ enabled, getContext, actionCtx }: UseVoiceAgentO
     }
   }, [runPlan])
 
-  const openSocket = useCallback((): Promise<WebSocket> => {
+  const openSocket = useCallback(async (): Promise<WebSocket> => {
+    // Stage 10 (10.7): the session lives in an HttpOnly cookie the page cannot
+    // read, so the socket authenticates with a one-time, 60-second ticket.
+    let ticket: string
+    try {
+      ticket = (await authApi.wsTicket()).data.ticket
+    } catch {
+      throw new Error('Not authenticated')
+    }
     return new Promise((resolve, reject) => {
-      const token = typeof window !== 'undefined' ? localStorage.getItem('narratiq_token') : null
-      if (!token) { reject(new Error('Not authenticated')); return }
-      const ws = new WebSocket(voiceWsUrl(token))
+      const ws = new WebSocket(voiceWsUrl(ticket))
       ws.binaryType = 'arraybuffer'
       ws.onopen = () => resolve(ws)
       ws.onerror = () => reject(new Error('WebSocket error'))

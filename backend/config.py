@@ -83,7 +83,9 @@ class Settings(BaseSettings):
 
     # ── Rate limiting ─────────────────────────────────────────────────────────
     # All limits follow slowapi's string format: "N/period" where period is
-    # second | minute | hour | day. Redis-upgradeable: set SLOWAPI_STORAGE_URI.
+    # second | minute | hour | day. Storage is in-memory, per process: correct
+    # ONLY at one worker (decision D-3). Going multi-worker is a code change
+    # (storage_uri= on the Limiter in middleware/rate_limit.py), not a setting.
     rate_limit_auth:          str = "5/minute"    # per IP — /login, /register
     rate_limit_realtime_ai:   str = "20/minute"   # per user — refine, tone, etc.
     rate_limit_heavy_ai:      str = "5/minute"    # per user — continuity, plot-holes
@@ -232,6 +234,37 @@ class Settings(BaseSettings):
     # Production: set JWT_EXPIRE_MINUTES=60 for short-lived tokens.
     jwt_expire_minutes: int = 10080   # default 7 days; set to 60 in production
     jwt_algorithm:      str = "HS256" # HS256 default; future: RS256
+
+    # ── Browser session (Stage 10, 10.7) ──────────────────────────────────────
+    # The browser never sees the JWT: it lives in an HttpOnly cookie on the
+    # frontend's own origin (Next.js rewrites /api/* to the backend). The Bearer
+    # header is still accepted for API tooling and tests.
+    session_cookie_name: str = "narratiq_session"
+    csrf_cookie_name:    str = "narratiq_csrf"
+    csrf_header_name:    str = "X-CSRF-Token"
+    # auto → Secure when the request arrived over https (RunPod proxy sets
+    # X-Forwarded-Proto); true/false force it.
+    session_cookie_secure: str = "auto"
+    ws_ticket_ttl_seconds: int = 60
+
+    # ── Operations (Stage 10, 10.2) ───────────────────────────────────────────
+    # Shared secret for /api/ops/* and the pod watchdog. Unset → those
+    # endpoints answer 404, so nothing operational is exposed by default.
+    ops_token: str = ""
+    vllm_probe_ttl_seconds:     float = 10.0   # health caches the live vLLM probe this long
+    vllm_probe_timeout_seconds: float = 2.0
+    error_event_retention_days: int   = 30
+    error_event_max_rows:       int   = 5000   # hard cap; oldest rows pruned first
+    rate_limit_client_errors:   str   = "30/minute"   # per IP — POST /api/client-errors
+    # D-3 is single worker. Rate limits, WS tickets, parser metrics and the
+    # background semaphores are per process; the startup guard refuses to run
+    # with more than one worker unless this is set to exactly "yes".
+    allow_multi_worker: str = ""
+    # Socket peers whose forwarding headers (CF-Connecting-IP, X-Forwarded-For)
+    # are believed when rate-limiting by client address: loopback (the Next.js
+    # same-origin proxy) and RunPod's internal proxy range (measured peer
+    # 100.64.1.1). Anything else is keyed by its own address.
+    trusted_proxy_cidrs: str = "127.0.0.0/8,::1/128,100.64.0.0/10"
 
     # ── Logging ───────────────────────────────────────────────────────────────
     log_level:  str = "INFO"    # DEBUG | INFO | WARNING | ERROR | CRITICAL

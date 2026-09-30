@@ -271,7 +271,10 @@ BACKEND_UP=0
 BACKEND_HEALTH_JSON=""
 if port_listening "${BACKEND_PORT}"; then
     BACKEND_HEALTH_JSON=$(curl -s -m 5 "http://localhost:${BACKEND_PORT}/api/health" 2>/dev/null)
-    if echo "${BACKEND_HEALTH_JSON}" | grep -q '"status":\s*"ok"'; then
+    # Stage 10 (10.2): /api/health answers 503 + "status":"degraded" when vLLM
+    # or BGE-M3 is not ready; "backend":"ready" means the API itself is serving.
+    if echo "${BACKEND_HEALTH_JSON}" | grep -q '"status":\s*"ok"' \
+       || echo "${BACKEND_HEALTH_JSON}" | grep -q '"backend":\s*"ready"'; then
         ok "Backend is listening on ${BACKEND_PORT} and /api/health reports ok"
         BACKEND_UP=1
         if echo "${BACKEND_HEALTH_JSON}" | grep -q '"vllm":\s*"ready"'; then
