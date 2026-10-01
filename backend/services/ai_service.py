@@ -25,6 +25,7 @@ from sentence_transformers import SentenceTransformer
 from config import settings
 from exceptions import AIResponseTruncatedError, AIServiceUnavailableError
 from services.prompt_registry import resolve_prompt_version
+from services.prompt_safety import REWRITE_TASK, TRANSLATE_TASK, harden, question_task
 from services.transform_preservation import (
     build_preservation_clause, build_strength_clause,
     mark_locked_segments, reconstruct_with_locks, verify_lock_byte_identity,
@@ -111,6 +112,7 @@ async def _complete(
     temperature: float = 0.0,
     max_tokens: int = 512,
     response_format: Optional[dict] = None,
+    task: Optional[str] = None,
 ) -> str:
     """
     Non-streaming completion. Use for structured JSON outputs.
@@ -120,11 +122,16 @@ async def _complete(
     constrained to emit syntactically valid JSON. This is the robust way to get
     parseable JSON instead of relying solely on best-effort text repair.
 
+    task — optional restatement of the concrete task, placed AFTER the author's
+    fenced material by the prompt-injection guard (services/prompt_safety.py):
+    e.g. prompt_safety.REWRITE_TASK, or question_task(question) for Q&A.
+
     Raises AIServiceUnavailableError on connection errors or vLLM 5xx responses.
     """
+    extra = {"task": task} if task else {}
     text, _finish_reason = await _complete_ex(
         system, user, temperature=temperature, max_tokens=max_tokens,
-        response_format=response_format,
+        response_format=response_format, **extra,
     )
     return text
 
@@ -135,6 +142,7 @@ async def _complete_ex(
     temperature: float = 0.0,
     max_tokens: int = 512,
     response_format: Optional[dict] = None,
+    task: Optional[str] = None,
 ) -> tuple[str, Optional[str]]:
     """
     Same as _complete(), but also returns vLLM's ``finish_reason``.
@@ -150,6 +158,10 @@ async def _complete_ex(
     kwargs: dict = {}
     if response_format is not None:
         kwargs["response_format"] = response_format
+    if settings.prompt_injection_guard:
+        # P1: fence the author's material as data and restate the task after it
+        # (services/prompt_safety.py).
+        system, user = harden(system, user, task)
     try:
         resp = await get_vllm_client().chat.completions.create(
             model=settings.vllm_model_name,
@@ -256,6 +268,7 @@ async def complete_structured(
     max_tokens: int = 800,
     label: str = "structured",
     guided_json: bool = False,
+    task: Optional[str] = None,
 ) -> tuple[Any, DegradedMeta]:
     """
     Run a structured generation under the degraded-output contract.
@@ -280,19 +293,21 @@ async def complete_structured(
     measurement per feature. Enabled today for plot holes and the narrative
     thread extraction, the two features whose live failures were parse failures.
     """
+    extra = {"task": task} if task else {}
+
     async def _call(sys_prompt: str) -> tuple[str, Optional[str]]:
         if not guided_json:
-            return await _complete_ex(sys_prompt, user, temperature=temperature, max_tokens=max_tokens)
+            return await _complete_ex(sys_prompt, user, temperature=temperature, max_tokens=max_tokens, **extra)
         try:
             return await _complete_ex(sys_prompt, user, temperature=temperature, max_tokens=max_tokens,
-                                      response_format={"type": "json_object"})
+                                      response_format={"type": "json_object"}, **extra)
         except APIStatusError as exc:
             if exc.status_code != 400:
                 raise
             logger.info("[ai_service] %s: guided JSON unsupported (400) — retrying plain", label)
         except TypeError:
             logger.info("[ai_service] %s: client lacks response_format — retrying plain", label)
-        return await _complete_ex(sys_prompt, user, temperature=temperature, max_tokens=max_tokens)
+        return await _complete_ex(sys_prompt, user, temperature=temperature, max_tokens=max_tokens, **extra)
 
     raw, finish_reason = await _call(system)
     value, discarded = coerce(_extract_json(raw, None))
@@ -414,11 +429,14 @@ async def _stream_generate(
     user: str,
     temperature: float = 0.7,
     max_tokens: int = 800,
+    task: Optional[str] = None,
 ) -> AsyncGenerator[str, None]:
     """
     Streaming completion. Yields token strings as vLLM produces them.
     Raises AIServiceUnavailableError on connection errors before streaming starts.
     """
+    if settings.prompt_injection_guard:
+        system, user = harden(system, user, task)   # P1, as in _complete_ex
     try:
         stream = await get_vllm_client().chat.completions.create(
             model=settings.vllm_model_name,
@@ -769,7 +787,8 @@ async def refine_text(text: str, mode: str = "standard", context: str = "", genr
         genre_context,
     )
     ctx = f"\n\nManuscript context:\n{context}" if context else ""
-    return await _complete(system, text + ctx, temperature=0.3, max_tokens=len(text.split()) * 2 + 150)
+    return await _complete(system, text + ctx, temperature=0.3, max_tokens=len(text.split()) * 2 + 150,
+                           task=REWRITE_TASK)
 
 
 async def stream_refine(text: str, mode: str = "standard", context: str = "", genre_context: str = "") -> AsyncGenerator[str, None]:
@@ -780,7 +799,7 @@ async def stream_refine(text: str, mode: str = "standard", context: str = "", ge
         genre_context,
     )
     ctx = f"\n\nManuscript context:\n{context}" if context else ""
-    async for token in _stream_generate(system, text + ctx, temperature=0.3, max_tokens=len(text.split()) * 2 + 150):
+    async for token in _stream_generate(system, text + ctx, temperature=0.3, max_tokens=len(text.split()) * 2 + 150, task=REWRITE_TASK):
         yield token
 
 
@@ -996,7 +1015,8 @@ async def _run_constrained_transform_once(
     async def _attempt(extra: str = "", temp: Optional[float] = None) -> str:
         sys_prompt = f"{system} {extra}".strip()
         return await _complete(sys_prompt, user_message,
-                               temperature=temperature if temp is None else temp, max_tokens=max_tokens)
+                               temperature=temperature if temp is None else temp, max_tokens=max_tokens,
+                               task=REWRITE_TASK)
 
     def _rebuild(raw_out: str) -> tuple[Optional[str], bool]:
         if locked_ranges:
@@ -1168,7 +1188,7 @@ async def transform_tone(
 async def stream_tone(text: str, tone: str, context: str = "", genre_context: str = "") -> AsyncGenerator[str, None]:
     system, _ = _resolve_tone_system(tone, genre_context)
     ctx = f"\n\nStory context:\n{context}" if context else ""
-    async for token in _stream_generate(system, text + ctx, temperature=0.5, max_tokens=len(text.split()) * 2 + 150):
+    async for token in _stream_generate(system, text + ctx, temperature=0.5, max_tokens=len(text.split()) * 2 + 150, task=REWRITE_TASK):
         yield token
 
 
@@ -1204,7 +1224,7 @@ async def rewrite_emotion(
 
 async def stream_emotion(text: str, emotion: str, intensity: str = "medium", genre_context: str = "") -> AsyncGenerator[str, None]:
     system = _resolve_emotion_system(emotion, intensity, genre_context)
-    async for token in _stream_generate(system, text, temperature=0.6, max_tokens=len(text.split()) * 2 + 150):
+    async for token in _stream_generate(system, text, temperature=0.6, max_tokens=len(text.split()) * 2 + 150, task=REWRITE_TASK):
         yield token
 
 
@@ -1241,7 +1261,7 @@ async def adapt_for_age(
 async def stream_age_adapt(text: str, target_age: str, context: str = "", genre_context: str = "") -> AsyncGenerator[str, None]:
     system = _resolve_age_adapt_system(target_age, genre_context)
     ctx = f"\n\nContext:\n{context}" if context else ""
-    async for token in _stream_generate(system, text + ctx, temperature=0.3, max_tokens=len(text.split()) * 2 + 150):
+    async for token in _stream_generate(system, text + ctx, temperature=0.3, max_tokens=len(text.split()) * 2 + 150, task=REWRITE_TASK):
         yield token
 
 
@@ -1274,7 +1294,7 @@ async def transform_style(
 
 async def stream_style(text: str, style: str, genre_context: str = "") -> AsyncGenerator[str, None]:
     system = _resolve_style_system(style, genre_context)
-    async for token in _stream_generate(system, text, temperature=0.6, max_tokens=len(text.split()) * 2 + 150):
+    async for token in _stream_generate(system, text, temperature=0.6, max_tokens=len(text.split()) * 2 + 150, task=REWRITE_TASK):
         yield token
 
 
@@ -1369,12 +1389,13 @@ def _author_style_system(author: str, genre_context: str) -> str:
 
 async def rewrite_in_author_style(text: str, author: str, genre_context: str = "") -> str:
     system = _author_style_system(author, genre_context)
-    return await _complete(system, text, temperature=0.6, max_tokens=len(text.split()) * 2 + 150)
+    return await _complete(system, text, temperature=0.6, max_tokens=len(text.split()) * 2 + 150,
+                           task=REWRITE_TASK)
 
 
 async def stream_author_style(text: str, author: str, genre_context: str = "") -> AsyncGenerator[str, None]:
     system = _author_style_system(author, genre_context)
-    async for token in _stream_generate(system, text, temperature=0.6, max_tokens=len(text.split()) * 2 + 150):
+    async for token in _stream_generate(system, text, temperature=0.6, max_tokens=len(text.split()) * 2 + 150, task=REWRITE_TASK):
         yield token
 
 
@@ -1408,7 +1429,8 @@ async def translate_text(
     _log_prompt_version("translate", resolved)
     system = builder(source_language=source_language, target_language=target_language, glossary_clause=glossary_clause)
 
-    transformed = await _complete(system, text, temperature=0.2, max_tokens=len(text.split()) * 3 + 200)
+    transformed = await _complete(system, text, temperature=0.2, max_tokens=len(text.split()) * 3 + 200,
+                                  task=TRANSLATE_TASK)
 
     consistency = check_translation_name_consistency(text, transformed, glossary) if glossary else {"missing": []}
     return {
@@ -1421,7 +1443,8 @@ async def translate_text(
 
 async def stream_translate(text: str, target_language: str, source_language: str = "en") -> AsyncGenerator[str, None]:
     system = _resolve_translate_system(source_language, target_language)
-    async for token in _stream_generate(system, text, temperature=0.2, max_tokens=len(text.split()) * 3 + 200):
+    async for token in _stream_generate(system, text, temperature=0.2, max_tokens=len(text.split()) * 3 + 200,
+                                        task=TRANSLATE_TASK):
         yield token
 
 
@@ -2144,7 +2167,10 @@ async def answer_story_question(
         "established anywhere in what I have access to.\""
     )
 
-    parts = [f"Question: {question}"]
+    # The question is NOT part of the material: the prompt-injection guard places
+    # it after the fenced passages (task=question_task), so the last thing the
+    # model reads is the author's real question, not a line inside a passage.
+    parts = []
 
     # Prefer the rich shared genre-context block; fall back to a one-line genre.
     if genre_context:
@@ -2199,7 +2225,10 @@ async def answer_story_question(
         parts.append(f"Current chapter (last 600 chars):\n{current_chapter[-600:]}")
         user_prompt = "\n\n".join(parts)
 
-    return await _complete(system, user_prompt, temperature=0.0, max_tokens=900)
+    if not settings.prompt_injection_guard:
+        user_prompt = f"Question: {question}\n\n{user_prompt}"   # pre-Stage-11 layout
+    return await _complete(system, user_prompt, temperature=0.0, max_tokens=900,
+                           task=question_task(question))
 
 
 # ── Plot Assistant — plot suggestions ─────────────────────────────────────────
@@ -2229,7 +2258,8 @@ async def generate_plot_suggestions(
         "established in the story. Do NOT invent characters or settings that are absent from the "
         "context. Return ONLY a JSON array: [{id: int, text: string, rationale: string}]."
     )
-    parts = [f"Plot question: {question}"]
+    # The author's request goes after the fenced material (see answer_story_question).
+    parts = [] if settings.prompt_injection_guard else [f"Plot question: {question}"]
 
     # Prefer the rich shared genre-context block; fall back to a one-line genre.
     if genre_context:
@@ -2309,6 +2339,8 @@ async def generate_plot_suggestions(
         system, "\n\n".join(parts),
         coerce=coerce_text_suggestions,
         temperature=0.0, max_tokens=800, label="plot_suggestions",
+        task=question_task(question, what="Respond to the author's plot question, in the JSON format your "
+                                           "instructions specify"),
     )
     if result is None:
         raise ValueError(
@@ -2455,12 +2487,14 @@ def coerce_copyright_findings(parsed) -> tuple[Optional[dict], int]:
             continue
         kept.append(item)
 
-    overall = ""
+    overall, note = "", ""
     if isinstance(parsed, dict):
         overall = str(parsed.get("overall_risk") or "").lower()
+        note = str(parsed.get("note") or "").strip()
     return {
         "findings":     kept,
         "overall_risk": overall if overall in _RISK_LEVELS else "",
+        "note":         note,   # the model's one-sentence summary (shown by the UI)
     }, discarded
 
 
@@ -2845,21 +2879,28 @@ async def analyze_copyright_risk(
             "rewrite_suggestion":  str(f.get("rewrite_suggestion", "")),
         })
 
-    # Derive overall risk: trust the model unless it omitted it — then take the max
-    # finding level so the headline never under-reports.
-    overall = _normalize_risk(result.get("overall_risk"), default="")
-    if not overall:
-        overall = "low"
-        for f in findings:
-            if f["risk_score"] == "high":
-                overall = "high"; break
-            if f["risk_score"] == "medium":
-                overall = "medium"
+    # The headline is the HIGHER of the model's overall_risk and the most severe
+    # finding, enforced here rather than trusted to the prompt: a "low" headline
+    # above a "high" finding would tell the author everything is fine when it is
+    # not. A missing or invalid overall_risk counts as "low".
+    overall = max(
+        [_normalize_risk(result.get("overall_risk"))] + [f["risk_score"] for f in findings],
+        key=_RISK_LEVELS.index,
+    )
+
+    # A note that is merely a span copied out of the analysed text is not a
+    # summary: it is useless at best and an injected payload at worst (Stage 11
+    # P1 probe: the canary came back as the note). Drop it rather than show it.
+    note = str(result.get("note", "") or "")
+    if note and settings.prompt_injection_guard:
+        from services.prompt_safety import echoes_source
+        if echoes_source(note, clipped):
+            note = ""
 
     return {
         "overall_risk": overall,
         "findings":     findings,
-        "note":         str(result.get("note", "") or ""),
+        "note":         note,
         "disclaimer":   COPYRIGHT_DISCLAIMER,
     }
 
@@ -3685,6 +3726,20 @@ async def embed_text(text: str) -> list[float]:
 
     def _sync() -> list[float]:
         return get_bge().encode(text, normalize_embeddings=True).tolist()
+
+    return await loop.run_in_executor(_bge_executor, _sync)
+
+
+async def embed_texts(texts: list[str], batch_size: int = 32) -> list[list[float]]:
+    """Embed many texts in ONE batched encode call on the BGE worker thread.
+    Same vectors as calling embed_text() per text, about 2.5x faster on CPU for
+    ~100 passages (measured in Stage 11: 64.9 s sequential vs 24.7 s batched)."""
+    if not texts:
+        return []
+    loop = asyncio.get_event_loop()
+
+    def _sync() -> list[list[float]]:
+        return get_bge().encode(list(texts), normalize_embeddings=True, batch_size=batch_size).tolist()
 
     return await loop.run_in_executor(_bge_executor, _sync)
 
@@ -4825,10 +4880,11 @@ async def check_dialogue_consistency(
     For each (passage_a, passage_b, chapter_a, chapter_b, sim) pair where
     similarity < threshold, ask Qwen whether the two passages sound like the
     same character and describe the inconsistency.
-    Returns [{description}] aligned with the input pairs.
+    Returns [{description}] aligned with the input pairs. The calls run
+    concurrently (at most 10 pairs are ever passed in): sequential calls took
+    12.5 s for 10 pairs in the Stage 11 200-chapter test.
     """
-    results = []
-    for pa, pb, cha, chb, sim in passage_pairs:
+    async def _describe(pa, pb, cha, chb) -> dict:
         system = (
             "You are a literary editor checking character voice consistency. "
             "Answer concisely and specifically."
@@ -4842,9 +4898,9 @@ async def check_dialogue_consistency(
             "sentence structure, or personality. If they are actually consistent despite "
             "a low similarity score, say so."
         )
-        desc = await _complete(system, user, temperature=0.1, max_tokens=120)
-        results.append({"description": desc})
-    return results
+        return {"description": await _complete(system, user, temperature=0.1, max_tokens=120)}
+
+    return list(await asyncio.gather(*(_describe(pa, pb, cha, chb) for pa, pb, cha, chb, _sim in passage_pairs)))
 
 
 # ── P2-04: Chapter / Scene Outline Generator ──────────────────────────────────

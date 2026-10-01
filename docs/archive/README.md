@@ -10,6 +10,7 @@ be used to make a decision about the current system — check the active folders
 
 ## ⚠️ File paths inside archived documents are stale
 
+<!-- doc-paths:legacy-start -->
 Archived documents reference the **pre-reorganisation** repository layout — for example
 `RUNPOD_DEPLOYMENT.md` at the repository root, or `docs/RUNPOD_ENVIRONMENT_VARIABLE_RECOVERY.md`.
 Those paths were deliberately **not** rewritten: an archived record should say what it said when it
@@ -27,7 +28,8 @@ was written. Use this mapping when following a reference out of an archived docu
 | `NarratIQ_AI_Phase2_Intelligence_Expansion_Roadmap.docx` | [`docs/phases/phase-2-completed/phase-2-intelligence-expansion-roadmap.docx`](../phases/phase-2-completed/phase-2-intelligence-expansion-roadmap.docx) |
 | `NarratIQ_AI_Documentation_v3.docx` | [`docs/specifications/narratiq-ai-product-and-technical-documentation.docx`](../specifications/narratiq-ai-product-and-technical-documentation.docx) |
 | `NarratIQ_AI_Analysis_Report.docx` | [`docs/archive/narratiq-ai-technical-analysis-report-v2.docx`](./narratiq-ai-technical-analysis-report-v2.docx) |
-| `NarratIQ_Project_Recovery_Report.docx` | **Not in this repository** — referenced by older documents but never committed |
+| `NarratIQ_Project_Recovery_Report.docx` | **Retired — no current path.** Never committed and not recoverable. Decision **D-7** (2026-09-21) retired every reference to it; task 11.9 (2026-10-01) removed the last one from an active document (`README.md`). Mentions inside [`documentation-recovery-changelog.md`](./documentation-recovery-changelog.md) are historical and deliberately left as written. |
+<!-- doc-paths:legacy-end -->
 
 ## Rules
 

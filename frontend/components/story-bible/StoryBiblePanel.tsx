@@ -210,6 +210,19 @@ export default function StoryBiblePanel({ storyId }: Props) {
         </div>
       </div>
 
+      {/* Stale — the manuscript moved on after this bible was written (Phase 2
+          P2-06). Same wording as the saved Manuscript Report's notice. */}
+      {bible.is_stale && (
+        <div className="mx-3 mb-2 px-2.5 py-2 rounded-lg bg-amber-500/5 border border-amber-500/20 flex-shrink-0" role="status">
+          <p className="text-[11px] text-amber-300/90 leading-relaxed">
+            Your chapters have changed since this Story Bible was generated.
+          </p>
+          <p className="text-[10px] text-[#8e94bd] mt-0.5">
+            Regenerate it to include the changes. Until then it describes the earlier draft.
+          </p>
+        </div>
+      )}
+
       {/* Partial — say plainly what is missing rather than presenting the
           bible as finished. */}
       {status === 'partial' && (

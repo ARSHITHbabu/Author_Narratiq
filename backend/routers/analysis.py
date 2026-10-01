@@ -371,31 +371,30 @@ async def detect_style_drift(
     early_centroid = early_mat.mean(axis=0)
     late_centroid  = late_mat.mean(axis=0)
 
-    # Cosine similarity between centroids
-    norm_e = np.linalg.norm(early_centroid)
-    norm_l = np.linalg.norm(late_centroid)
-    if norm_e < 1e-9 or norm_l < 1e-9:
-        cosine_sim = 1.0
-    else:
-        cosine_sim = float(np.dot(early_centroid, late_centroid) / (norm_e * norm_l))
-        cosine_sim = max(-1.0, min(1.0, cosine_sim))
+    # Cosine similarity between centroids, computed by pgvector (Phase 2 rule
+    # R12; services/vector_math.py). The averaging above is arithmetic, not a
+    # similarity, and stays in numpy. A zero-norm centroid counts as no drift.
+    from services.vector_math import cosine as _pg_cosine
+    cosine_sim = _pg_cosine(db, early_centroid.tolist(), late_centroid.tolist())
+    cosine_sim = 1.0 if cosine_sim is None else max(-1.0, min(1.0, cosine_sim))
 
     drift_score = round(1.0 - cosine_sim, 4)
 
-    # Find representative passages (chunk closest to its centroid)
+    # Find representative passages (chunk closest to its centroid). These are
+    # stored rows, so this is retrieval and runs in pgvector (R12).
+    from sqlalchemy import text as _sql_text
+    from services.ai_service import vector_distance as _vector_distance
+
     def _closest_chunk(chunks_list, centroid):
-        best, best_sim = None, -2.0
-        for c in chunks_list:
-            if c.embedding is None:
-                continue
-            v = np.array(list(c.embedding) if not isinstance(c.embedding, list) else c.embedding, dtype=np.float32)
-            n = np.linalg.norm(v)
-            if n < 1e-9:
-                continue
-            sim = float(np.dot(v, centroid) / (n * np.linalg.norm(centroid)))
-            if sim > best_sim:
-                best_sim, best = sim, c
-        return best
+        by_id = {c.chunk_id: c for c in chunks_list if c.embedding is not None}
+        if not by_id:
+            return None
+        row = db.execute(
+            _sql_text(f"SELECT chunk_id FROM chapter_chunks WHERE chunk_id = ANY(:ids) "
+                      f"AND embedding IS NOT NULL ORDER BY {_vector_distance('embedding', 'c')} LIMIT 1"),
+            {"ids": list(by_id), "c": "[" + ",".join(repr(float(x)) for x in centroid) + "]"},
+        ).first()
+        return by_id.get(row[0]) if row else None
 
     sample_early_chunk = _closest_chunk(early_chunks, early_centroid)
     sample_late_chunk  = _closest_chunk(late_chunks, late_centroid)

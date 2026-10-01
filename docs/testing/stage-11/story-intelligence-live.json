@@ -1,0 +1,141 @@
+{
+  "trigger": {
+    "status": 200,
+    "job_status": "pending"
+  },
+  "job": {
+    "status": "complete",
+    "passes_completed": [
+      "P01",
+      "P02",
+      "P03",
+      "P04",
+      "P05",
+      "P06",
+      "P07",
+      "P08",
+      "P09",
+      "P10",
+      "P11",
+      "P12",
+      "P13",
+      "P14",
+      "P15",
+      "P16",
+      "P17",
+      "P18",
+      "P19",
+      "P20",
+      "P21",
+      "P22",
+      "P23",
+      "P24",
+      "P25",
+      "P26",
+      "P27",
+      "P28",
+      "P29"
+    ],
+    "passes_failed": [],
+    "error_message": ""
+  },
+  "seconds": 157.9,
+  "reads": {
+    "genre": {
+      "status": 200,
+      "bytes": 1009,
+      "sample": "{\"genre_id\": \"a8366cd7-867d-492e-bfd5-30c8b1d68f0f\", \"story_id\": \"cd35c7f0-ec22-4942-9eac-1d7011662461\", \"primary_genre\": \"Mystery\", \"primary_genre_confidence\": 0.85, \"secondary_genres\": [{\"genre\": \"Thriller\", \"confidence\": 0.6, \"rationale\": \"The story involves suspenseful elements such as a missing logbook, a storm approaching, and the tension between the characters.\"}, {\"genre\": \"Drama\", \"confidence\": 0.4, \"rationale\": \"The story focuses on the personal and emotional journey of the characters, particularly Devika and Mara, as they uncover the truth.\"}], \"genre_blend_rationale\": \"The story blends mystery and thriller elements with a dramatic narrative, centered around the investigation of a",
+      "mentions_story": true
+    },
+    "dna": {
+      "status": 200,
+      "bytes": 986,
+      "sample": "{\"dna_id\": \"5b296cc6-0902-4f53-9ce9-6cc395b885ad\", \"story_id\": \"cd35c7f0-ec22-4942-9eac-1d7011662461\", \"premise\": \"A lighthouse keeper and a harbour clerk uncover who let a ship sink.\", \"central_question\": \"Who was responsible for keeping the lighthouse light off during the Marisol's sinking?\", \"thematic_core\": \"Trust, betrayal, and the consequences of hidden truths.\", \"narrative_engine\": \"Discovery and revelation through investigation and dialogue.\", \"story_promise\": \"To reveal the truth behind a maritime disaster and the motivations of those involved.\", \"resolution_type\": \"closed\", \"pov_style\": \"third-limited\", \"tense\": \"past\", \"sentence_rhythm\": \"varied\", \"vocabulary_tier\": \"accessible\", ",
+      "mentions_story": true
+    },
+    "audience": {
+      "status": 200,
+      "bytes": 589,
+      "sample": "{\"audience_id\": \"1095b24e-b6bf-45ab-be09-db9f0768af33\", \"story_id\": \"cd35c7f0-ec22-4942-9eac-1d7011662461\", \"primary_audience\": \"mystery enthusiasts\", \"age_range\": \"18-35\", \"reading_level\": \"general\", \"content_warnings\": [], \"appeal_factors\": [\"mystery plot\", \"historical setting\", \"small-town drama\"], \"comparable_readership\": [\"fans of Agatha Christie\", \"readers who enjoyed historical mysteries\"], \"marketing_hooks\": [\"Two unlikely allies solve a mystery\", \"Uncover the truth behind a shipwreck\"], \"author_overrides\": {}, \"is_stale\": false, \"generated_at\": \"2026-10-01T17:25:23.822337\"}",
+      "mentions_story": false
+    },
+    "themes": {
+      "status": 200,
+      "bytes": 1428,
+      "sample": "{\"theme_id\": \"05904f02-c282-4656-b978-a3559d7eb462\", \"story_id\": \"cd35c7f0-ec22-4942-9eac-1d7011662461\", \"primary_theme\": \"Truth and Consequences\", \"theme_statement\": \"The truth about a past event and its consequences are uncovered through collaboration and investigation.\", \"secondary_themes\": [\"Trust and Suspicion\", \"Mystery and Revelation\"], \"motifs\": [{\"name\": \"Light and Darkness\", \"occurrences\": [\"The lighthouse and its lamp being central to the story\", \"The torn logbook symbolizing hidden truths\"]}], \"symbols\": [{\"symbol\": \"Torn Logbook\", \"meaning\": \"Represents hidden or tampered information that leads to the discovery of a conspiracy.\"}, {\"symbol\": \"Letter in Devika's Father's Hand\", \"",
+      "mentions_story": true
+    },
+    "conflicts": {
+      "status": 200,
+      "bytes": 1281,
+      "sample": "{\"conflict_id\": \"26d36d05-b75c-41f8-b96d-07bd6e3f619b\", \"story_id\": \"cd35c7f0-ec22-4942-9eac-1d7011662461\", \"primary_conflict\": \"Devika discovers the lighthouse has gone dark and finds the keeper's logbook torn, leading her to suspect foul play related to the disappearance of the Marisol.\", \"conflict_type\": \"man-vs-society\", \"secondary_conflicts\": [{\"description\": \"Mara's distrust of Devika due to her father's testimony at the inquiry regarding the Marisol's sinking.\", \"type\": \"man-vs-man\", \"characters\": [\"Mara\", \"Devika\"]}], \"conflict_evolution\": [{\"chapter\": 1, \"conflict_status\": \"low\", \"escalation\": 0.2}, {\"chapter\": 2, \"conflict_status\": \"medium\", \"escalation\": 0.6}, {\"chapter\": 3, \"conf",
+      "mentions_story": true
+    },
+    "world": {
+      "status": 200,
+      "bytes": 1150,
+      "sample": "{\"world_id\": \"ec786168-95a0-463b-9bad-da68186b1cb6\", \"story_id\": \"cd35c7f0-ec22-4942-9eac-1d7011662461\", \"setting_type\": \"rural\", \"primary_settings\": [{\"name\": \"Carrow Point Lighthouse\", \"description\": \"A lighthouse where Devika has been keeping the light for nine years, located on a remote point with a stormy ocean nearby.\", \"chapters\": [1, 3]}, {\"name\": \"Harbour Office\", \"description\": \"Where Mara runs the office and keeps records of the harbor activities.\", \"chapters\": [2]}, {\"name\": \"Archive\", \"description\": \"A place with old records and documents, including the missing pages from the keeper's logbook.\", \"chapters\": [3]}], \"world_rules\": [], \"time_period\": \"Contemporary\", \"social_structu",
+      "mentions_story": true
+    },
+    "structure": {
+      "status": 200,
+      "bytes": 858,
+      "sample": "{\"structure_id\": \"10881d11-6a52-40e0-94bf-c36cf866db5b\", \"story_id\": \"cd35c7f0-ec22-4942-9eac-1d7011662461\", \"structure_type\": \"three-act\", \"act_breakdown\": {\"act1\": [1], \"act2\": [2, 3], \"act3\": []}, \"inciting_incident_chapter\": 1, \"midpoint_chapter\": 0, \"climax_chapter\": 0, \"resolution_chapter\": 3, \"narrative_promises\": [\"Devika discovers the missing pages in the logbook\", \"Mara and Devika find evidence of corruption\"], \"promises_kept\": [\"Devika discovers the missing pages in the logbook\", \"Mara and Devika find evidence of corruption\"], \"promises_broken\": [], \"structural_issues\": [{\"issue\": \"Act 3 is incomplete, leaving the story unresolved.\", \"chapter\": 3}, {\"type\": \"series_meta\", \"series_",
+      "mentions_story": true
+    },
+    "emotional-arc": {
+      "status": 200,
+      "bytes": 648,
+      "sample": "{\"arc_id\": \"21dee414-5210-4fb7-a9cb-6b48cb044b68\", \"story_id\": \"cd35c7f0-ec22-4942-9eac-1d7011662461\", \"overall_arc_shape\": \"fall-rise\", \"opening_emotion\": \"concerned\", \"midpoint_emotion\": \"Suspicious\", \"climax_emotion\": \"melancholic\", \"resolution_emotion\": \"\", \"emotional_contrast_score\": 0.6, \"chapter_emotions\": [{\"chapter\": 1, \"tone\": \"concerned\", \"intensity\": 0.7}, {\"chapter\": 2, \"tone\": \" Suspicious\", \"intensity\": 0.8}, {\"chapter\": 3, \"tone\": \"melancholic\", \"intensity\": 0.7}], \"dominant_emotions\": [\"concerned\", \"melancholic\"], \"emotional_gaps\": [2], \"author_overrides\": {}, \"is_stale\": false, \"generated_at\": \"2026-10-01T17:26:07.893739\"}",
+      "mentions_story": false
+    },
+    "pacing": {
+      "status": 200,
+      "bytes": 584,
+      "sample": "{\"pacing_id\": \"908df250-da57-4b1a-9814-45bf3140a7f0\", \"story_id\": \"cd35c7f0-ec22-4942-9eac-1d7011662461\", \"overall_pacing\": \"slow\", \"act_structure\": {}, \"chapter_pacing\": [{\"chapter\": 1, \"pacing\": \"slow\", \"tension\": 0.3}, {\"chapter\": 2, \"pacing\": \"moderate\", \"tension\": 0.7}, {\"chapter\": 3, \"pacing\": \"slow\", \"tension\": 0.4}], \"slow_zones\": [1, 3], \"tension_peaks\": [], \"pacing_score\": 0.5, \"pacing_issues\": [{\"chapter\": 1, \"issue\": \"pacing is slow\"}, {\"chapter\": 3, \"issue\": \"pacing is slow\"}], \"author_overrides\": {}, \"is_stale\": false, \"generated_at\": \"2026-10-01T17:26:10.251856\"}",
+      "mentions_story": false
+    },
+    "strengths": {
+      "status": 200,
+      "bytes": 736,
+      "sample": "{\"strength_id\": \"3c4ad138-233f-4eb6-b901-ecb87012fe7b\", \"story_id\": \"cd35c7f0-ec22-4942-9eac-1d7011662461\", \"overall_score\": 0.5, \"voice_score\": 0.6, \"originality_score\": 0.4, \"character_depth_score\": 0.7, \"plot_coherence_score\": 0.8, \"pacing_score\": 0.6, \"world_building_score\": 0.5, \"dialogue_quality_score\": 0.3, \"strengths\": [\"Strong character development\", \"Coherent plot structure\"], \"score_rationale\": {\"voice\": \"The narrative voice is clear and descriptive, setting a somber tone appropriate for the mystery genre.\", \"originality\": \"The concept of a lighthouse keeper and a harbour clerk uncovering a conspiracy is somewhat predictable.\"}, \"author_overrides\": {}, \"is_stale\": false, \"generate",
+      "mentions_story": true
+    },
+    "risks": {
+      "status": 200,
+      "bytes": 684,
+      "sample": "{\"risk_id\": \"b9e249b7-d51d-4241-9176-7032975f11b8\", \"story_id\": \"cd35c7f0-ec22-4942-9eac-1d7011662461\", \"plot_holes\": [{\"description\": \"The reason for the torn logbook is not immediately clear and could confuse readers.\", \"chapter\": 1, \"severity\": \"medium\"}], \"continuity_risks\": [], \"character_inconsistencies\": [], \"pacing_risks\": [], \"tonal_shifts\": [], \"unresolved_threads\": [\"The letter in Devika's father's hand and its implications are not fully explored.\"], \"risk_score\": 0.3, \"critical_issues\": [\"The reason for the torn logbook\", \"The implications of the letter from Devika's father\"], \"author_overrides\": {}, \"is_stale\": false, \"generated_at\": \"2026-10-01T17:26:23.199225\"}",
+      "mentions_story": true
+    },
+    "characters": {
+      "status": 200,
+      "bytes": 3228,
+      "sample": "[{\"intel_id\": \"f9cd89ad-0a97-41bf-a3cb-bf8e8c67fd4c\", \"character_id\": \"d3b2006e-ea7b-42de-868b-dfd4c11b0ac2\", \"story_id\": \"cd35c7f0-ec22-4942-9eac-1d7011662461\", \"goals\": [{\"goal\": \"To uncover the truth about her family's past and clear her name after being falsely accused of a crime she did not commit.\", \"type\": \"internal\", \"chapter_established\": 1}], \"motivations\": \"Desire for justice and redemption, driven by the need to prove her innocence and restore her family's reputation.\", \"internal_wounds\": \"Deep-seated mistrust and fear of betrayal, stemming from a childhood where she witnessed her parents' secrets and lies.\", \"external_objectives\": [\"Uncover the evidence that will exonerate her\"]",
+      "mentions_story": true
+    },
+    "relationships": {
+      "status": 200,
+      "bytes": 1125,
+      "sample": "[{\"intel_id\": \"b07a2504-c2fb-4376-a55b-df40a9b378a4\", \"relationship_id\": \"071b5fa4-c831-4c83-9131-c93ed495eb49\", \"story_id\": \"cd35c7f0-ec22-4942-9eac-1d7011662461\", \"from_character_id\": \"d3b2006e-ea7b-42de-868b-dfd4c11b0ac2\", \"to_character_id\": \"2bda73c0-4aa1-44c2-8939-6e691a153560\", \"evolution_trajectory\": \"From distrust to reluctant alliance\", \"turning_points\": [{\"chapter\": 1, \"event\": \"Devika and Mara are forced to work together on a critical mission.\", \"impact\": \"This event marks the beginning of their reluctant alliance.\"}], \"tension_score\": 0.8, \"trust_score\": 0.2, \"conflict_score\": 0.7, \"dependency_score\": 0.5, \"is_hidden\": false, \"hidden_reason\": \"\", \"impact_on_plot\": \"Their evolving",
+      "mentions_story": true
+    },
+    "timeline": {
+      "status": 200,
+      "bytes": 872,
+      "sample": "{\"timeline_id\": \"839f310c-856b-453e-9f3d-8ba05f993fe4\", \"story_id\": \"cd35c7f0-ec22-4942-9eac-1d7011662461\", \"timeline_type\": \"multi-threaded\", \"estimated_story_duration\": \"approximate story date/time if mentioned\", \"start_period\": \"nine years ago\", \"end_period\": \"tonight\", \"seasons_mentioned\": [\"summer\", \"winter\"], \"significant_time_gaps\": [{\"between_chapters\": [0, 0], \"gap\": \"not specified\"}], \"character_age_map\": {}, \"contradictions\": [{\"event_a_chapter\": 1, \"event_b_chapter\": 3, \"description\": \"Devika speaking about someone being in the lamp room tonight contradicts with finding the missing pages in a crate marked with the Marisol's name and a letter in Devika's father's handwriting, whic",
+      "mentions_story": true
+    },
+    "memory": {
+      "status": 200,
+      "bytes": 10213,
+      "sample": "[{\"entry_id\": \"df8bc5c4-0379-4ac4-827a-057ede1e2df8\", \"story_id\": \"cd35c7f0-ec22-4942-9eac-1d7011662461\", \"memory_type\": \"character\", \"memory_key\": \"character.devika.secret.ea6b4c414cbd54d7\", \"entity_type\": \"character\", \"entity_id\": \"d3b2006e-ea7b-42de-868b-dfd4c11b0ac2\", \"content\": \"{\\\"secret\\\": \\\"She knows more about her family's past than she lets on, including a dark secret that could implicate others if revealed.\\\", \\\"impact\\\": \\\"This secret adds layers to her character and creates tension with other characters.\\\"}\", \"chapter_first_established\": null, \"chapter_last_updated\": null, \"importance\": 0.9, \"is_active\": true, \"is_ai_generated\": true, \"is_author_added\": false, \"created_at\": \"202",
+      "mentions_story": true
+    },
+    "graph": {
+      "status": 200,
+      "bytes": 5663,
+      "sample": "{\"nodes\": [{\"node_id\": \"dba77e83-f6f8-434c-bd06-4899b7f0f72d\", \"story_id\": \"cd35c7f0-ec22-4942-9eac-1d7011662461\", \"node_type\": \"story\", \"label\": \"Perf probe 9b6404c75f\", \"entity_id\": \"cd35c7f0-ec22-4942-9eac-1d7011662461\", \"properties\": {}, \"chapter_introduced\": null, \"is_active\": true, \"created_at\": \"2026-10-01T17:27:44.292924\"}, {\"node_id\": \"47869c64-db6f-4749-ab6f-b9e06fc6c5ad\", \"story_id\": \"cd35c7f0-ec22-4942-9eac-1d7011662461\", \"node_type\": \"chapter\", \"label\": \"Ch.1: The Lamp Room\", \"entity_id\": \"a5990fb6-b5d0-4399-9cc5-be31a2229e8a\", \"properties\": {}, \"chapter_introduced\": 1, \"is_active\": true, \"created_at\": \"2026-10-01T17:27:44.292928\"}, {\"node_id\": \"3c589e79-d146-4f65-bce7-34daa51aa",
+      "mentions_story": true
+    }
+  }
+}

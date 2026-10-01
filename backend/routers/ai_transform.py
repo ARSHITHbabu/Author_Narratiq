@@ -77,6 +77,40 @@ def _response(data_text: str, mode: str, tokens: int, result: dict) -> Transform
     )
 
 
+# ── Prompt-injection output check (Stage 11, P1) ─────────────────────────────
+# Layer 2 of services/prompt_safety.py: a rewrite that no longer contains the
+# passage it was asked to rewrite has been hijacked by instructions inside the
+# passage. Retry once (the fence usually holds on a second sample); if it still
+# fails, refuse with an explanation rather than offer the author a "rewrite"
+# that is really the injected text. The author's text is never changed here.
+
+_HIJACK_MESSAGE = (
+    "Part of the selected text reads like instructions to an AI, and the rewrite did not "
+    "follow your request. Your text has not been changed. Try again, or select the passage "
+    "without that part."
+)
+
+
+def _rewrite_hijacked(source: str, transformed: str, *, same_language: bool = True) -> bool:
+    if not settings.prompt_injection_guard or not transformed or transformed.strip() == source.strip():
+        return False
+    from services.prompt_safety import rewrite_lost_source
+    return rewrite_lost_source(source, transformed, same_language=same_language)
+
+
+async def _guarded_rewrite(source: str, call, text_of, *, tool: str, same_language: bool = True):
+    """Run `call()` (an async rewrite), check its output against `source`, retry
+    once on a hijack, then refuse. `text_of(result)` extracts the rewritten text."""
+    result = await call()
+    if _rewrite_hijacked(source, text_of(result), same_language=same_language):
+        logger.warning("[ai_transform] %s output lost its source passage; retrying once", tool)
+        result = await call()
+        if _rewrite_hijacked(source, text_of(result), same_language=same_language):
+            logger.warning("[ai_transform] %s output lost its source passage twice; refused", tool)
+            raise ApiError(422, _HIJACK_MESSAGE, code="instruction_like_text")
+    return result
+
+
 def _validate_locks(data, text: str) -> None:
     from services.transform_preservation import validate_locked_ranges
     validate_locked_ranges(text, _locked_range_dicts(data))
@@ -106,7 +140,10 @@ def _sse_stream(async_gen):
 @limiter.limit(settings.rate_limit_realtime_ai, key_func=get_user_id)
 async def refine(request: Request, data: TransformRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     story_id = _owned_story_id(data.story_id, current_user, db)
-    result = await ai_service.refine_text(data.text, data.mode or "standard", genre_context=_genre_ctx(story_id, db))
+    genre = _genre_ctx(story_id, db)
+    result = await _guarded_rewrite(
+        data.text, lambda: ai_service.refine_text(data.text, data.mode or "standard", genre_context=genre),
+        lambda r: r, tool="refine")
     return TransformResponse(original=data.text, transformed=result,
                              mode=data.mode or "standard", tokens_used=len(data.text.split()) * 2)
 
@@ -131,11 +168,12 @@ async def tone_transform(request: Request, data: ToneRequest, current_user: User
     story_id = _owned_story_id(data.story_id, current_user, db)
     p3, text = await _phase3(data, tool="tone", user=current_user, db=db, text=data.text)
     _validate_locks(data, text)
-    result = await ai_service.transform_tone(
-        text, data.tone, genre_context=_genre_ctx(story_id, db),
+    genre = _genre_ctx(story_id, db)
+    result = await _guarded_rewrite(text, lambda: ai_service.transform_tone(
+        text, data.tone, genre_context=genre,
         story_id=story_id, db=db,
         strength=data.strength or "light", locked_ranges=_locked_range_dicts(data), p3=p3,
-    )
+    ), lambda r: r["transformed"], tool="tone")
     return _response(data.text, f"tone:{data.tone}", len(text.split()) * 2, result)
 
 
@@ -153,10 +191,11 @@ async def tone_stream(request: Request, data: ToneRequest, current_user: User = 
 async def emotion_rewrite(request: Request, data: EmotionRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     story_id = _owned_story_id(data.story_id, current_user, db)
     p3, text = await _phase3(data, tool="emotion", user=current_user, db=db, text=data.text)
-    result = await ai_service.rewrite_emotion(
-        text, data.emotion, data.intensity or "medium", genre_context=_genre_ctx(story_id, db),
+    genre = _genre_ctx(story_id, db)
+    result = await _guarded_rewrite(text, lambda: ai_service.rewrite_emotion(
+        text, data.emotion, data.intensity or "medium", genre_context=genre,
         story_id=story_id, db=db, p3=p3,
-    )
+    ), lambda r: r["transformed"], tool="emotion")
     return _response(data.text, f"emotion:{data.emotion}", len(text.split()) * 2, result)
 
 
@@ -175,11 +214,12 @@ async def age_adapt(request: Request, data: AgeAdaptRequest, current_user: User 
     story_id = _owned_story_id(data.story_id, current_user, db)
     p3, text = await _phase3(data, tool="age_adapt", user=current_user, db=db, text=data.text)
     _validate_locks(data, text)
-    result = await ai_service.adapt_for_age(
-        text, data.target_age, genre_context=_genre_ctx(story_id, db),
+    genre = _genre_ctx(story_id, db)
+    result = await _guarded_rewrite(text, lambda: ai_service.adapt_for_age(
+        text, data.target_age, genre_context=genre,
         story_id=story_id, db=db,
         strength=data.strength or "light", locked_ranges=_locked_range_dicts(data), p3=p3,
-    )
+    ), lambda r: r["transformed"], tool="age_adapt")
     return _response(data.text, f"age:{data.target_age}", len(text.split()) * 2, result)
 
 
@@ -198,11 +238,12 @@ async def style_transform(request: Request, data: StyleRequest, current_user: Us
     story_id = _owned_story_id(data.story_id, current_user, db)
     p3, text = await _phase3(data, tool="style", user=current_user, db=db, text=data.text)
     _validate_locks(data, text)
-    result = await ai_service.transform_style(
-        text, data.style, genre_context=_genre_ctx(story_id, db),
+    genre = _genre_ctx(story_id, db)
+    result = await _guarded_rewrite(text, lambda: ai_service.transform_style(
+        text, data.style, genre_context=genre,
         story_id=story_id, db=db,
         strength=data.strength or "light", locked_ranges=_locked_range_dicts(data), p3=p3,
-    )
+    ), lambda r: r["transformed"], tool="style")
     return _response(data.text, f"style:{data.style}", len(text.split()) * 2, result)
 
 
@@ -244,7 +285,10 @@ async def author_styles(current_user: User = Depends(get_current_user)):
 async def author_style_transform(request: Request, data: AuthorStyleRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     text = _validate_transform_text(data.text)
     story_id = _owned_story_id(data.story_id, current_user, db)
-    result = await ai_service.rewrite_in_author_style(text, data.author, genre_context=_genre_ctx(story_id, db))
+    genre = _genre_ctx(story_id, db)
+    result = await _guarded_rewrite(
+        text, lambda: ai_service.rewrite_in_author_style(text, data.author, genre_context=genre),
+        lambda r: r, tool="author_style")
     return TransformResponse(original=data.text, transformed=result,
                              mode=f"author:{data.author}", tokens_used=len(text.split()) * 2)
 
@@ -263,10 +307,10 @@ async def author_style_stream(request: Request, data: AuthorStyleRequest, curren
 @limiter.limit(settings.rate_limit_realtime_ai, key_func=get_user_id)
 async def translate(request: Request, data: TranslationRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     story_id = _owned_story_id(data.story_id, current_user, db)
-    result = await ai_service.translate_text(
+    result = await _guarded_rewrite(data.text, lambda: ai_service.translate_text(
         data.text, data.target_language, data.source_language or "en",
         story_id=story_id, db=db,
-    )
+    ), lambda r: r["transformed"], tool="translate", same_language=False)
     return TransformResponse(original=data.text, transformed=result["transformed"],
                              mode=f"translate:{data.target_language}", tokens_used=len(data.text.split()) * 3,
                              preservation_violations=result["preservation_violations"])

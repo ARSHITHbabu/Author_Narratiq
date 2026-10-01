@@ -107,6 +107,29 @@ def _extract_json_safe(raw: str, fallback: Any = None) -> Any:
     return fallback
 
 
+class StoryIntelOutputError(ValueError):
+    """A pass's model output could not be used. Raised instead of storing an
+    empty result as if it were an analysis: the orchestrator records the pass
+    as FAILED, so the author and the ops endpoints see the truth."""
+
+
+def _require_json(raw: str, expected: type, label: str) -> Any:
+    """Parse a pass's model output and insist on the shape the pass needs.
+
+    Story Intelligence used to call _require_json(raw, dict, "_require_json") and store
+    whatever came back. A parse failure became an empty analysis marked
+    completed, the same silent pattern that hid the calling-contract TypeError
+    in every pass until Stage 11. An empty object counts as unusable; an empty
+    list is a legitimate answer (e.g. a chapter with no timeline events).
+    The message names the pass and the output length only, never manuscript text."""
+    data = _extract_json_safe(raw, None)
+    if not isinstance(data, expected) or (expected is dict and not data):
+        raise StoryIntelOutputError(
+            f"{label}: model output unusable (expected {expected.__name__}, "
+            f"got {type(data).__name__}, chars={len(raw or '')})")
+    return data
+
+
 def _upsert_memory(
     db: Session,
     story_id: str,
@@ -163,12 +186,7 @@ def _upsert_memory(
 async def run_p01_genre_hierarchy(db: Session, story: Story) -> StoryGenreHierarchy:
     chapters_text = _chapters_text(story.chapters, max_chars=8000)
     description = story.description or ""
-    prompt = f"""You are a professional literary analyst. Analyze this story and produce a JSON genre analysis.
-
-Story description: {description[:500]}
-
-Chapter excerpts:
-{chapters_text[:6000]}
+    system = f"""You are a professional literary analyst. Analyze this story and produce a JSON genre analysis.
 
 Return ONLY valid JSON in this exact format:
 {{
@@ -180,9 +198,13 @@ Return ONLY valid JSON in this exact format:
   "comparable_titles": ["title1", "title2"],
   "tone_markers": ["tone1", "tone2"]
 }}"""
+    user = f"""Story description: {description[:500]}
 
-    raw = await _complete(prompt, max_tokens=600, temperature=0.2)
-    data = _extract_json_safe(raw, {})
+Chapter excerpts:
+{chapters_text[:6000]}"""
+
+    raw = await _complete(system, user, max_tokens=600, temperature=0.2)
+    data = _require_json(raw, dict, "run_p01_genre_hierarchy")
 
     input_hash = _hash_text(description + chapters_text[:2000])
     obj = db.query(StoryGenreHierarchy).filter_by(story_id=story.story_id).first()
@@ -208,12 +230,7 @@ Return ONLY valid JSON in this exact format:
 
 async def run_p02_story_dna(db: Session, story: Story) -> StoryDNA:
     chapters_text = _chapters_text(story.chapters, max_chars=10000)
-    prompt = f"""Analyze this story's DNA — its core identity and prose fingerprint. Return ONLY valid JSON.
-
-Story description: {(story.description or '')[:500]}
-
-Chapters:
-{chapters_text[:8000]}
+    system = f"""Analyze this story's DNA — its core identity and prose fingerprint. Return ONLY valid JSON.
 
 Return this JSON:
 {{
@@ -231,9 +248,13 @@ Return this JSON:
   "structural_complexity": "simple/moderate/complex/experimental",
   "confidence": 0.0-1.0
 }}"""
+    user = f"""Story description: {(story.description or '')[:500]}
 
-    raw = await _complete(prompt, max_tokens=700, temperature=0.2)
-    data = _extract_json_safe(raw, {})
+Chapters:
+{chapters_text[:8000]}"""
+
+    raw = await _complete(system, user, max_tokens=700, temperature=0.2)
+    data = _require_json(raw, dict, "run_p02_story_dna")
 
     input_hash = _hash_text(chapters_text[:3000])
     obj = db.query(StoryDNA).filter_by(story_id=story.story_id).first()
@@ -265,10 +286,7 @@ Return this JSON:
 
 async def run_p03_audience_profile(db: Session, story: Story) -> StoryAudienceProfile:
     chapters_text = _chapters_text(story.chapters, max_chars=6000)
-    prompt = f"""Identify the target audience for this story. Return ONLY valid JSON.
-
-Description: {(story.description or '')[:400]}
-Chapters: {chapters_text[:4000]}
+    system = f"""Identify the target audience for this story. Return ONLY valid JSON.
 
 JSON format:
 {{
@@ -280,9 +298,11 @@ JSON format:
   "comparable_readership": ["fans of X", "readers who enjoyed Y"],
   "marketing_hooks": ["hook1", "hook2"]
 }}"""
+    user = f"""Description: {(story.description or '')[:400]}
+Chapters: {chapters_text[:4000]}"""
 
-    raw = await _complete(prompt, max_tokens=500, temperature=0.2)
-    data = _extract_json_safe(raw, {})
+    raw = await _complete(system, user, max_tokens=500, temperature=0.2)
+    data = _require_json(raw, dict, "run_p03_audience_profile")
 
     obj = db.query(StoryAudienceProfile).filter_by(story_id=story.story_id).first()
     if not obj:
@@ -307,10 +327,7 @@ JSON format:
 
 async def run_p04_themes(db: Session, story: Story) -> StoryThemes:
     chapters_text = _chapters_text(story.chapters, max_chars=10000)
-    prompt = f"""Extract themes, motifs, and symbols from this story. Return ONLY valid JSON.
-
-Description: {(story.description or '')[:400]}
-Chapters: {chapters_text[:8000]}
+    system = f"""Extract themes, motifs, and symbols from this story. Return ONLY valid JSON.
 
 JSON format:
 {{
@@ -321,9 +338,11 @@ JSON format:
   "symbols": [{{"symbol": "string", "meaning": "string"}}],
   "thematic_arc": "how the theme develops across the story"
 }}"""
+    user = f"""Description: {(story.description or '')[:400]}
+Chapters: {chapters_text[:8000]}"""
 
-    raw = await _complete(prompt, max_tokens=700, temperature=0.25)
-    data = _extract_json_safe(raw, {})
+    raw = await _complete(system, user, max_tokens=700, temperature=0.25)
+    data = _require_json(raw, dict, "run_p04_themes")
 
     obj = db.query(StoryThemes).filter_by(story_id=story.story_id).first()
     if not obj:
@@ -347,9 +366,7 @@ JSON format:
 
 async def run_p05_conflicts(db: Session, story: Story) -> StoryConflicts:
     chapters_text = _chapters_text(story.chapters, max_chars=10000)
-    prompt = f"""Map all conflicts in this story. Return ONLY valid JSON.
-
-Chapters: {chapters_text[:8000]}
+    system = f"""Map all conflicts in this story. Return ONLY valid JSON.
 
 JSON format:
 {{
@@ -359,9 +376,10 @@ JSON format:
   "unresolved_conflicts": ["conflict1", "conflict2"],
   "conflict_resolution_path": "how the primary conflict is resolved or heading"
 }}"""
+    user = f"""Chapters: {chapters_text[:8000]}"""
 
-    raw = await _complete(prompt, max_tokens=600, temperature=0.2)
-    data = _extract_json_safe(raw, {})
+    raw = await _complete(system, user, max_tokens=600, temperature=0.2)
+    data = _require_json(raw, dict, "run_p05_conflicts")
 
     obj = db.query(StoryConflicts).filter_by(story_id=story.story_id).first()
     if not obj:
@@ -384,9 +402,7 @@ JSON format:
 
 async def run_p06_world_profile(db: Session, story: Story) -> StoryWorldProfile:
     chapters_text = _chapters_text(story.chapters, max_chars=10000)
-    prompt = f"""Analyze the story world and setting. Return ONLY valid JSON.
-
-Chapters: {chapters_text[:8000]}
+    system = f"""Analyze the story world and setting. Return ONLY valid JSON.
 
 JSON format:
 {{
@@ -400,9 +416,10 @@ JSON format:
   "cultural_elements": ["element1"],
   "consistency_issues": [{{"issue": "string", "chapter": 0}}]
 }}"""
+    user = f"""Chapters: {chapters_text[:8000]}"""
 
-    raw = await _complete(prompt, max_tokens=700, temperature=0.2)
-    data = _extract_json_safe(raw, {})
+    raw = await _complete(system, user, max_tokens=700, temperature=0.2)
+    data = _require_json(raw, dict, "run_p06_world_profile")
 
     obj = db.query(StoryWorldProfile).filter_by(story_id=story.story_id).first()
     if not obj:
@@ -431,9 +448,7 @@ async def run_p07_narrative_structure(db: Session, story: Story) -> StoryNarrati
     chapters = sorted(story.chapters, key=lambda c: c.chapter_number)
     n = len(chapters)
     chapters_text = _chapters_text(chapters, max_chars=10000)
-    prompt = f"""Analyze the narrative structure of this {n}-chapter story. Return ONLY valid JSON.
-
-Chapters: {chapters_text[:8000]}
+    system = f"""Analyze the narrative structure of this {n}-chapter story. Return ONLY valid JSON.
 
 JSON format:
 {{
@@ -448,9 +463,10 @@ JSON format:
   "promises_broken": [],
   "structural_issues": [{{"issue": "string", "chapter": 0}}]
 }}"""
+    user = f"""Chapters: {chapters_text[:8000]}"""
 
-    raw = await _complete(prompt, max_tokens=600, temperature=0.2)
-    data = _extract_json_safe(raw, {})
+    raw = await _complete(system, user, max_tokens=600, temperature=0.2)
+    data = _require_json(raw, dict, "run_p07_narrative_structure")
 
     def _safe_int(val):
         try:
@@ -490,10 +506,7 @@ async def _analyze_chapter_batch(
 ) -> Dict[str, Any]:
     """Run all per-chapter analysis passes (P08-P12) in one LLM call to save tokens."""
     content_snippet = (chapter.content or "")[:2500]
-    prompt = f"""Analyze Chapter {chapter.chapter_number}: "{chapter.title or ''}" and return ONLY valid JSON.
-
-Chapter content:
-{content_snippet}
+    system = f"""Analyze Chapter {chapter.chapter_number}: "{chapter.title or ''}" and return ONLY valid JSON.
 
 Return this JSON:
 {{
@@ -509,9 +522,11 @@ Return this JSON:
   "key_events": ["event1", "event2"],
   "characters_present": ["name1"]
 }}"""
+    user = f"""Chapter content:
+{content_snippet}"""
 
-    raw = await _complete(prompt, max_tokens=600, temperature=0.2)
-    data = _extract_json_safe(raw, {})
+    raw = await _complete(system, user, max_tokens=600, temperature=0.2)
+    data = _require_json(raw, dict, "_analyze_chapter_batch")
     data["chapter_number"] = chapter.chapter_number
     return data
 
@@ -528,9 +543,7 @@ async def run_p13_emotional_arc(
          "intensity": d.get("emotional_intensity", 0.0)}
         for d in chapter_data
     ]
-    prompt = f"""Given these per-chapter emotional tones, synthesize the story's emotional arc. Return ONLY valid JSON.
-
-Chapter emotions: {json.dumps(emotions)}
+    system = f"""Given these per-chapter emotional tones, synthesize the story's emotional arc. Return ONLY valid JSON.
 
 JSON format:
 {{
@@ -543,9 +556,10 @@ JSON format:
   "dominant_emotions": ["emotion1", "emotion2"],
   "emotional_gaps": [1, 5]
 }}"""
+    user = f"""Chapter emotions: {json.dumps(emotions)}"""
 
-    raw = await _complete(prompt, max_tokens=400, temperature=0.2)
-    data = _extract_json_safe(raw, {})
+    raw = await _complete(system, user, max_tokens=400, temperature=0.2)
+    data = _require_json(raw, dict, "run_p13_emotional_arc")
 
     obj = db.query(StoryEmotionalArc).filter_by(story_id=story.story_id).first()
     if not obj:
@@ -580,9 +594,7 @@ async def run_p14_pacing(
          "tension": d.get("tension_level", 0.0)}
         for d in chapter_data
     ]
-    prompt = f"""Synthesize pacing analysis across all chapters. Return ONLY valid JSON.
-
-Chapter pacing data: {json.dumps(pacing_list)}
+    system = f"""Synthesize pacing analysis across all chapters. Return ONLY valid JSON.
 
 JSON format:
 {{
@@ -592,9 +604,10 @@ JSON format:
   "pacing_score": 0.0-1.0,
   "pacing_issues": [{{"chapter": 0, "issue": "string"}}]
 }}"""
+    user = f"""Chapter pacing data: {json.dumps(pacing_list)}"""
 
-    raw = await _complete(prompt, max_tokens=400, temperature=0.2)
-    data = _extract_json_safe(raw, {})
+    raw = await _complete(system, user, max_tokens=400, temperature=0.2)
+    data = _require_json(raw, dict, "run_p14_pacing")
 
     obj = db.query(StoryPacingMap).filter_by(story_id=story.story_id).first()
     if not obj:
@@ -626,9 +639,7 @@ async def run_p15_conflict_evolution(
         {"chapter": d.get("chapter_number"), "key_events": d.get("key_events", [])}
         for d in chapter_data
     ]
-    prompt = f"""Track how conflicts evolve across these chapter events. Return ONLY valid JSON.
-
-Chapter events: {json.dumps(events_summary)}
+    system = f"""Track how conflicts evolve across these chapter events. Return ONLY valid JSON.
 
 JSON format:
 {{
@@ -637,9 +648,10 @@ JSON format:
   ],
   "chapter_conflict_map": {{"1": ["conflict1"], "2": ["conflict2"]}}
 }}"""
+    user = f"""Chapter events: {json.dumps(events_summary)}"""
 
-    raw = await _complete(prompt, max_tokens=500, temperature=0.2)
-    data = _extract_json_safe(raw, {})
+    raw = await _complete(system, user, max_tokens=500, temperature=0.2)
+    data = _require_json(raw, dict, "run_p15_conflict_evolution")
 
     obj = db.query(StoryConflicts).filter_by(story_id=story.story_id).first()
     if obj:
@@ -733,10 +745,7 @@ async def run_p17_structure_synth(
 
 async def run_p18_strength_indicators(db: Session, story: Story) -> StoryStrengthIndicators:
     chapters_text = _chapters_text(story.chapters, max_chars=8000)
-    prompt = f"""Score this story across craft dimensions from 0.0 to 1.0. Return ONLY valid JSON.
-
-Description: {(story.description or '')[:400]}
-Chapters: {chapters_text[:6000]}
+    system = f"""Score this story across craft dimensions from 0.0 to 1.0. Return ONLY valid JSON.
 
 JSON format:
 {{
@@ -751,9 +760,11 @@ JSON format:
   "strengths": ["strength1", "strength2"],
   "score_rationale": {{"voice": "string", "originality": "string"}}
 }}"""
+    user = f"""Description: {(story.description or '')[:400]}
+Chapters: {chapters_text[:6000]}"""
 
-    raw = await _complete(prompt, max_tokens=600, temperature=0.2)
-    data = _extract_json_safe(raw, {})
+    raw = await _complete(system, user, max_tokens=600, temperature=0.2)
+    data = _require_json(raw, dict, "run_p18_strength_indicators")
 
     obj = db.query(StoryStrengthIndicators).filter_by(story_id=story.story_id).first()
     if not obj:
@@ -786,10 +797,7 @@ async def run_p19_risk_register(
             all_issues.append({"chapter": d.get("chapter_number"), **issue})
 
     chapters_text = _chapters_text(story.chapters, max_chars=8000)
-    prompt = f"""Identify risks that could undermine this story. Return ONLY valid JSON.
-
-Chapters: {chapters_text[:6000]}
-Known issues: {json.dumps(all_issues[:20])}
+    system = f"""Identify risks that could undermine this story. Return ONLY valid JSON.
 
 JSON format:
 {{
@@ -802,9 +810,11 @@ JSON format:
   "risk_score": 0.0-1.0,
   "critical_issues": ["issue1"]
 }}"""
+    user = f"""Chapters: {chapters_text[:6000]}
+Known issues: {json.dumps(all_issues[:20])}"""
 
-    raw = await _complete(prompt, max_tokens=700, temperature=0.2)
-    data = _extract_json_safe(raw, {})
+    raw = await _complete(system, user, max_tokens=700, temperature=0.2)
+    data = _require_json(raw, dict, "run_p19_risk_register")
 
     obj = db.query(StoryRiskRegister).filter_by(story_id=story.story_id).first()
     if not obj:
@@ -836,11 +846,7 @@ async def run_p20_market_analysis(db: Session, story: Story) -> StoryAudiencePro
     if not audience_obj:
         return None
 
-    prompt = f"""Generate market positioning analysis for this story. Return ONLY valid JSON.
-
-Genre: {genre_str}
-Primary audience: {audience_obj.primary_audience}
-Marketing hooks: {json.dumps(audience_obj.marketing_hooks)}
+    system = f"""Generate market positioning analysis for this story. Return ONLY valid JSON.
 
 JSON format:
 {{
@@ -849,9 +855,12 @@ JSON format:
   "series_potential": "standalone/duology/trilogy/open-series",
   "additional_marketing_hooks": ["hook1"]
 }}"""
+    user = f"""Genre: {genre_str}
+Primary audience: {audience_obj.primary_audience}
+Marketing hooks: {json.dumps(audience_obj.marketing_hooks)}"""
 
-    raw = await _complete(prompt, max_tokens=400, temperature=0.25)
-    data = _extract_json_safe(raw, {})
+    raw = await _complete(system, user, max_tokens=400, temperature=0.25)
+    data = _require_json(raw, dict, "run_p20_market_analysis")
 
     extra_hooks = data.get("additional_marketing_hooks", [])
     audience_obj.marketing_hooks = list(set((audience_obj.marketing_hooks or []) + extra_hooks))
@@ -867,10 +876,7 @@ async def run_p21_series_potential(db: Session, story: Story) -> StoryNarrativeS
     if not struct_obj:
         return None
     unresolved = struct_obj.promises_broken or []
-    prompt = f"""Assess series potential based on unresolved story threads. Return ONLY valid JSON.
-
-Unresolved threads/promises: {json.dumps(unresolved[:10])}
-Story structure type: {struct_obj.structure_type}
+    system = f"""Assess series potential based on unresolved story threads. Return ONLY valid JSON.
 
 JSON format:
 {{
@@ -878,9 +884,11 @@ JSON format:
   "series_hooks": ["hook1"],
   "open_questions": ["question1"]
 }}"""
+    user = f"""Unresolved threads/promises: {json.dumps(unresolved[:10])}
+Story structure type: {struct_obj.structure_type}"""
 
-    raw = await _complete(prompt, max_tokens=300, temperature=0.25)
-    data = _extract_json_safe(raw, {})
+    raw = await _complete(system, user, max_tokens=300, temperature=0.25)
+    data = _require_json(raw, dict, "run_p21_series_potential")
 
     # Append series data to structural issues field as metadata
     series_meta = {
@@ -940,13 +948,7 @@ async def run_p23_character_intel(
         ]
         profile_text = " | ".join(p for p in parts if p)
 
-    prompt = f"""Conduct deep psychographic analysis of character "{character.name}" ({character.role}). Return ONLY valid JSON.
-
-Author-defined profile:
-{profile_text[:800]}
-
-Mentions in story:
-{mentions_text[:2000]}
+    system = f"""Conduct deep psychographic analysis of character "{character.name}" ({character.role}). Return ONLY valid JSON.
 
 JSON format:
 {{
@@ -966,9 +968,14 @@ JSON format:
   "consistency_issues": [{{"issue": "string", "chapter": 0}}],
   "confidence": 0.0-1.0
 }}"""
+    user = f"""Author-defined profile:
+{profile_text[:800]}
 
-    raw = await _complete(prompt, max_tokens=800, temperature=0.25)
-    data = _extract_json_safe(raw, {})
+Mentions in story:
+{mentions_text[:2000]}"""
+
+    raw = await _complete(system, user, max_tokens=800, temperature=0.25)
+    data = _require_json(raw, dict, "run_p23_character_intel")
 
     input_hash = _hash_text(profile_text + mentions_text[:500])
 
@@ -1028,12 +1035,7 @@ async def run_p24_relationship_intel(
     )
     co_text = "\n---\n".join(m.passage_text[:300] for m in co_mentions)
 
-    prompt = f"""Analyze the relationship between "{from_char.name}" and "{to_char.name}" in this story.
-Relationship type: {relationship.relationship_type}, Strength: {relationship.strength}
-Description: {relationship.description or ''}
-
-Co-occurrence passages:
-{co_text[:2000]}
+    system = f"""Analyze the relationship between "{from_char.name}" and "{to_char.name}" in this story.
 
 Return ONLY valid JSON:
 {{
@@ -1049,9 +1051,14 @@ Return ONLY valid JSON:
   "history": [{{"chapter": 0, "event": "string"}}],
   "confidence": 0.0-1.0
 }}"""
+    user = f"""Relationship type: {relationship.relationship_type}, Strength: {relationship.strength}
+Description: {relationship.description or ''}
 
-    raw = await _complete(prompt, max_tokens=700, temperature=0.25)
-    data = _extract_json_safe(raw, {})
+Co-occurrence passages:
+{co_text[:2000]}"""
+
+    raw = await _complete(system, user, max_tokens=700, temperature=0.25)
+    data = _require_json(raw, dict, "run_p24_relationship_intel")
 
     input_hash = _hash_text(co_text[:500] + relationship.relationship_id)
 
@@ -1205,12 +1212,10 @@ async def run_p26_timeline(db: Session, story: Story) -> StoryTimeline:
     db.query(StoryTimelineEvent).filter_by(story_id=story.story_id).delete()
 
     all_events: List[Dict[str, Any]] = []
+    failed_chapters = 0
     for chapter in chapters:
         content_snippet = (chapter.content or "")[:2000]
-        prompt = f"""Extract all temporal events from Chapter {chapter.chapter_number}: "{chapter.title or ''}". Return ONLY valid JSON.
-
-Content:
-{content_snippet}
+        system = f"""Extract all temporal events from Chapter {chapter.chapter_number}: "{chapter.title or ''}". Return ONLY valid JSON.
 
 JSON format (array):
 [{{
@@ -1224,11 +1229,18 @@ JSON format (array):
   "is_flashforward": false,
   "flash_origin_chapter": null
 }}]"""
+        user = f"""Content:
+{content_snippet}"""
 
-        raw = await _complete(prompt, max_tokens=500, temperature=0.2)
-        events = _extract_json_safe(raw, [])
-        if not isinstance(events, list):
-            events = []
+        raw = await _complete(system, user, max_tokens=500, temperature=0.2)
+        try:
+            events = _require_json(raw, list, f"run_p26_timeline ch{chapter.chapter_number}")
+        except StoryIntelOutputError as exc:
+            # One unreadable chapter must not cost the whole timeline, but it
+            # is counted and logged, and a timeline with NO readable chapter fails.
+            logger.warning("[intel] %s", exc)
+            failed_chapters += 1
+            continue
 
         for ev in events:
             event = StoryTimelineEvent(
@@ -1250,15 +1262,15 @@ JSON format (array):
             db.add(event)
             all_events.append(ev)
 
+    if chapters and failed_chapters == len(chapters):
+        raise StoryIntelOutputError(f"run_p26_timeline: no chapter produced usable output ({failed_chapters})")
+
     # Timeline summary
     flashbacks = sum(1 for e in all_events if e.get("is_flashback"))
     flashforwards = sum(1 for e in all_events if e.get("is_flashforward"))
     timeline_type = "non-linear" if (flashbacks + flashforwards) > 2 else "linear"
 
-    prompt2 = f"""Synthesize the timeline of this story from its events. Return ONLY valid JSON.
-
-Total events: {len(all_events)}, Flashbacks: {flashbacks}, Flash-forwards: {flashforwards}
-Event samples: {json.dumps(all_events[:8])}
+    system2 = f"""Synthesize the timeline of this story from its events. Return ONLY valid JSON.
 
 JSON format:
 {{
@@ -1271,9 +1283,11 @@ JSON format:
   "character_age_map": {{"character_name": "age_info"}},
   "confidence": 0.0-1.0
 }}"""
+    user2 = f"""Total events: {len(all_events)}, Flashbacks: {flashbacks}, Flash-forwards: {flashforwards}
+Event samples: {json.dumps(all_events[:8])}"""
 
-    raw2 = await _complete(prompt2, max_tokens=400, temperature=0.2)
-    tl_data = _extract_json_safe(raw2, {})
+    raw2 = await _complete(system2, user2, max_tokens=400, temperature=0.2)
+    tl_data = _require_json(raw2, dict, "run_p26_timeline")
 
     tl = db.query(StoryTimeline).filter_by(story_id=story.story_id).first()
     if not tl:
@@ -1323,9 +1337,7 @@ async def run_p27_timeline_contradictions(db: Session, story: Story) -> StoryTim
         for e in events[:30]
     ]
 
-    prompt = f"""Check these story timeline events for temporal contradictions. Return ONLY valid JSON.
-
-Events: {json.dumps(event_list)}
+    system = f"""Check these story timeline events for temporal contradictions. Return ONLY valid JSON.
 
 JSON format:
 {{
@@ -1338,9 +1350,10 @@ JSON format:
     }}
   ]
 }}"""
+    user = f"""Events: {json.dumps(event_list)}"""
 
-    raw = await _complete(prompt, max_tokens=400, temperature=0.2)
-    data = _extract_json_safe(raw, {})
+    raw = await _complete(system, user, max_tokens=400, temperature=0.2)
+    data = _require_json(raw, dict, "run_p27_timeline_contradictions")
 
     contradictions = data.get("contradictions", [])
     tl.contradictions = contradictions

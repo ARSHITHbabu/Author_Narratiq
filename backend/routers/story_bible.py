@@ -24,6 +24,7 @@ from models import Story, ChapterSummary, CharacterProfile, Character, StoryNote
 from schemas import StoryBibleOut, StoryBibleJobResponse
 from routers.auth import get_current_user, User
 from services.ai_service import audit_section_provenance, count_tokens, generate_story_bible_section
+from services.source_fingerprint import chapter_source_fingerprint
 
 logger = logging.getLogger(__name__)
 
@@ -479,6 +480,20 @@ async def _generate_bible_pipeline(story_id: str, bible_id: str, bump_version: b
     db = SessionLocal()
     try:
         _generating.add(story_id)
+        # What this generation reads, recorded BEFORE reading it: an edit made
+        # while the bible is being generated must leave the result marked stale.
+        # Never allowed to fail a generation: on any error the bible is stored
+        # without a fingerprint and simply reads as "staleness unknown".
+        try:
+            source_fingerprint = chapter_source_fingerprint(story_id, db)
+        except Exception as exc:
+            logger.warning("[story_bible] %s: source fingerprint unavailable (%s) — staleness unknown",
+                           story_id[:8], type(exc).__name__)
+            try:
+                db.rollback()   # a failed query must not poison the session's transaction
+            except Exception:
+                pass
+            source_fingerprint = None
         context = _build_full_context(story_id, db)
 
         content: dict[str, str] = {}
@@ -549,6 +564,9 @@ async def _generate_bible_pipeline(story_id: str, bible_id: str, bump_version: b
             bible.failed_sections = [failed_section_payload(o) for o in failed]
             if bump_version:
                 bible.version  = (bible.version or 1) + 1
+            # Section regeneration deliberately does NOT refresh this: one
+            # regenerated section does not make the other four current.
+            bible.source_fingerprint = source_fingerprint
             bible.updated_at   = datetime.utcnow()
             db.commit()
             logger.info("[story_bible] %s v%d for %s (%d/%d sections)",
@@ -836,7 +854,12 @@ def get_story_bible(
             status_code=404,
             detail="No story bible found. Generate one first via POST /story-bible.",
         )
-    return bible
+    out = StoryBibleOut.model_validate(bible)
+    # Phase 2 §19 P2-06: is the bible older than the chapters it describes?
+    # None (no warning) while generating or for a bible generated before 0025.
+    if bible.status != STATUS_RUNNING and bible.source_fingerprint:
+        out.is_stale = bible.source_fingerprint != chapter_source_fingerprint(story_id, db)
+    return out
 
 
 @router.get("/{story_id}/story-bible/export")

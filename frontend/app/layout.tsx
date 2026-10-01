@@ -1,4 +1,11 @@
 import type { Metadata } from 'next'
+// Self-hosted Inter (Stage 11, R4): bundled from node_modules and served from
+// this origin instead of fonts.googleapis.com. Same weights as before.
+import '@fontsource/inter/300.css'
+import '@fontsource/inter/400.css'
+import '@fontsource/inter/500.css'
+import '@fontsource/inter/600.css'
+import '@fontsource/inter/700.css'
 import './globals.css'
 import { AuthProvider } from '@/lib/auth'
 import { Toaster } from 'sonner'
@@ -24,10 +31,6 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      </head>
       <body>
         <ChunkErrorRecovery />
         <QueryProvider>

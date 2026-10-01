@@ -1711,6 +1711,10 @@ class StoryBibleOut(BaseModel):
     failed_sections: List[dict] = []
     created_at:   Optional[datetime] = None
     updated_at:   Optional[datetime] = None
+    # Stage 11 (P2-06): True when indexed chapters were edited, re-indexed, added
+    # or removed since this bible was generated; None when unknown (still
+    # generating, or generated before the fingerprint existed).
+    is_stale:     Optional[bool] = None
 
     @field_validator("failed_sections", mode="before")
     @classmethod

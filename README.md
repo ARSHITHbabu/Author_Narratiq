@@ -1,4 +1,4 @@
-# NarratIQ AI — v3.0
+# NarratIQ AI
 
 **AI-Powered Long-Form Storytelling Platform**
 
@@ -11,12 +11,16 @@ A full-stack web application for novelists, fiction authors, and serious storyte
 ### On RunPod (recommended)
 
 ```bash
+# start-narratiq.sh expects the repository at /workspace/narratiq-ai.
+# If you cloned it elsewhere (e.g. /workspace/Author_Narratiq), symlink it first:
+ln -s /workspace/Author_Narratiq /workspace/narratiq-ai
 cd /workspace/narratiq-ai
 bash start-narratiq.sh
 ```
 
 One command. It installs every dependency, downloads models, configures PostgreSQL + pgvector, runs
-migrations, and starts all three services. Safe to rerun.
+migrations, and starts all three services, the hourly backup loop and the watchdog. Safe to rerun.
+A fresh pod takes roughly 15–30 minutes, most of it model downloads.
 
 - **Environment variables:** [`docs/operations/runpod-environment-variables.md`](docs/operations/runpod-environment-variables.md)
 - **Pod setup and troubleshooting:** [`docs/operations/runpod-deployment.md`](docs/operations/runpod-deployment.md)
@@ -33,15 +37,20 @@ python3 -m vllm.entrypoints.openai.api_server \
   --served-model-name "Qwen/Qwen2.5-7B-Instruct" \
   --host 0.0.0.0 --port 9001 --max-model-len 8192
 
-# 2 — Backend (port 8000). MUST run from backend/ so config.py finds ./.env
+# 2 — Backend (port 8000). MUST run from backend/ so config.py finds ./.env,
+#     with exactly one worker (the startup guard refuses more; decision D-3).
+#     backend/.env needs at least SECRET_KEY (≥ 32 chars) and DATABASE_URL.
 cd backend
 pip install -r requirements.txt
 python3 -m alembic upgrade head
-uvicorn main:app --host 0.0.0.0 --port 8000
+python3 -m uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1 --no-proxy-headers
 
-# 3 — Frontend (port 3000)
-cd frontend
-npm install
+# 3 — Frontend (port 3000). The browser calls /api/* on the frontend's own
+#     origin and Next.js forwards it to BACKEND_INTERNAL_URL (default
+#     http://127.0.0.1:8000). NEXT_PUBLIC_API_URL is used only by the voice
+#     WebSocket.
+cd ../frontend
+npm ci
 echo 'NEXT_PUBLIC_API_URL=http://localhost:8000' > .env.local
 npm run dev
 ```
@@ -64,14 +73,18 @@ OpenAI-compatible API. There are no stubs or placeholders anywhere in the codeba
 **Embeddings.** BGE-M3 (1024-dim) runs in-process via `sentence-transformers`. Vectors are stored in
 `vector(1024)` columns and retrieved with pgvector HNSW indexes using the `<=>` cosine operator.
 
-**Database.** PostgreSQL 16 + pgvector, 51 tables, 15 Alembic migrations (`0001` → `0015`; numbers
+**Database.** PostgreSQL 16 + pgvector, 57 tables, 22 Alembic migrations (`0001` → `0026`; numbers
 `0003`–`0006` were never used, the chain itself is unbroken). **SQLite is not supported** — a
 pgvector self-check at startup fails hard without it.
 
-**Startup order** (`backend/main.py`): orphan-job recovery → upload dirs → model paths validated
+**Startup order** (`backend/main.py`): single-worker guard → orphan-job recovery → upload dirs → model paths validated
 (**hard fail** if missing) → BGE-M3 load → voice capability index → pgvector self-check (**hard
 fail** if broken) → vLLM health probe (**warning only**; the backend starts in degraded mode and AI
-endpoints return 503).
+endpoints return 503; `/api/health` reports `degraded`).
+
+**Sessions.** Sign-in sets an HttpOnly session cookie on the frontend's origin, with CSRF protection
+and server-side revocation. No token is stored where page scripts can read it. See `CLAUDE.md`,
+"Auth (Stage 10)".
 
 ---
 
@@ -79,21 +92,22 @@ endpoints return 503).
 
 ```
 narratiq-ai/
-├── backend/                      # FastAPI, 23 routers
-│   ├── main.py                   # Entry point, lifespan, router registration
-│   ├── config.py                 # pydantic-settings; 56 env-configurable fields
+├── backend/                      # FastAPI, 26 router modules
+│   ├── main.py                   # Entry point, lifespan, router registration, /api/health
+│   ├── config.py                 # pydantic-settings; ~100 env-configurable fields
 │   ├── database.py               # SQLAlchemy engine (pool_size=10, max_overflow=20)
-│   ├── models.py                 # 51 ORM tables
-│   ├── migrations/               # Alembic 0001 → 0015
-│   ├── middleware/               # rate_limit, upload_guard, concurrency
-│   ├── startup/                  # orphan_recovery
+│   ├── models.py                 # 57 ORM tables
+│   ├── migrations/               # Alembic 0001 → 0026
+│   ├── middleware/               # rate_limit, upload_guard, concurrency, body_limit,
+│   │                             # csrf, origins, request_context
+│   ├── startup/                  # worker_guard, orphan_recovery
 │   ├── routers/
 │   │   ├── auth · projects · chapters · characters
-│   │   ├── intake · plot_assistant · ai_transform · writing_tools
-│   │   ├── analysis · plot_holes · narrative_threads · story_intel
+│   │   ├── intake · plot_assistant · ai_transform · ai_workspace · writing_tools
+│   │   ├── analysis · analytics · plot_holes · narrative_threads · story_intel
 │   │   ├── story_bible · pacing · copyright_risk
 │   │   ├── ocr · audio · manuscript · manuscript_report
-│   │   └── search · export · activity · voice_agent
+│   │   └── search · export · activity · voice_agent · ops
 │   └── services/
 │       ├── ai_service.py         # All LLM + BGE-M3 calls
 │       ├── audio_service.py      # faster-whisper transcription
@@ -101,6 +115,7 @@ narratiq-ai/
 │       ├── story_intel_*.py      # Story intelligence orchestration
 │       └── voice/                # Real-time voice agent (20 modules)
 │
+├── scripts/                      # backups, restore checks, watchdog, rollback, docs tooling
 └── frontend/                     # Next.js 14
     ├── app/(dashboard)/projects/[id]/
     │   ├── write · plan · characters · world
@@ -108,7 +123,7 @@ narratiq-ai/
     ├── components/               # editor, ai-tools, analysis, characters,
     │                             # voice, studio, story-bible, notes, …
     └── lib/
-        ├── api.ts                # Typed API client + JWT interceptor
+        ├── api.ts                # Typed API client (same-origin /api, session cookie, CSRF header)
         ├── registries/           # Declarative workspace + panel registries
         └── types.ts
 ```
@@ -140,7 +155,8 @@ Full interactive documentation at `/docs`.
 
 | Method | Route | Description |
 |---|---|---|
-| POST | `/api/auth/register` · `/api/auth/login` | Account + JWT |
+| POST | `/api/auth/register` · `/login` · `/logout` | Account and session (HttpOnly cookie) |
+| GET / DELETE | `/api/auth/me` · `/api/auth/account` | Current user · delete account and all data |
 | GET/POST | `/api/projects/` | Story CRUD |
 | GET/PATCH | `/api/stories/{id}/chapters` | Chapters + autosave + version history |
 | POST | `/api/intake/{id}` | Genre detection |
@@ -149,21 +165,24 @@ Full interactive documentation at `/docs`.
 | GET | `/api/ai/author-styles` | Author-style catalogue |
 | POST | `/api/stories/{id}/chapters/{cid}/continue` | Chapter continuation |
 | POST | `/api/stories/{id}/chapters/{cid}/outline` | Beat sheet / scene outline |
-| GET | `/api/stories/{id}/emotional-arc` · `/continuity-check` · `/style-drift` · `/duplicate-scenes` | Analysis |
-| GET | `/api/stories/{id}/plot-holes` | Plot hole detection |
+| GET | `/api/stories/{id}/emotional-arc` | Emotional arc |
+| POST | `/api/stories/{id}/continuity-check` · `/style-drift` · `/duplicate-scenes` | Analysis |
+| POST | `/api/stories/{id}/plot-holes` | Plot hole detection |
 | POST/GET | `/api/stories/{id}/story-bible` | Story bible generation |
 | POST | `/api/stories/{id}/copyright-risk` | Copyright / plagiarism risk |
-| POST | `/api/stories/{id}/ocr` · `/audio` | OCR and audio ingestion |
+| POST | `/api/ocr/extract/{story_id}` · `/api/stories/{id}/audio` | OCR and audio ingestion |
+| POST | `/api/stories/{id}/ai/pins` · `/ai/similarity` | Phase 3 pins and similarity |
 | POST | `/api/manuscript/upload/{id}` | Full manuscript ingestion |
 | WS | `/api/voice/stream` | Real-time voice agent |
 | POST | `/api/export/` | DOCX / PDF export |
+| GET | `/api/health` · `/api/ops/status` | Health (public) · operations status (`X-Ops-Token`) |
 
 ---
 
 ## Tech Stack
 
 **Frontend** Next.js 14, TypeScript, TailwindCSS, TipTap, Radix UI, TanStack Query, Zustand, Lucide
-**Backend** FastAPI, SQLAlchemy 2, Pydantic v2, Alembic, python-jose (JWT), slowapi
+**Backend** FastAPI, SQLAlchemy 2, Pydantic v2, Alembic, python-jose (session JWT in an HttpOnly cookie), slowapi
 **Database** PostgreSQL 16 + pgvector (HNSW)
 **AI** Qwen2.5-7B-Instruct, BAAI/bge-m3, GOT-OCR2.0, faster-whisper
 **Inference** vLLM 0.9.2 (OpenAI-compatible server)
@@ -173,7 +192,8 @@ Full interactive documentation at `/docs`.
 ## Features
 
 ### Core
-- [x] Landing page, user auth (register / login / JWT)
+- [x] Landing page, user auth (register / login / logout, HttpOnly cookie sessions, change password)
+- [x] Account deletion (immediate, all data) and a published data policy (`/data-policy`)
 - [x] Projects dashboard with statistics
 - [x] Story intake — AI genre detection with editable results
 - [x] 7-workspace author studio with command palette and selection toolbar
@@ -181,9 +201,9 @@ Full interactive documentation at `/docs`.
 - [x] AI transforms — refine, tone (9), emotion (6), audience, style, translation
 - [x] Author-inspired style rewrite (public-domain authors only)
 - [x] AI Plot Assistant with RAG over chapter chunks
-- [x] Handwritten notes OCR (GOT-OCR2.0)
+- [ ] Handwritten notes OCR (GOT-OCR2.0): upload and review UI exist, but **extraction currently fails** (see Known Issues)
 - [x] Writing analytics — word count, readability, dialogue ratio
-- [x] Full manuscript upload + background ingestion
+- [ ] Full manuscript upload: background ingestion works via the API (`POST /api/manuscript/upload/{id}`), but **there is no upload control in the UI yet**
 - [x] Export to DOCX / PDF
 - [x] Global search (semantic + exact)
 
@@ -205,16 +225,32 @@ Full interactive documentation at `/docs`.
 - [x] Activity timeline
 - [x] Copyright / plagiarism risk detection
 
+### Author-centric AI workflow (Phase 3)
+- [x] Temporary pins for AI generations (unpinned generations are never stored)
+- [x] Sentence locks and partial regeneration
+- [x] Generate from a pinned version, use pins as context, avoid repeats
+- [x] Compare and merge versions
+- [x] Per-story preservation rules for AI rewrites
+- [x] Idea Shelf
+- [x] Similarity check
+
 ### Production hardening
-- [x] Per-user and per-IP rate limiting (6 independent limits)
+- [x] Per-user and per-IP rate limiting (8 configurable limits, single worker enforced)
 - [x] Upload size guards (audio / OCR / manuscript)
 - [x] Background AI concurrency semaphores
 - [x] Orphan job recovery at startup
 - [x] Structured logging (text / JSON)
 - [x] Graceful AI-unavailable handling (503 with `Retry-After`)
 
+### Operations (Stage 10)
+- [x] Hourly verified database backups with retention; restore rehearsed (off-pod copy not yet configured)
+- [x] Live health checks, operations metrics, built-in error tracking, watchdog alerts to a local file
+- [x] Rollback procedures for schema, frontend build and pinned model revisions
+- [x] Development containers (`backend/Dockerfile`, `frontend/Dockerfile`; RunPod stays the production host)
+
 ### Not yet built
 - [ ] EPUB / Kindle export (DOCX and PDF are supported)
+- [ ] Batched / hierarchical plot-hole strategies for manuscripts over 60 chapters (see Known Issues)
 - [ ] Multi-user collaboration — the permission seam exists but always grants access
   (`StoryContextEngine.tsx`), so the app is single-owner today
 
@@ -222,24 +258,45 @@ Full interactive documentation at `/docs`.
 
 ## Known Issues
 
-Tracked in [`docs/issues-and-bugs/open/`](docs/issues-and-bugs/) — see
+The full register of every reported issue, with severity and release-blocking status, is
+[`docs/issues-and-bugs/triage-register.md`](docs/issues-and-bugs/triage-register.md). Source reports:
 [Phase 1 QA issues](docs/issues-and-bugs/open/phase-1-ai-writing-tools-qa-issues.docx) and
 [Phase 2 production testing issues](docs/issues-and-bugs/resolved/phase-2-production-testing-issues.docx)
-(all 14 resolved and re-verified 2026-09-27).
-(A code-level audit, `NarratIQ_Project_Recovery_Report.docx`, is referenced by older documents but is
-not present in this repository.) Highest priority:
+(all 14 Phase 2 issues resolved and re-verified 2026-09-27). Open items at the time of writing (2026-10-01):
 
-1. ~~**vLLM port contradiction**~~ — **Resolved 2026-09-21.** `start-narratiq.sh` and `config.py` use
-   9001; the legacy `start.sh` (which used 8001) has been deleted and
-   `scripts/verify_runpod_setup.sh` corrected to 9001. See
-   [`docs/operations/runpod-deployment.md`](docs/operations/runpod-deployment.md).
-2. **Story Bible can persist placeholder text** while marking the job `completed`
-   (`routers/story_bible.py:138-147`).
-3. **Outline / continuation / continuity / plot-hole failures** share one root cause — invalid AI
-   output is not handled gracefully in the response parsing layer.
-4. **Plot Assistant retrieval** favours Chapter 1 over later chapters.
-5. **Plot hole detection caps at 60 chapters** (`ai_service.py:1534`); the batched and hierarchical
-   strategies are written but not enabled.
+1. **OCR extraction fails** (High). Every handwritten-note extraction returns "OCR processing failed",
+   because GOT-OCR2.0's remote code is incompatible with the installed `transformers`
+   (`'DynamicCache' object has no attribute 'seen_tokens'`). See
+   [`docs/issues-and-bugs/ocr-extraction-got-ocr2-dynamiccache-failure.md`](docs/issues-and-bugs/ocr-extraction-got-ocr2-dynamiccache-failure.md).
+2. **No manuscript-upload control in the UI.** The backend ingestion endpoint works; the frontend has
+   no button for it (found by Stage 6, task 6.4; the browser test is written to fail until it exists).
+3. **Plot hole detection and the manuscript report cap at 60 chapters** (`_PLOT_HOLE_MAX_CHAPTERS`,
+   `_MANUSCRIPT_MAX_CHAPTERS` in `backend/services/ai_service.py`). The cap is accepted for launch
+   (decision D-8). The batched and hierarchical strategies that would lift it are **not written**:
+   the strategy registry holds only `single_pass`, and the other entries are commented-out names of
+   functions that do not exist. Lifting the cap is new development work, not a configuration switch.
+4. **Prompt injection through manuscript text: mitigated (Stage 11), residual risk remains.** Text in a
+   manuscript can try to give the AI instructions. Every model call now fences the author's material as
+   data and restates the real task after it. Rewrite outputs that lose the selected passage are retried
+   and otherwise refused, with the author's text left unchanged. This lowers the risk a great deal but
+   cannot make it impossible. Only the author's own results are affected, since there is no sharing.
+   Measurements: [`docs/testing/stage-09-security-findings.md`](docs/testing/stage-09-security-findings.md).
+5. **Dependency advisories** (D1, D3): vLLM 0.9.2 and Next.js 14 carry published advisories whose
+   fixes need major upgrades. They await a decision (same file).
+6. **Phase 1 QA backlog awaiting author acceptance.** Fixes for the Plot Assistant, writing tools,
+   suggestions, cast and Story Audit issues landed in Stages 4, 5 and 8 (for example, the Plot Assistant
+   now searches up to the current chapter by default, with a full-manuscript option). Formal closure
+   needs real-author UAT ([`docs/testing/stage-09-uat-guide.md`](docs/testing/stage-09-uat-guide.md)).
+   Duplicate-character **detection** (task 4.8) is not built; manual merge exists.
+7. **No off-pod backup copy and no person-delivered alerts.** Backups stay on the pod volume, and alerts
+   go to `/workspace/logs/alerts.jsonl`. Both are deferred until an external service is approved
+   (Stage 10 decisions S10-B, S10-D). A pod/volume reset therefore loses the database.
+
+Resolved since earlier revisions of this list: the vLLM port contradiction (9001 everywhere; `start.sh`
+retired), Story Bible placeholders stored as content (per-section `completed`/`partial`/`failed`
+status since Stage 3), and the outline / continuation / continuity / plot-hole failures. Those had
+**two** causes, not one: a retrieval call-signature bug (task 3.1) and schema handling of model output
+(tasks 3.4, 3.5).
 
 ---
 
@@ -251,10 +308,15 @@ purpose (phases, open issues, testing, incidents, operations, archive).
 | File | Purpose |
 |---|---|
 | [`docs/README.md`](docs/README.md) | Documentation index and recommended reading order |
+| [`docs/NarratIQ_Master_Implementation_Checklist.md`](docs/NarratIQ_Master_Implementation_Checklist.md) | Execution tracker: every remaining task, its evidence and stage gates |
 | [`docs/operations/how-to-run.md`](docs/operations/how-to-run.md) | Starting each service, verification, common problems |
-| [`docs/operations/runpod-deployment.md`](docs/operations/runpod-deployment.md) | Pod creation, storage, deployment, troubleshooting |
+| [`docs/operations/runpod-deployment.md`](docs/operations/runpod-deployment.md) | Pod creation, storage, deployment, GPU requirements, troubleshooting |
 | [`docs/operations/runpod-environment-variables.md`](docs/operations/runpod-environment-variables.md) | Which env vars to set, precedence, generated values |
-| [`docs/phases/phase-3-planned/phase-3-author-centric-ai-workflow.md`](docs/phases/phase-3-planned/phase-3-author-centric-ai-workflow.md) | Next phase to be built (design specification) |
+| [`docs/operations/README.md`](docs/operations/README.md) | Operations runbooks: backup and restore, monitoring, incident response, rollback, capacity, containers, model versions |
+| [`docs/policies/data-retention-and-deletion.md`](docs/policies/data-retention-and-deletion.md) | What is stored, for how long, and how deletion works |
+| [`docs/specifications/narratiq-ai-product-and-technical-documentation.md`](docs/specifications/narratiq-ai-product-and-technical-documentation.md) | Product and technical specification (v5) |
+| [`docs/phases/phase-3-planned/phase-3-author-centric-ai-workflow.md`](docs/phases/phase-3-planned/phase-3-author-centric-ai-workflow.md) | Phase 3 — Author-Centric AI Workflow specification (implemented in Stage 7) |
+| [`docs/issues-and-bugs/triage-register.md`](docs/issues-and-bugs/triage-register.md) | Every reported issue with severity and release-blocking status |
 | [`CLAUDE.md`](CLAUDE.md) | Architecture reference for contributors and AI assistants |
 | [`CHANGELOG.md`](CHANGELOG.md) | Release history |
 | [`.env.example`](.env.example) | Annotated configuration template |

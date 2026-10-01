@@ -1,12 +1,20 @@
 # Operations
 
-Everything needed to run, deploy and configure NarratIQ AI. All three documents are **current**.
+Everything needed to run, deploy, configure, back up, monitor and recover NarratIQ AI.
 
 | Document | Read it when |
 |---|---|
 | [`how-to-run.md`](./how-to-run.md) | Starting the stack, per-service startup, verifying a running pod |
 | [`runpod-deployment.md`](./runpod-deployment.md) | Creating a pod, storage layout, model weights, troubleshooting |
 | [`runpod-environment-variables.md`](./runpod-environment-variables.md) | Deciding which variables to set in the RunPod UI, and why a stale one may be breaking the app |
+| [`storage-and-persistence.md`](./storage-and-persistence.md) | What survives a pod restart or reset, and what does not |
+| [`backup-and-restore.md`](./backup-and-restore.md) | Hourly backups, verification, retention, restoring a database |
+| [`monitoring-and-alerting.md`](./monitoring-and-alerting.md) | Health, ops endpoints, error tracking, watchdog alerts |
+| [`incident-response.md`](./incident-response.md) | Severity levels, who does what, postmortems |
+| [`rollback.md`](./rollback.md) | Rolling back code, schema, frontend build or models |
+| [`model-versions.md`](./model-versions.md) | Pinned model revisions and how to change them |
+| [`capacity-planning.md`](./capacity-planning.md) | Measured capacity and onboarding limits |
+| [`containers.md`](./containers.md) | Development containers (RunPod remains the production host) |
 
 ## The short version
 
@@ -14,8 +22,10 @@ Everything needed to run, deploy and configure NarratIQ AI. All three documents 
 bash /workspace/narratiq-ai/start-narratiq.sh
 ```
 
-One command handles installs, model downloads, PostgreSQL + pgvector, migrations and all three
-services. It is idempotent and safe to rerun.
+One command handles installs, model downloads, PostgreSQL + pgvector, migrations, all three services,
+the backup loop and the watchdog. It is idempotent and safe to rerun. The repository must be at
+`/workspace/narratiq-ai`; if it was cloned elsewhere, symlink it first (see
+[`how-to-run.md`](./how-to-run.md)).
 
 You need **no** environment variables to start — the script generates every mandatory value. Only
 `SECRET_KEY` and `HF_TOKEN` are worth setting by hand. A stale `VLLM_BASE_URL` pointing at port 8001

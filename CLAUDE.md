@@ -8,12 +8,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Start everything (handles installs, patches, vLLM, backend, frontend)
 bash /workspace/narratiq-ai/start-narratiq.sh
 
-# Manual vLLM start (NVIDIA Blackwell GPUs require these NCCL flags)
+# Manual vLLM start — values for the verified production pod (1× NVIDIA A40).
+# start-narratiq.sh picks TP / max-model-len / utilisation from the GPU count;
+# see "GPU / Hardware Notes" below for the other rows of that table.
 NCCL_P2P_DISABLE=1 NCCL_SHM_DISABLE=1 python3 -m vllm.entrypoints.openai.api_server \
   --model /workspace/models/Qwen2.5-7B-Instruct \
   --served-model-name "Qwen/Qwen2.5-7B-Instruct" \
-  --dtype auto --gpu-memory-utilization 0.90 \
-  --tensor-parallel-size 2 --max-model-len 16384 \
+  --dtype auto --gpu-memory-utilization 0.88 \
+  --tensor-parallel-size 1 --max-model-len 8192 \
+  --max-num-seqs 256 --enable-chunked-prefill --enable-prefix-caching \
   --host 0.0.0.0 --port 9001
 
 # Backend — exactly one worker (D-3; the startup guard refuses more) and
@@ -48,30 +51,96 @@ curl -X POST http://localhost:8000/api/stories/{id}/chapters/sync-summaries \
 
 **Three-service stack:** vLLM (port 9001) → FastAPI backend (port 8000) → Next.js 14 frontend (port 3000).
 
-**Backend startup sequence** (`main.py` `lifespan`): orphan-job recovery → upload dirs → model paths validated → BGE-M3 loaded synchronously via `get_bge()` → voice capability index → pgvector self-check → vLLM health check → warmup request → ready.
+**Backend startup sequence** (`main.py` `lifespan`): single-worker guard (`startup/worker_guard.py`, refuses more than one worker, D-3) → orphan-job recovery → Phase 3 pin-backend / context-budget validation → upload dirs → model paths validated → BGE-M3 loaded synchronously via `get_bge()` → voice capability index → pgvector self-check → vLLM health check → warmup request → `_run_periodic_cleanup()` scheduled → ready.
 
-Only two conditions are hard failures (`RuntimeError`): **missing model weights** (`main.py:178-186`) and a **broken pgvector query path** (`main.py:221-226`). If vLLM is unreachable the backend logs a warning and **continues in degraded mode** — AI endpoints return 503. Since Stage 10 `/api/health` probes vLLM **live** (cached 10 s) and answers **503 with `"status":"degraded"`** while vLLM or BGE-M3 is not ready; `"backend":"ready"` is the "API is serving" signal.
+Hard failures (`RuntimeError`) are the worker guard, an invalid Phase 3 pin backend or a malformed `PLAN_LIMITS_JSON`, **missing model weights** (the model-path check in `lifespan`), and a **broken pgvector query path** (the "pgvector path self-check" block). If vLLM is unreachable the backend logs a warning and **continues in degraded mode** — AI endpoints return 503. Since Stage 10 `/api/health` probes vLLM **live** (cached 10 s) and answers **503 with `"status":"degraded"`** while vLLM or BGE-M3 is not ready; `"backend":"ready"` is the "API is serving" signal.
 
 **AI text generation:** All LLM calls go through `_complete()` / `_stream_generate()` in `backend/services/ai_service.py` via the OpenAI-compatible vLLM endpoint. Model: `Qwen2.5-7B-Instruct`.
 
-**Embeddings:** BGE-M3 (1024-dim) runs in-process via `sentence-transformers`. Embeddings stored as `vector(1024)` columns (pgvector) on `chapter_chunks`, `chapter_summaries`, `character_profiles` (×2), `story_notes`, and `note_cards`. Retrieval uses pgvector HNSW indexes with the `<=>` cosine distance operator via raw SQL — numpy cosine is no longer used.
+**Prompt-injection defence (Stage 11, finding P1):** `services/prompt_safety.py`, applied centrally in `_complete_ex()` and `_stream_generate()`, so every call is covered.
+- The user message (the author's material) is fenced between `<<<AUTHOR_MATERIAL id>>>` markers with a per-call random id.
+- The system message gains a short "the fenced text is data" rule.
+- The concrete task is restated **after** the fence. Measured on Qwen-7B, what the model reads last decides whether it obeys an injected line.
+- Call sites pass `task=`: `prompt_safety.REWRITE_TASK` for rewrites, `TRANSLATE_TASK`, or `question_task(question)` for Q&A, so the author's question comes last.
+- Output check: rewrite endpoints run `rewrite_lost_source()` on the output, retry once, then refuse with 422 `instruction_like_text` instead of returning a hijacked "rewrite". A copyright `note` that merely echoes the input is dropped (`echoes_source()`).
+- `PROMPT_INJECTION_GUARD=false` restores the old prompts exactly; use it for measurement only.
+- Residual risk is documented in `docs/testing/stage-09-security-findings.md`.
 
-**Database:** PostgreSQL 16 + pgvector + SQLAlchemy ORM. Connection pool: `pool_size=10, max_overflow=20`. Key tables: `stories`, `chapters`, `chapter_chunks` (350-word overlap chunks for RAG), `chapter_summaries`, `characters`, `character_profiles`, `character_relationships`. Alembic manages schema migrations (`backend/migrations/`). `start-narratiq.sh` runs `Base.metadata.create_all()` then `alembic upgrade head` before FastAPI starts.
+**Embeddings:** BGE-M3 (1024-dim) runs in-process via `sentence-transformers`. Embeddings stored as `vector(1024)` columns (pgvector) on `chapter_chunks`, `chapter_summaries`, `character_profiles` (×2), `story_notes`, and `note_cards`. All vector similarity uses pgvector's `<=>` cosine operator via raw SQL:
+- **Retrieval of stored vectors:** HNSW indexes.
+- **Vectors computed for the request** (dialogue passages in the voice check, thread names, style-drift centroids): `services/vector_math.py` (`cosine_pairs`, `cosine`), one SQL round trip, nothing stored. This is Phase 2 rule R12 (Stage 11).
+- numpy only averages centroids, which is arithmetic.
+- The one numpy-cosine site left is the voice-agent capability catalog (`services/voice/catalog.py`). It is not a Phase 2 feature and is out of R12's scope.
 
-**Background tasks:** `asyncio.create_task()` — no Redis or external queue. Used for re-embedding after profile updates.
+**Database:** PostgreSQL 16 + pgvector + SQLAlchemy ORM, 57 ORM tables in `backend/models.py`. Connection pool: `pool_size=10, max_overflow=20`. Table groups:
+- **Core:** `users`, `stories`, `chapters`, `chapter_chunks` (350-word overlap chunks for RAG), `chapter_summaries`, `characters`, `character_profiles`, `character_relationships`.
+- **Notes:** `story_notes`, `note_cards` (also the Idea Shelf).
+- **Story Intelligence:** 23 tables (`0007`).
+- **Phase 2:** `story_bibles`, `narrative_threads`, `pacing_goals`, `audio_uploads`.
+- **Voice agent:** tables from `0012`.
+- **Activity and preservation:** `activity_events`, `story_preservation_settings`.
+- **Phase 3:** `ai_generation_pins`.
+- **Stage 5:** `narrative_thread_scans`, `manuscript_reports`.
+- **Stage 10:** `revoked_sessions`, `error_events`.
+
+Alembic manages schema migrations (`backend/migrations/`). `start-narratiq.sh` runs `Base.metadata.create_all()` then `alembic upgrade head` before FastAPI starts.
+
+**Staleness:** `services/source_fingerprint.py::chapter_source_fingerprint()` hashes the indexed chapters an artefact was generated from. The saved Manuscript Report (`0023`) and the Story Bible (`story_bibles.source_fingerprint`, `0025`) store it at generation time and report `is_stale` on read.
+
+**Background tasks:** `asyncio.create_task()`, with no Redis or external queue. Used for:
+- re-embedding after profile updates
+- Story Bible generation
+- narrative-thread scans
+- manuscript import jobs
+- the Story Intelligence orchestrator
+- audio transcription
+
+`_run_periodic_cleanup()` (hourly) sweeps OCR and audio files, orphaned uploads, expired pins, auth sessions and error events. The backup loop and watchdog run as separate processes started by `start-narratiq.sh` (Stage 10, below).
+
+**Routers** (`main.py`, 26 modules, all under `backend/routers/`):
+
+| Prefix | Routers |
+|---|---|
+| `/api/auth` | `auth` |
+| `/api/projects` | `projects` |
+| `/api/stories` | `chapters`, `characters`, `plot_holes`, `manuscript_report`, `story_intel`, `analysis`, `analytics`, `writing_tools`, `pacing`, `narrative_threads`, `story_bible`, `audio`, `activity`, `copyright_risk`, `ai_workspace` |
+| `/api/intake` | `intake` |
+| `/api/plot-assistant` | `plot_assistant` |
+| `/api/ai` | `ai_transform` |
+| `/api/ocr` | `ocr` |
+| `/api/manuscript` | `manuscript` |
+| `/api/export` | `export` |
+| `/api/search` | `search` |
+| `/api/voice` | `voice_agent` |
+| `/api/ops` | `ops`; its `public_router` adds `/api/client-errors` and the ops-token-gated `/api/stats`. `/api/health` is defined in `main.py` |
+
+**Middleware** (`backend/middleware/`): `rate_limit`, `upload_guard`, `concurrency`, `body_limit`, `csrf`, `origins`, `request_context`.
 
 **Auth (Stage 10):** the JWT is an **HttpOnly cookie** (`narratiq_session`) on the frontend's own origin — the browser calls `/api/*` same-origin and `next.config.js` rewrites it to the backend, so no page script can read the token and nothing is in localStorage. CSRF: double-submit (`narratiq_csrf` cookie → `X-CSRF-Token` header, `middleware/csrf.py`) for cookie-authenticated state changes. `Authorization: Bearer` still works for tooling and tests. Tokens carry `jti` + `ver`: logout revokes that session only (`revoked_sessions`); password change / account deletion bump `users.token_version` (all sessions end). The voice WebSocket uses a single-use 60 s ticket (`POST /api/auth/ws-ticket`). The frontend learns who is signed in from `GET /api/auth/me`; a 401 redirects to `/login`.
 
 **Character RAG:** Hybrid retrieval — cosine similarity on BGE-M3 embeddings + name-mention boost. 800-token budget cap per context window.
 
-## Blackwell GPU Notes
+## GPU / Hardware Notes
 
-The pod has 2× NVIDIA RTX PRO 4500 Blackwell (sm_120) GPUs. These require:
-- vLLM **0.9.2+** (first release with sm_120 support)
-- PyTorch **2.7.0+cu128** — the cu124/cu126 builds top out at sm_90
-- `NCCL_P2P_DISABLE=1 NCCL_SHM_DISABLE=1` to prevent NCCL deadlock at init
-- Clear `~/.cache/vllm/torch_compile_cache` after any failed start before retrying
-- `ovis.py` patch: all `AutoConfig.register()` calls need `exist_ok=True` (transformers 4.51+ pre-registers these types). The startup script applies this patch automatically via `sed`.
+**Verified production hardware:** **1× NVIDIA A40, 46068 MiB** (task 1.6; re-observed on every pod since, most recently `xtkhp8n020qo5a` on 2026-10-01). vLLM runs at **TP=1, `max-model-len` 8192, `gpu-memory-utilization` 0.88**. Any card with ≥ 24 GB VRAM works.
+
+`start-narratiq.sh` (STEP 3) chooses the vLLM settings from the number of GPUs `nvidia-smi` reports:
+
+| GPUs | `--tensor-parallel-size` | `--max-model-len` | `--gpu-memory-utilization` |
+|---|---|---|---|
+| 1 | 1 | 8192 | 0.88 |
+| 2–3 | 2 | 16384 | 0.90 |
+| 4+ | 4 | 32768 | 0.90 |
+
+The Story Bible / Plot Assistant context budgets are sized for the **8192** window; a larger window only adds headroom.
+
+**Requirements that apply to every GPU:** vLLM **0.9.2**, pinned in `start-narratiq.sh`; clear `~/.cache/vllm/torch_compile_cache` after any failed start (the script does this every run); the `ovis.py` patch: every `AutoConfig.register()` call needs `exist_ok=True` because transformers 4.51+ pre-registers these types. The script applies it with `sed`.
+
+**Requirements that apply only to NVIDIA Blackwell (sm_120, e.g. RTX PRO 4500), the project's original 2-GPU pod:**
+- PyTorch **2.7.0+cu128**, because the cu124/cu126 builds top out at sm_90. vLLM 0.9.2 is the first release with sm_120 support.
+- `NCCL_P2P_DISABLE=1 NCCL_SHM_DISABLE=1`, which prevents an NCCL deadlock at init with TP ≥ 2.
+
+The script applies both unconditionally. They are harmless on the A40: cu128 runs on sm_86, and the NCCL flags are inert at TP=1. So the same script serves both hardware types.
 
 ## Key Files
 
@@ -82,18 +151,18 @@ The pod has 2× NVIDIA RTX PRO 4500 Blackwell (sm_120) GPUs. These require:
 | `backend/routers/audio.py` | Phase 2: audio upload → faster-whisper → Qwen cleanup → note append |
 | `backend/routers/story_bible.py` | Phase 2: 5-section story bible generation via Qwen; DOCX export |
 | `backend/routers/analysis.py` | Phase 2: emotional arc, duplicate scenes, style drift, continuity |
-| `backend/routers/writing_tools.py` | Phase 2: chapter continuation (`:61`) **and** outline / beat sheet (`:145`) — there is no `continuation.py` or `outline.py` |
-| `backend/routers/characters.py` | Character CRUD, relationships, **and** voice consistency via `check_dialogue_consistency` (`:1197,:1293`) — there is no `voice.py` |
+| `backend/routers/writing_tools.py` | Phase 2: chapter continuation (`generate_chapter_continuation`) **and** outline / beat sheet (`generate_outline`). There is no separate continuation or outline router |
+| `backend/routers/characters.py` | Character CRUD, relationships, merge, **and** dialogue-voice consistency (`check_voice_consistency` route → `ai_service.check_dialogue_consistency`). There is no separate voice-check router |
 | `backend/routers/voice_agent.py` | Real-time voice agent (WS + REST). **Different feature** from the P2-05 dialogue checker above — do not confuse the two |
 | `backend/routers/pacing.py` | Phase 2: pacing goal setting + chapter progress tracking |
 | `backend/models.py` | SQLAlchemy ORM models (full schema) |
 | `backend/schemas.py` | Pydantic request/response schemas |
-| `backend/config.py` | Settings loaded from `.env` via pydantic-settings (89 fields incl. 30 Phase 3). `vllm_base_url` defaults to **9001**, matching `start-narratiq.sh`. `secret_key` is the only field with no default |
-| `frontend/lib/api.ts` | Typed API client wrappers; JWT interceptor |
+| `backend/config.py` | Settings loaded from `.env` via pydantic-settings (~100 fields incl. 30 Phase 3). `vllm_base_url` defaults to **9001**, matching `start-narratiq.sh`. `secret_key` is the only field with no default |
+| `frontend/lib/api.ts` | Typed API client wrappers. Same-origin `/api` calls with the session cookie; interceptors add the CSRF header and redirect to `/login` on 401 |
 | `frontend/lib/types.ts` | TypeScript interfaces for all domain objects |
 | `frontend/app/(dashboard)/projects/[id]/page.tsx` | Story entry: redirects to the author's last workspace (default Write). The old 3-column editor is gone |
 | `frontend/app/(dashboard)/projects/[id]/{write,plan,characters,world,analyze,assistant,publish}/page.tsx` | The Studio workspaces (Stage 8). `layout.tsx` holds `StudioShell` + `StudioStoreGate` |
-| `frontend/lib/registries/{workspaces,panels,actions,toolHomes}.ts(x)` | Studio registries. `toolHomes.ts` is the one table of where every tool lives; add a tool per `docs/architecture/adding-a-studio-tool.md` |
+| `frontend/lib/registries/{workspaces.ts,panels.tsx,actions.ts,toolHomes.ts}` | Studio registries. `toolHomes.ts` is the one table of where every tool lives; add a tool per `docs/architecture/adding-a-studio-tool.md` |
 | `frontend/lib/studioStore.ts` | Layout/mode store, persisted per user per browser (`narratiq_studio:<user_id>`) |
 | `frontend/tests/studio/` | Mocked-API Playwright suite (`npm run test:studio`, `test:a11y`, `test:studio:variants`); config `playwright.studio.config.ts` |
 | `frontend/app/(dashboard)/projects/[id]/error.tsx` | Next.js error boundary for the editor route |
@@ -102,19 +171,23 @@ The pod has 2× NVIDIA RTX PRO 4500 Blackwell (sm_120) GPUs. These require:
 
 ## Phase 2 Features (P2-01 → P2-11)
 
-| ID | Feature | Backend Router | AI Model | Endpoint Pattern |
-|----|---------|---------------|----------|-----------------|
-| P2-01 | Emotional Arc Analysis | `analysis.py` | Qwen | `GET /stories/{id}/emotional-arc` |
-| P2-02 | Chapter Continuation | `continuation.py` | Qwen | `POST /stories/{id}/chapters/{id}/continue` |
-| P2-03 | Scene Duplicate Detection | `analysis.py` | BGE-M3 + pgvector | `GET /stories/{id}/duplicate-scenes` |
-| P2-04 | Style Drift Analysis | `analysis.py` | BGE-M3 centroids + Qwen | `GET /stories/{id}/style-drift` |
-| P2-05 | Character Voice Check | `voice.py` | BGE-M3 + Qwen | `POST /stories/{id}/voice-check` |
-| P2-06 | Story Bible Generator | `story_bible.py` | Qwen (5 sections) | `POST/GET /stories/{id}/story-bible` |
-| P2-07 | Outline / Beat Sheet | `outline.py` | Qwen | `POST /stories/{id}/chapters/{id}/outline` |
-| P2-08 | Continuity Check | `analysis.py` | Qwen | `GET /stories/{id}/continuity-check` |
-| P2-09 | Pacing Goals | `pacing.py` | — (no AI) | `POST/GET /stories/{id}/pacing-goal` |
-| P2-10 | OCR Inject | `ocr.py` | Tesseract/vision | `POST /stories/{id}/ocr` |
-| P2-11 | Audio Transcription | `audio.py` | faster-whisper + Qwen | `POST /stories/{id}/audio` |
+Numbering follows the Phase 2 roadmap §19 (`docs/phases/phase-2-completed/phase-2-intelligence-expansion-roadmap.docx`). Every router below is mounted at `/api/stories`. Acceptance evidence for each task: [`phase-2-acceptance-record.md`](docs/phases/phase-2-completed/phase-2-acceptance-record.md).
+
+| ID | Feature | Backend Router | AI Model | Endpoint |
+|----|---------|---------------|----------|----------|
+| P2-01 | Emotional Arc Analysis | `analysis.py` | Qwen | `GET /api/stories/{id}/emotional-arc` |
+| P2-02 | Chapter Continuation | `writing_tools.py` | Qwen | `POST /api/stories/{id}/chapters/{cid}/continue` |
+| P2-03 | Dialogue Voice Consistency | `characters.py` | BGE-M3 + Qwen | `POST /api/stories/{id}/characters/{char_id}/voice-check` |
+| P2-04 | Outline / Beat Sheet | `writing_tools.py` | Qwen | `POST /api/stories/{id}/chapters/{cid}/outline` |
+| P2-05 | Continuity Validator | `analysis.py` | Qwen | `POST /api/stories/{id}/continuity-check` (synchronous; see the acceptance record, R10) |
+| P2-06 | Story Bible Generator | `story_bible.py` | Qwen (5 sections) | `POST/GET /api/stories/{id}/story-bible`, `POST …/story-bible/sections/{section}`, `GET …/story-bible/export` |
+| P2-07 | Narrative Thread Tracker | `narrative_threads.py` | Qwen | `POST …/narrative-threads/scan`, `GET …/narrative-threads`, `PATCH …/narrative-threads/{thread_id}` |
+| P2-08 | Style Drift Detection | `analysis.py` | BGE-M3 centroids + Qwen | `POST /api/stories/{id}/style-drift` |
+| P2-09 | Pacing Goals | `pacing.py` | none | `POST/GET /api/stories/{id}/pacing-goals` |
+| P2-10 | Duplicate Scene Detection | `analysis.py` | BGE-M3 + pgvector | `POST /api/stories/{id}/duplicate-scenes` |
+| P2-11 | Audio Transcription | `audio.py` | faster-whisper + Qwen | `POST /api/stories/{id}/audio`, `GET …/audio/{audio_id}`, `POST …/audio/{audio_id}/confirm` |
+
+OCR (`POST /api/ocr/extract/{story_id}`, `routers/ocr.py`, GOT-OCR2.0) is a **Phase 1** feature, not a Phase 2 task. Its extraction step currently fails, a known High defect: `docs/issues-and-bugs/ocr-extraction-got-ocr2-dynamiccache-failure.md`.
 
 ## Phase 2 New DB Tables
 
@@ -122,24 +195,47 @@ The pod has 2× NVIDIA RTX PRO 4500 Blackwell (sm_120) GPUs. These require:
 `audio_uploads` — transcription records (audio_id, story_id, user_id, note_id, audio_path, status, raw_transcript, cleaned_text, language_detected, duration_seconds, confidence, word_count, confirmed, created_at, updated_at)
 `pacing_goals` — per-story pacing target (goal_id, story_id, user_id, target_words_per_chapter, target_chapters, target_total_words, deadline, created_at, updated_at)
 
-## Phase 2 Migrations (Alembic)
+## Database Migrations (Alembic)
 
-Current chain (15 migrations): `0001 → 0002 → 0007 → 0008 → 0009 → 0010 → 0011 → 0012 → 0013 → 0014 → 0015`
+Current chain: **22 migration files**, head **`0026`**:
+`0001 → 0002 → 0007 → 0008 → … → 0026`
 
-Revisions `0003`–`0006` were never created. The chain is unbroken — `0007` sets `down_revision = "0002"` — but the numbering gap looks like missing files when auditing.
+Revisions `0003`–`0006` were never created. The chain is unbroken, because `0007` sets `down_revision = "0002"`, but the numbering gap looks like missing files when auditing. The Phase 1 Production Implementation Report's `0003_story_bibles` / `0004_narrative_threads` / `0005_pacing_goals` names are wrong; the files are `0008`–`0010`.
 
-- `0008` — `story_bibles`
-- `0009` — `narrative_threads`
-- `0010` — `pacing_goals`
-- `0011` — `audio_uploads`
-- `0012` — voice agent tables
-- `0013` — `activity_events`
-- `0014` — story intake analysis
-- `0015` — story bible status
+| Revision | Adds | Origin |
+|---|---|---|
+| `0001` | HNSW vector indexes | Phase 1 |
+| `0002` | `manuscript_jobs` | Phase 1 |
+| `0007` | Story Intelligence (23 tables) | Phase 1 |
+| `0008` | `story_bibles` | Phase 2 (P2-06) |
+| `0009` | `narrative_threads` | Phase 2 (P2-07) |
+| `0010` | `pacing_goals` | Phase 2 (P2-09) |
+| `0011` | `audio_uploads` | Phase 2 (P2-11) |
+| `0012` | voice agent tables | voice agent |
+| `0013` | `activity_events` | activity feed |
+| `0014` | story intake analysis | intake |
+| `0015` | `story_bibles.status` | Stage 3 (3.2) |
+| `0016` | `story_bibles.failed_sections` | Stage 3 (3.2) |
+| `0017` | chapter-summary arc / relationship fields | Stage 4 (4.5) |
+| `0018` | `story_preservation_settings` | Stage 5 |
+| `0019` | `ai_generation_pins` | Phase 3 (Stage 7) |
+| `0020` | AI preference columns on `story_preservation_settings` | Phase 3 (Stage 7) |
+| `0021` | Idea Shelf columns on `note_cards` | Phase 3 (Stage 7) |
+| `0022` | `users.plan` | Phase 3 (Stage 7) |
+| `0023` | `narrative_thread_scans`, `manuscript_reports` | Stage 5 live-review fixes D1/D2 |
+| `0024` | `users.token_version`, `revoked_sessions`, `error_events` | Stage 10 |
+| `0025` | `story_bibles.source_fingerprint` (Story Bible stale warning) | Stage 11 (P2-06) |
+| `0026` | Records in Alembic four columns that only `create_all()` / the startup guard ever created (`character_profiles.goals`, `.traits`, `chapter_chunks.character_ids`, `chapter_summaries.character_ids`). Guarded no-op where present; downgrade deliberately keeps them (author data) | Stage 11 (R11) |
 
-All migrations are idempotent and reversible. Never hand-apply raw `ALTER TABLE` to a live database. Write migrations by hand with `_table_exists` / `_index_exists` / `_column_exists` guards (template: `0011_audio_uploads.py`), because `start-narratiq.sh` runs `create_all()` **before** `alembic upgrade head` and every migration must tolerate objects that already exist. Use `alembic check` (or `alembic revision --autogenerate` into a scratch file) only as a **drift check** (Stage 7 decision C7-3). `alembic check` currently reports 31 pre-existing index-only drift items from migrations 0001–0013 (indexes not declared in the models) and none for Phase 3.
+The Phase 3 spec numbered its migrations `0016`–`0019`; they were renumbered `0019`–`0022` at implementation (decision C7-1).
 
-Later migrations: `0016` story bible failed sections · `0017` chapter-summary arc/relationship fields · `0018` `story_preservation_settings` (Stage 5) · `0019`–`0022` Phase 3 (below) · `0023` `narrative_thread_scans` + `manuscript_reports` (Stage 5 live-review fixes D1/D2, one row per story). Round-trip test on a populated test DB: `DATABASE_URL=…/narratiq_test bash backend/tests/run_migration_roundtrip.sh`.
+All migrations are idempotent and reversible. Never hand-apply raw `ALTER TABLE` to a live database. Write migrations by hand with `_table_exists` / `_index_exists` / `_column_exists` guards (template: `0011_audio_uploads.py`). This matters because `start-narratiq.sh` runs `create_all()` **before** `alembic upgrade head`, so every migration must tolerate objects that already exist.
+
+Use `alembic check` (or `alembic revision --autogenerate` into a scratch file) only as a **drift check** (Stage 7 decision C7-3). It reports pre-existing index-only drift from migrations 0001–0013 (indexes not declared in the models).
+
+Tests:
+- **Round trip on a populated test database:** `DATABASE_URL=…/narratiq_test bash backend/tests/run_migration_roundtrip.sh`
+- **Full downgrade walk:** `backend/tests/run_downgrade_walk.py`
 
 ## Phase 2 AI Model Usage
 
@@ -148,21 +244,21 @@ Later migrations: `0016` story bible failed sections · `0017` chapter-summary a
 | Emotional arc | Qwen | Per-chapter emotional tone classification |
 | Continuation | Qwen | Generative text continuation (3 options) |
 | Duplicate detection | BGE-M3 + pgvector | Vector similarity, no generation needed |
-| Style drift | BGE-M3 centroids + Qwen | Centroid math for drift score, Qwen for description |
-| Voice check | BGE-M3 + pgvector + Qwen | Embedding similarity for inconsistency detection |
+| Style drift | BGE-M3 centroids + pgvector + Qwen | Centroid average (numpy), cosine via pgvector, Qwen for description |
+| Voice check | BGE-M3 + pgvector + Qwen | Pairwise cosine via pgvector (`vector_math.cosine_pairs`), then Qwen describes the flagged pairs |
 | Story bible | Qwen | 5 section generation (characters/locations/timeline/world_rules/themes) |
 | Outline | Qwen | Beat-by-beat scene breakdown |
 | Continuity | Qwen | Cross-chapter consistency analysis |
 | Audio transcript | faster-whisper-large-v3-turbo | CTranslate2 in-process via `audio_service.py` |
 | Audio cleanup | Qwen | Filler removal, paragraph formatting post-Whisper |
 
-**Style drift centroid note:** `numpy` is used legitimately in `analysis.py` for computing centroid vectors (average across early/late chapter embedding arrays). This is not cosine retrieval — it's math to produce a single representative vector before calling pgvector `<=>`. This is the ONLY approved numpy usage; all retrieval must use pgvector SQL.
+**Similarity note (R12, Stage 11):** the voice check, thread-name clustering and style drift compute every similarity with pgvector through `services/vector_math.py`. Style drift's representative passages are retrieved with `ORDER BY embedding <=> centroid`. numpy only averages the centroid vectors.
 
 ## Phase 2 Runtime Requirements
 
-- `faster-whisper` installed via pip (CTranslate2 backend) — model: `Systran/faster-whisper-large-v3-turbo`
+- `faster-whisper` installed via pip (CTranslate2 backend). Model: `deepdml/faster-whisper-large-v3-turbo-ct2` at a pinned revision (`config.whisper_model_id`), because `Systran/faster-whisper-large-v3-turbo` now returns 401. It runs on CPU, int8 (`whisper_device`, `whisper_compute_type`), and `start-narratiq.sh` STEP 2 downloads it to `/workspace/models/faster-whisper-large-v3-turbo`
 - Model loaded lazily on first audio transcription call (`_whisper_model: WhisperModel | None = None` pattern)
-- Audio uploads stored at `backend/uploads/audio/` — ensure this path is writable on RunPod
+- Audio uploads are stored in `settings.upload_dir_audio` (default `uploads/audio`, relative to `backend/`). The directory is created at startup, not committed, and must be writable
 - Audio max size: 100 MB (enforced via Content-Length header pre-check before body read, then byte count after read)
 - Story bible concurrent generation guard: `_generating: set[str]` in `story_bible.py` prevents duplicate Qwen calls for same story
 
@@ -180,7 +276,9 @@ Bundle (Stage 8, `next build`): `/projects/[id]/write` **128 kB** page-specific,
 
 `ChunkLoadError` auto-recovery is in `components/chunk-error-recovery.tsx` (window error listener + sessionStorage 10s debounce to prevent loops).
 
-## Production Hardening (Phase 3)
+## Production Hardening (completed)
+
+> Earlier revisions titled this section "Production Hardening (Phase 3)". It is **not** Phase 3. "Phase 3" always means the feature phase **Phase 3 — Author-Centric AI Workflow** (section below). This hardening pass predates Stages 0–12.
 
 **8 hardening items implemented. All configurable via `.env` / `config.py`. No hardcoded values.**
 
@@ -190,7 +288,7 @@ Bundle (Stage 8, `next build`): `/projects/[id]/write` **128 kB** page-specific,
 |------|---------|
 | `backend/exceptions.py` | `AIServiceUnavailableError` (→ 503) and `UploadTooLargeError` (→ 413) |
 | `backend/logger.py` | `setup_logging()` — text/JSON formatter, called first in `main.py` |
-| `backend/middleware/rate_limit.py` | slowapi `Limiter` singleton + `get_user_id()` per-JWT key function |
+| `backend/middleware/rate_limit.py` | slowapi `Limiter` singleton + `get_user_id()` per-user key function (session cookie or Bearer) |
 | `backend/middleware/upload_guard.py` | `enforce_upload_size()` — Content-Length pre-check + post-read byte guard |
 | `backend/middleware/concurrency.py` | `bg_ai_semaphore()` and `embedding_semaphore()` — lazy-init singletons |
 | `backend/startup/orphan_recovery.py` | `recover_orphaned_jobs()` — startup sweep of stuck AudioUpload / ManuscriptJob / StoryIntelJob |
@@ -199,7 +297,7 @@ Bundle (Stage 8, `next build`): `/projects/[id]/write` **128 kB** page-specific,
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `RATE_LIMIT_AUTH` | `5/minute` | Login + register per-IP |
+| `RATE_LIMIT_AUTH` | `5/minute` | Login + register per client IP |
 | `RATE_LIMIT_REALTIME_AI` | `20/minute` | All ai_transform endpoints per-user |
 | `RATE_LIMIT_HEAVY_AI` | `5/minute` | Continuity, analysis, plot-holes, intake per-user |
 | `RATE_LIMIT_BACKGROUND_AI` | `3/minute` | Story bible, narrative threads per-user |
@@ -211,16 +309,18 @@ Bundle (Stage 8, `next build`): `/projects/[id]/write` **128 kB** page-specific,
 | `UPLOAD_DIR_OCR` | `uploads/ocr` | Local OCR storage path |
 | `BG_AI_CONCURRENCY` | `3` | Max concurrent Qwen background tasks |
 | `EMBEDDING_CONCURRENCY` | `2` | Max concurrent BGE-M3 background tasks |
-| `JWT_EXPIRE_MINUTES` | `10080` | JWT lifetime (7 days) |
+| `JWT_EXPIRE_MINUTES` | `10080` | Session lifetime (7 days): JWT `exp` and session-cookie max-age |
 | `JWT_ALGORITHM` | `HS256` | JWT signing algorithm |
 | `LOG_LEVEL` | `INFO` | Logging level (DEBUG/INFO/WARNING/ERROR) |
 | `LOG_FORMAT` | `text` | `text` for dev, `json` for production log aggregators |
 
+Variables added after this pass are declared in `config.py`; most are mirrored in `.env.example`. Examples: `OPS_TOKEN`, `TRUSTED_PROXY_CIDRS`, `ALLOW_MULTI_WORKER` and the session/CSRF cookie names (Stage 10); `PLAN_LIMITS_JSON` (Phase 3); and the shell-only hooks `NARRATIQ_OFFPOD_COMMAND` / `NARRATIQ_ALERT_COMMAND` read by `scripts/periodic_backup_loop.sh` and `scripts/watchdog.py`.
+
 ### Rate Limiting Architecture
 
-- **slowapi** wraps the `limits` library. **Storage is unconditionally in-memory** — `middleware/rate_limit.py:67` constructs `Limiter(key_func=get_remote_address)` with no `storage_uri`. `SLOWAPI_STORAGE_URI` is named in comments but **read by nothing**; setting it has no effect. In-memory storage is also per-process, so limits are not shared across uvicorn workers
-- Auth endpoints: per-IP (no JWT required at login time)
-- All AI and upload endpoints: per-user JWT `sub` claim, falls back to IP if token absent/invalid
+- **slowapi** wraps the `limits` library. **Storage is unconditionally in-memory.** The module-level `limiter = Limiter(key_func=get_remote_address)` in `middleware/rate_limit.py` has no `storage_uri`, and `SLOWAPI_STORAGE_URI` is read by nothing. Storage is per-process, which is correct only because exactly one worker runs (D-3, enforced by `startup/worker_guard.py`)
+- Auth endpoints: per client IP. `get_remote_address` is the module's own function (not slowapi's) and calls `client_ip()`, which reads `CF-Connecting-IP` / `X-Forwarded-For` **only** when the TCP peer is inside `TRUSTED_PROXY_CIDRS` (Stage 10)
+- All AI and upload endpoints: per-user key from the JWT `sub` (session cookie or Bearer header), falling back to the client IP if the token is absent or invalid
 - Global handler: `RateLimitExceeded` → HTTP 429 with `Retry-After` header
 
 ### AI Error Handling
@@ -245,7 +345,7 @@ Runs at startup (first step in `lifespan()`), before model loading:
 
 ### JWT Staging Plan (Deferred)
 
-Phase 3 partial: removed hardcoded `ALGORITHM`/`ACCESS_TOKEN_EXPIRE_MINUTES` from `auth.py`. Both now configurable.
+Hardening pass (step A): removed hardcoded `ALGORITHM`/`ACCESS_TOKEN_EXPIRE_MINUTES` from `routers/auth.py`. Both are now configurable.
 Phase B: **done in Stage 10 (task 10.7)** — HttpOnly cookie sessions, CSRF, server-side revocation; see "Auth (Stage 10)" above.
 
 ### Bugs Fixed
@@ -254,13 +354,13 @@ Phase B: **done in Stage 10 (task 10.7)** — HttpOnly cookie sessions, CSRF, se
 
 ### Migration Notes
 
-- **Redis**: moving rate limits to Redis **requires a code change** — pass `storage_uri=` to the `Limiter` at `middleware/rate_limit.py:67`. Earlier revisions of this file claimed `SLOWAPI_STORAGE_URI` did this with zero code changes; that was never true
+- **Redis**: moving rate limits to Redis **requires a code change**: pass `storage_uri=` to the `Limiter` in `middleware/rate_limit.py`. Earlier revisions of this file claimed `SLOWAPI_STORAGE_URI` did this with zero code changes; that was never true
 - **Celery**: Replace `asyncio.create_task()` calls with Celery `.delay()` — semaphore guards can be replaced with Celery worker concurrency limits
 - **S3/R2**: Change `UPLOAD_DIR_AUDIO` and `UPLOAD_DIR_OCR` env vars to bucket prefixes; swap `open()` calls for boto3 client
 
-## Phase 3 — Author-Centric AI Workflow (Stage 7)
+## Phase 3 — Author-Centric AI Workflow (implemented in Stage 7)
 
-Spec: `docs/phases/phase-3-planned/phase-3-author-centric-ai-workflow.md`. Product rule R1: **unpinned generations are never stored** (session history lives only in the browser, `lib/generationStore.ts`, not persisted).
+Spec: `docs/phases/phase-3-planned/phase-3-author-centric-ai-workflow.md`. The folder name `phase-3-planned/` is historical and kept so existing links resolve; the phase **is implemented**. Product rule R1: **unpinned generations are never stored** (session history lives only in the browser, `lib/generationStore.ts`, not persisted).
 
 | ID | Capability | Where |
 |----|-----------|-------|
@@ -282,17 +382,31 @@ Spec: `docs/phases/phase-3-planned/phase-3-author-centric-ai-workflow.md`. Produ
 
 ## Config Gotchas
 
-**vLLM port.** `config.py:59` defaults to `http://127.0.0.1:9001/v1`, matching `start-narratiq.sh:17`. The default moved from 8001 to 9001 in commit `b0f64be`; earlier revisions of this file said otherwise. **You do not need to set `VLLM_BASE_URL`.**
+**vLLM port.** `config.vllm_base_url` defaults to `http://127.0.0.1:9001/v1`, matching `VLLM_PORT=9001` in `start-narratiq.sh`. The default moved from 8001 to 9001 in commit `b0f64be`; earlier revisions of this file said otherwise. **You do not need to set `VLLM_BASE_URL`.**
 
-Two legacy files still reference the old port and are superseded: `start.sh:25` and `scripts/verify_runpod_setup.sh:14` (the latter reports a false failure against a working 9001 stack — override with `VLLM_PORT=9001`). This contradiction is documented, not fixed; see `docs/operations/runpod-environment-variables.md` §10.
+Nothing in the repository still defaults to 8001: the legacy `start.sh` was deleted (decision D-2), and `scripts/verify_runpod_setup.sh` defaults to `VLLM_PORT=9001`. History: `docs/operations/runpod-environment-variables.md` §10.
 
 **Environment precedence.** `pydantic-settings` resolves `OS env vars > backend/.env > field defaults`. `start-narratiq.sh` force-overwrites `DATABASE_URL`, `VLLM_BASE_URL`, `VLLM_MODEL_NAME` and `CORS_ORIGINS` in `backend/.env` on every run, but **a value left in the RunPod UI silently overrides all of them** for any manually started backend. A stale `VLLM_BASE_URL=…:8001/v1` is the classic cause of "healthy backend, every AI call 503".
 
-**`.env` path is relative.** `config.py:238` sets `env_file: ".env"`, resolved against the current working directory — always start the backend from `backend/`.
+**`.env` path is relative.** `Settings.model_config` sets `env_file: ".env"`, resolved against the current working directory — always start the backend from `backend/`.
 
 **`extra="forbid"`.** `Settings` rejects any `.env` key that is not a declared field, with a non-empty value, at import time. Adding a key to `backend/.env` without adding the field to `config.py` will prevent the backend from starting.
 
 `SECRET_KEY` is a **required** env var with no default. The backend refuses to start without it (validator rejects keys shorter than 32 chars). `start-narratiq.sh` auto-generates one into `backend/.env` on first run if absent. To generate manually: `python3 -c "import secrets; print(secrets.token_hex(32))"`. JWT tokens are signed with this key — changing it invalidates all active sessions.
+
+## Stages 3–9: where the work landed
+
+Full evidence for each stage is in `docs/NarratIQ_Master_Implementation_Checklist.md`.
+
+| Stage | What changed in the code | Where |
+|---|---|---|
+| 3 — Phase 2 defects | Retrieval call-signature fix (continuation/outline); Story Bible `completed`/`partial`/`failed` per-section status, `failed_sections` and per-section retry; `_extract_json` hard-fail audit; voice-agent action execution and honest success reporting | `routers/writing_tools.py`, `routers/story_bible.py` (`derive_status`), `services/ai_service.py`, `services/voice/`; migrations `0015`, `0016` |
+| 4 — Retrieval correctness | Plot Assistant chapter-scoped by default with a full-manuscript option (D-1); chapter-capped character evidence; character merge; search fixes; arc/relationship summary fields | `routers/plot_assistant.py`, `services/character_merge.py`, `routers/search.py`; migration `0017` |
+| 5 — Generation quality | Versioned prompts (`v1` frozen baseline, `v2`); the preservation engine (sentence locks, strength control, name/glossary preservation); suggestions and Story Audit overhaul | `services/prompt_registry.py`, `services/transform_preservation.py`, `services/narrative_signals.py`, `timeline_signals.py`, `relationship_arcs.py`; migrations `0018`, `0023` |
+| 6 — Test automation | Backend/frontend regression suites; CI deferred (6.1) | `backend/tests/run_full_regression.sh`, `frontend/tests/` |
+| 7 — Phase 3 | See "Phase 3 — Author-Centric AI Workflow" above | migrations `0019`–`0022` |
+| 8 — Studio UI | See "Studio Frontend Architecture" above | `frontend/app/(dashboard)/projects/[id]/` |
+| 9 — Regression, security, UAT | Cross-user isolation fixes I1–I7; upload/CORS fixes; `author` field length cap; security and prompt-injection probes | `backend/tests/test_security_stage9.py`, `backend/scripts/security/`; results in `docs/testing/stage-09-*.md` |
 
 ## Stage 10 — Production readiness (2026-09-29)
 

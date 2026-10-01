@@ -1,5 +1,6 @@
-/* @import must precede all other CSS rules or browsers silently ignore it */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* Inter is self-hosted from the @fontsource/inter package (imported in
+   app/layout.tsx), so no page load contacts Google Fonts: the author's browser
+   talks only to this server (Phase 2 rule R4, Stage 11). */
 
 @tailwind base;
 @tailwind components;

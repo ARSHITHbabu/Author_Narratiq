@@ -17,6 +17,7 @@
     "test:studio:variants": "STUDIO_VARIANT=mock-tool playwright test -c playwright.studio.config.ts navigation variants && STUDIO_VARIANT=p3-off playwright test -c playwright.studio.config.ts smoke navigation variants"
   },
   "dependencies": {
+    "@fontsource/inter": "5.3.0",
     "@radix-ui/react-avatar": "^1.0.4",
     "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-dropdown-menu": "^2.0.6",

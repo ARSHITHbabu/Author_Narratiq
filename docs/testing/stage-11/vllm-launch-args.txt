@@ -1,0 +1,1 @@
+python3 -m vllm.entrypoints.openai.api_server --model /workspace/models/Qwen2.5-7B-Instruct --served-model-name Qwen/Qwen2.5-7B-Instruct --dtype auto --gpu-memory-utilization 0.88 --tensor-parallel-size 1 --max-model-len 8192 --max-num-seqs 256 --enable-chunked-p

@@ -37,6 +37,8 @@ from typing import Any, Dict, List, Optional, Set
 
 from sqlalchemy.orm import Session
 
+from services import error_tracking
+
 from models import (
     Story, StoryIntelJob, gen_uuid,
 )
@@ -70,6 +72,26 @@ from services.story_intel_service import (
 
 logger = logging.getLogger(__name__)
 
+
+# Exceptions that mean the CODE is wrong, not that the model had a bad moment.
+# A TypeError in every pass went unnoticed until Stage 11 because all failures
+# were logged as one bland line; these now get a traceback and an error record.
+_PROGRAMMING_ERRORS = (TypeError, AttributeError, NameError, ImportError, KeyError, IndexError)
+
+
+def _report_failure(scope: str, story_id: str, exc: BaseException) -> None:
+    """Make a failed pass visible: a log line with the exception type (and a
+    traceback for programming errors), plus a scrubbed record in the Stage 10
+    error tracker so it shows up in /api/ops/errors and the watchdog."""
+    if isinstance(exc, _PROGRAMMING_ERRORS):
+        logger.error("[intel] %s ✗ story=%s: %s (programming error)", scope, story_id,
+                     type(exc).__name__, exc_info=exc)
+    else:
+        logger.error("[intel] %s ✗ story=%s: %s: %s", scope, story_id, type(exc).__name__, exc)
+    error_tracking.record_event(source="backend", kind=type(exc).__name__,
+                                route=f"story_intel:{scope}", message=str(exc),
+                                stack=error_tracking.stack_locations(exc))
+
 ALL_PASSES = [
     "P01", "P02", "P03", "P04", "P05", "P06", "P07",
     "P08", "P09", "P10", "P11", "P12",
@@ -102,7 +124,11 @@ async def run_full_analysis(
     Updates job progress via StoryIntelJob if job_id is provided.
     Returns a summary dict of results.
     """
-    if passes is None:
+    # None OR an empty list means "all passes": that is what the job record
+    # stores (`passes or ALL_PASSES`) and what the voice action sends
+    # (`passes: []`). Before Stage 11 an empty list ran nothing and reported
+    # "complete", so a voice-triggered analysis silently did no work.
+    if not passes:
         passes = ALL_PASSES
     passes_set: Set[str] = set(passes)
 
@@ -139,7 +165,7 @@ async def run_full_analysis(
         except Exception as e:
             failed.append(pass_code)
             db.rollback()
-            logger.error(f"[intel] {pass_code} ✗ story={story_id}: {e}")
+            _report_failure(pass_code, story_id, e)
             return None
 
     _update_job(db, job_id, status="running", current_pass="P01",
@@ -170,17 +196,25 @@ async def run_full_analysis(
     per_chapter_passes = {"P08", "P09", "P10", "P11", "P12"}
     if per_chapter_passes & passes_set and chapters:
         _update_job(db, job_id, current_pass="P08-P12", percent=_pct(len(completed)))
+        analysed = 0
         for chapter in chapters:
             try:
                 data = await _analyze_chapter_batch(chapter)
                 chapter_data.append(data)
+                analysed += 1
                 logger.info(f"[intel] P08-P12 ch{chapter.chapter_number} ✓")
             except Exception as e:
-                logger.warning(f"[intel] P08-P12 ch{chapter.chapter_number} ✗: {e}")
+                _report_failure(f"P08-P12 ch{chapter.chapter_number}", story_id, e)
                 chapter_data.append({"chapter_number": chapter.chapter_number})
+        # Honest status: these passes completed only if at least one chapter was
+        # actually analysed. Before Stage 11 they were marked completed even when
+        # every chapter had failed.
+        bucket = completed if analysed else failed
         for code in ["P08", "P09", "P10", "P11", "P12"]:
             if code in passes_set:
-                completed.append(code)
+                bucket.append(code)
+        if analysed < len(chapters):
+            logger.warning("[intel] P08-P12: %d of %d chapter(s) analysed", analysed, len(chapters))
         db.commit()
 
     # ── Synthesis passes ──────────────────────────────────────────────────────
@@ -214,28 +248,32 @@ async def run_full_analysis(
     # ── V2: Character intelligence ────────────────────────────────────────────
     if "P23" in passes_set and story.characters:
         _update_job(db, job_id, current_pass="P23", percent=_pct(len(completed)))
+        ok = 0
         for char in story.characters:
             try:
                 result = await run_p23_character_intel(db, story, char)
-                logger.info(f"[intel] P23 char={char.name} ✓")
+                logger.info(f"[intel] P23 char={char.character_id} ✓")
                 db.commit()
+                ok += 1
             except Exception as e:
-                logger.warning(f"[intel] P23 char={char.name} ✗: {e}")
                 db.rollback()
-        completed.append("P23")
+                _report_failure(f"P23 char={char.character_id}", story_id, e)
+        (completed if ok else failed).append("P23")
 
     # ── V2: Relationship intelligence ─────────────────────────────────────────
     if "P24" in passes_set and story.character_relationships:
         _update_job(db, job_id, current_pass="P24", percent=_pct(len(completed)))
+        ok = 0
         for rel in story.character_relationships:
             try:
                 await run_p24_relationship_intel(db, story, rel)
                 logger.info(f"[intel] P24 rel={rel.relationship_id} ✓")
                 db.commit()
+                ok += 1
             except Exception as e:
-                logger.warning(f"[intel] P24 rel={rel.relationship_id} ✗: {e}")
                 db.rollback()
-        completed.append("P24")
+                _report_failure(f"P24 rel={rel.relationship_id}", story_id, e)
+        (completed if ok else failed).append("P24")
 
     # ── V2: Memory consolidation ──────────────────────────────────────────────
     if "P25" in passes_set:
@@ -249,7 +287,7 @@ async def run_full_analysis(
         except Exception as e:
             db.rollback()
             failed.append("P25")
-            logger.error(f"[intel] P25 ✗: {e}")
+            _report_failure("P25", story_id, e)
 
     # ── V2: Timeline ──────────────────────────────────────────────────────────
     if "P26" in passes_set:
@@ -269,7 +307,7 @@ async def run_full_analysis(
         except Exception as e:
             db.rollback()
             failed.append("P28")
-            logger.error(f"[intel] P28 ✗: {e}")
+            _report_failure("P28", story_id, e)
 
     # ── V2: Integration context ───────────────────────────────────────────────
     if "P29" in passes_set:
@@ -281,7 +319,7 @@ async def run_full_analysis(
             logger.info(f"[intel] P29 ✓")
         except Exception as e:
             failed.append("P29")
-            logger.error(f"[intel] P29 ✗: {e}")
+            _report_failure("P29", story_id, e)
 
     # ── Finalise ──────────────────────────────────────────────────────────────
     final_status = "complete" if not failed else "complete_with_errors"

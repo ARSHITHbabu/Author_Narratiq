@@ -140,6 +140,11 @@ class Settings(BaseSettings):
     # restores the previous behaviour exactly (rollback by config).
     prompt_version:          str = "v3"
     prompt_version_fallback: str = "v2"
+    # Stage 11 (P1): fence the author's material as data in every model call and
+    # add the "instructions come only from the system message" rule
+    # (services/prompt_safety.py). On by default; "false" restores the previous
+    # prompts exactly, for measurement or rollback only.
+    prompt_injection_guard: bool = True
 
     # Streaming STT runs faster-whisper on CPU behind a bounded worker pool so it
     # never contends with vLLM/BGE-M3 on the GPU. Scale out via CPU replicas.

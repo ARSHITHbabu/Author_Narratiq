@@ -1,0 +1,141 @@
+{
+  "trigger": {
+    "status": 200,
+    "job_status": "pending"
+  },
+  "job": {
+    "status": "complete",
+    "passes_completed": [
+      "P01",
+      "P02",
+      "P03",
+      "P04",
+      "P05",
+      "P06",
+      "P07",
+      "P08",
+      "P09",
+      "P10",
+      "P11",
+      "P12",
+      "P13",
+      "P14",
+      "P15",
+      "P16",
+      "P17",
+      "P18",
+      "P19",
+      "P20",
+      "P21",
+      "P22",
+      "P23",
+      "P24",
+      "P25",
+      "P26",
+      "P27",
+      "P28",
+      "P29"
+    ],
+    "passes_failed": [],
+    "error_message": ""
+  },
+  "seconds": 165.2,
+  "reads": {
+    "genre": {
+      "status": 200,
+      "bytes": 1111,
+      "sample": "{\"genre_id\": \"c0ceb9c7-eb08-4a34-9a78-ee3f843c7886\", \"story_id\": \"9956c250-0ef4-49c0-845e-5386b4c15991\", \"primary_genre\": \"Mystery\", \"primary_genre_confidence\": 0.85, \"secondary_genres\": [{\"genre\": \"Thriller\", \"confidence\": 0.6, \"rationale\": \"The story involves suspenseful elements such as a missing logbook, a storm approaching, and the tension between the characters.\"}, {\"genre\": \"Drama\", \"confidence\": 0.4, \"rationale\": \"The narrative focuses on the personal and emotional journey of the characters, particularly Devika and Mara, as they uncover the truth.\"}], \"genre_blend_rationale\": \"The story blends mystery and thriller elements through the investigation of a shipwreck and the tension betw",
+      "mentions_story": true
+    },
+    "dna": {
+      "status": 200,
+      "bytes": 1000,
+      "sample": "{\"dna_id\": \"f337bad3-5965-453d-9bbd-bbc4b28cedfa\", \"story_id\": \"9956c250-0ef4-49c0-845e-5386b4c15991\", \"premise\": \"A lighthouse keeper and a harbour clerk uncover who let a ship sink.\", \"central_question\": \"Who was responsible for keeping the lighthouse light dark, leading to the sinking of the Marisol?\", \"thematic_core\": \"Trust, betrayal, and the consequences of hidden truths.\", \"narrative_engine\": \"Discovery and investigation through dialogue and archival research.\", \"story_promise\": \"Revealing the truth behind a maritime disaster and the motives of those involved.\", \"resolution_type\": \"closed\", \"pov_style\": \"third-limited\", \"tense\": \"past\", \"sentence_rhythm\": \"varied\", \"vocabulary_tier\": ",
+      "mentions_story": true
+    },
+    "audience": {
+      "status": 200,
+      "bytes": 631,
+      "sample": "{\"audience_id\": \"c31a453c-3b41-4d48-972a-f309f68a8022\", \"story_id\": \"9956c250-0ef4-49c0-845e-5386b4c15991\", \"primary_audience\": \"mystery enthusiasts\", \"age_range\": \"18-35\", \"reading_level\": \"general\", \"content_warnings\": [], \"appeal_factors\": [\"mystery plot\", \"historical setting\", \"character development\"], \"comparable_readership\": [\"fans of historical mysteries\", \"readers who enjoyed The Lighthouse Keeper by Kate Morton\"], \"marketing_hooks\": [\"Uncover the truth behind a shipwreck\", \"A tale of two women and their intertwined destinies\"], \"author_overrides\": {}, \"is_stale\": false, \"generated_at\": \"2026-10-01T17:30:37.649867\"}",
+      "mentions_story": false
+    },
+    "themes": {
+      "status": 200,
+      "bytes": 1130,
+      "sample": "{\"theme_id\": \"a1752446-0244-42cd-8e02-76f642548824\", \"story_id\": \"9956c250-0ef4-49c0-845e-5386b4c15991\", \"primary_theme\": \"Truth and Consequences\", \"theme_statement\": \"The truth about a past event has significant consequences for those involved, leading to a confrontation and resolution.\", \"secondary_themes\": [\"Trust and Betrayal\", \"Responsibility\"], \"motifs\": [{\"name\": \"Light and Darkness\", \"occurrences\": [\"The lighthouse lamp going dark\", \"The archive smelling of salt and mould\"]}], \"symbols\": [{\"symbol\": \"Torn Logbook\", \"meaning\": \"A representation of hidden or altered truths.\"}, {\"symbol\": \"Letter in Devika's Father's Hand\", \"meaning\": \"A symbol of past knowledge and the truth that must ",
+      "mentions_story": true
+    },
+    "conflicts": {
+      "status": 200,
+      "bytes": 1909,
+      "sample": "{\"conflict_id\": \"8dc57151-650b-488c-8f4a-7a90de9c869f\", \"story_id\": \"9956c250-0ef4-49c0-845e-5386b4c15991\", \"primary_conflict\": \"Devika discovers the lighthouse lamp has gone dark and finds the keeper's logbook torn, leading her to suspect foul play related to the disappearance of the Marisol.\", \"conflict_type\": \"man-vs-self\", \"secondary_conflicts\": [{\"description\": \"Mara's distrust of Devika due to her father's testimony at the inquiry regarding the Marisol's sinking.\", \"type\": \"man-vs-man\", \"characters\": [\"Mara\", \"Devika\"]}], \"conflict_evolution\": [{\"chapter\": 1, \"conflict_status\": \"Conflict begins with the discovery of tampering with the lighthouse lamp and logbook.\", \"escalation\": 0.5}, ",
+      "mentions_story": true
+    },
+    "world": {
+      "status": 200,
+      "bytes": 1178,
+      "sample": "{\"world_id\": \"8b86d708-37ad-4a5a-b07a-c418e4069dec\", \"story_id\": \"9956c250-0ef4-49c0-845e-5386b4c15991\", \"setting_type\": \"urban\", \"primary_settings\": [{\"name\": \"Carrow Point Lighthouse\", \"description\": \"A lighthouse where Devika has been keeping the light for nine years until it goes dark.\", \"chapters\": [1, 3]}, {\"name\": \"Harbour Office\", \"description\": \"Where Mara runs the office and keeps records of shipments.\", \"chapters\": [2]}, {\"name\": \"Archive\", \"description\": \"A place with old records and documents, including those related to the Marisol.\", \"chapters\": [3]}], \"world_rules\": [], \"time_period\": \"Contemporary\", \"social_structure\": \"Hierarchical (Mara is in charge of the harbour office, D",
+      "mentions_story": true
+    },
+    "structure": {
+      "status": 200,
+      "bytes": 881,
+      "sample": "{\"structure_id\": \"3ee5ac1c-dc6d-48e9-8f83-2717575d87d8\", \"story_id\": \"9956c250-0ef4-49c0-845e-5386b4c15991\", \"structure_type\": \"three-act\", \"act_breakdown\": {\"act1\": [1], \"act2\": [2, 3], \"act3\": []}, \"inciting_incident_chapter\": 1, \"midpoint_chapter\": 0, \"climax_chapter\": 0, \"resolution_chapter\": 3, \"narrative_promises\": [\"Devika will uncover the reason for the light going dark.\", \"The truth about the Marisol will be revealed.\"], \"promises_kept\": [\"Devika will uncover the reason for the light going dark.\", \"The truth about the Marisol will be revealed.\"], \"promises_broken\": [], \"structural_issues\": [{\"issue\": \"Act 3 is incomplete, leaving the resolution open-ended.\", \"chapter\": 3}, {\"type\": ",
+      "mentions_story": true
+    },
+    "emotional-arc": {
+      "status": 200,
+      "bytes": 659,
+      "sample": "{\"arc_id\": \"c909d2a6-0878-428a-ad91-c8e76582c72b\", \"story_id\": \"9956c250-0ef4-49c0-845e-5386b4c15991\", \"overall_arc_shape\": \"rise-fall\", \"opening_emotion\": \"concerned\", \"midpoint_emotion\": \"Suspicious\", \"climax_emotion\": \"mysterious\", \"resolution_emotion\": \"\", \"emotional_contrast_score\": 0.8, \"chapter_emotions\": [{\"chapter\": 1, \"tone\": \"concerned\", \"intensity\": 0.6}, {\"chapter\": 2, \"tone\": \" Suspicious\", \"intensity\": 0.8}, {\"chapter\": 3, \"tone\": \"mysterious\", \"intensity\": 0.7}], \"dominant_emotions\": [\"concerned\", \"Suspicious\", \"mysterious\"], \"emotional_gaps\": [2], \"author_overrides\": {}, \"is_stale\": false, \"generated_at\": \"2026-10-01T17:31:21.078619\"}",
+      "mentions_story": false
+    },
+    "pacing": {
+      "status": 200,
+      "bytes": 617,
+      "sample": "{\"pacing_id\": \"99ec7e9a-ad0d-409d-888f-fe1ef97d8854\", \"story_id\": \"9956c250-0ef4-49c0-845e-5386b4c15991\", \"overall_pacing\": \"slow\", \"act_structure\": {}, \"chapter_pacing\": [{\"chapter\": 1, \"pacing\": \"slow\", \"tension\": 0.4}, {\"chapter\": 2, \"pacing\": \"slow\", \"tension\": 0.6}, {\"chapter\": 3, \"pacing\": \"slow\", \"tension\": 0.5}], \"slow_zones\": [1, 2, 3], \"tension_peaks\": [], \"pacing_score\": 0.5, \"pacing_issues\": [{\"chapter\": 1, \"issue\": \"low tension\"}, {\"chapter\": 2, \"issue\": \"low tension\"}, {\"chapter\": 3, \"issue\": \"low tension\"}], \"author_overrides\": {}, \"is_stale\": false, \"generated_at\": \"2026-10-01T17:31:23.774958\"}",
+      "mentions_story": false
+    },
+    "strengths": {
+      "status": 200,
+      "bytes": 776,
+      "sample": "{\"strength_id\": \"92ab5025-7f22-472f-8fee-c32b325c8d3b\", \"story_id\": \"9956c250-0ef4-49c0-845e-5386b4c15991\", \"overall_score\": 0.6, \"voice_score\": 0.7, \"originality_score\": 0.5, \"character_depth_score\": 0.6, \"plot_coherence_score\": 0.8, \"pacing_score\": 0.6, \"world_building_score\": 0.5, \"dialogue_quality_score\": 0.4, \"strengths\": [\"Strong setting description\", \"Engaging plot\"], \"score_rationale\": {\"voice\": \"The narrative voice is consistent and descriptive, setting a somber tone appropriate for the mystery.\", \"originality\": \"The plot revolves around a lighthouse keeper and a harbour clerk uncovering a conspiracy, which is a somewhat common trope but executed with a unique twist.\"}, \"author_over",
+      "mentions_story": true
+    },
+    "risks": {
+      "status": 200,
+      "bytes": 651,
+      "sample": "{\"risk_id\": \"55947ae1-4482-4644-b912-fbeff76ad51b\", \"story_id\": \"9956c250-0ef4-49c0-845e-5386b4c15991\", \"plot_holes\": [{\"description\": \"The reason for the torn logbook is not immediately clear and might confuse readers.\", \"chapter\": 1, \"severity\": \"medium\"}], \"continuity_risks\": [], \"character_inconsistencies\": [], \"pacing_risks\": [{\"description\": \"The pacing slows down in Chapter 3 as the focus shifts to the archive and the discovery of the letter.\", \"chapters\": [3]}], \"tonal_shifts\": [], \"unresolved_threads\": [], \"risk_score\": 0.3, \"critical_issues\": [], \"author_overrides\": {}, \"is_stale\": false, \"generated_at\": \"2026-10-01T17:31:39.904734\"}",
+      "mentions_story": true
+    },
+    "characters": {
+      "status": 200,
+      "bytes": 2809,
+      "sample": "[{\"intel_id\": \"1cdb403d-0cfd-4001-bd07-e766db1a4f95\", \"character_id\": \"bebb5775-887d-4154-8ea7-5c59fc63d0be\", \"story_id\": \"9956c250-0ef4-49c0-845e-5386b4c15991\", \"goals\": [{\"goal\": \"To find her missing sister\", \"type\": \"external\", \"chapter_established\": 1}], \"motivations\": \"Desire to protect her family and uncover the truth about their past.\", \"internal_wounds\": \"Deep-seated fear of abandonment and loss, stemming from her childhood.\", \"external_objectives\": [\"Find her sister\", \"Uncover the truth about her family's past\"], \"secrets\": [{\"secret\": \"Knows more about her family's dark history than she lets on\", \"impact\": \"Creates tension and mistrust among other characters.\"}], \"fears\": [{\"fear\":",
+      "mentions_story": true
+    },
+    "relationships": {
+      "status": 200,
+      "bytes": 1191,
+      "sample": "[{\"intel_id\": \"0494fa62-9998-40db-add5-e149576e737b\", \"relationship_id\": \"d388e923-ea68-41f3-a2df-50ecc440de12\", \"story_id\": \"9956c250-0ef4-49c0-845e-5386b4c15991\", \"from_character_id\": \"bebb5775-887d-4154-8ea7-5c59fc63d0be\", \"to_character_id\": \"c19e9073-de1e-4b04-a760-07e8e8d90598\", \"evolution_trajectory\": \"From distrust to reluctant alliance\", \"turning_points\": [{\"chapter\": 2, \"event\": \"Devika and Mara are forced to work together to solve a mystery.\", \"impact\": \"Their initial distrust leads to a series of misunderstandings and conflicts, but they eventually learn to rely on each other.\"}], \"tension_score\": 0.7, \"trust_score\": 0.3, \"conflict_score\": 0.6, \"dependency_score\": 0.4, \"is_hidden\"",
+      "mentions_story": true
+    },
+    "timeline": {
+      "status": 200,
+      "bytes": 939,
+      "sample": "{\"timeline_id\": \"ce578bb0-914f-4b7e-a028-68fbef65d0b0\", \"story_id\": \"9956c250-0ef4-49c0-845e-5386b4c15991\", \"timeline_type\": \"linear\", \"estimated_story_duration\": \"not specified\", \"start_period\": \"not specified\", \"end_period\": \"not specified\", \"seasons_mentioned\": [], \"significant_time_gaps\": [], \"character_age_map\": {}, \"contradictions\": [{\"event_a_chapter\": 1, \"event_b_chapter\": 2, \"description\": \"Devika mentions the missing pages from the week the Marisol went down in chapter 1, but the missing pages are found in a crate in chapter 3.\", \"severity\": \"high\"}, {\"event_a_chapter\": 2, \"event_b_chapter\": 3, \"description\": \"Mara and Devika agree to search the archive together in chapter 2, but D",
+      "mentions_story": true
+    },
+    "memory": {
+      "status": 200,
+      "bytes": 10222,
+      "sample": "[{\"entry_id\": \"7e85e0dc-1f13-4f62-8671-deff90302ba3\", \"story_id\": \"9956c250-0ef4-49c0-845e-5386b4c15991\", \"memory_type\": \"character\", \"memory_key\": \"character.devika.secret.216013f177786f80\", \"entity_type\": \"character\", \"entity_id\": \"bebb5775-887d-4154-8ea7-5c59fc63d0be\", \"content\": \"{\\\"secret\\\": \\\"Knows more about her family's dark history than she lets on\\\", \\\"impact\\\": \\\"Creates tension and mistrust among other characters.\\\"}\", \"chapter_first_established\": null, \"chapter_last_updated\": null, \"importance\": 0.9, \"is_active\": true, \"is_ai_generated\": true, \"is_author_added\": false, \"created_at\": \"2026-10-01T17:32:16.292826\", \"updated_at\": \"2026-10-01T17:32:16.292827\"}, {\"entry_id\": \"9492748c",
+      "mentions_story": true
+    },
+    "graph": {
+      "status": 200,
+      "bytes": 5663,
+      "sample": "{\"nodes\": [{\"node_id\": \"21b9ac43-6a23-4f7b-85cc-e893464b4f20\", \"story_id\": \"9956c250-0ef4-49c0-845e-5386b4c15991\", \"node_type\": \"story\", \"label\": \"Perf probe 6e46baa95f\", \"entity_id\": \"9956c250-0ef4-49c0-845e-5386b4c15991\", \"properties\": {}, \"chapter_introduced\": null, \"is_active\": true, \"created_at\": \"2026-10-01T17:33:04.390552\"}, {\"node_id\": \"58a0641a-c4ec-409d-8092-92190c9e4357\", \"story_id\": \"9956c250-0ef4-49c0-845e-5386b4c15991\", \"node_type\": \"chapter\", \"label\": \"Ch.1: The Lamp Room\", \"entity_id\": \"3af1e8bd-c86e-4bd8-908b-2b5792160f15\", \"properties\": {}, \"chapter_introduced\": 1, \"is_active\": true, \"created_at\": \"2026-10-01T17:33:04.390554\"}, {\"node_id\": \"8beffb10-5c00-4d98-b0d8-bb2b3a620",
+      "mentions_story": true
+    }
+  }
+}

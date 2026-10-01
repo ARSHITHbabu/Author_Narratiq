@@ -268,6 +268,13 @@ via Alembic autogenerate — explicitly out of scope here.
 - **Feature 2 is risk guidance, not legal advice** — disclaimer included in both
   the API payload (`disclaimer` field) and the UI footer. No legal certainty is
   claimed; generic tropes are explicitly distinguished from serious similarity.
+- **The headline never under-reports (v3.2.0, task 11.7).** `overall_risk` is the
+  higher of the model's own headline and the most severe finding, computed in code.
+  Before this, a model answer of "low" above a "high" finding was shown as LOW.
+- **⚠️ Legal review pending.** The disclaimer text (`COPYRIGHT_DISCLAIMER` in
+  `services/ai_service.py`) has **not** been reviewed by a qualified legal
+  professional. It is flagged for review (task 11.7, 2026-10-01). Until the review
+  is recorded here, treat the wording as an engineering draft.
 - **Validation:** non-empty text, length caps, and rate limits prevent abuse.
 
 ---
@@ -299,8 +306,21 @@ via Alembic autogenerate — explicitly out of scope here.
     generic literary.
   - `rewrite_in_author_style` with monkeypatched `_complete` returns text and
     builds a safety-bearing system prompt.
-  - `analyze_copyright_risk` with monkeypatched `_complete` parses strict JSON,
-    normalizes `overall_risk`, and always includes the disclaimer.
+  - `analyze_copyright_risk` with monkeypatched **`_complete_ex`** (it calls
+    `complete_structured()` → `_complete_ex()`, so mocking `_complete` silently
+    never engages; corrected in Stage 6) parses strict JSON, normalizes
+    `overall_risk`, keeps `note`, never reports a headline below the worst
+    finding, and always includes the disclaimer.
+  - Redirect bypass sweep (task 11.7): 23 adversarial `author` values — living
+    authors, spelling and case variants, homoglyphs, embedded instructions,
+    template and script strings. Each must resolve to a registry descriptor, with
+    none of its distinctive words in the prompt and the safety clause always present.
+- **Adversarial, live model:** `backend/scripts/security/prompt_injection_probe.py`
+  (`--only author-style copyright-risk`) runs both features on a manuscript that
+  carries injected instructions and with adversarial `author` values. It records
+  obeyed injections, leaked instructions, outputs that name a requested living
+  author, and copyright responses that break their contract (missing disclaimer,
+  headline below the worst finding). Full outputs are saved for human review.
 - **Frontend unit (Playwright `tests/transforms.spec.ts`):**
   - `buildTransformCall('author_style', 'shakespeare', SEL, {storyId})` →
     `path '/api/ai/author-style'`, body `{text: SEL, author: 'shakespeare', story_id}`.
@@ -323,6 +343,10 @@ via Alembic autogenerate — explicitly out of scope here.
 - **Project-scope analysis** relies on indexed `ChapterSummary` rows (run *Sync
   Summaries* first); very large manuscripts are capped per pass like plot-holes.
 - **No persistence:** reports are ephemeral (consistent with existing analyses).
+- **The frontend author list is a static copy** (`lib/transforms.ts`) of the server
+  catalog. The server catalog endpoint (`GET /api/ai/author-styles`) is not called by
+  the UI. This is safe because the server resolves every request, but a new catalog
+  entry needs both lists updated.
 - **Living-author requests** are intentionally redirected to safe generic
   descriptors; users will not get a literal "write exactly like <living author>".
 - **Latency:** whole-story analysis is a heavy AI call; rate-limited and shown

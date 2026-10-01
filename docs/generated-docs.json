@@ -1,0 +1,21 @@
+{
+  "description": "Managed Markdown -> Word pairs (task 11.8). Markdown is the source of truth. source_sha256 is the SHA-256 of the Markdown source when its Word copy was last generated. Regenerate with `make docs`; verify with `make docs-check`.",
+  "pandoc_version": "3.7.0.2",
+  "pairs": [
+    {
+      "source": "docs/incidents/runpod-port-3000-404-incident-report.md",
+      "output": "docs/incidents/runpod-port-3000-404-incident-report.docx",
+      "source_sha256": "7c0d39834128654be371e5f14a5d5b02bb36d3c6a375f12db6d440560eece31d"
+    },
+    {
+      "source": "docs/phases/phase-3-planned/phase-3-author-centric-ai-workflow.md",
+      "output": "docs/phases/phase-3-planned/phase-3-author-centric-ai-workflow.docx",
+      "source_sha256": "d4915212b68bd6c2b72ae44f4a0688a4dc9f7887c0de96048c7b3ad61dc2beec"
+    },
+    {
+      "source": "docs/specifications/narratiq-ai-product-and-technical-documentation.md",
+      "output": "docs/specifications/narratiq-ai-product-and-technical-documentation.docx",
+      "source_sha256": "6b559987cc5d7c6de1324e60eca09b39ca1e975d6029ca6ffcd6ef702c3167a3"
+    }
+  ]
+}

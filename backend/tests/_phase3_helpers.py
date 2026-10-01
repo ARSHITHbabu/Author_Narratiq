@@ -100,7 +100,7 @@ class FakeModel:
         self.responder = responder
         self.calls: list[tuple[str, str, float]] = []
 
-    async def __call__(self, system, user, temperature=0.0, max_tokens=512, response_format=None):
+    async def __call__(self, system, user, temperature=0.0, max_tokens=512, response_format=None, task=None):
         self.calls.append((system, user, temperature))
         return self.responder(system, user, len(self.calls) - 1)
 

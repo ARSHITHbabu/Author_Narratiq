@@ -1,0 +1,187 @@
+{
+  "description": "Phase 2 rule R7: every Phase 2 feature on a synthetic 200-chapter manuscript, real model (pod xtkhp8n020qo5a, 2026-10-01). run2 is authoritative (character mentions indexed, outline goal >= 10 words). run1 kept for traceability: its outline 400 was the probe's own 6-word goal (the API correctly requires 10) and its voice check found no mentions because run1 did not index them.",
+  "run2": {
+    "chapters": 200,
+    "P2-01 emotional-arc": {
+      "status": 200,
+      "seconds": 0.1,
+      "over_100s_proxy_limit": false,
+      "degraded": null,
+      "note": null,
+      "chapters_scanned": null,
+      "voice_status": null,
+      "dialogue_count": null,
+      "outline_beats": 0
+    },
+    "P2-02 continue": {
+      "status": 200,
+      "seconds": 23.1,
+      "over_100s_proxy_limit": false,
+      "degraded": null,
+      "note": null,
+      "chapters_scanned": null,
+      "voice_status": null,
+      "dialogue_count": null,
+      "outline_beats": 0
+    },
+    "P2-03 voice-check": {
+      "status": 200,
+      "seconds": 91.9,
+      "over_100s_proxy_limit": false,
+      "degraded": null,
+      "note": null,
+      "chapters_scanned": null,
+      "voice_status": "inconsistent",
+      "dialogue_count": 110,
+      "outline_beats": 0
+    },
+    "P2-04 outline": {
+      "status": 200,
+      "seconds": 9.8,
+      "over_100s_proxy_limit": false,
+      "degraded": null,
+      "note": null,
+      "chapters_scanned": null,
+      "voice_status": null,
+      "dialogue_count": null,
+      "outline_beats": 4
+    },
+    "P2-05 continuity": {
+      "status": 200,
+      "seconds": 14.7,
+      "over_100s_proxy_limit": false,
+      "degraded": false,
+      "note": "These are potential inconsistencies for author review \u2014 verify each before revising.",
+      "chapters_scanned": 200,
+      "voice_status": null,
+      "dialogue_count": null,
+      "outline_beats": 0
+    },
+    "P2-08 style-drift": {
+      "status": 200,
+      "seconds": 0.2,
+      "over_100s_proxy_limit": false,
+      "degraded": null,
+      "note": null,
+      "chapters_scanned": null,
+      "voice_status": "ok",
+      "dialogue_count": null,
+      "outline_beats": 0
+    },
+    "P2-09 pacing-goals": {
+      "status": 200,
+      "seconds": 0.0,
+      "over_100s_proxy_limit": false,
+      "degraded": null,
+      "note": null,
+      "chapters_scanned": null,
+      "voice_status": null,
+      "dialogue_count": null,
+      "outline_beats": 0
+    },
+    "P2-10 duplicate-scenes": {
+      "status": 200,
+      "seconds": 1.5,
+      "over_100s_proxy_limit": false,
+      "degraded": null,
+      "note": null,
+      "chapters_scanned": null,
+      "voice_status": null,
+      "dialogue_count": null,
+      "outline_beats": 0
+    },
+    "P2-06 story-bible": {
+      "start": 200,
+      "seconds": 95.6,
+      "status": "completed",
+      "failed_sections": []
+    },
+    "P2-07 thread-scan": {
+      "start": 200,
+      "seconds": 327.0,
+      "status": "completed",
+      "chapters_scanned": 200,
+      "batches_degraded": 0
+    }
+  },
+  "run1": {
+    "chapters": 200,
+    "P2-01 emotional-arc": {
+      "status": 200,
+      "seconds": 0.1,
+      "over_100s_proxy_limit": false,
+      "degraded": null,
+      "note": null
+    },
+    "P2-02 continue": {
+      "status": 200,
+      "seconds": 16.2,
+      "over_100s_proxy_limit": false,
+      "degraded": null,
+      "note": null
+    },
+    "P2-03 voice-check": {
+      "status": 200,
+      "seconds": 0.0,
+      "over_100s_proxy_limit": false,
+      "degraded": null,
+      "note": "No character mentions found. Index chapters first."
+    },
+    "P2-04 outline": {
+      "status": 400,
+      "seconds": 0.0,
+      "over_100s_proxy_limit": false,
+      "degraded": null,
+      "note": null
+    },
+    "P2-05 continuity": {
+      "status": 200,
+      "seconds": 16.2,
+      "over_100s_proxy_limit": false,
+      "degraded": false,
+      "note": "These are potential inconsistencies for author review \u2014 verify each before revising."
+    },
+    "P2-08 style-drift": {
+      "status": 200,
+      "seconds": 0.2,
+      "over_100s_proxy_limit": false,
+      "degraded": null,
+      "note": null
+    },
+    "P2-09 pacing-goals": {
+      "status": 200,
+      "seconds": 0.0,
+      "over_100s_proxy_limit": false,
+      "degraded": null,
+      "note": null
+    },
+    "P2-10 duplicate-scenes": {
+      "status": 200,
+      "seconds": 1.0,
+      "over_100s_proxy_limit": false,
+      "degraded": null,
+      "note": null
+    },
+    "P2-06 story-bible": {
+      "start": 200,
+      "seconds": 115.9,
+      "status": "completed",
+      "failed_sections": []
+    },
+    "P2-07 thread-scan": {
+      "start": 200,
+      "seconds": 342.9,
+      "status": "completed",
+      "chapters_scanned": 200,
+      "batches_degraded": 0
+    }
+  },
+  "voice_check_after_fix": {
+    "passages": 400,
+    "chapters": 200,
+    "seconds": 24.0,
+    "status": 200,
+    "note": "Analysed 80 of 400 passages, spread evenly across the manuscript.",
+    "before_fix_reference": "run2 P2-03: 110 passages, 91.9 s"
+  }
+}

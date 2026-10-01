@@ -150,7 +150,7 @@ def test_r6_locked_segments_byte_identical_over_100_randomised_runs(monkeypatch)
         ranges = [{"start": s, "end": e} for s, e in locked]
         fake_calls = []
 
-        async def fake_complete(system, user, temperature=0.0, max_tokens=512, response_format=None, _r=_adversarial_model(run)):
+        async def fake_complete(system, user, temperature=0.0, max_tokens=512, response_format=None, task=None, _r=_adversarial_model(run)):
             fake_calls.append(1)
             return _r(system, user, len(fake_calls))
         monkeypatch.setattr(ai_service, "_complete", fake_complete)
@@ -181,7 +181,7 @@ def test_r6_contract_failure_reports_failed_and_keeps_original(monkeypatch):
 
     calls = []
 
-    async def no_markers(system, user, temperature=0.0, max_tokens=512, response_format=None):
+    async def no_markers(system, user, temperature=0.0, max_tokens=512, response_format=None, task=None):
         calls.append(1)
         if "fragment" in system:
             raise RuntimeError("fallback down")
@@ -199,7 +199,7 @@ def test_legacy_path_without_controls_has_no_phase3_fields(monkeypatch):
     Phase 3 fields and the unchanged system prompt."""
     seen = []
 
-    async def fake(system, user, temperature=0.0, max_tokens=512, response_format=None):
+    async def fake(system, user, temperature=0.0, max_tokens=512, response_format=None, task=None):
         seen.append(system)
         return "Rewritten text."
 

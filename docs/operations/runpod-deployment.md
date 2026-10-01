@@ -95,7 +95,7 @@ If you're unsure which layout you have, run `df -h /workspace` first — do not 
 
 | Setting | Recommendation |
 |---|---|
-| **GPU** | One card with ≥24 GB VRAM. The script auto-detects count and sets tensor-parallel size |
+| **GPU** | One NVIDIA card with ≥24 GB VRAM. **Verified production hardware: 1× NVIDIA A40 (46 GB).** The script auto-detects the count and sets tensor-parallel size |
 | **Template** | Any recent PyTorch/CUDA image on Ubuntu 22.04. The script installs everything else |
 | **Container Disk** | 60 GB+ |
 | **Volume Disk** | 30 GB+ if using a Network Volume |
@@ -109,6 +109,17 @@ Qwen2.5-7B-Instruct has **4 KV heads**, so tensor-parallel size must divide 4 �
 | 1 | 1 | 8192 | 0.88 |
 | 2–3 | 2 | 16384 | 0.90 |
 | 4+ | 4 | 32768 | 0.90 |
+
+**Verified 2026-10-01** on pod `xtkhp8n020qo5a` (1× A40, 46068 MiB): the running vLLM process was
+`--gpu-memory-utilization 0.88 --tensor-parallel-size 1 --max-model-len 8192`, matching the 1-GPU row.
+
+**GPU-specific requirements.** The script pins vLLM 0.9.2 and PyTorch 2.7.0+cu128, and it always
+exports `NCCL_P2P_DISABLE=1 NCCL_SHM_DISABLE=1`.
+- The cu128 build is **required** for NVIDIA Blackwell (sm_120) GPUs, such as the RTX PRO 4500 of the
+  project's original 2-GPU pod.
+- The NCCL flags prevent an init deadlock there at TP ≥ 2.
+- On the A40 (sm_86) both are harmless: cu128 supports sm_86, and the NCCL flags do nothing at TP=1.
+  No change is needed when moving between these GPUs.
 
 ### 2. Add Environment Variables
 

@@ -598,6 +598,9 @@ export interface StoryBibleOut {
   failed_sections: FailedSection[]
   created_at:   string
   updated_at:   string
+  // True when chapters were edited, added, removed or re-indexed after this
+  // bible was generated; null when unknown (generating, or an older bible).
+  is_stale?:    boolean | null
 }
 
 export interface FailedSection {

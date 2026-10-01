@@ -182,13 +182,25 @@ def defect_fixture(live_server):
         yield {"db": db, "base_url": live_server, "user_id": user.user_id,
                "story_id": story.story_id, "chapter_ids": chapter_ids}
     finally:
-        s = db.query(Story).filter(Story.story_id == story.story_id).first()
-        if s:
-            db.delete(s)
-        u = db.query(User).filter(User.user_id == user.user_id).first()
-        if u:
-            db.delete(u)
-        db.commit()
+        # sync-summaries also embeds paragraph chunks in the background, and that
+        # can still be writing when a fast test finishes. Deleting the story
+        # mid-write raced it (Stage 11 regression: FK violation on
+        # chapter_chunks). Wait until the chunk count stops changing, then
+        # remove everything this author owns with the product's own deletion.
+        from models import ChapterChunk
+        from services.account_deletion import delete_account
+        db.rollback()
+        last, stable_since = -1, time.monotonic()
+        deadline = time.monotonic() + 120
+        while time.monotonic() < deadline:
+            db.expire_all()
+            n = db.query(ChapterChunk).filter(ChapterChunk.story_id == story.story_id).count()
+            if n != last:
+                last, stable_since = n, time.monotonic()
+            elif time.monotonic() - stable_since >= 6:
+                break
+            time.sleep(2)
+        delete_account(db, user.user_id)
         db.close()
 
 

@@ -49,7 +49,7 @@ never per-commit), `manual` (documented reason it stays manual).
 | 7 | Plot hole detection | `backend` | `test_known_stage5_defects.py::test_plot_hole_detection_returns_a_parseable_result` | **New — `known_stage5_defect`, currently failing on purpose.** Model output fails to parse as JSON on both the initial call and the retry |
 | 8 | Plot assistant | `backend` | `test_e2e_checklist_gaps_2.py::test_plot_assistant_answers_a_question_about_the_manuscript` | **Filled (2026-09-22 closure).** Real vLLM call, asserts a real answer/suggestions payload |
 | 9 | Editorial report (manuscript report) | `backend` | `test_manuscript_report_citations.py` (citation validity); `test_known_stage5_defects.py::test_manuscript_report_persists_across_a_refetch` | Citation logic: existing coverage. Persistence: **new — `known_stage5_defect`, currently failing on purpose.** No `db.add`/`db.commit` anywhere in `routers/manuscript_report.py` |
-| 10 | Copyright risk | `backend` | `test_author_style_and_copyright.py` | Existing coverage — **includes the 3 pre-existing, already-documented failures** (overall-risk derivation bug in `analyze_copyright_risk`), unrelated to Stage 6, unchanged by it |
+| 10 | Copyright risk | `backend` | `test_author_style_and_copyright.py` | Existing coverage, **all passing**. *(Corrected 2026-10-01, task 11.7: the "3 pre-existing failures" once noted here were a test bug — the tests mocked `_complete` while the code calls `_complete_ex` — fixed at the Stage 6 closure. Task 11.7 also fixed a real headline under-report and a dropped `note`, with new tests.)* |
 
 ## Table 3 — Characters and world
 

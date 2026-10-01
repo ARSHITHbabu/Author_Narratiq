@@ -265,7 +265,7 @@ def test_scan_pipeline_writes_threads_from_extracted_events(monkeypatch):
                 {"thread_name": "Forged contract", "chapter_number": 3, "action": "developed", "description": ""},
                 {"thread_name": "Mystery", "chapter_number": 1, "action": "introduced", "description": ""}]
 
-    async def no_cluster(names):
+    async def no_cluster(names, db=None):
         return {n: n for n in names}
     monkeypatch.setattr(nt, "extract_narrative_threads_from_summaries", fake_extract)
     monkeypatch.setattr(nt, "_cluster_thread_names", no_cluster)

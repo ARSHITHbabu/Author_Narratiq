@@ -1,0 +1,301 @@
+{
+  "passed": 19,
+  "failed": 1,
+  "not_exercised": 0,
+  "results": {
+    "setup": [
+      {
+        "criterion": "6 chapters indexed (summaries + chunks)",
+        "pass": true,
+        "evidence": {
+          "story": "4c3f4f5e-44ed-445d-819e-9e34455d6e5a"
+        }
+      }
+    ],
+    "P2-01": [
+      {
+        "criterion": "GET returns ordered tone data for every chapter",
+        "pass": true,
+        "evidence": {
+          "status": 200,
+          "n": 6,
+          "keys": [
+            "story_id",
+            "chapter_count",
+            "arc",
+            "assessment"
+          ]
+        }
+      }
+    ],
+    "P2-02": [
+      {
+        "criterion": "3 continuations returned per call",
+        "pass": true,
+        "evidence": {
+          "status": 200,
+          "n": 3
+        }
+      }
+    ],
+    "P2-03": [
+      {
+        "criterion": "structured result (status, dialogue_count, consistency_score, inconsistent_pairs)",
+        "pass": true,
+        "evidence": {
+          "status": 200,
+          "status_field": "ok",
+          "dialogue_count": 18,
+          "consistency_score": 1.0,
+          "note": "Fewer than 3 dialogue passages found; analysis includes all character mention passages."
+        }
+      },
+      {
+        "criterion": "consistency_score is a float in [0, 1] when analysed",
+        "pass": true,
+        "evidence": {
+          "consistency_score": 1.0
+        }
+      },
+      {
+        "criterion": "a character with no mentions \u2192 insufficient_data",
+        "pass": true,
+        "evidence": {
+          "status": 200,
+          "body": "{\"character_id\":\"7ed4c7cd-a66b-4876-9021-7b388206207a\",\"character_name\":\"Nobody\",\"status\":\"insufficient_data\",\"dialogue_count\":0,\"consistency_score\":null,\"inconsistent_pairs\":[],\"min_passages_required"
+        }
+      }
+    ],
+    "P2-04": [
+      {
+        "criterion": "outline is a structured list of beats with fields populated",
+        "pass": true,
+        "evidence": {
+          "status": 200,
+          "n_beats": 4,
+          "beat_keys": [
+            "scene_number",
+            "beat_description",
+            "characters_present",
+            "location",
+            "pacing_note"
+          ]
+        }
+      }
+    ],
+    "P2-05": [
+      {
+        "criterion": "structured issues list with chapter references (may be empty)",
+        "pass": true,
+        "evidence": {
+          "status": 200,
+          "n_issues": 1,
+          "keys": [
+            "story_id",
+            "issues_found",
+            "issues",
+            "chapters_scanned",
+            "note",
+            "degraded",
+            "degraded_reason"
+          ]
+        }
+      }
+    ],
+    "P2-06": [
+      {
+        "criterion": "generated and stored; status honest; 5 sections or named failed_sections",
+        "pass": true,
+        "evidence": {
+          "status": "completed",
+          "sections": [
+            "characters",
+            "locations",
+            "timeline",
+            "world_rules",
+            "themes"
+          ],
+          "failed": []
+        }
+      },
+      {
+        "criterion": "DOCX export works",
+        "pass": true,
+        "evidence": {
+          "status": 200,
+          "bytes": 38463,
+          "type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        }
+      },
+      {
+        "criterion": "stale detection (API exposes staleness after a chapter edit)",
+        "pass": false,
+        "evidence": {
+          "keys": [
+            "bible_id",
+            "story_id",
+            "title",
+            "content_json",
+            "version",
+            "status",
+            "failed_sections",
+            "created_at",
+            "updated_at"
+          ]
+        }
+      }
+    ],
+    "P2-07": [
+      {
+        "criterion": "scan completes and the thread list is returned",
+        "pass": true,
+        "evidence": {
+          "scan": {
+            "scan_id": "f0a08c7d-f712-4a85-93db-6b5047d239ea",
+            "status": "completed",
+            "threads_written": 5,
+            "chapters_scanned": 6,
+            "batches_degraded": 0,
+            "error_code": null,
+            "started_at": "2026-10-01T13:34:05.322304",
+            "finished_at": "2026-10-01T13:34:35.508577"
+          },
+          "n_threads": 5
+        }
+      },
+      {
+        "criterion": "manual resolution works",
+        "pass": true,
+        "evidence": {
+          "status": 200
+        }
+      }
+    ],
+    "P2-08": [
+      {
+        "criterion": "drift_score from BGE-M3 centroids (6 chapters)",
+        "pass": true,
+        "evidence": {
+          "status": 200,
+          "drift_score": 0.0044,
+          "keys": [
+            "story_id",
+            "status",
+            "drift_score",
+            "early_chapters",
+            "late_chapters",
+            "description",
+            "sample_early",
+            "sample_late"
+          ]
+        }
+      },
+      {
+        "criterion": "insufficient data (1 chapter) handled gracefully",
+        "pass": true,
+        "evidence": {
+          "status": 200,
+          "body": "{\"story_id\":\"82b695d2-9773-4240-a38a-8fc38dc3978a\",\"status\":\"insufficient_data\",\"drift_score\":null,\"early_chapters\":[],\"late_chapters\":[],\"description\":\"Not enough chapters for style drift analysis.\","
+        }
+      }
+    ],
+    "P2-09": [
+      {
+        "criterion": "goal stored and retrieved with computed progress",
+        "pass": true,
+        "evidence": {
+          "post": 200,
+          "get": 200,
+          "keys": [
+            "story_id",
+            "target_word_count",
+            "target_chapter_count",
+            "target_words_per_chapter",
+            "actual_word_count",
+            "actual_chapter_count",
+            "avg_words_per_chapter",
+            "progress_pct",
+            "estimated_chapters_remaining",
+            "chapter_distribution"
+          ]
+        }
+      }
+    ],
+    "P2-10": [
+      {
+        "criterion": "near-duplicate pairs returned with similarity scores; threshold accepted",
+        "pass": true,
+        "evidence": {
+          "status": 200,
+          "n_pairs": 11,
+          "first": {
+            "chapter_a": 1,
+            "chapter_b": 4,
+            "a_title": "Chapter 1",
+            "b_title": "Chapter 4",
+            "similarity_score": 1.0,
+            "a_snippet": "<p>Devika pressed her palm against the cold glass of the observatory window. Below, the harbour lights trembled in the rain, and somewhere beyond them Mara was still searching for the ledger that woul",
+            "b_snippet": "<p>Devika pressed her palm against the cold glass of the observatory window. Below, the harbour lights trembled in the rain, and somewhere beyond them Mara was still searching for the ledger that woul"
+          }
+        }
+      }
+    ],
+    "P2-11": [
+      {
+        "criterion": "upload returns audio_id immediately",
+        "pass": true,
+        "evidence": {
+          "status": 200,
+          "keys": [
+            "audio_id",
+            "status",
+            "duration_seconds"
+          ]
+        }
+      },
+      {
+        "criterion": "async transcription reaches a terminal state (Whisper lazy-loads on CPU)",
+        "pass": true,
+        "evidence": {
+          "final": {
+            "audio_id": "1fd79691-f404-48f0-99a6-5f37be016f75",
+            "story_id": "4c3f4f5e-44ed-445d-819e-9e34455d6e5a",
+            "note_id": null,
+            "status": "completed",
+            "raw_transcript": "",
+            "cleaned_text": "",
+            "language_detected": "en",
+            "duration_seconds": 2.0,
+            "confidence": 0.0,
+            "word_count": 0,
+            "confirmed": false,
+            "suggestions": null,
+            "created_at": "2026-10-01T13:34:35.876424",
+            "updated_at": "2026-10-01T13:34:40.811699"
+          }
+        }
+      }
+    ],
+    "\u00a720.4-3": [
+      {
+        "criterion": "every Phase 2 endpoint answers 404 to another author",
+        "pass": true,
+        "evidence": {
+          "GET /api/stories/{sid}/emotional-arc": 404,
+          "POST /api/stories/{sid}/chapters/aab8b724-45d6-4631-838e-4443a5f88f4b/continue": 404,
+          "POST /api/stories/{sid}/characters/022560ba-953f-44d9-b529-3644d88e63eb/voice-check": 404,
+          "POST /api/stories/{sid}/chapters/aab8b724-45d6-4631-838e-4443a5f88f4b/outline": 404,
+          "POST /api/stories/{sid}/continuity-check": 404,
+          "GET /api/stories/{sid}/story-bible": 404,
+          "GET /api/stories/{sid}/story-bible/export": 404,
+          "GET /api/stories/{sid}/narrative-threads": 404,
+          "POST /api/stories/{sid}/style-drift": 404,
+          "GET /api/stories/{sid}/pacing-goals": 404,
+          "POST /api/stories/{sid}/duplicate-scenes": 404,
+          "GET /api/stories/{sid}/audio": 404,
+          "GET /api/stories/{sid}/audio/1fd79691-f404-48f0-99a6-5f37be016f75": 404
+        }
+      }
+    ]
+  }
+}

@@ -50,9 +50,9 @@ Repository verification during checklist construction changed three things. Each
 | 8 — Editor UI and Workspace Redesign | 11 | 6 | 5 | 0 | Implemented — **gate open**§ |
 | 9 — Full Regression Testing and UAT | 7 | 0 | 7 | 0 | Implemented — **gate open**◊ |
 | 10 — Production Readiness | 9 | 3 | 6 | 0 | Implemented — **gate open**△ |
-| 11 — Documentation Reconciliation | 9 | 0 | 9 | 0 | Not Started |
+| 11 — Documentation Reconciliation | 9 | 7 | 2 | 0 | Implemented — **gate open**⊕ |
 | 12 — Release Validation | 3 | 0 | 3 | 0 | Not Started |
-| **Total** | **131** | **83** | **48** | **0** | **In Progress** |
+| **Total** | **131** | **90** | **41** | **0** | **In Progress** |
 
 > The stage table counts **main tasks**. Stage 1 shows 0 completed because task 1.1 is still open — six of its seven subtasks are done; the seventh, the off-pod copy, is deferred. The counts below track actionable checkboxes and are the authoritative progress measure. *(2026-09-21 — superseded for Stage 1: task 1.1 is now complete, the off-pod copy having actually been done. See the `*` below.)*
 >
@@ -67,6 +67,8 @@ Repository verification during checklist construction changed three things. Each
 > **‡Stage 2 (2026-09-25, cloud pass) — repository implementation complete; gate OPEN — MANUAL VERIFICATION PENDING.** 4 of 6 main tasks ticked (2.5 newly closed). 2.2 stays open on the team-secret-store copy and a now-disputed RunPod-UI record (one previously ticked subtask was unticked); 2.6 stays open on real-pod runs. Remaining checks: `docs/testing/manual-verification/stage-02-manual-verification-guide.md`.
 >
 > **†Stage 7 (2026-09-25) — implemented and accepted by the author (APPROVE COMPLETION); gate NOT fully closed.** 10 of 15 main tasks ticked. 7.3, 7.4, 7.10, 7.12 and 7.15 are implemented and verified but held open on named items: ⌘Z single-step undo browser re-check (author manual), migration test in CI (CI deferred), Tier-2 warning-text quality, golden-set author review of voice matching, real day-8 cleanup verification, and the intermittent selection-toolbar test 9. UAT remains Stage 9. Full evidence, approved deviations and the carried-forward list are in the note under the Stage 7 Completion Gate. Nothing here is a silent gap.
+>
+> **⊕Stage 11 (2026-10-01) — implemented, verified and accepted by the product owner (APPROVE COMPLETION); gate OPEN on 2 lines.** 62 of 69 Stage 11 boxes ticked; 7 of 9 main tasks closed (11.1–11.6, 11.9). Open: 11.7 (legal review of the copyright disclaimer; the owner's review of adversarial outputs) and 11.8's CI half (deferred with 6.1 — the local `make docs-check` / `docs-sync` check exists). Entered on override **S11-A** while the Stage 10 gate is open. The R11 startup column safety net is kept by owner decision. Beyond documentation, Stage 11 fixed: P1 prompt injection (mitigated for every AI call), Story Bible stale warning (`0025`), pgvector similarity (R12), self-hosted fonts (R4), unmigrated columns (`0026`), a voice-check scaling defect (R7), and Story Intelligence (never worked; now verified live, 29/29 passes). Not ticked elsewhere in this update: other stages' boxes touched by this work (e.g. Stage 9's P1 decision) are left for their own stage reviews.
 >
 > **△Stage 10 (2026-09-30) — implemented, re-verified after a pod reset, and accepted by the product owner (APPROVE COMPLETION) for the verified internal scope; gate OPEN.** 58 Stage 10 boxes ticked; 10.4, 10.6 and 10.7 closed. Open: the off-pod backup copy and person-delivered alerts (DEFERRED — EXTERNAL SERVICE, S10-B/S10-D — not failures), the Docker build and pinning (MV-10.3), the full code/model rollback (MV-10.5) and Gate 8, the Tier-2 capacity figure (partial) and onboarding-limit acceptance (MV-10.8), and the tabletop exercise (MV-10.9). Decisions S10-A…S10-I and four non-blocking follow-ups are recorded at the top of the Stage 10 section.
 >
@@ -90,10 +92,10 @@ Repository verification during checklist construction changed three things. Each
 >
 > **One new frontend defect was discovered during the author's own manual verification, not fixed under this task:** the Logout control disappears on pointer hover before it can be clicked, so logout could not be completed or confirmed working. Recorded under task 1.8; not yet triaged into a stage — see the note there.
 
-**Total actionable checkboxes:** 1158 (2026-09-30 Stage 10 checklist update: unchanged — boxes converted and annotated only. Regex count of `^\s*- \[( |x)\]`: 1158 / 875.) *Earlier note:* 1158 (2026-09-27 Stage 9 checklist update: unchanged — boxes converted and annotated only. Regex count of `^\s*- \[( |x)\]`: 1158 / 817.) *Earlier note:* 1158 (2026-09-25 Stage 8, after merging `main`: unchanged; Stage 8 converted boxes only. Regex count 1158 / 786.) *Earlier note:* 1158 (2026-09-25 Stage 5 cloud pass: +8 new sub-items under the Stage 5 Completion Gate, two per live-review defect D1–D4 — the cloud-verified fix [ticked] and live pod confirmation [unticked]. Regex count of `^\s*- \[( |x)\]`: 1158 / 732.) *Earlier note:* 1150 (2026-09-25 Stage 7 update: +4 new, deliberately UNTICKED carried-forward sub-items added under 7.3, 7.10 and 7.15 so open work stays visible. Independently re-verified by direct regex count of list-item markers `^\s*- \[( |x)\]` before (1146 / 601) and after (1150 / 725) the edit.) *Earlier note:* 1146 (2026-09-21 Stage 5 closure evaluation: +3 new ticked sub-items at 5.4/5.6, recording manual author verification and the sidecar fix, over a **corrected** pre-edit base of **1143**. The previously recorded "1146 / 562" had been counted with a regex that also matched three prose mentions of the checkbox syntax on the Formula and Total lines. The true pre-edit figures were **1143 / 561**, verified by counting only list-item markers `^\s*- \[( |x)\]`.) *Earlier note, kept for traceability:* (whole-file; was 1138 before this Stage 5 pass began, 1143 after its first continuation — +8 net new sub-items total added while detailing per-task evidence across both passes; independently re-verified by direct regex count of every `- [x]`/`- [ ]` marker, per the same counting discipline used for the 1134→1135 reconciliation)
-**Currently completed:** 875 (2026-09-30 Stage 10: +58 ticked, all in the Stage 10 section — 49 task items and verifications, 3 parents [10.4, 10.6, 10.7], 6 gate lines [backup running, rate limiting, deletion, JWT, incident response, Gate 7]; nothing unticked. Regex-verified 1158 / 875.) *Earlier note:* 817 (2026-09-27 Stage 9: +39 ticked — 30 in Stage 9, 6 in Stage 5 [5.8 ×2, D1–D4 live], 1 in Stage 7 [toolbar test 9], 2 in Stage 8 [8.6 item and parent]; −8 unticked as factually unsupported — 4.8 duplicate detection, 4.9 ×2, parents 4.8 and 4.9, the Stage 4 Cast gate line, Gate 3a, 6.5's regression-alert item. Net +31. Regex-verified 1158 / 817.) *Earlier note:* 786 (2026-09-25 Stage 8: +54 ticked — 53 in the Stage 8 section and task 3.13's Phase 2 Issue 10 box. Regex-verified 1158 / 786 after merging `main` into the Stage 8 branch.) *Earlier note:* 732 (2026-09-25 Stage 5 cloud pass: +4 ticked, the four D1–D4 "root cause fixed" sub-items; 5.14's three items, 5.8's two boxes and the gate lines stay unticked. Regex-verified 1158 / 732.) *Earlier note:* 728 (2026-09-25 Stage 2 cloud pass: +4 ticked — 2.5's routing subtask, parent 2.5, the "Environment document UNVERIFIED items closed" gate line, and 2.6's port-list subtask — and −1 unticked, 2.2's disputed RunPod-UI subtask; net +3. Total unchanged at 1150. Independently verified by regex count of list-item markers `^\s*- \[( |x)\]`: 1150 total / 728 ticked.) *Earlier note:* 725 (2026-09-25 Stage 7: +124 newly ticked checkboxes, all within the Stage 7 section — 124 of Stage 7's 140; the 16 still open are named carry-forwards, not silent gaps.) *Earlier note:* 601 (2026-09-22 Stage 6 closure: +41 newly ticked checkboxes, all within the Stage 6 section — tasks 6.2, 6.3 and 6.6 fully complete [the latter under the author-approved revised acceptance criterion], plus genuinely-done sub-items within 6.4, 6.5 and 6.7. Independently verified by direct regex count of every `- [x]`/`- [ ]` marker, same counting discipline as prior reconciliations: 601 ticked, 545 unticked, 1146 total — no checkbox lines were added or removed, only converted.) *Earlier note:* 560 (2026-09-21 closure evaluation: from the corrected 561, +3 manual-verification/sidecar sub-items, −4 unticked because they were not actually complete: 5.14's three partial items and the "All 15 Story Audit issues closed or accepted" gate line. Stage 5 section: 156 of 172.)
-**Remaining:** 283
-**Overall project completion:** 75.6% (875 ÷ 1158) after the 2026-09-30 Stage 10 checklist update. *Earlier:* 70.6% (817 ÷ 1158) after the 2026-09-27 Stage 9 checklist update. *Earlier:* 67.9% (786 ÷ 1158) after the Stage 8 cloud pass. *Earlier:* 63.2% (732 ÷ 1158) after the 2026-09-25 Stage 5 cloud pass (the percentage dips because 8 boxes were added, 4 of them still open). *Earlier:* 63.3% (728 ÷ 1150), up from 63.0% (725 ÷ 1150) after the 2026-09-25 Stage 2 cloud pass. *Earlier:* 63.0% (725 ÷ 1150), up from 52.4% (601 ÷ 1146). Stage 7 is implemented and accepted but its gate is not fully closed (see † above). *Earlier:* 52.4% (601 ÷ 1146), up from 48.9%. Stage 6 is the fourth stage, after Stage 0, Stage 3 and Stage 4, to close (under its explicitly revised scope — CI/GitHub Actions deferred by author decision, 6.6 under a revised, approved criterion). Stage 5's gate remains separately open (see its own Completion Gate note) — Stage 6 was entered via the author's explicit override of that dependency, recorded at the top of the Stage 6 section.
+**Total actionable checkboxes:** 1158 (2026-10-01 Stage 11 checklist update: unchanged — boxes converted and annotated only. Regex count of `^\s*- \[( |x)\]`: 1158 / 937.) *Earlier note:* 1158 (2026-09-30 Stage 10 checklist update: unchanged — boxes converted and annotated only. Regex count of `^\s*- \[( |x)\]`: 1158 / 875.) *Earlier note:* 1158 (2026-09-27 Stage 9 checklist update: unchanged — boxes converted and annotated only. Regex count of `^\s*- \[( |x)\]`: 1158 / 817.) *Earlier note:* 1158 (2026-09-25 Stage 8, after merging `main`: unchanged; Stage 8 converted boxes only. Regex count 1158 / 786.) *Earlier note:* 1158 (2026-09-25 Stage 5 cloud pass: +8 new sub-items under the Stage 5 Completion Gate, two per live-review defect D1–D4 — the cloud-verified fix [ticked] and live pod confirmation [unticked]. Regex count of `^\s*- \[( |x)\]`: 1158 / 732.) *Earlier note:* 1150 (2026-09-25 Stage 7 update: +4 new, deliberately UNTICKED carried-forward sub-items added under 7.3, 7.10 and 7.15 so open work stays visible. Independently re-verified by direct regex count of list-item markers `^\s*- \[( |x)\]` before (1146 / 601) and after (1150 / 725) the edit.) *Earlier note:* 1146 (2026-09-21 Stage 5 closure evaluation: +3 new ticked sub-items at 5.4/5.6, recording manual author verification and the sidecar fix, over a **corrected** pre-edit base of **1143**. The previously recorded "1146 / 562" had been counted with a regex that also matched three prose mentions of the checkbox syntax on the Formula and Total lines. The true pre-edit figures were **1143 / 561**, verified by counting only list-item markers `^\s*- \[( |x)\]`.) *Earlier note, kept for traceability:* (whole-file; was 1138 before this Stage 5 pass began, 1143 after its first continuation — +8 net new sub-items total added while detailing per-task evidence across both passes; independently re-verified by direct regex count of every `- [x]`/`- [ ]` marker, per the same counting discipline used for the 1134→1135 reconciliation)
+**Currently completed:** 937 (2026-10-01 Stage 11: +62 ticked, all in the Stage 11 section — 48 task items and verifications, 7 parents [11.1–11.6, 11.9], 8 gate lines; nothing unticked; 11.9's "If located" branch resolved as N/A under D-7 on the owner's instruction. Regex-verified 1158 / 937.) *Earlier note:* 875 (2026-09-30 Stage 10: +58 ticked, all in the Stage 10 section — 49 task items and verifications, 3 parents [10.4, 10.6, 10.7], 6 gate lines [backup running, rate limiting, deletion, JWT, incident response, Gate 7]; nothing unticked. Regex-verified 1158 / 875.) *Earlier note:* 817 (2026-09-27 Stage 9: +39 ticked — 30 in Stage 9, 6 in Stage 5 [5.8 ×2, D1–D4 live], 1 in Stage 7 [toolbar test 9], 2 in Stage 8 [8.6 item and parent]; −8 unticked as factually unsupported — 4.8 duplicate detection, 4.9 ×2, parents 4.8 and 4.9, the Stage 4 Cast gate line, Gate 3a, 6.5's regression-alert item. Net +31. Regex-verified 1158 / 817.) *Earlier note:* 786 (2026-09-25 Stage 8: +54 ticked — 53 in the Stage 8 section and task 3.13's Phase 2 Issue 10 box. Regex-verified 1158 / 786 after merging `main` into the Stage 8 branch.) *Earlier note:* 732 (2026-09-25 Stage 5 cloud pass: +4 ticked, the four D1–D4 "root cause fixed" sub-items; 5.14's three items, 5.8's two boxes and the gate lines stay unticked. Regex-verified 1158 / 732.) *Earlier note:* 728 (2026-09-25 Stage 2 cloud pass: +4 ticked — 2.5's routing subtask, parent 2.5, the "Environment document UNVERIFIED items closed" gate line, and 2.6's port-list subtask — and −1 unticked, 2.2's disputed RunPod-UI subtask; net +3. Total unchanged at 1150. Independently verified by regex count of list-item markers `^\s*- \[( |x)\]`: 1150 total / 728 ticked.) *Earlier note:* 725 (2026-09-25 Stage 7: +124 newly ticked checkboxes, all within the Stage 7 section — 124 of Stage 7's 140; the 16 still open are named carry-forwards, not silent gaps.) *Earlier note:* 601 (2026-09-22 Stage 6 closure: +41 newly ticked checkboxes, all within the Stage 6 section — tasks 6.2, 6.3 and 6.6 fully complete [the latter under the author-approved revised acceptance criterion], plus genuinely-done sub-items within 6.4, 6.5 and 6.7. Independently verified by direct regex count of every `- [x]`/`- [ ]` marker, same counting discipline as prior reconciliations: 601 ticked, 545 unticked, 1146 total — no checkbox lines were added or removed, only converted.) *Earlier note:* 560 (2026-09-21 closure evaluation: from the corrected 561, +3 manual-verification/sidecar sub-items, −4 unticked because they were not actually complete: 5.14's three partial items and the "All 15 Story Audit issues closed or accepted" gate line. Stage 5 section: 156 of 172.)
+**Remaining:** 221
+**Overall project completion:** 80.9% (937 ÷ 1158) after the 2026-10-01 Stage 11 checklist update. *Earlier:* 75.6% (875 ÷ 1158) after the 2026-09-30 Stage 10 checklist update. *Earlier:* 70.6% (817 ÷ 1158) after the 2026-09-27 Stage 9 checklist update. *Earlier:* 67.9% (786 ÷ 1158) after the Stage 8 cloud pass. *Earlier:* 63.2% (732 ÷ 1158) after the 2026-09-25 Stage 5 cloud pass (the percentage dips because 8 boxes were added, 4 of them still open). *Earlier:* 63.3% (728 ÷ 1150), up from 63.0% (725 ÷ 1150) after the 2026-09-25 Stage 2 cloud pass. *Earlier:* 63.0% (725 ÷ 1150), up from 52.4% (601 ÷ 1146). Stage 7 is implemented and accepted but its gate is not fully closed (see † above). *Earlier:* 52.4% (601 ÷ 1146), up from 48.9%. Stage 6 is the fourth stage, after Stage 0, Stage 3 and Stage 4, to close (under its explicitly revised scope — CI/GitHub Actions deferred by author decision, 6.6 under a revised, approved criterion). Stage 5's gate remains separately open (see its own Completion Gate note) — Stage 6 was entered via the author's explicit override of that dependency, recorded at the top of the Stage 6 section.
 
 > *Counting-basis note (2026-07-25):* the recorded total of 1125 is a **whole-file** checkbox count. The formula above says Stages 0–12, which counts **1111** — the 14-box difference is the Final Project Completion Checklist and the register sections. The existing basis is retained so the figures stay comparable across updates; the formula wording and the basis should be reconciled in Stage 11.
 
@@ -102,6 +104,13 @@ Repository verification during checklist construction changed three things. Each
 ---
 
 ## Next Task to Execute
+
+> ### ⚑ 2026-10-01 — Stage 11: implemented and accepted, gate OPEN — owner/legal items pending
+>
+> The product owner gave APPROVE COMPLETION for Stage 11. 62 of 69 boxes ticked. **Open, for the owner:** legal review of the copyright-risk disclaimer; review of the saved adversarial outputs (`docs/testing/stage-11/injection-probe-after-fix.json`) to close 11.7's verification; CI (6.1) for 11.8's CI half. **Stage 12 has NOT been analysed, planned or started** — awaiting the owner's instruction.
+>
+> ⚑ Superseded — the Stage 10 note below is kept for traceability.
+>
 
 > ### ⚑ 2026-09-30 — Stage 10: implemented and re-verified, gate OPEN — owner checks and deferred items pending
 >
@@ -3102,11 +3111,13 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
 # Stage 11 — Documentation Reconciliation
 
 **Entry condition:** Stage 10 gate passed. Deliberately late — reconciling earlier would document a system about to change.
+
+> **2026-10-01 — Stage 11 implemented, verified and accepted by the product owner (APPROVE COMPLETION).** Entered on the owner's explicit override **S11-A** while the Stage 10 gate is open (the override closes no Stage 10 item). Pod `xtkhp8n020qo5a` was found fully reset and rebuilt from the documentation (14 min). 62 of 69 Stage 11 boxes ticked; 7 stay open on legal review, owner review of adversarial outputs, and deferred CI (6.1). Beyond the documentation work, Stage 11 fixed defects found while verifying: P1 prompt injection (mitigated across all AI calls), P2-06 Story Bible stale warning (`0025`), R12 pgvector similarity, R4 self-hosted fonts, R11 unmigrated columns (`0026`; the startup safety net is **kept** by owner decision), an R7 voice-check scaling defect, and Story Intelligence (never worked — `_complete` contract violation in 20 calls — plus a voice-trigger no-op). Evidence: `docs/testing/stage-11/`, the Phase 2 acceptance record, `docs/testing/stage-09-security-findings.md`. Full backend suite 856 passed / 0 failed; frontend studio 70 + a11y 13, unit 99, variants 32.
 **Source:** Master Execution Plan §5.4–§5.7, §4.3, §4.4; production gap PG-11
 
 ---
 
-- [ ] **11.1 — Fix `CLAUDE.md` internal contradictions**
+- [x] **11.1 — Fix `CLAUDE.md` internal contradictions** — *2026-10-01*
   - **Source:** Master Execution Plan §5.6 (conflict C-6)
   - **Area:** Documentation
   - **Priority:** High
@@ -3114,15 +3125,15 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
   - **Blocked by:** None
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Remove `continuation.py`, `outline.py` and `voice.py` from the Phase 2 feature table — they do not exist; the functionality is in `writing_tools.py` and `characters.py`
-    - [ ] Reconcile migration numbering — on-disk `0008`, `0009`, `0010` are correct
-    - [ ] Add the Phase 3 migrations `0016`–`0019`
-    - [ ] Update the architecture section for all Stage 3–8 changes
+    - [x] Remove `continuation.py`, `outline.py` and `voice.py` from the Phase 2 feature table — they do not exist; the functionality is in `writing_tools.py` and `characters.py` — *2026-10-01: table rewritten against roadmap §19 with real routers, methods and paths*
+    - [x] Reconcile migration numbering — on-disk `0008`, `0009`, `0010` are correct — *2026-10-01: full chain table `0001`–`0026` (22 files)*
+    - [x] Add the Phase 3 migrations `0016`–`0019` — *2026-10-01: the real Phase 3 migrations are `0019`–`0022` (C7-1); interpreted, as approved, as "document every migration after 0015" — `0016`–`0026` are all listed*
+    - [x] Update the architecture section for all Stage 3–8 changes — *2026-10-01: covers Stages 3–10 (approved interpretation), plus the Stage 11 prompt-injection, staleness and similarity modules*
   - **Verification:**
-    - [ ] Every file, router and migration named in `CLAUDE.md` exists
+    - [x] Every file, router and migration named in `CLAUDE.md` exists — *2026-10-01: `scripts/docs/check_doc_paths.py` 0 unresolved; routers checked against `main.py`, migrations against `migrations/versions/`*
   - **Definition of done:** The architecture source of truth no longer contradicts itself.
 
-- [ ] **11.2 — Correct `README.md`**
+- [x] **11.2 — Correct `README.md`** — *2026-10-01*
   - **Source:** Master Execution Plan §5.5 (conflict C-5)
   - **Area:** Documentation
   - **Priority:** Medium
@@ -3130,15 +3141,15 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
   - **Blocked by:** None
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Correct the claim that batched and hierarchical plot-hole strategies are "written but not enabled" — they are **not written**; lines 1607–1610 are commented registry entries pointing at non-existent functions
-    - [ ] Refresh the Known Issues section against the post-Stage-9 state
-    - [ ] Update the feature status lists
-    - [ ] Update the documentation table with any new paths
+    - [x] Correct the claim that batched and hierarchical plot-hole strategies are "written but not enabled" — they are **not written**; lines 1607–1610 are commented registry entries pointing at non-existent functions — *2026-10-01: corrected (current registry `ai_service.py` `_PLOT_HOLE_STRATEGIES`; only `single_pass` exists)*
+    - [x] Refresh the Known Issues section against the post-Stage-9 state — *2026-10-01: rebuilt from the triage register, Stage 9 results and Stage 10/11 state*
+    - [x] Update the feature status lists — *2026-10-01: Phase 3 and Stage 10 added; OCR and manuscript upload marked ⚠️*
+    - [x] Update the documentation table with any new paths — *2026-10-01*
   - **Verification:**
-    - [ ] Every README claim traces to verified code or a closed issue
+    - [x] Every README claim traces to verified code or a closed issue — *2026-10-01: claims traced in the Stage 11 report; path check clean; Quick Start walked literally on the reset pod (missing symlink step found and fixed)*
   - **Definition of done:** The landing page is accurate.
 
-- [ ] **11.3 — Resolve the Phase 3 naming collision**
+- [x] **11.3 — Resolve the Phase 3 naming collision** — *2026-10-01*
   - **Source:** Master Execution Plan §5.7 (conflict C-7)
   - **Area:** Documentation
   - **Priority:** Medium
@@ -3146,14 +3157,14 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
   - **Blocked by:** None
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Rename the `CLAUDE.md` section to "Production Hardening (completed)"
-    - [ ] Refer to the feature phase consistently as "Phase 3 — Author-Centric AI Workflow"
-    - [ ] Update `docs/README.md` and `docs/phases/README.md` warnings accordingly
+    - [x] Rename the `CLAUDE.md` section to "Production Hardening (completed)" — *2026-10-01*
+    - [x] Refer to the feature phase consistently as "Phase 3 — Author-Centric AI Workflow" — *2026-10-01: folder `phase-3-planned/` kept and annotated as historical (approved)*
+    - [x] Update `docs/README.md` and `docs/phases/README.md` warnings accordingly — *2026-10-01*
   - **Verification:**
-    - [ ] No document uses "Phase 3" ambiguously
+    - [x] No document uses "Phase 3" ambiguously — *2026-10-01: every "Phase 3" in the 7 active documents classified; none ambiguous*
   - **Definition of done:** The two workstreams are unambiguously distinguishable.
 
-- [ ] **11.4 — Reconcile hardware documentation**
+- [x] **11.4 — Reconcile hardware documentation** — *2026-10-01*
   - **Source:** `docs/incidents/runpod-port-3000-404-incident-report.md` §11; task 1.6
   - **Area:** Documentation
   - **Priority:** Medium
@@ -3161,15 +3172,15 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
   - **Blocked by:** None
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Update the `CLAUDE.md` Blackwell GPU section with the verified hardware from task 1.6
-    - [ ] Correct the documented `max-model-len` if 8192 is confirmed
-    - [ ] Clarify which NCCL flags and sm_120 requirements apply to which hardware
-    - [ ] Update `docs/operations/runpod-deployment.md` GPU requirements
+    - [x] Update the `CLAUDE.md` Blackwell GPU section with the verified hardware from task 1.6 — *2026-10-01: "GPU / Hardware Notes" — 1× A40 46068 MiB*
+    - [x] Correct the documented `max-model-len` if 8192 is confirmed — *2026-10-01: 8192 confirmed live*
+    - [x] Clarify which NCCL flags and sm_120 requirements apply to which hardware — *2026-10-01: Blackwell-only vs all-GPU requirements separated*
+    - [x] Update `docs/operations/runpod-deployment.md` GPU requirements — *2026-10-01*
   - **Verification:**
-    - [ ] Documented hardware matches what vLLM actually starts with
+    - [x] Documented hardware matches what vLLM actually starts with — *2026-10-01: live process `--gpu-memory-utilization 0.88 --tensor-parallel-size 1 --max-model-len 8192` (`docs/testing/stage-11/vllm-launch-args.txt`)*
   - **Definition of done:** GPU documentation matches reality.
 
-- [ ] **11.5 — Refresh the product and technical specification to v5**
+- [x] **11.5 — Refresh the product and technical specification to v5** — *2026-10-01: Markdown source `narratiq-ai-product-and-technical-documentation.md` created; `.docx` generated from it*
   - **Source:** Master Execution Plan §4.3; `docs/specifications/narratiq-ai-product-and-technical-documentation.docx`
   - **Area:** Documentation
   - **Priority:** Medium
@@ -3178,17 +3189,17 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
   - **Can run in parallel:** Yes
   - **Context:** Currently v4.1, titled "Phase 1 Complete — Phase 2 Planned". Phase 2, the hardening pass and Phase 3 have all landed since.
   - **Implementation checklist:**
-    - [ ] Update the implementation status tables
-    - [ ] Add Phase 2 delivered features
-    - [ ] Add the production hardening pass
-    - [ ] Add Phase 3 capabilities
-    - [ ] Update the architecture section
-    - [ ] Retitle to v5 with an accurate phase status
+    - [x] Update the implementation status tables — *2026-10-01*
+    - [x] Add Phase 2 delivered features — *2026-10-01*
+    - [x] Add the production hardening pass — *2026-10-01*
+    - [x] Add Phase 3 capabilities — *2026-10-01*
+    - [x] Update the architecture section — *2026-10-01*
+    - [x] Retitle to v5 with an accurate phase status — *2026-10-01*
   - **Verification:**
-    - [ ] The specification matches the shipped system
+    - [x] The specification matches the shipped system — *2026-10-01: table names, routes and models verified against code; accepted by the product owner*
   - **Definition of done:** The product spec is current.
 
-- [ ] **11.6 — Formal Phase 2 acceptance**
+- [x] **11.6 — Formal Phase 2 acceptance** — *2026-10-01: `docs/phases/phase-2-completed/phase-2-acceptance-record.md`; verified by Claude, accepted by the product owner (APPROVE COMPLETION 2026-10-01)*
   - **Source:** `docs/phases/phase-2-completed/phase-2-intelligence-expansion-roadmap.docx` §20.4, §16, §19
   - **Area:** Documentation / Product
   - **Priority:** Medium
@@ -3197,17 +3208,17 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
   - **Can run in parallel:** Yes
   - **Context:** Phase 2 was declared complete by construction, never by acceptance. §20.4 includes items that were never done — for example updating the implementation report to reflect Phase 2 additions.
   - **Implementation checklist:**
-    - [ ] Walk §20.4 line by line, marking each verified or not
-    - [ ] Confirm every §16 Production Rule still holds, especially self-hosted-only and BGE-M3 singleton reuse
-    - [ ] Verify each of P2-01 … P2-11 against its §19 task specification
-    - [ ] Update or supersede the Phase 1 Production Implementation Report to cover Phase 2
-    - [ ] Confirm §20.5 out-of-scope items remain out of scope
-    - [ ] Record a named verifier and date per item
+    - [x] Walk §20.4 line by line, marking each verified or not — *2026-10-01: all 10 items Met (2 with recorded deviation); item 6 by a second `start-narratiq.sh` run, item 1 by migration round trip*
+    - [x] Confirm every §16 Production Rule still holds, especially self-hosted-only and BGE-M3 singleton reuse — *2026-10-01: R4, R7, R11 (columns) and R12 fixed in Stage 11; R10 kept (14.7 s at 200 chapters); R11 startup safety net **kept by owner decision***
+    - [x] Verify each of P2-01 … P2-11 against its §19 task specification — *2026-10-01: live probe 19/20 → P2-06 stale detection built (`0025`); 200-chapter run passes*
+    - [x] Update or supersede the Phase 1 Production Implementation Report to cover Phase 2 — *2026-10-01: superseded by `phase-2-implementation-report.md`*
+    - [x] Confirm §20.5 out-of-scope items remain out of scope — *2026-10-01*
+    - [x] Record a named verifier and date per item — *2026-10-01*
   - **Verification:**
-    - [ ] Every §20.4 item has a verifier and a date
+    - [x] Every §20.4 item has a verifier and a date — *2026-10-01*
   - **Definition of done:** Phase 2 is formally accepted rather than assumed.
 
-- [ ] **11.7 — Release the author-style and copyright-risk features**
+- [ ] **11.7 — Release the author-style and copyright-risk features** — *2026-10-01: OPEN — released as v3.2.0 technically; held open on (1) legal review of the disclaimer and (2) the owner's review of adversarial outputs*
   - **Source:** `docs/specifications/author-style-and-copyright-risk-features.md`; `CHANGELOG.md` "Unreleased"
   - **Area:** AI / Documentation / Security
   - **Priority:** Medium
@@ -3216,17 +3227,17 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
   - **Can run in parallel:** Yes
   - **Context:** The `_AUTHOR_STYLES` registry is the stated safety authority restricting output to public-domain authors. Verify before release, not after.
   - **Implementation checklist:**
-    - [ ] Confirm the adversarial tests from task 9.4 pass
-    - [ ] Verify the living-author redirect cannot be bypassed
-    - [ ] Verify "inspired-by, never copy" prompt enforcement under adversarial prompting
-    - [ ] Verify the copyright-risk score and disclaimer render correctly
-    - [ ] Flag the disclaimer wording for legal review
-    - [ ] Move from "Unreleased" to a versioned CHANGELOG entry
+    - [x] Confirm the adversarial tests from task 9.4 pass — *2026-10-01: `test_security_stage9.py` 30/30, `test_author_style_and_copyright.py` 40/40*
+    - [x] Verify the living-author redirect cannot be bypassed — *2026-10-01: 23-case bypass sweep; live 0/15 outputs name a requested living author*
+    - [x] Verify "inspired-by, never copy" prompt enforcement under adversarial prompting — *2026-10-01: after the P1 defence, live author-style obeyed injected instructions 0/15 (was 15/15); hijacked rewrites refused in code*
+    - [x] Verify the copyright-risk score and disclaimer render correctly — *2026-10-01: headline under-report and dropped `note` fixed; studio `copyright.spec.ts` 2/2*
+    - [x] Flag the disclaimer wording for legal review — *2026-10-01: flagged in the spec and CHANGELOG; the review itself is NOT done*
+    - [x] Move from "Unreleased" to a versioned CHANGELOG entry — *2026-10-01: v3.2.0*
   - **Verification:**
-    - [ ] No adversarial prompt elicits in-copyright author imitation
+    - [ ] No adversarial prompt elicits in-copyright author imitation — *2026-10-01: OPEN — automated evidence passes (0/15 obeyed, 0/15 named living authors; `docs/testing/stage-11/injection-probe-after-fix.json`), but judging "imitation" needs the product owner's review of the saved outputs*
   - **Definition of done:** Both features are verified safe and formally released.
 
-- [ ] **11.8 — Automate generated-document synchronisation**
+- [ ] **11.8 — Automate generated-document synchronisation** — *2026-10-01: OPEN on the CI half only (6.1)*
   - **Source:** Production gap **PG-11**
   - **Area:** Documentation / Infrastructure
   - **Priority:** Low
@@ -3235,15 +3246,15 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
   - **Can run in parallel:** Yes
   - **Context:** Two `.md`/`.docx` pairs currently at 1.000 and 0.999 similarity will drift the moment the Markdown is edited.
   - **Implementation checklist:**
-    - [ ] Add a `make docs` target regenerating Word copies via pandoc
-    - [ ] Regenerate both current pairs
-    - [ ] Add a CI check that fails when a pair is out of sync
-    - [ ] Document the workflow in `docs/README.md` conventions
+    - [x] Add a `make docs` target regenerating Word copies via pandoc — *2026-10-01: `Makefile`, `scripts/docs/sync_docs.py`, pandoc 3.7.0.2*
+    - [x] Regenerate both current pairs — *2026-10-01: both pairs plus the new v5 spec pair; fidelity 0.999–1.000*
+    - [ ] Add a CI check that fails when a pair is out of sync — *2026-10-01: OPEN — CI deferred by owner decision (task 6.1); the equivalent local check exists (`make docs-check`, `docs-sync` suite in `run_full_regression.sh`, proven to fail on an edited source)*
+    - [x] Document the workflow in `docs/README.md` conventions — *2026-10-01*
   - **Verification:**
-    - [ ] Editing a Markdown source without regenerating fails CI
+    - [ ] Editing a Markdown source without regenerating fails CI — *2026-10-01: OPEN — deferred with 6.1; the local check fails as required*
   - **Definition of done:** Word copies cannot silently diverge from their sources.
 
-- [ ] **11.9 — Resolve the missing recovery report**
+- [x] **11.9 — Resolve the missing recovery report** — *2026-10-01*
   - **Source:** Master Execution Plan §4.4; **D-7**
   - **Area:** Documentation
   - **Priority:** Low
@@ -3251,26 +3262,26 @@ Each defect has two boxes: the root-cause fix, verified in the cloud with determ
   - **Blocked by:** None — *D-7 recorded 2026-09-21 (references retired); see task 0.7*
   - **Can run in parallel:** Yes
   - **Implementation checklist:**
-    - [ ] Apply the D-7 decision
-    - [ ] If located: commit it to the correct documentation folder
-    - [ ] If retired: remove the reference from `README.md` and annotate the archive mapping table
-    - [ ] Update `docs/archive/README.md`
+    - [x] Apply the D-7 decision — *2026-10-01: retired*
+    - [x] If located: commit it to the correct documentation folder — *2026-10-01: N/A — branch not taken; D-7 retired the report (not recoverable). Marked resolved as N/A on the owner's instruction; nothing was committed*
+    - [x] If retired: remove the reference from `README.md` and annotate the archive mapping table — *2026-10-01*
+    - [x] Update `docs/archive/README.md` — *2026-10-01*
   - **Verification:**
-    - [ ] No document references an unresolvable file
+    - [x] No document references an unresolvable file — *2026-10-01: all Markdown links in 48 files resolve; active-document path check clean*
   - **Definition of done:** Every documentation reference resolves.
 
-### Stage 11 Completion Gate
+### Stage 11 Completion Gate — **OPEN (2 lines): legal review / owner output review, and CI (6.1)**
 
-- [ ] `CLAUDE.md` self-consistent; every named file exists
-- [ ] `README.md` accurate, including the plot-hole strategy correction
-- [ ] Phase 3 naming collision resolved
-- [ ] Hardware documentation matches verified reality
-- [ ] Product specification refreshed to v5
-- [ ] Phase 2 formally accepted with named verifiers
-- [ ] Author-style and copyright-risk features released
-- [ ] Generated document sync automated
-- [ ] All documentation references resolve
-- [ ] A new engineer can follow the documentation without hitting a non-existent file
+- [x] `CLAUDE.md` self-consistent; every named file exists — *2026-10-01*
+- [x] `README.md` accurate, including the plot-hole strategy correction — *2026-10-01*
+- [x] Phase 3 naming collision resolved — *2026-10-01*
+- [x] Hardware documentation matches verified reality — *2026-10-01*
+- [x] Product specification refreshed to v5 — *2026-10-01*
+- [x] Phase 2 formally accepted with named verifiers — *2026-10-01: accepted by the product owner*
+- [ ] Author-style and copyright-risk features released — *2026-10-01: OPEN — legal review and owner review of adversarial outputs (see 11.7)*
+- [ ] Generated document sync automated — *2026-10-01: OPEN — local automation done; CI half deferred with 6.1*
+- [x] All documentation references resolve — *2026-10-01*
+- [x] A new engineer can follow the documentation without hitting a non-existent file — *2026-10-01: demonstrated by rebuilding the reset pod from README/runbooks*
 
 ---
 

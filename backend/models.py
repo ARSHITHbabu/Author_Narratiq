@@ -1196,6 +1196,11 @@ class StoryBible(Base):
     # [{"section": ..., "failure": ..., "reason": ...}]. Author-facing fields
     # only — exception details stay in the logs. Cleared on every run.
     failed_sections = Column(JSON, default=list)
+    # Hash of the indexed chapters this bible was generated from
+    # (services/source_fingerprint.py). Compared on read to tell the author the
+    # bible is out of date (Phase 2 §19 P2-06). NULL = generated before 0025:
+    # staleness unknown, so no warning is shown.
+    source_fingerprint = Column(String, nullable=True)
     created_at   = Column(DateTime, default=datetime.utcnow)
     updated_at   = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

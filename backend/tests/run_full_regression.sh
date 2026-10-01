@@ -17,7 +17,10 @@
 #
 # Usage:  bash backend/tests/run_full_regression.sh [suite ...]
 #   suites: backend known-defects retrieval migration fe-unit fe-studio fe-a11y
-#           fe-variants fe-browser ai-harness     (default: all)
+#           fe-variants fe-browser ai-harness docs-sync     (default: all)
+#   docs-sync (task 11.8) needs no stack: it fails when a managed Markdown
+#   document changed without regenerating its Word copy, or when an active
+#   document names a repository file that does not exist.
 set -uo pipefail
 
 REPO="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -28,7 +31,7 @@ OUTDIR="${OUTDIR:-/tmp/narratiq-regression}"
 OUT="$OUTDIR/summary.txt"
 mkdir -p "$OUTDIR"
 SUITES=("$@")
-[ ${#SUITES[@]} -eq 0 ] && SUITES=(backend known-defects retrieval migration fe-unit fe-studio fe-a11y fe-variants fe-browser ai-harness)
+[ ${#SUITES[@]} -eq 0 ] && SUITES=(backend known-defects retrieval migration fe-unit fe-studio fe-a11y fe-variants fe-browser ai-harness docs-sync)
 
 record() {  # name, exit code, log
   local tail_line
@@ -64,6 +67,8 @@ for s in "${SUITES[@]}"; do
     ai-harness)
       run ai-invariants "$REPO" env DATABASE_URL="$TEST_DATABASE_URL" \
         python3 -m pytest backend/tests/test_ai_quality_invariants.py -q -p no:cacheprovider ;;
+    docs-sync)
+      run docs-sync "$REPO" bash -c 'python3 scripts/docs/sync_docs.py check && python3 scripts/docs/check_doc_paths.py' ;;
     *) echo "unknown suite: $s" >&2 ;;
   esac
 done

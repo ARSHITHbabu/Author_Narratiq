@@ -62,20 +62,19 @@ def _get_owned_story(story_id: str, user_id: str, db: Session) -> Story:
     return story
 
 
-async def _cluster_thread_names(raw_names: list[str]) -> dict[str, str]:
+async def _cluster_thread_names(raw_names: list[str], db: Session) -> dict[str, str]:
     """
     Embed all thread names with BGE-M3 and cluster those with cosine > 0.85
     to a canonical representative. Returns {name → canonical_name}.
+    Similarities are computed by pgvector (Phase 2 rule R12).
     """
-    import numpy as np
+    from services.vector_math import cosine_pairs
 
     if len(raw_names) < 2:
         return {n: n for n in raw_names}
 
-    embeddings = []
-    for name in raw_names:
-        emb = await embed_text(name)
-        embeddings.append(np.array(emb, dtype=np.float32))
+    embeddings = [await embed_text(name) for name in raw_names]
+    sims = cosine_pairs(db, embeddings)
 
     canonical_map: dict[str, str] = {}
     assigned: set[int] = set()
@@ -89,11 +88,9 @@ async def _cluster_thread_names(raw_names: list[str]) -> dict[str, str]:
         for j in range(i + 1, len(raw_names)):
             if j in assigned:
                 continue
-            ni = np.linalg.norm(embeddings[i])
-            nj = np.linalg.norm(embeddings[j])
-            if ni < 1e-9 or nj < 1e-9:
+            sim = sims.get((i, j))
+            if sim is None:
                 continue
-            sim = float(np.dot(embeddings[i], embeddings[j]) / (ni * nj))
             if sim >= _CLUSTER_THRESHOLD:
                 canonical_map[raw_names[j]] = canonical
                 assigned.add(j)
@@ -155,7 +152,7 @@ async def _run_scan_pipeline(story_id: str, user_id: str, stats: Optional[dict] 
 
         # Collect unique names for clustering
         unique_names = list({e["thread_name"] for e in raw_thread_events})
-        cluster_map = await _cluster_thread_names(unique_names)
+        cluster_map = await _cluster_thread_names(unique_names, db)
 
         # Build thread lifecycle: canonical_name → {introduced, last_seen, resolved, descriptions}
         thread_lifecycle: dict[str, dict] = {}

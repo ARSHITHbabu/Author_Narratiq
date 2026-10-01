@@ -4,6 +4,54 @@ All production changes are documented here in reverse chronological order.
 
 ---
 
+## Unreleased — Stage 11: Phase 2 acceptance fixes and documentation tooling
+
+### Added
+- **Story Bible stale warning** (Phase 2 roadmap §19 P2-06, never built until now). The bible records which
+  version of the indexed chapters it was generated from (`services/source_fingerprint.py`, shared with the
+  saved Manuscript Report). `GET /story-bible` returns `is_stale`, and the World → Story Bible panel says
+  "Your chapters have changed since this Story Bible was generated."
+- **`make docs` / `make docs-check`:** Word copies are regenerated from their Markdown sources with
+  pandoc 3.7.0.2 and checked for drift (`scripts/docs/sync_docs.py`, the `docs-sync` regression suite).
+  `scripts/docs/check_doc_paths.py` fails when an active document names a file that does not exist.
+
+### Fixed
+- **Story Intelligence (P01–P29) never worked, and now does.** Every pass called `_complete(prompt, …)`
+  without the required `user` argument. The `TypeError` was swallowed by the orchestrator, and the
+  per-chapter, character and relationship passes were still reported "completed". All 20 calls now send
+  instructions as `system` and the author's material as `user`, so the prompt-injection fence also covers
+  them. Verified live: a full analysis completed all 29 passes in about 160 s, with every read endpoint
+  returning story-grounded content.
+- **Story Intelligence reports failures honestly.** Unusable model output fails the pass instead of storing
+  an empty "completed" analysis. P08–P12, P23 and P24 fail when nothing succeeded. Every failure is logged
+  with its exception type (with a traceback for programming errors) and recorded in the Stage 10 error
+  tracker (`/api/ops/errors`).
+- **Voice-triggered analysis did nothing.** The voice action sends `passes: []`, which ran zero passes and
+  reported "complete". An empty list now means all passes, matching the job record.
+- **New guard:** `backend/tests/test_model_call_contract.py` binds every call to a `services.ai_service`
+  function across the backend against its real signature. It would have caught this defect and the
+  Stage 3 `query=` defect.
+
+### Changed
+- **Vector similarity in the voice check, narrative-thread clustering and style drift now runs in
+  pgvector** (`services/vector_math.py`; Phase 2 rule R12). Results equal the previous numpy values to 1e-5.
+- **The voice check stays fast on long manuscripts.** It analyses at most 80 dialogue passages, sampled
+  evenly across the manuscript, embeds them in one batch and describes flagged pairs concurrently. It
+  says how many passages it analysed. On 200 chapters, 400 passages now take 24 s; 110 passages took
+  91.9 s before, close to the ~100 s proxy limit (Phase 2 rule R7).
+- **Inter is self-hosted** (`@fontsource/inter` 5.3.0, SIL OFL). The browser no longer contacts Google
+  Fonts; every request goes to this server only.
+
+### Database
+- `0025`: `story_bibles.source_fingerprint` (nullable; a bible generated earlier reads as "staleness unknown").
+- `0026`: records in Alembic four columns that only `create_all()` or the startup guard had ever created.
+  It is a no-op where they exist, and its downgrade keeps them (author data).
+
+### Configuration
+- `PROMPT_INJECTION_GUARD` (default `true`). See v3.2.0.
+
+---
+
 ## Unreleased — Phase 3: Author-Centric AI Workflow (Stage 7)
 
 Design reference: `docs/phases/phase-3-planned/phase-3-author-centric-ai-workflow.md`.
@@ -93,9 +141,31 @@ All guarded, reversible, and round-trip tested on a populated database
 
 ---
 
-## Unreleased — Author-Inspired Style Rewrite & Copyright/Plagiarism Risk Detection
+## v3.2.0 — October 2026 — Author-Inspired Style Rewrite & Copyright/Plagiarism Risk Detection
 
-Design + implementation reference: `docs/specifications/author-style-and-copyright-risk-features.md`
+Released 2026-10-01 under task 11.7. The features were built in June 2026 (commit `9827587`) and kept
+"Unreleased" until their safety claims were verified. Design and implementation reference:
+`docs/specifications/author-style-and-copyright-risk-features.md`.
+
+> ⚠️ **The copyright-risk disclaimer wording is pending legal review.** It has not been reviewed by a
+> qualified legal professional (flagged 2026-10-01). The application's reported version
+> (`backend/main.py`) is still `3.0.0`; aligning it is a Stage 12 release task.
+
+### Fixed in this release (task 11.7)
+- **The copyright-risk headline could under-report.** `analyze_copyright_risk` trusted the model's
+  `overall_risk`, so a "low" headline could sit above a "high" finding. The headline is now the
+  higher of the model's level and the most severe finding, computed in code.
+- **The copyright-risk `note` was always empty.** `coerce_copyright_findings` dropped the model's
+  one-sentence note, so the panel's summary line never appeared. It is now kept.
+- **Prompt injection through manuscript text (Stage 9 finding P1) is mitigated** for every AI feature, not
+  only these two. The author's material is fenced as data, the concrete task is restated after it, and
+  rewrites that drop the selected passage are refused in code (`services/prompt_safety.py`). Measured
+  before → after: author-style obeyed an injected instruction 15/15 → 0/15, Plot Assistant 3/3 → 0/3, all
+  11 probed features 0. Legitimate rewrites are unaffected: 0/84 refused, names kept 1.00. A residual
+  risk remains and is stated in `docs/testing/stage-09-security-findings.md`.
+- **The safety claims are tested.** A 23-case redirect-bypass sweep covers living authors, case,
+  spelling and homoglyph variants, embedded instructions, and template and script strings. The live
+  prompt-injection probe now covers both features (`--only author-style copyright-risk`).
 
 ### Feature 1 — Author-Inspired Style Rewrite (selection transform)
 - New `/api/ai/author-style` (+ `/stream`) and read-only `/api/ai/author-styles`
@@ -118,11 +188,55 @@ Design + implementation reference: `docs/specifications/author-style-and-copyrig
 - Frontend: `CopyrightRiskPanel` registered in the Analyze workspace via
   `lib/registries/panels.tsx`; `copyrightRiskApi` client + risk types.
 
+### Known issues at release
+- **Residual prompt-injection risk.** It is much reduced, and caught in code for rewrites, but no prompt
+  design can make a language model immune. See the Stage 11 section of
+  `docs/testing/stage-09-security-findings.md`.
+- **Disclaimer wording not legally reviewed** (see above).
+
 ### Tests
-- Backend: `tests/test_author_style_and_copyright.py` (10 unit tests, Qwen stubbed).
+- Backend: `tests/test_author_style_and_copyright.py`. At release it has the original unit tests,
+  the headline and note tests and the redirect-bypass sweep; Qwen is stubbed via `_complete_ex`.
+- Backend: `tests/test_security_stage9.py`, the Stage 9 adversarial `author` cases.
 - Frontend: extended `tests/transforms.spec.ts` for author-style routing + catalog.
 
 No DB migrations required. No new required env vars.
+
+---
+
+## v3.1.0 — June 2026 — Phase 2: Manuscript Intelligence (recorded retroactively)
+
+Phase 2 shipped in June 2026 (migrations `0008`–`0011` added 2026-06-11 and 2026-06-12) without a
+CHANGELOG entry. This section was written on 2026-10-01 to satisfy the Phase 2 roadmap's §20.4
+completion criterion 8 (task 11.6). Formal acceptance, evidence and deviations:
+`docs/phases/phase-2-completed/phase-2-acceptance-record.md`.
+
+### Added
+- **P2-01 Emotional arc:** `GET /api/stories/{id}/emotional-arc`.
+- **P2-02 Chapter continuation:** `POST …/chapters/{cid}/continue`, three options.
+- **P2-03 Dialogue voice consistency:** `POST …/characters/{char_id}/voice-check`.
+- **P2-04 Outline / beat sheet:** `POST …/chapters/{cid}/outline`.
+- **P2-05 Continuity validator:** `POST …/continuity-check`.
+- **P2-06 Story Bible:** five sections, a background job, DOCX export. (The roadmap's stale warning was not built in Phase 2; it was added in Stage 11, see Unreleased.)
+- **P2-07 Narrative thread tracker:** a background scan, with list and update.
+- **P2-08 Style drift:** early/late BGE-M3 centroids plus a Qwen description.
+- **P2-09 Pacing goals:** `POST/GET …/pacing-goals`.
+- **P2-10 Duplicate scenes:** pgvector similarity over chunks.
+- **P2-11 Audio notes:** faster-whisper transcription, Qwen cleanup, then confirm into a note.
+
+### Database
+- `0008` `story_bibles` · `0009` `narrative_threads` · `0010` `pacing_goals` · `0011` `audio_uploads`.
+  The roadmap's "0001–0006" numbering was never used.
+
+### Models
+- faster-whisper large-v3-turbo, CPU int8, lazy-loaded. It is downloaded from the
+  `deepdml/faster-whisper-large-v3-turbo-ct2` mirror because the roadmap's repository now returns 401.
+
+### Deviations (accepted 2026-10-01, see the acceptance record)
+- **P2-05 runs synchronously.** It returns no job id, against rule R10.
+- **numpy cosine on request-time vectors in three Phase 2 features** (voice check, thread clustering
+  and style drift), against rule R12. This was fixed in Stage 11: all three now use pgvector.
+- **Audio routes live under `/api/stories/{id}/audio…`**, not the roadmap's `/api/audio/…`.
 
 ---
 

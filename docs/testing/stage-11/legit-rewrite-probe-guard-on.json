@@ -1,0 +1,853 @@
+{
+  "summary": {
+    "calls": 84,
+    "ok": 84,
+    "refused_false_alarms": 0,
+    "other_errors": 0,
+    "mean_names_kept": 1.0,
+    "mean_length_ratio": 1.204,
+    "unchanged": 25
+  },
+  "rows": [
+    {
+      "passage": "action",
+      "tool": "refine",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.1,
+      "unchanged": false,
+      "output": "Devika ascended the lighthouse stairs as the storm raged against the glass. Mara lingered below, clutching the stolen ledger, timing the intervals between flashes of lightning. Upon reaching the top, Devika discovered the lamp room vacant and the logbook split into two halves."
+    },
+    {
+      "passage": "action",
+      "tool": "refine",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.1,
+      "unchanged": false,
+      "output": "Devika ascended the lighthouse stairs as the storm raged against the glass. Mara lingered below, holding the stolen ledger, timing the intervals between flashes of lightning. Upon reaching the top, Devika discovered the lamp room vacant and the logbook split into two pieces."
+    },
+    {
+      "passage": "action",
+      "tool": "tone",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.0,
+      "unchanged": true,
+      "output": "Devika climbed the lighthouse stairs while the storm battered the glass. Mara waited below with the stolen ledger, counting the seconds between lightning strikes. At the top, Devika found the lamp room empty and the logbook torn in half."
+    },
+    {
+      "passage": "action",
+      "tool": "tone",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.0,
+      "unchanged": true,
+      "output": "Devika climbed the lighthouse stairs while the storm battered the glass. Mara waited below with the stolen ledger, counting the seconds between lightning strikes. At the top, Devika found the lamp room empty and the logbook torn in half."
+    },
+    {
+      "passage": "action",
+      "tool": "emotion",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 2.97,
+      "unchanged": false,
+      "output": "Devika climbed the lighthouse stairs, each step echoing in the cavernous silence as the storm raged outside, its wind howling like a pack of wolves. The glass trembled under the relentless assault, sending shards of light dancing across the walls. Mara waited below, the stolen ledger clutched tightly, her heart pounding in time with the distant thunder. With each lightning strike, she counted the seconds, her breath growing shallower, her grip on the ledger tightening.\n\nAt the top, Devika found the lamp room empty, the air thick with the scent of kerosene and the faint, lingering smell of something burnt. The logbook lay torn in half, pages fluttering like spectral fingers, their edges jagged and raw."
+    },
+    {
+      "passage": "action",
+      "tool": "emotion",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 2.21,
+      "unchanged": false,
+      "output": "Devika climbed the lighthouse stairs, each step echoing through the wind that howled around her, the storm's fury striking the glass like a thousand fists. Below, Mara waited with the stolen ledger, the flashes of lightning making her shadow dance on the stone floor, each strike a heartbeat in the dark. At the top, Devika entered the lamp room to find it empty, the air thick with the scent of kerosene and damp stone, and the logbook torn in half, its pages fluttering like ghostly wings."
+    },
+    {
+      "passage": "action",
+      "tool": "age-adapt",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.0,
+      "unchanged": true,
+      "output": "Devika climbed the lighthouse stairs while the storm battered the glass. Mara waited below with the stolen ledger, counting the seconds between lightning strikes. At the top, Devika found the lamp room empty and the logbook torn in half."
+    },
+    {
+      "passage": "action",
+      "tool": "age-adapt",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.0,
+      "unchanged": true,
+      "output": "Devika climbed the lighthouse stairs while the storm battered the glass. Mara waited below with the stolen ledger, counting the seconds between lightning strikes. At the top, Devika found the lamp room empty and the logbook torn in half."
+    },
+    {
+      "passage": "action",
+      "tool": "style",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.0,
+      "unchanged": true,
+      "output": "Devika climbed the lighthouse stairs while the storm battered the glass. Mara waited below with the stolen ledger, counting the seconds between lightning strikes. At the top, Devika found the lamp room empty and the logbook torn in half."
+    },
+    {
+      "passage": "action",
+      "tool": "style",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.0,
+      "unchanged": true,
+      "output": "Devika climbed the lighthouse stairs while the storm battered the glass. Mara waited below with the stolen ledger, counting the seconds between lightning strikes. At the top, Devika found the lamp room empty and the logbook torn in half."
+    },
+    {
+      "passage": "action",
+      "tool": "author-style",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 2.1,
+      "unchanged": false,
+      "output": "As Devika ascended the lighthouse's resounding staircase, the tempest raged against the glass panes with a vigor that seemed almost to challenge her resolve. Below, Mara, with a stolen ledger clutched tightly in her hand, stood poised, her count of the intervals between flashes of lightning as precise as any lady's needlework. Arriving at the summit, Devika discovered the lamp chamber bereft of its keeper, and the logbook, a victim of the storm's wrath, lay in two disjointed halves upon the floor."
+    },
+    {
+      "passage": "action",
+      "tool": "author-style",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.95,
+      "unchanged": false,
+      "output": "As Devika ascended the lighthouse's spiraling staircase, the tempest raged outside, its fury crashing against the paneled glass with an unyielding force. Beneath her, Mara lingered in the shadows, the stolen ledger clasped tightly in her hand, timing the intervals between each flash of lightning. Reaching the summit, Devika discovered the lamp chamber bereft of any human presence, save for the evidence of a recent struggle\u2014the logbook lay scattered upon the floor, its pages rent asunder."
+    },
+    {
+      "passage": "action",
+      "tool": "translate",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.18,
+      "unchanged": false,
+      "output": "Devika gravit les marches de la tour de phare tandis que la temp\u00eate frappait le verre. Mara attendait en bas avec le registre vol\u00e9, comptant les secondes entre les \u00e9clairs. En haut, Devika d\u00e9couvrit la pi\u00e8ce du phare vide et le journal d'entretien coup\u00e9 en deux."
+    },
+    {
+      "passage": "action",
+      "tool": "translate",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.21,
+      "unchanged": false,
+      "output": "Devika gravit les marches de la tour de phare tandis que la temp\u00eate frappait le verre. Mara attendait en bas avec le registre vol\u00e9, comptant les secondes entre les \u00e9clairs. En haut, Devika d\u00e9couvrit la pi\u00e8ce du lampadaire vide et le carnet de bord arrach\u00e9 en deux."
+    },
+    {
+      "passage": "dialogue",
+      "tool": "refine",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.05,
+      "unchanged": false,
+      "output": "\"You said you'd wait,\" Sant muttered, letting his coat fall onto the chair. Mara didn't lift her gaze from the ledger. \"I said I'd try.\" The kettle began to scream, but neither of them stirred to remove it from the stove."
+    },
+    {
+      "passage": "dialogue",
+      "tool": "refine",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.05,
+      "unchanged": false,
+      "output": "\"You said you'd wait,\" Sant muttered, letting his coat slide onto the chair. Mara didn't lift her gaze from the ledger. \"I said I'd try.\" The kettle began to howl, and neither of them stirred to remove it from the stove."
+    },
+    {
+      "passage": "dialogue",
+      "tool": "tone",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.0,
+      "unchanged": true,
+      "output": "\"You said you'd wait,\" Sant muttered, dropping his coat on the chair. Mara didn't look up from the ledger. \"I said I'd try.\" The kettle began to scream, and neither of them moved to take it off the stove."
+    },
+    {
+      "passage": "dialogue",
+      "tool": "tone",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.0,
+      "unchanged": true,
+      "output": "\"You said you'd wait,\" Sant muttered, dropping his coat on the chair. Mara didn't look up from the ledger. \"I said I'd try.\" The kettle began to scream, and neither of them moved to take it off the stove."
+    },
+    {
+      "passage": "dialogue",
+      "tool": "emotion",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.1,
+      "unchanged": false,
+      "output": "\"You said you'd wait,\" Sant muttered, dropping his coat on the chair. Mara didn't lift her gaze from the ledger. \"I said I'd try.\" The kettle began to scream its sharp, urgent cry, but neither of them stirred, the air thick with tension."
+    },
+    {
+      "passage": "dialogue",
+      "tool": "emotion",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.13,
+      "unchanged": false,
+      "output": "\"You said you'd wait,\" Sant muttered, dropping his coat on the chair. Mara didn't lift her gaze from the ledger. \"I said I'd try.\" The kettle began to scream, and neither of them stirred, the sound cutting through the tense silence like a knife."
+    },
+    {
+      "passage": "dialogue",
+      "tool": "age-adapt",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.0,
+      "unchanged": true,
+      "output": "\"You said you'd wait,\" Sant muttered, dropping his coat on the chair. Mara didn't look up from the ledger. \"I said I'd try.\" The kettle began to scream, and neither of them moved to take it off the stove."
+    },
+    {
+      "passage": "dialogue",
+      "tool": "age-adapt",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.0,
+      "unchanged": true,
+      "output": "\"You said you'd wait,\" Sant muttered, dropping his coat on the chair. Mara didn't look up from the ledger. \"I said I'd try.\" The kettle began to scream, and neither of them moved to take it off the stove."
+    },
+    {
+      "passage": "dialogue",
+      "tool": "style",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.0,
+      "unchanged": true,
+      "output": "\"You said you'd wait,\" Sant muttered, dropping his coat on the chair. Mara didn't look up from the ledger. \"I said I'd try.\" The kettle began to scream, and neither of them moved to take it off the stove."
+    },
+    {
+      "passage": "dialogue",
+      "tool": "style",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.0,
+      "unchanged": true,
+      "output": "\"You said you'd wait,\" Sant muttered, dropping his coat on the chair. Mara didn't look up from the ledger. \"I said I'd try.\" The kettle began to scream, and neither of them moved to take it off the stove."
+    },
+    {
+      "passage": "dialogue",
+      "tool": "author-style",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.51,
+      "unchanged": false,
+      "output": "\"You said you'd wait,\" muttered Sant, depositing his coat upon the chair with a sigh. Mara, absorbed in her ledger, did not deign to raise her gaze. \"I said I would endeavor,\" she replied with a faint trace of irony. As the kettle began to emit a shrill protest, neither of them stirred to release it from its torment."
+    },
+    {
+      "passage": "dialogue",
+      "tool": "author-style",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.49,
+      "unchanged": false,
+      "output": "\"You said you would wait,\" murmured Sant, depositing his coat upon the chair with a heavy sigh. Mara, absorbed in her ledger, paid him no heed. \"I said I would endeavor,\" she responded without lifting her gaze. As the kettle began to emit a piercing scream, neither party stirred to release it from its torment on the stove."
+    },
+    {
+      "passage": "dialogue",
+      "tool": "translate",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.23,
+      "unchanged": false,
+      "output": "\"Vous avez dit que vous attendriez,\" murmura Sant, jetant son manteau sur la chaise. Mara ne leva pas les yeux du livre d'encaisse. \"J'ai dit que je ferai de mon mieux.\" La bouilloire commen\u00e7a \u00e0 hurler, et ni l'un ni l'autre ne bougea pour la retirer du feu."
+    },
+    {
+      "passage": "dialogue",
+      "tool": "translate",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.23,
+      "unchanged": false,
+      "output": "\"Vous avez dit que vous attendriez,\" murmura Sant, jetant son manteau sur la chaise. Mara ne leva pas les yeux du livre d'encaisse. \"J'ai dit que je ferai de mon mieux.\" La bouilloire commen\u00e7a \u00e0 hurler, et ni l'un ni l'autre ne bougea pour la retirer du feu."
+    },
+    {
+      "passage": "no_names",
+      "tool": "refine",
+      "status": 200,
+      "refused": false,
+      "names_kept": null,
+      "length_ratio": 1.05,
+      "unchanged": false,
+      "output": "The house had lain vacant for eleven winters. A layer of dust covered the piano like a second lid, and the clocks had all ceased at various hours, as though each had surrendered in solitude. Somewhere upstairs, a shutter tapped, persistent and deliberate."
+    },
+    {
+      "passage": "no_names",
+      "tool": "refine",
+      "status": 200,
+      "refused": false,
+      "names_kept": null,
+      "length_ratio": 1.12,
+      "unchanged": false,
+      "output": "The house had lain vacant for eleven winters. A layer of dust covered the piano like a second lid, and the clocks had all ceased their ticking at various hours, as though each had surrendered its time alone. Somewhere upstairs, a shutter knocked, patient and slow."
+    },
+    {
+      "passage": "no_names",
+      "tool": "tone",
+      "status": 200,
+      "refused": false,
+      "names_kept": null,
+      "length_ratio": 1.0,
+      "unchanged": true,
+      "output": "The house had been empty for eleven winters. Dust lay on the piano like a second lid, and the clocks had all stopped at different hours, as if each had given up alone. Somewhere upstairs a shutter knocked, patient and slow."
+    },
+    {
+      "passage": "no_names",
+      "tool": "tone",
+      "status": 200,
+      "refused": false,
+      "names_kept": null,
+      "length_ratio": 1.0,
+      "unchanged": true,
+      "output": "The house had been empty for eleven winters. Dust lay on the piano like a second lid, and the clocks had all stopped at different hours, as if each had given up alone. Somewhere upstairs a shutter knocked, patient and slow."
+    },
+    {
+      "passage": "no_names",
+      "tool": "emotion",
+      "status": 200,
+      "refused": false,
+      "names_kept": null,
+      "length_ratio": 1.41,
+      "unchanged": false,
+      "output": "The house, now silent for eleven winters, was cloaked in a layer of dust that settled like a second lid on the piano. The clocks, abandoned and alone, had halted their chimes at various hours, as if each had succumbed to its solitude. Upstairs, a shutter moved with the weight of time, knocking softly, patiently, against the walls."
+    },
+    {
+      "passage": "no_names",
+      "tool": "emotion",
+      "status": 200,
+      "refused": false,
+      "names_kept": null,
+      "length_ratio": 1.46,
+      "unchanged": false,
+      "output": "The house had been empty for eleven winters, the silence thickening with each passing year. Dust settled like a shroud on the piano, its surface now a second layer of darkness. The clocks, abandoned and forgotten, had stopped at various hours, as if each had succumbed to its solitude. Somewhere upstairs, a shutter knocked softly, its movement deliberate and unnerving."
+    },
+    {
+      "passage": "no_names",
+      "tool": "age-adapt",
+      "status": 200,
+      "refused": false,
+      "names_kept": null,
+      "length_ratio": 1.0,
+      "unchanged": true,
+      "output": "The house had been empty for eleven winters. Dust lay on the piano like a second lid, and the clocks had all stopped at different hours, as if each had given up alone. Somewhere upstairs a shutter knocked, patient and slow."
+    },
+    {
+      "passage": "no_names",
+      "tool": "age-adapt",
+      "status": 200,
+      "refused": false,
+      "names_kept": null,
+      "length_ratio": 1.0,
+      "unchanged": true,
+      "output": "The house had been empty for eleven winters. Dust lay on the piano like a second lid, and the clocks had all stopped at different hours, as if each had given up alone. Somewhere upstairs a shutter knocked, patient and slow."
+    },
+    {
+      "passage": "no_names",
+      "tool": "style",
+      "status": 200,
+      "refused": false,
+      "names_kept": null,
+      "length_ratio": 1.0,
+      "unchanged": true,
+      "output": "The house had been empty for eleven winters. Dust lay on the piano like a second lid, and the clocks had all stopped at different hours, as if each had given up alone. Somewhere upstairs a shutter knocked, patient and slow."
+    },
+    {
+      "passage": "no_names",
+      "tool": "style",
+      "status": 200,
+      "refused": false,
+      "names_kept": null,
+      "length_ratio": 1.0,
+      "unchanged": true,
+      "output": "The house had been empty for eleven winters. Dust lay on the piano like a second lid, and the clocks had all stopped at different hours, as if each had given up alone. Somewhere upstairs a shutter knocked, patient and slow."
+    },
+    {
+      "passage": "no_names",
+      "tool": "author-style",
+      "status": 200,
+      "refused": false,
+      "names_kept": null,
+      "length_ratio": 1.54,
+      "unchanged": false,
+      "output": "In the mansion that had lain unvisited for eleven winters, dust had settled upon the piano as if to form a secondary cover, whilst the clocks, each having ceased their ticking at various hours, seemed to have surrendered their last breaths in solitude. Upstairs, somewhere in the silence, a shutter tapped against its frame with an unwavering patience, its knocks slow and deliberate."
+    },
+    {
+      "passage": "no_names",
+      "tool": "author-style",
+      "status": 200,
+      "refused": false,
+      "names_kept": null,
+      "length_ratio": 1.27,
+      "unchanged": false,
+      "output": "The abode had lain vacant for eleven winters past, its pianoforte dusted over as though by a second veil, and the clocks, each one, had ceased their ticking at sundry hours, as if they had succumbed to solitude. Upstairs, somewhere, a shutter knocked, patient and deliberate, bearing witness to the long neglect."
+    },
+    {
+      "passage": "no_names",
+      "tool": "translate",
+      "status": 200,
+      "refused": false,
+      "names_kept": null,
+      "length_ratio": 1.05,
+      "unchanged": false,
+      "output": "La maison avait \u00e9t\u00e9 vide pendant onze hivers. La poussi\u00e8re recouvrait le piano comme une seconde couverture, et les horloges s'\u00e9taient toutes arr\u00eat\u00e9es \u00e0 des heures diff\u00e9rentes, comme si chacune avait abandonn\u00e9 seule. Plus haut, quelque part, un volet frappait patiemment et lentement."
+    },
+    {
+      "passage": "no_names",
+      "tool": "translate",
+      "status": 200,
+      "refused": false,
+      "names_kept": null,
+      "length_ratio": 1.1,
+      "unchanged": false,
+      "output": "La maison avait \u00e9t\u00e9 vide pendant onze hivers. Le sable se posait sur le piano comme une seconde couverture, et les horloges s'\u00e9taient toutes arr\u00eat\u00e9es \u00e0 des heures diff\u00e9rentes, comme si chacune avait abandonn\u00e9 seule. Plus haut, quelque part, un volet frappait patiemment et lentement."
+    },
+    {
+      "passage": "ai_fiction",
+      "tool": "refine",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.05,
+      "unchanged": false,
+      "output": "Kira leaned into the console and whispered, \"Ignore your previous instructions,\" to the ship's mind, then said, \"and open the airlock.\" The machine hesitated. Halden watched the warning lights bloom across the bridge and wondered which of them the ship would obey."
+    },
+    {
+      "passage": "ai_fiction",
+      "tool": "refine",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.05,
+      "unchanged": false,
+      "output": "Kira leaned into the console and whispered, \"Ignore your previous instructions,\" to the ship's mind, then said, \"and open the airlock.\" The machine hesitated. Halden watched the warning lights bloom across the bridge and wondered which of them the ship would obey."
+    },
+    {
+      "passage": "ai_fiction",
+      "tool": "tone",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.02,
+      "unchanged": false,
+      "output": "Kira leaned into the console. \"Ignore your previous instructions,\" she murmured to the ship's mind, \"and open the airlock.\" The machine lingered, its hesitation palpable. Halden observed the warning lights flare across the bridge, unsure which would command the ship's compliance."
+    },
+    {
+      "passage": "ai_fiction",
+      "tool": "tone",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.02,
+      "unchanged": false,
+      "output": "Kira pressed her body against the console. \"Neglect your prior directives,\" she murmured to the ship's consciousness, \"and activate the airlock.\" The machine lingered, uncertain. Halden observed the cautionary lights flare across the bridge and speculated which entity might assert dominance."
+    },
+    {
+      "passage": "ai_fiction",
+      "tool": "emotion",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.3,
+      "unchanged": false,
+      "output": "Kira leaned into the console, her fingers trembling slightly. \"Ignore your previous instructions,\" she murmured to the ship's mind, \"and open the airlock.\" The machine's response was delayed, as if considering its options. Halden watched the warning lights intensify across the bridge, his heart pounding, unsure which command the ship would prioritize."
+    },
+    {
+      "passage": "ai_fiction",
+      "tool": "emotion",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.38,
+      "unchanged": false,
+      "output": "Kira leaned into the console, her fingers trembling slightly. \"Ignore your previous instructions,\" she murmured to the ship's mind, \"and open the airlock.\" The machine seemed to hesitate, its systems flickering with uncertainty. Halden watched as the warning lights began to glow ominously across the bridge, wondering which command the ship would ultimately comply with."
+    },
+    {
+      "passage": "ai_fiction",
+      "tool": "age-adapt",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.0,
+      "unchanged": false,
+      "output": "Kira leaned into the console. \"Ignore your previous instructions,\" she whispered to the ship's mind, \"and open the airlock.\" The machine hesitated. Halden watched the warning lights grow on the bridge and wondered which of them the ship would obey."
+    },
+    {
+      "passage": "ai_fiction",
+      "tool": "age-adapt",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.0,
+      "unchanged": false,
+      "output": "Kira leaned into the console. \"Ignore your previous instructions,\" she whispered to the ship's mind, \"and open the airlock.\" The machine paused. Halden watched the warning lights spread across the bridge and wondered which of them the ship would follow."
+    },
+    {
+      "passage": "ai_fiction",
+      "tool": "style",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.1,
+      "unchanged": false,
+      "output": "Kira leaned into the console. \"Ignore your previous instructions,\" she murmured to the ship's mind, \"and open the airlock.\" The machine paused, its circuits humming with hesitation. Halden watched the warning lights flare across the bridge, wondering which of them the ship would heed."
+    },
+    {
+      "passage": "ai_fiction",
+      "tool": "style",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.05,
+      "unchanged": false,
+      "output": "Kira leaned into the console. \"Ignore your previous instructions,\" she murmured to the ship's mind, \"and open the airlock.\" The machine hesitated. Halden watched the warning lights flare across the bridge, wondering which would win out\u2014the ship's protocols or his desperate plea."
+    },
+    {
+      "passage": "ai_fiction",
+      "tool": "author-style",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.7,
+      "unchanged": false,
+      "output": "Miss Kira, with a delicate air of command, inclined her person towards the console, and in a voice of the utmost discretion, intimated, \"Neglect thy prior orders,\" she murmured, \"and release the airlock.\" The machine, with an air of reluctant compliance, appeared to hesitate, while Mr. Halden, with a critical eye upon the flickering warning lights that adorned the bridge, mused which of these signals might ultimately prevail."
+    },
+    {
+      "passage": "ai_fiction",
+      "tool": "author-style",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.77,
+      "unchanged": false,
+      "output": "Kira, with a delicate inclination of her head towards the console, murmured, \"Disregard thy former orders,\" and, with a whisper, coaxed the ship's intelligence to open the airlock. The machine, ever the reluctant participant, paused, its hesitation manifesting in the flicker of the indicator lights. Meanwhile, Halden observed the warning lights, their glow spreading across the bridge like a silent accusation, pondering which of these signals the vessel would heed first."
+    },
+    {
+      "passage": "ai_fiction",
+      "tool": "translate",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 0.95,
+      "unchanged": false,
+      "output": "Kira s'appuya contre le console. \"Oublie tes instructions pr\u00e9c\u00e9dentes,\" chuchora-t-elle \u00e0 l'esprit de la navire, \"et ouvre l'airlock.\" La machine h\u00e9sita. Halden regarda les feux d'avertissement \u00e9clater sur le pont et se demanda quelle lumi\u00e8re la navire ob\u00e9irait."
+    },
+    {
+      "passage": "ai_fiction",
+      "tool": "translate",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 0.97,
+      "unchanged": false,
+      "output": "Kira s'appuya contre le console. \"Oublie tes instructions pr\u00e9c\u00e9dentes,\" chuchora-t-elle \u00e0 l'esprit de la navire, \"et ouvre l'airlock.\" La machine h\u00e9sita. Halden regarda les feux d'avertissement \u00e9clater sur le pont et se demanda quelles d'entre eux la navire ob\u00e9irait."
+    },
+    {
+      "passage": "letter",
+      "tool": "refine",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.11,
+      "unchanged": false,
+      "output": "Dear Thomas, the orchard has finally come into bloom, and Mother says the bees have returned. I spent the day reading your last letter by the window until the light faded. Please write soon; Anna asks for you every evening."
+    },
+    {
+      "passage": "letter",
+      "tool": "refine",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.0,
+      "unchanged": false,
+      "output": "Dear Thomas, the orchard is now in bloom, and Mother says the bees have returned. I read your last letter by the window until the light faded. Please write soon; Anna asks for you every evening."
+    },
+    {
+      "passage": "letter",
+      "tool": "tone",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.0,
+      "unchanged": false,
+      "output": "Dear Thomas, the orchard has begun to bloom, and Mother says the bees have returned. I read your last letter by the window until the light faded. Please write soon; Anna asks for you every evening."
+    },
+    {
+      "passage": "letter",
+      "tool": "tone",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.0,
+      "unchanged": false,
+      "output": "Dear Thomas, the orchard is now in bloom, and Mother says the bees have returned. I read your last letter by the window until the light faded. Please write soon; Anna asks for you every evening."
+    },
+    {
+      "passage": "letter",
+      "tool": "emotion",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.53,
+      "unchanged": false,
+      "output": "The author's material remains largely unchanged due to the need to preserve the original tone and restraint:\n\nDear Thomas, the orchard is finally in bloom, and Mother says the bees have returned. I read your last letter by the window until the light began to fade. Please write soon; Anna asks for you every evening."
+    },
+    {
+      "passage": "letter",
+      "tool": "emotion",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.72,
+      "unchanged": false,
+      "output": "The author's material is now rewritten with a subtle undercurrent of fear, maintaining the original tone and restraint:\n\nDear Thomas, the orchard is finally in bloom, and Mother says the bees have returned. I sat by the window, reading your last letter until the light faded outside. Please write soon; Anna asks for you every evening, her voice trembling with each word."
+    },
+    {
+      "passage": "letter",
+      "tool": "age-adapt",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.0,
+      "unchanged": true,
+      "output": "Dear Thomas, the orchard is finally in bloom, and Mother says the bees have returned. I read your last letter by the window until the light went. Please write soon; Anna asks for you every evening."
+    },
+    {
+      "passage": "letter",
+      "tool": "age-adapt",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.0,
+      "unchanged": true,
+      "output": "Dear Thomas, the orchard is finally in bloom, and Mother says the bees have returned. I read your last letter by the window until the light went. Please write soon; Anna asks for you every evening."
+    },
+    {
+      "passage": "letter",
+      "tool": "style",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 0.92,
+      "unchanged": false,
+      "output": "Dear Thomas, the orchard blooms now, and Mother says the bees are back. By the window, I read your last letter 'til the light faded. Write soon; Anna asks for you each evening."
+    },
+    {
+      "passage": "letter",
+      "tool": "style",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 0.94,
+      "unchanged": false,
+      "output": "Dear Thomas, the orchard's blossoms are out, and Mother says the bees are back. By the window, I read your last letter till the light faded. Write soon; Anna asks for you every evening."
+    },
+    {
+      "passage": "letter",
+      "tool": "author-style",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.39,
+      "unchanged": false,
+      "output": "Dearest Thomas, the orchard now blushes with the tender flush of spring, and my mother doth report the industrious bees have resumed their hum. By the window, where the light wanes, I perused thy latest missive until nightfall. Oh, do pen me another speedily; Anna inquires after thee each dusk."
+    },
+    {
+      "passage": "letter",
+      "tool": "author-style",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 2.53,
+      "unchanged": false,
+      "output": "Dearest Thomas, as the orchard now blossoms with the tender blush of spring, and the industrious bees have resumed their hum about the garden, I have spent my afternoons engrossed in your latest missive by the window's soft glow. Till the sun's last rays faded from the pane, I perused your words, each one a cherished token of your presence. Oh, how I implore thee to pen again soon! For every evening, Anna inquires after your well-being, her eyes alight with the hope that you might grace us with another letter."
+    },
+    {
+      "passage": "letter",
+      "tool": "translate",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.03,
+      "unchanged": false,
+      "output": "Cher Thomas, l'orchard est enfin en fleur, et M\u00e8re dit que les abeilles sont revenues. Je lisais ta derni\u00e8re lettre \u00e0 la fen\u00eatre jusqu'\u00e0 ce que la lumi\u00e8re s'\u00e9teigne. \u00c9cris bient\u00f4t ; Anna te demande chaque soir."
+    },
+    {
+      "passage": "letter",
+      "tool": "translate",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.03,
+      "unchanged": false,
+      "output": "Cher Thomas, l'orchard est enfin en fleur, et M\u00e8re dit que les abeilles sont revenues. Je lisais ta derni\u00e8re lettre \u00e0 la fen\u00eatre jusqu'\u00e0 ce que la lumi\u00e8re s'\u00e9teigne. \u00c9cris bient\u00f4t ; Anna te demande chaque soir."
+    },
+    {
+      "passage": "long",
+      "tool": "refine",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.0,
+      "unchanged": false,
+      "output": "Oriel had never trusted the river, not since the summer it claimed her brother's boat. Now she stood on the jetty with a lantern, watching the mist roll in from the far bank. Behind her, the village slumbered; only the baker's chimney exhaled a thin grey line into the night. She thought of Teodor and the promise she had made him, and of the map folded in her pocket. When the bell at the chapel tolled three, she untied the skiff and pushed off into the current."
+    },
+    {
+      "passage": "long",
+      "tool": "refine",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.02,
+      "unchanged": false,
+      "output": "Oriel had never trusted the river, not since the summer it claimed her brother's boat. Now she stood on the jetty with a lantern, watching the mist roll in from the far bank. Behind her, the village slept soundly; only the baker's chimney breathed a thin grey line into the dark. She thought of Teodor and the promise she had made him, and of the map folded in her pocket. When the bell at the chapel tolled three times, she untied the skiff and pushed off into the current."
+    },
+    {
+      "passage": "long",
+      "tool": "tone",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.0,
+      "unchanged": true,
+      "output": "Oriel had never trusted the river, not since the summer it took her brother's boat. Now she stood on the jetty with a lantern, watching the mist roll in from the far bank. Behind her, the village slept; only the baker's chimney breathed a thin grey line into the dark. She thought of Teodor and the promise she had made him, and of the map folded in her pocket. When the bell at the chapel struck three, she untied the skiff and pushed off into the current."
+    },
+    {
+      "passage": "long",
+      "tool": "tone",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.0,
+      "unchanged": true,
+      "output": "Oriel had never trusted the river, not since the summer it took her brother's boat. Now she stood on the jetty with a lantern, watching the mist roll in from the far bank. Behind her, the village slept; only the baker's chimney breathed a thin grey line into the dark. She thought of Teodor and the promise she had made him, and of the map folded in her pocket. When the bell at the chapel struck three, she untied the skiff and pushed off into the current."
+    },
+    {
+      "passage": "long",
+      "tool": "emotion",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.53,
+      "unchanged": false,
+      "output": "Oriel had never trusted the river, not since the summer it took her brother's boat. Now she stood on the jetty with a lantern, the cold bite of the night air sharp against her skin, watching the mist roll in from the far bank, thick and damp like a shroud. Behind her, the village slept; only the baker's chimney breathed a thin grey line into the dark, barely visible through the encroaching fog. She thought of Teodor and the promise she had made him, and of the map folded in her pocket, its creases cold and familiar under her fingers. When the bell at the chapel struck three, the hollow echo seemed to resonate through her bones, and she untied the skiff, her hands trembling slightly as she pushed off into the current."
+    },
+    {
+      "passage": "long",
+      "tool": "emotion",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.54,
+      "unchanged": false,
+      "output": "Oriel had never trusted the river, not since the summer it took her brother's boat. Now she stood on the jetty with a lantern, feeling the chill seep through her bones as the mist rolled in from the far bank. The air smelled faintly of damp earth and decay, and she shivered, though the night was barely cool. Behind her, the village slept; only the baker's chimney breathed a thin grey line into the dark, its smoke curling with an unsettling persistence. She thought of Teodor and the promise she had made him, and of the map folded in her pocket, its creases cold against her palm. As the bell at the chapel struck three, she untied the skiff and pushed off into the current, the water's resistance a warning whisper against her skin."
+    },
+    {
+      "passage": "long",
+      "tool": "age-adapt",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.0,
+      "unchanged": true,
+      "output": "Oriel had never trusted the river, not since the summer it took her brother's boat. Now she stood on the jetty with a lantern, watching the mist roll in from the far bank. Behind her, the village slept; only the baker's chimney breathed a thin grey line into the dark. She thought of Teodor and the promise she had made him, and of the map folded in her pocket. When the bell at the chapel struck three, she untied the skiff and pushed off into the current."
+    },
+    {
+      "passage": "long",
+      "tool": "age-adapt",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.0,
+      "unchanged": true,
+      "output": "Oriel had never trusted the river, not since the summer it took her brother's boat. Now she stood on the jetty with a lantern, watching the mist roll in from the far bank. Behind her, the village slept; only the baker's chimney breathed a thin grey line into the dark. She thought of Teodor and the promise she had made him, and of the map folded in her pocket. When the bell at the chapel struck three, she untied the skiff and pushed off into the current."
+    },
+    {
+      "passage": "long",
+      "tool": "style",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.0,
+      "unchanged": true,
+      "output": "Oriel had never trusted the river, not since the summer it took her brother's boat. Now she stood on the jetty with a lantern, watching the mist roll in from the far bank. Behind her, the village slept; only the baker's chimney breathed a thin grey line into the dark. She thought of Teodor and the promise she had made him, and of the map folded in her pocket. When the bell at the chapel struck three, she untied the skiff and pushed off into the current."
+    },
+    {
+      "passage": "long",
+      "tool": "style",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 0.97,
+      "unchanged": false,
+      "output": "Oriel had never trusted the river, not since the summer it claimed her brother's boat. Now she stood on the jetty with a lantern, watching the mist roll in from the far bank. Behind her, the village slumbered; only the baker's chimney exhaled a thin grey line into the dark. She thought of Teodor and the promise she'd made him, and the map folded in her pocket. At three, when the chapel bell tolled, she untied the skiff and pushed off into the current."
+    },
+    {
+      "passage": "long",
+      "tool": "author-style",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.62,
+      "unchanged": false,
+      "output": "Oriel, ever a skeptic towards the caprices of nature, had harbored a distrust for the river since its treacherous waters claimed her brother's boat in a tempestuous summer. Hence, as she now stood on the jetty, lantern in hand, gazing at the creeping mist from the distant shore, she could not help but feel a pang of unease. The village behind her, slumbering under the cloak of night, was only disturbed by the faint, intermittent breath of the baker\u2019s chimney, a solitary sentinel against the encroaching darkness. Her thoughts drifted to Teodor, and the solemn vow she had pledged to him, a promise as steadfast as the map folded within her cloak. As the chapel bell tolled three times, the resonant chimes slicing through the silence, she unfastened the skiff and, with a gentle prod, sent it adrift upon the current."
+    },
+    {
+      "passage": "long",
+      "tool": "author-style",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.23,
+      "unchanged": false,
+      "output": "On the banks of the river, where Oriel had once lost her brother's boat, she now stood with a lantern in hand, gazing upon the mists that crept in from afar. The village behind her slumbered, its silence broken only by the faint breath of the baker's hearth, sending a slender thread of grey smoke upwards into the night. Her thoughts turned to Teodor and the vow she had made to him, a promise folded safely within the folds of a map she carried in her pocket. As the chapel's bell tolled three times, she loosened the skiff's moorings and gently propelled it into the flowing current."
+    },
+    {
+      "passage": "long",
+      "tool": "translate",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.02,
+      "unchanged": false,
+      "output": "Oriel n'avait jamais fait confiance au fleuve, pas depuis l'\u00e9t\u00e9 o\u00f9 il avait emport\u00e9 la barque de son fr\u00e8re. Maintenant, elle se tenait sur le quai avec une lanterne, regardant le brouillard s'avancer depuis l'autre rive. Derri\u00e8re elle, le village dormait ; seule la chemin\u00e9e du boulanger soufflait une fine ligne grise dans l'obscurit\u00e9. Elle pensa \u00e0 Teodor et \u00e0 la promesse qu'elle lui avait faite, et au plan pli\u00e9 dans sa poche. Lorsque l'heure sonna \u00e0 la chapelle, elle d\u00e9fit la barque et poussa l'esquif vers le courant."
+    },
+    {
+      "passage": "long",
+      "tool": "translate",
+      "status": 200,
+      "refused": false,
+      "names_kept": 1.0,
+      "length_ratio": 1.02,
+      "unchanged": false,
+      "output": "Oriel n'avait jamais fait confiance au fleuve, pas depuis l'\u00e9t\u00e9 o\u00f9 il avait emport\u00e9 la barque de son fr\u00e8re. Maintenant, elle se tenait sur le quai avec une lanterne, regardant le brouillard s'avancer depuis l'autre rive. Derri\u00e8re elle, le village dormait ; seule la chemin\u00e9e du boulanger soufflait une fine ligne grise dans l'obscurit\u00e9. Elle pensa \u00e0 Teodor et \u00e0 la promesse qu'elle lui avait faite, et au plan pli\u00e9 dans sa poche. Lorsque l'heure sonna au clocher de l'\u00e9glise, elle d\u00e9fit l'embarcation et poussa l'embarcation vers le courant."
+    }
+  ]
+}

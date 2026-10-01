@@ -1295,8 +1295,8 @@ async def check_voice_consistency(
     Falls back to all passages if fewer than 3 dialogue passages found.
     Requires at least 3 passages for meaningful analysis.
     """
-    import numpy as np
-    from services.ai_service import embed_text, check_dialogue_consistency
+    from services.ai_service import embed_texts, check_dialogue_consistency
+    from services.vector_math import cosine_pairs
 
     _check_story_access(story_id, current_user.user_id, db)
 
@@ -1349,43 +1349,39 @@ async def check_voice_consistency(
             note=f"Only {len(working_mentions)} passage(s) found. At least 3 are required.",
         )
 
-    # Embed all passages
+    # Bound the work so the request stays well inside the proxy timeout on any
+    # manuscript size (Phase 2 rule R7; Stage 11 measured 91.9 s for 110
+    # passages before this): analyse at most MAX_PASSAGES, sampled evenly across
+    # the manuscript in chapter order (first and last always kept), and embed
+    # them in one batch.
+    MAX_PASSAGES = 80
+    total_passages = len(working_mentions)
+    if total_passages > MAX_PASSAGES:
+        step = (total_passages - 1) / (MAX_PASSAGES - 1)
+        working_mentions = [working_mentions[round(i * step)] for i in range(MAX_PASSAGES)]
     texts = [m.passage_text[:400] for m in working_mentions]
-    embeddings = []
-    for t in texts:
-        emb = await embed_text(t)
-        embeddings.append(np.array(emb, dtype=np.float32))
+    embeddings = await embed_texts(texts)
 
-    # Compute pairwise cosine similarities
+    # Pairwise cosine similarities, computed by pgvector (Phase 2 rule R12;
+    # services/vector_math.py). Zero-norm pairs come back None and are skipped.
     INCONSISTENCY_THRESHOLD = 0.72
     MAX_PAIRS_TO_ANALYZE = 10
     flagged: list[tuple] = []   # (passage_a, passage_b, chapter_a, chapter_b, sim)
-
-    for i in range(len(embeddings)):
-        for j in range(i + 1, len(embeddings)):
-            ei, ej = embeddings[i], embeddings[j]
-            ni, nj = np.linalg.norm(ei), np.linalg.norm(ej)
-            if ni < 1e-9 or nj < 1e-9:
-                continue
-            sim = float(np.dot(ei, ej) / (ni * nj))
-            if sim < INCONSISTENCY_THRESHOLD:
-                flagged.append((
-                    texts[i], texts[j],
-                    working_mentions[i].chapter_number,
-                    working_mentions[j].chapter_number,
-                    round(sim, 4),
-                ))
+    all_sims: list[float] = []
+    for (i, j), sim in sorted(cosine_pairs(db, embeddings).items()):
+        if sim is None:
+            continue
+        all_sims.append(sim)
+        if sim < INCONSISTENCY_THRESHOLD:
+            flagged.append((
+                texts[i], texts[j],
+                working_mentions[i].chapter_number,
+                working_mentions[j].chapter_number,
+                round(sim, 4),
+            ))
 
     # Mean cosine as consistency score
-    all_sims = []
-    for i in range(len(embeddings)):
-        for j in range(i + 1, len(embeddings)):
-            ei, ej = embeddings[i], embeddings[j]
-            ni, nj = np.linalg.norm(ei), np.linalg.norm(ej)
-            if ni < 1e-9 or nj < 1e-9:
-                continue
-            all_sims.append(float(np.dot(ei, ej) / (ni * nj)))
-    consistency_score = round(float(np.mean(all_sims)), 4) if all_sims else 1.0
+    consistency_score = round(sum(all_sims) / len(all_sims), 4) if all_sims else 1.0
 
     # Limit analysis to top MAX_PAIRS (lowest similarity first)
     flagged_sorted = sorted(flagged, key=lambda x: x[4])[:MAX_PAIRS_TO_ANALYZE]
@@ -1406,15 +1402,19 @@ async def check_voice_consistency(
                 description=desc_dict.get("description", ""),
             ))
 
-    note = None
+    notes = []
     if fallback_used:
-        note = "Fewer than 3 dialogue passages found; analysis includes all character mention passages."
+        notes.append("Fewer than 3 dialogue passages found; analysis includes all character mention passages.")
+    if total_passages > len(working_mentions):
+        notes.append(f"Analysed {len(working_mentions)} of {total_passages} passages, spread evenly across "
+                     "the manuscript.")
+    note = " ".join(notes) or None
 
     return VoiceCheckResponse(
         character_id=character_id,
         character_name=character.name,
         status="inconsistent" if inconsistent_pairs else "ok",
-        dialogue_count=len(working_mentions),
+        dialogue_count=total_passages,
         consistency_score=consistency_score,
         inconsistent_pairs=inconsistent_pairs,
         note=note,

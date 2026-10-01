@@ -1,4 +1,3 @@
-import hashlib
 import json
 import logging
 from datetime import datetime
@@ -18,6 +17,7 @@ from schemas import (
 )
 from routers.auth import get_current_user, User
 from services import signal_inputs
+from services.source_fingerprint import chapter_source_fingerprint
 from services.ai_service import analyze_manuscript
 from services.narrative_signals import build_narrative_signals
 from services.relationship_arcs import build_relationship_arcs
@@ -37,23 +37,9 @@ def _check_story_access(story_id: str, user_id: str, db: Session) -> Story:
     return story
 
 
-def _source_fingerprint(story_id: str, db: Session) -> str:
-    """Hash of what a report is built from (D2 / review L3): every indexed
-    chapter's id, the chapter's own updated_at, its summary's generated_at and
-    stale flag. Any edit, re-index, addition or removal changes it."""
-    rows = (
-        db.query(ChapterSummary.chapter_id, Chapter.updated_at,
-                 ChapterSummary.generated_at, ChapterSummary.is_stale)
-        .outerjoin(Chapter, Chapter.chapter_id == ChapterSummary.chapter_id)
-        .filter(ChapterSummary.story_id == story_id)
-        .order_by(ChapterSummary.chapter_id)
-        .all()
-    )
-    h = hashlib.sha256()
-    for chapter_id, updated_at, generated_at, is_stale in rows:
-        h.update(f"{chapter_id}|{updated_at.isoformat() if updated_at else ''}|"
-                 f"{generated_at.isoformat() if generated_at else ''}|{bool(is_stale)}\n".encode())
-    return h.hexdigest()
+# Shared with the Story Bible (Stage 11): one definition of "what the
+# manuscript looked like when this was generated".
+_source_fingerprint = chapter_source_fingerprint
 
 
 def _save_report(story_id: str, user_id: str, report: ManuscriptReport, fingerprint: str, db: Session) -> None:
