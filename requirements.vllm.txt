@@ -7,7 +7,12 @@
 
 # vLLM — inference engine with OpenAI-compatible server
 # Bundles torch, transformers, and CUDA kernels automatically.
-vllm>=0.6.3
+# Pinned to the version start-narratiq.sh installs and the pod actually runs
+# (VLLM_VERSION there). The previous floating ">=0.6.3" resolved to whatever was
+# newest, which neither matched the deployment nor what security audits covered.
+# Known advisories in 0.9.2 are an accepted limitation while vLLM is bound to
+# 127.0.0.1 — see docs/testing/stage-09-security-findings.md (D1).
+vllm==0.9.2
 
 # Flash Attention 2 — halves memory bandwidth usage for long sequences.
 # Requires CUDA 11.8+ and compute capability 8.0+ (A100, H100, RTX 3090/4090).

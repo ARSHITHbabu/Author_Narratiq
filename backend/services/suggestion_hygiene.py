@@ -1,0 +1,78 @@
+"""
+Stage 12 A17 — writing-suggestion hygiene (v2+ suggestions design only).
+
+A pure filter applied AFTER the sharpening pass (it cannot live inside the
+coercer: the sharpening pass discards its own work whenever the item count
+changes). It removes only items that give the author nothing to act on:
+
+  * no real recommendation — fewer than MIN_RECOMMENDATION_WORDS content
+    words in `recommendation` (praise-only items fall here: an observation
+    that only compliments, with no change proposed);
+  * a near-duplicate of a higher-priority item in the SAME response.
+
+Deliberately NOT done: no phrase list is ever applied to a recommendation.
+"Replace 'big' with 'impressive'" is real advice even though "impressive" is
+on every praise list; positive words inside a concrete recommendation are
+kept. Praise inside quotes (the excerpt itself) is never counted either.
+
+Recall comes first: when the filter would remove EVERY item, the caller
+retries once and otherwise returns the honest "could not be generated" error —
+an empty list is never presented as "no weaknesses".
+"""
+from __future__ import annotations
+
+import re
+
+MIN_RECOMMENDATION_WORDS = 4
+DUPLICATE_JACCARD = 0.6           # stored outputs: max pair similarity 0.40 (v1), 0.21 (v2)
+
+_STOP = frozenset((
+    "the a an and or but of to in on at for with as is are was were be been being this that "
+    "these those it its into from by your you their they them his her he she we our not no "
+    "more less than so very can could would should will just also there here which who what "
+    "when where how about any some each such may might must do does did has have had").split())
+_PRAISE = re.compile(
+    r"\b(great job|well done|nicely done|excellent work|shows real|works (?:really )?well|"
+    r"is (?:strong|excellent|effective|vivid|compelling)|beautifully|masterful|impressive)\b", re.I)
+_QUOTED = re.compile(r"[\"“”‘’'][^\"“”‘’']{2,}[\"“”‘’']")
+
+
+def content_words(text: str) -> set[str]:
+    return {w for w in re.findall(r"[a-z']+", (text or "").lower())
+            if len(w) > 2 and w.strip("'") not in _STOP}
+
+
+def _rec_words(item: dict) -> int:
+    return len(content_words(item.get("recommendation", "")))
+
+
+def praise_only(item: dict) -> bool:
+    """Praise in the observation (outside quotes) with no actionable
+    recommendation. Reported for transparency; such an item is also caught
+    by the no-recommendation rule."""
+    obs = _QUOTED.sub(" ", item.get("observation") or "")
+    return bool(_PRAISE.search(obs)) and _rec_words(item) < MIN_RECOMMENDATION_WORDS
+
+
+def _similar(a: dict, b: dict) -> float:
+    wa = content_words(f"{a.get('observation', '')} {a.get('recommendation', '')}")
+    wb = content_words(f"{b.get('observation', '')} {b.get('recommendation', '')}")
+    return len(wa & wb) / len(wa | wb) if wa and wb else 0.0
+
+
+def clean_suggestions(items: list[dict]) -> tuple[list[dict], list[dict]]:
+    """Returns (kept, dropped) where each dropped entry is {item, why}.
+    `items` must already be priority-ordered (coerce_writing_suggestions
+    sorts high → low), so the first of a duplicate pair is the one kept."""
+    kept: list[dict] = []
+    dropped: list[dict] = []
+    for item in items:
+        if _rec_words(item) < MIN_RECOMMENDATION_WORDS:
+            dropped.append({"item": item, "why": "praise_only" if praise_only(item) else "no_recommendation"})
+            continue
+        dup = next((k for k in kept if _similar(k, item) >= DUPLICATE_JACCARD), None)
+        if dup is not None:
+            dropped.append({"item": item, "why": f"duplicate_of:{dup.get('id')}"})
+            continue
+        kept.append(item)
+    return kept, dropped

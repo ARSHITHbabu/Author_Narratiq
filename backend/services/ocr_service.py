@@ -33,11 +33,21 @@ GPU policy (GOT_MIN_VRAM_GB = 2.5):
   CPU inference: ~25–60 s per page (correct output, acceptable for the
   "photograph your handwritten notes" use case).
 
-Compatibility patches applied to modeling_GOT.py (see patch in this repo):
-  - DynamicCache.seen_tokens   → getattr fallback (removed in transformers 4.38)
-  - DynamicCache.get_max_length() → getattr fallback (removed in transformers 4.38)
-  - All .cuda() calls          → .to(_mdl_device) (CPU/GPU agnostic)
-  - torch.autocast("cuda", …)  → contextlib.nullcontext() on CPU
+Compatibility with the pinned transformers (Stage 12 remediation A2):
+  GOT-OCR2.0's vendored modeling_GOT.py (loaded with trust_remote_code from the
+  model directory, never edited) calls DynamicCache.seen_tokens and
+  DynamicCache.get_max_length() in prepare_inputs_for_generation. Both were
+  removed from transformers before the pinned 4.57.6 (vLLM 0.9.2 needs >= 4.51,
+  so transformers cannot be downgraded). _ensure_got_cache_compat() restores
+  exactly those two members on DynamicCache, with their old meaning, before the
+  model is used. It only adds members that are missing, so it changes nothing
+  for any other caller. An earlier revision of this docstring claimed these
+  patches already existed; they did not, and every extraction failed with
+  "'DynamicCache' object has no attribute 'seen_tokens'".
+
+  The vendored code still calls .cuda() unconditionally, so GOT runs on a GPU
+  only; the CPU fallback in get_best_ocr_device() cannot run it (known
+  limitation — on the production A40 there is enough free VRAM).
 """
 
 import asyncio
@@ -120,6 +130,31 @@ def get_best_ocr_device(required_vram_gb: float) -> tuple[str, str]:
     )
 
 
+# ── transformers compatibility for GOT's vendored code ─────────────────────────
+
+def _ensure_got_cache_compat() -> list[str]:
+    """Give DynamicCache back the two members GOT-OCR2.0's modeling code still
+    uses (see the module docstring). Idempotent; returns what it added.
+
+      seen_tokens        tokens already in the cache — get_seq_length()
+      get_max_length()   a dynamic cache has no maximum — None, the value the
+                         removed method always returned for DynamicCache
+    """
+    from transformers.cache_utils import DynamicCache
+
+    added: list[str] = []
+    if not hasattr(DynamicCache, "seen_tokens"):
+        DynamicCache.seen_tokens = property(lambda self: self.get_seq_length())
+        added.append("seen_tokens")
+    if not hasattr(DynamicCache, "get_max_length"):
+        DynamicCache.get_max_length = lambda self: None
+        added.append("get_max_length")
+    if added:
+        logger.info("[ocr] transformers compatibility: restored DynamicCache.%s for GOT-OCR2.0",
+                    ", DynamicCache.".join(added))
+    return added
+
+
 # ── Model loader ──────────────────────────────────────────────────────────────
 
 def _load_got():
@@ -132,6 +167,8 @@ def _load_got():
     import torch
     from transformers import AutoTokenizer, AutoModel
     from config import settings
+
+    _ensure_got_cache_compat()
 
     model_path = settings.got_path
     if not os.path.isdir(model_path):

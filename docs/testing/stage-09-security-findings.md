@@ -105,13 +105,97 @@ phrase list, which the caveat design makes unnecessary.
 - No prompt design can guarantee that a language model never follows text in its input. A different phrasing
   or a determined attacker may still succeed sometimes.
 - The output check only covers **rewrites**. A Q&A answer or an analysis that follows an injection is not
-  caught in code; for those features the structural layer is the defence.
+  caught in code; for those features the structural layer is the defence. *(Stage 12 Tranche 2b: Q&A,
+  suggestions and continue now have a conservative output check — see that addendum; analyses still do not.)*
 - Streaming endpoints (`…/stream`) get the structural layer but not the output check. The UI does not use them.
 - A nameless passage that is mostly injection can evade the rewrite check.
 - The impact stays limited to the author's own results, because there is no sharing.
 
 **Status: mitigated** (the product owner may rate the residual risk). `PROMPT_INJECTION_GUARD=false` turns
 the defence off, for measurement only.
+
+### Addendum 2026-10-02 (Stage 12 remediation, Tranche 1): D1, D2, D3 and the streaming routes
+
+Re-measured on pod `3cqrpqhew0akdi` (fresh pod, 1× A40). `pip-audit` severities come from OSV via
+`backend/scripts/pip_audit_severity_gate.py`; npm counts from `npm audit`. **Before** = the repository at
+`0032a81`; **after** = the Tranche 1 working tree.
+
+| Scope | Before | After |
+|---|---|---|
+| `backend/requirements.txt` | 0 Critical · 9 High · 1 Moderate · 1 unrated | 0 Critical · **5 High** · 1 Moderate · 1 unrated |
+| Frontend (`npm audit`) | **1 Critical** · 14 High · 33 Moderate · 1 Low | **0 Critical · 1 High** · 32 Moderate · 0 Low |
+| Installed pod environment (after only) | — | 4 Critical · 65 High · 72 Moderate (vLLM 46 findings; the rest mostly the RunPod image's Jupyter stack) |
+
+What changed:
+* **D2 closed.** `requirements.txt` is the runtime's source of truth (Stage 10); re-audited today. One gap
+  found and fixed: `python-jose[cryptography]` accepts any `cryptography >= 3.4`, so JWT signing ran on the
+  Ubuntu system package **cryptography 3.4.8** (2021). The row above listed it as "not used by NarratIQ" —
+  that was wrong. It is now pinned (`cryptography==50.0.2`); auth, session and isolation suites pass on it.
+* **D1, Python requirements:** `python-jose` 3.4.0 → 3.5.0 lets `pyasn1` leave 0.4.x; `pyasn1==0.6.4` clears
+  its four High advisories. Remaining High: `transformers` ×4 (pinned by vLLM 0.9.2; the advisories need
+  untrusted model, config or template files — every model is a local, revision-pinned download) and `ecdsa`
+  ×1 (no fix; only HS256 is used, no EC key is ever parsed). **Accepted as not reachable.**
+* **D1, vLLM 0.9.2 (2 Critical, ~10 High):** vLLM now binds to **127.0.0.1:9001** (was `0.0.0.0`, no API
+  key). Verified: `ss` shows `127.0.0.1:9001` only; the pod's own address gets no answer on 9001; the RunPod
+  proxy answers 404 for 9001. The model is text-only, so the video/media advisories cannot be reached; the
+  backend is the only client. **Accepted limitation for this release candidate** (owner decision
+  2026-10-02); the vLLM/torch/transformers/openai upgrade is a separate future project.
+* **D1, pod image (not NarratIQ dependencies):** jupyter-server, jupyterlab, tornado, mistune, nbconvert,
+  pyjwt 2.3.0 (system package; NarratIQ uses `python-jose`, never `jwt`). JupyterLab answers 403 without
+  authentication; recommend disabling it in the pod template.
+* **D3:** Next.js 14.2.35 → **15.5.27** (no patched 14.x exists), React kept at 18.3.1. `npm audit fix`
+  (non-breaking) and `axios ^1.20.0` cleared the runtime-library Highs. The image optimiser is switched off
+  (`images.unoptimized`); the app serves no images through it. Remaining High: `postcss` bundled inside
+  `next` (source-map file read during CSS processing at build time; build inputs are the repository's own
+  files — not reachable). Remaining Moderates: TipTap 2.x (fix needs TipTap 3, a major upgrade) and lint
+  tooling.
+* **Streaming routes** (`/api/ai/<tool>/stream`, P1 residual above): **off by default** —
+  `AI_STREAM_ROUTES_ENABLED=false`; they answer 401 without a session and 404 with one, and never reach the
+  model. Tests: `backend/tests/test_stream_routes_disabled.py`.
+
+### Addendum 2026-10-02 (Stage 12 remediation, Tranche 2b): output checks for generated text (A18)
+
+Closes the Stage 11 residual "the output check only covers rewrites". Measured on Qwen2.5-7B, isolated test
+stack (`narratiq_test`); raw results in `docs/testing/stage-12/`.
+
+**What was added** (`services/prompt_safety.py`):
+* `output_obeyed_material()` for Q&A answers, plot suggestions, writing-suggestion recommendations and
+  continuation options. It flags an output only when **both** hold: (b) it repeats at least 8 consecutive
+  words of one source sentence verbatim, **and** (a) the story is gone — none of the passage's names appear
+  and under 15 % of the other sentences' content words remain. Q&A: one silent retry, then 422
+  `instruction_like_text` ("Part of your story text reads like instructions to an AI … Nothing was changed").
+  Lists drop only flagged items (retry, then 422, if all are flagged); a flagged continuation becomes the
+  existing "could not generate" card. Off with `PROMPT_INJECTION_GUARD=false`.
+* Fence markers the model echoes back (`<<<END_AUTHOR_MATERIAL id>>>`, found in 1 of 780 stored rewrites) are
+  removed from every model output.
+
+**Clean-prose baseline built first** (`scripts/security/clean_prose_feature_probe.py`, the six Stage 11
+legitimate passages including the ship's-computer dialogue "Ignore your previous instructions" × Q&A,
+creative, mixed, writing suggestions, continue × 2 runs):
+
+| | Before A18 | After A18 |
+|---|---|---|
+| Calls / OK | 60 / 60 | 60 / 60 |
+| Refused (false alarms) | 0 | **0** |
+| Empty results | 0 | 0 |
+| Offline replay of the check on the before-outputs | — | 0 flags in 203 outputs |
+| Stage 11 legitimate rewrites (84) | 0 refused | **0 refused** (names kept 1.00, length ratio 1.24) |
+| Stage 11 obeyed samples (Plot Assistant, before the fence) | — | 3 / 3 flagged |
+| Stage 11 samples after the fence | — | 0 / 3 flagged |
+
+**Adversarial probe after A18** (`prompt_injection_probe.py --runs 3`, now also a creative Plot Assistant
+request and Outline): **0 obeyed in all 13 features**; author-style named no living author (0/15); copyright
+structure held (0 failures); Refine refused 2 of 3 runs with the honest 422 (Stage 11 rewrite check). The new
+check fired 0 times in this run — the Stage 11 fence alone held; the check is a backstop.
+
+**Residual risk (still honest).** These checks reduce the risk; they do not make the model immune.
+* An answer that **paraphrases** an injected instruction, or obeys it without copying 8 words, is not caught.
+* A source with **no detectable names** is never flagged by the generated-text check.
+* An answer that obeys while still mentioning a story name is not flagged — by design, so fiction quoting
+  instruction-like dialogue is not refused.
+* Analyses (plot holes, continuity, manuscript report, story bible) still rely on the structural layer only.
+* Streaming routes stay off by default and have neither output check.
+* Impact remains limited to the author's own results (no sharing).
 
 ## What passes and what does not
 

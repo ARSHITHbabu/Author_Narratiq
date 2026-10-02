@@ -9,6 +9,7 @@ import CharacterCreateModal from './CharacterCreateModal'
 import CharacterProfilePanel from './CharacterProfilePanel'
 import CharacterRelationshipGraph from './CharacterRelationshipGraph'
 import CastGenerationModal from './CastGenerationModal'
+import DuplicateCandidatesPanel from './DuplicateCandidatesPanel'
 import { toast } from 'sonner'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -31,6 +32,8 @@ export default function CharacterList({ storyId }: Props) {
   const [query,  setQuery]  = useState('')
   const [role,   setRole]   = useState<CharacterRole | ''>('')
   const [status, setStatus] = useState<CharacterStatus | ''>('')
+  // Stage 12 A12: alphabetical unless the author chooses importance order.
+  const [order, setOrder] = useState<'name' | 'importance'>('name')
 
   // Modals
   const [showCreate,       setShowCreate]       = useState(false)
@@ -50,23 +53,28 @@ export default function CharacterList({ storyId }: Props) {
   // of Issue 9, so it must not flicker backwards).
   const loadSeq = useRef(0)
 
+  // Bumped on every successful cast reload so the possible-duplicates panel
+  // re-checks after characters are added, edited or merged (Stage 12 A7).
+  const [castVersion, setCastVersion] = useState(0)
+
   const loadCharacters = useCallback(async () => {
     const seq = ++loadSeq.current
     setLoading(true)
     try {
       const [charsRes, hintsRes] = await Promise.all([
-        charactersApi.list(storyId),
+        charactersApi.list(storyId, order),
         charactersApi.getHints(storyId),
       ])
       if (seq !== loadSeq.current) return          // superseded — drop it
       setCharacters(charsRes.data as Character[])
       setHints(hintsRes.data as CharacterHint[])
+      setCastVersion(v => v + 1)
     } catch {
       if (seq === loadSeq.current) toast.error('Failed to load characters')
     } finally {
       if (seq === loadSeq.current) setLoading(false)
     }
-  }, [storyId])
+  }, [storyId, order])
 
   useEffect(() => { loadCharacters() }, [loadCharacters])
 
@@ -273,6 +281,17 @@ export default function CharacterList({ storyId }: Props) {
         </div>
       )}
 
+      <DuplicateCandidatesPanel
+        storyId={storyId}
+        refreshKey={castVersion}
+        onMerged={(survivor, removedId) => {
+          setCharacters(prev => prev
+            .filter(c => c.character_id !== removedId)
+            .map(c => c.character_id === survivor.character_id ? survivor : c))
+          loadCharacters()
+        }}
+      />
+
       {/* Search */}
       <div className="px-3 py-2 border-b border-[#1f2440] flex-shrink-0">
         <div className="flex items-center gap-1.5 bg-[#0d0f1a] border border-[#2e3454] rounded-lg px-2.5 py-1.5">
@@ -313,6 +332,19 @@ export default function CharacterList({ storyId }: Props) {
               }`}
             >
               {s || 'all'}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-1 mt-1.5 text-[9px] text-[#8a90ba]" role="group" aria-label="Sort characters">
+          <span>Sort:</span>
+          {([['name', 'A–Z'], ['importance', 'By importance']] as const).map(([v, label]) => (
+            <button key={v} data-testid={`char-sort-${v}`} aria-pressed={order === v}
+              title={v === 'importance' ? 'On-page characters first, then by role and how often they appear' : 'Alphabetical'}
+              onClick={() => setOrder(v)}
+              className={`px-1.5 py-0.5 rounded-full border transition-all ${order === v
+                ? 'border-amber-500/50 bg-amber-500/10 text-amber-400'
+                : 'border-[#1f2440] hover:border-[#2e3454] hover:text-[#8e94bd]'}`}>
+              {label}
             </button>
           ))}
         </div>

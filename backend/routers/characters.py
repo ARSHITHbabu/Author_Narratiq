@@ -16,6 +16,7 @@ from schemas import (
     CharacterCreate, CharacterGraphResponse, CharacterMentionOut, CharacterHintOut,
     CharacterOut, CharacterProfileUpdate, CharacterUpdate,
     EnrichResult, EnrichSuggestion,
+    DuplicateCandidateOut, DuplicateCharacterRef, DuplicateReason,
     MergeCharactersRequest, MergeCharactersResult,
     RelationshipCreate, RelationshipOut, RelationshipUpdate,
     VoiceCheckResponse, VoiceInconsistentPair,
@@ -23,6 +24,7 @@ from schemas import (
 from routers.auth import get_current_user, User
 from services.character_names import known_names, names_of, normalise_name, resolve_hints_for_names
 from services.character_merge import merge_characters, MergeError
+from services.character_duplicates import find_duplicate_candidates, possible_duplicate_for_name
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +32,9 @@ router = APIRouter(tags=["characters"])
 
 _VALID_ROLES     = {"protagonist", "antagonist", "supporting", "minor"}
 _VALID_STATUSES  = {"active", "deceased", "unknown"}
+_VALID_PRESENCE  = {"on_page", "referenced", "historical"}   # Stage 12 A10
+_PRESENCE_ORDER  = {"on_page": 0, "referenced": 1, "historical": 2}
+_ROLE_ORDER      = {"protagonist": 0, "antagonist": 1, "supporting": 2, "minor": 3}
 _VALID_REL_TYPES = {"ally", "rival", "family", "romantic", "mentor", "enemy", "neutral"}
 _VALID_STRENGTHS = {"weak", "moderate", "strong", "critical"}
 
@@ -75,6 +80,27 @@ def _normalize_character_name(name: str) -> str:
 
 
 # ── Authorization helper ───────────────────────────────────────────────────────
+
+def _count_mentions(name: str, aliases, text: str) -> int:
+    """Whole-word, case-insensitive occurrences of a name and its aliases in the
+    scanned text (Stage 12 A12). Overlapping forms ("Mara", "Mara Halloran")
+    are counted once per position. Unicode-aware boundaries."""
+    import regex as _rx
+    if not text:
+        return 0
+    spans = set()
+    for form in {f.strip() for f in [name, *(aliases or [])] if f and f.strip()}:
+        pat = rf"(?<![\p{{L}}\p{{M}}\p{{N}}_]){_rx.escape(form)}(?![\p{{L}}\p{{M}}\p{{N}}_])"
+        spans |= {m.start() for m in _rx.finditer(pat, text, _rx.I)}
+    return len(spans)
+
+
+def _first_chapter(first_appearance: str) -> int:
+    """Chapter number from "Chapter 3" / "Ch. 3" / "3"; unknown sorts last."""
+    import re as _re
+    m = _re.search(r"(\d+)", first_appearance or "")
+    return int(m.group(1)) if m else 10**6
+
 
 def _check_story_access(story_id: str, user_id: str, db: Session) -> Story:
     story = db.query(Story).filter(
@@ -188,6 +214,33 @@ async def _run_mention_index(chapter_id: str, story_id: str, chapter_number: int
 # IMPORTANT: /search and /graph must be registered BEFORE /{character_id}
 # so FastAPI does not interpret "search" or "graph" as a character_id value.
 
+def _dup_ref(c: Character) -> DuplicateCharacterRef:
+    return DuplicateCharacterRef(character_id=c.character_id, name=c.name,
+                                 aliases=c.aliases or [], role=c.role, status=c.status)
+
+
+@router.get("/{story_id}/characters/duplicate-candidates", response_model=list[DuplicateCandidateOut])
+async def duplicate_candidates(
+    story_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Stage 12 A7 (CAST-C4) — pairs of this story's characters that may be the
+    same person, strongest first, each with the reasons. Read-only: nothing is
+    merged here; the author merges with POST …/characters/{id}/merge."""
+    _check_story_access(story_id, current_user.user_id, db)
+    return [
+        DuplicateCandidateOut(
+            character_a=_dup_ref(p["character_a"]),
+            character_b=_dup_ref(p["character_b"]),
+            score=p["score"],
+            profile_similarity=p["profile_similarity"],
+            reasons=[DuplicateReason(**r) for r in p["reasons"]],
+        )
+        for p in find_duplicate_candidates(db, story_id)
+    ]
+
+
 @router.get("/{story_id}/characters/search", response_model=list[CharacterOut])
 def search_characters(
     story_id:  str,
@@ -232,16 +285,32 @@ def get_character_graph(
 @router.get("/{story_id}/characters", response_model=list[CharacterOut])
 def list_characters(
     story_id: str,
+    order: str = Query("name", pattern="^(name|importance)$"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Alphabetical by default. order=importance (Stage 12 A12, opt-in): presence,
+    role, number of recorded story mentions, then name — deterministic, no AI."""
     _check_story_access(story_id, current_user.user_id, db)
-    return (
+    chars = (
         db.query(Character)
         .filter(Character.story_id == story_id)
         .order_by(Character.name)
         .all()
     )
+    if order == "importance":
+        from sqlalchemy import func as _func
+        counts = dict(
+            db.query(CharacterMention.character_id, _func.count(CharacterMention.mention_id))
+            .filter(CharacterMention.story_id == story_id)
+            .group_by(CharacterMention.character_id)
+            .all()
+        )
+        chars.sort(key=lambda c: (_PRESENCE_ORDER.get(c.presence or "on_page", 0),
+                                  _ROLE_ORDER.get(c.role, 4),
+                                  -counts.get(c.character_id, 0),
+                                  c.name.casefold()))
+    return chars
 
 
 @router.post("/{story_id}/characters/generate-cast", response_model=CastGenerationResult)
@@ -316,6 +385,8 @@ async def generate_cast(
             ),
         )
 
+    scanned_text = "\n".join(per_chapter)
+
     # Build existing character index (name + aliases → character)
     existing = db.query(Character).filter(Character.story_id == story_id).all()
     existing_index: dict[str, Character] = {}
@@ -353,6 +424,10 @@ async def generate_cast(
                 if existing_char:
                     break
 
+        # Stage 12 A7 (CAST-C4): not an exact match, but possibly the same
+        # person under another form of the name — flagged, never merged.
+        maybe_dup = None if existing_char else possible_duplicate_for_name(name, aliases, existing)
+
         def _s(key: str) -> str:
             v = raw.get(key, "")
             return str(v).strip() if v is not None else ""
@@ -382,7 +457,23 @@ async def generate_cast(
             traits=traits,
             already_exists=existing_char is not None,
             existing_character_id=existing_char.character_id if existing_char else None,
+            possible_duplicate_of=maybe_dup.character_id if maybe_dup else None,
+            possible_duplicate_name=maybe_dup.name if maybe_dup else None,
+            presence=raw.get("presence") if raw.get("presence") in _VALID_PRESENCE else "on_page",
+            possible_duplicate_in_suggestions=raw.get("_possible_duplicate_in_batch") or None,
+            possible_combined_with=raw.get("_possible_combined_with") or None,
+            mention_count=_count_mentions(name, aliases, scanned_text),
         ))
+
+    # Stage 12 A12: deterministic importance order — presence, role, how often
+    # the name occurs, first appearance, then name. No model call.
+    suggestions.sort(key=lambda sg: (
+        _PRESENCE_ORDER.get(sg.presence, 0),
+        _ROLE_ORDER.get(sg.role, 4),
+        -sg.mention_count,
+        _first_chapter(sg.first_appearance),
+        sg.name.casefold(),
+    ))
 
     new_count = sum(1 for s in suggestions if not s.already_exists)
     existing_count = sum(1 for s in suggestions if s.already_exists)
@@ -440,6 +531,7 @@ async def confirm_cast(
             aliases=aliases,
             role=s.role if s.role in _VALID_ROLES else "supporting",
             status=s.status if s.status in _VALID_STATUSES else "active",
+            presence=s.presence if s.presence in _VALID_PRESENCE else "on_page",
         )
         db.add(character)
         db.flush()
@@ -579,6 +671,11 @@ async def create_character(
             status_code=422,
             detail=f"Invalid status '{data.status}'. Must be one of: {', '.join(sorted(_VALID_STATUSES))}",
         )
+    if data.presence is not None and data.presence not in _VALID_PRESENCE:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Invalid presence '{data.presence}'. Must be one of: {', '.join(sorted(_VALID_PRESENCE))}",
+        )
 
     existing = (
         db.query(Character)
@@ -598,6 +695,7 @@ async def create_character(
         aliases=data.aliases or [],
         role=data.role or "supporting",
         status=data.status or "active",
+        presence=data.presence,
     )
     db.add(character)
     # Same transaction as the character itself: the response can never report a
@@ -979,6 +1077,11 @@ async def update_character(
             status_code=422,
             detail=f"Invalid status '{data.status}'. Must be one of: {', '.join(sorted(_VALID_STATUSES))}",
         )
+    if data.presence is not None and data.presence not in _VALID_PRESENCE:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Invalid presence '{data.presence}'. Must be one of: {', '.join(sorted(_VALID_PRESENCE))}",
+        )
 
     name_changed = False
     if data.name is not None:
@@ -1010,6 +1113,8 @@ async def update_character(
         character.role = data.role
     if data.status is not None:
         character.status = data.status
+    if data.presence is not None:
+        character.presence = data.presence
 
     character.updated_at = datetime.utcnow()
 

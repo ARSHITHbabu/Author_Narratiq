@@ -10,7 +10,9 @@ import {
   Character, CharacterMention, CharacterRelationship,
   CharacterRole, CharacterStatus, EnrichResult, EnrichSuggestion,
   RelationshipType, RelationshipStrength, VoiceCheckResponse,
+  CharacterPresence,
 } from '@/lib/types'
+import { PRESENCE_OPTIONS } from '@/lib/presence'
 import { toast } from 'sonner'
 import CharacterArcTimelinePanel from './CharacterArcTimelinePanel'
 
@@ -70,6 +72,7 @@ export default function CharacterProfilePanel({
   const [name,       setName]       = useState(character.name)
   const [role,       setRole]       = useState<CharacterRole>(character.role)
   const [status,     setStatus]     = useState<CharacterStatus>(character.status)
+  const [presence,   setPresence]   = useState<CharacterPresence | null>(character.presence ?? null)
   const [aliases,    setAliases]    = useState<string[]>(character.aliases)
   const [aliasInput, setAliasInput] = useState('')
   const [savingId,   setSavingId]   = useState(false)
@@ -147,6 +150,7 @@ export default function CharacterProfilePanel({
 
   const saveIdentityWith = useCallback(async (overrides: {
     name?: string; role?: CharacterRole; status?: CharacterStatus; aliases?: string[]
+    presence?: CharacterPresence
   }) => {
     const cur = identityRef.current
     const trimmedName = (overrides.name ?? cur.name).trim()
@@ -158,6 +162,7 @@ export default function CharacterProfilePanel({
         role:    overrides.role    ?? cur.role,
         status:  overrides.status  ?? cur.status,
         aliases: overrides.aliases ?? cur.aliases,
+        ...(overrides.presence ? { presence: overrides.presence } : {}),
       })
       onUpdated(res.data as Character)
       toast.success('Character updated')
@@ -470,6 +475,31 @@ export default function CharacterProfilePanel({
                   }`}
                 >
                   {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Presence (Stage 12 A10) — separate from life status */}
+          <div className="mb-3">
+            <label className="text-xs text-[#8e94bd] mb-1 block">In the story</label>
+            <div className="grid grid-cols-3 gap-1" role="group" aria-label="How this character is present in the story">
+              {PRESENCE_OPTIONS.map(o => (
+                <button
+                  key={o.value}
+                  title={o.hint}
+                  aria-pressed={presence === o.value}
+                  onClick={() => {
+                    setPresence(o.value)
+                    saveIdentityWith({ presence: o.value })
+                  }}
+                  className={`py-1.5 rounded-lg border text-[11px] font-medium transition-all ${
+                    presence === o.value
+                      ? 'border-amber-500/50 bg-amber-500/10 text-amber-400'
+                      : 'border-[#1f2440] text-[#8e94bd] hover:border-[#2e3454] hover:text-[#9da3c8]'
+                  }`}
+                >
+                  {o.label}
                 </button>
               ))}
             </div>

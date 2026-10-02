@@ -459,8 +459,12 @@ def test_story_context_engine_seam_is_display_only(isolated):
             assert client.request(method, url, headers=a.headers).status_code == 404, url
 
 
-def test_version_tools_refuse_a_foreign_story(isolated):
-    """merge-versions / compare-summary / translate-stream with B's story id."""
+def test_version_tools_refuse_a_foreign_story(isolated, monkeypatch):
+    """merge-versions / compare-summary / translate-stream with B's story id.
+    The stream routes are off by default (Stage 12 A3); they are switched on
+    here so the ownership check behind them is still exercised."""
+    from config import settings
+    monkeypatch.setattr(settings, "ai_stream_routes_enabled", True)
     with _two_populated_authors() as (_db, a, b, client):
         sid = b.story.story_id
         cases = [

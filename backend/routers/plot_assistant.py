@@ -48,6 +48,14 @@ async def plot_assistant(
     # (PlotAssistantResponse.scope_used) — silent limiting is the defect this
     # task exists to close.
     scope = data.scope or "chapter"
+    # Stage 12 A13 (D-1 gap): chapter scope with no usable chapter number used to
+    # mean NO cap at all — a silent whole-manuscript search labelled "chapter".
+    # Refuse honestly instead; never fall back to unlimited retrieval.
+    if scope == "chapter" and (data.current_chapter_number is None or data.current_chapter_number < 1):
+        raise HTTPException(
+            status_code=422,
+            detail="Open a chapter or choose Full manuscript.",
+        )
     effective_max_chapter = data.current_chapter_number if scope == "chapter" else None
 
     # ── Load genre profile ────────────────────────────────────────────────────
@@ -130,18 +138,18 @@ async def plot_assistant(
 
     if intent in ("qa", "mixed"):
         # Detect name mentions before running BGE-M3 so we know the chunk cap
-        question_lower = data.question.lower()
         from models import Character as _Char
         story_chars = (
             db.query(_Char)
             .filter(_Char.story_id == data.story_id)
             .all()
         )
-        has_name_mention = any(
-            c.name.lower() in question_lower or
-            any(a.strip().lower() in question_lower for a in (c.aliases or []))
-            for c in story_chars
-        )
+        # Stage 12 A13 (PA-C9): one detector for "does the question name a
+        # character?" — titles, aliases, possessives and parts of multi-part
+        # names, with whole-word boundaries ("Ash" never matches "ashes").
+        from services.character_names import detect_named_characters
+        named_characters = detect_named_characters(data.question, story_chars)
+        has_name_mention = bool(named_characters)
 
         # Task 4.2: raised from 5/8 to 6/10 — measured against the shared
         # ground-truth fixture (tests/fixtures/retrieval_fixture.py) and the
@@ -152,6 +160,9 @@ async def plot_assistant(
         text_chunks = await retrieve_chunks_from_store(
             data.question, data.story_id, db, top_k=qa_top_k,
             max_chapter_number=effective_max_chapter,
+            # PA-H11: spread evidence across chapters (only bites when another
+            # chapter has a near-equal passage; inside the same D-1 cap).
+            diversify_chapters=True,
         )
         logger.info( f"[plot_assistant] chunk-level retrieval: " f"{len(text_chunks)} passage(s) across " f"{len({c['chapter'] for c in text_chunks})} chapter(s) " f"(top_k={qa_top_k}, name_mention={has_name_mention})" )
 
@@ -182,8 +193,12 @@ async def plot_assistant(
     intel_context: dict | None = None
     try:
         from services.story_intel_service import build_integration_context
+        # A1 (Stage 12): the same D-1 chapter cap as every other retrieval
+        # above — Story Intelligence is whole-manuscript analysis and must not
+        # reach a chapter-scoped answer.
         intel_context = await build_integration_context(
-            db, data.story_id, query=data.question, top_k=8
+            db, data.story_id, query=data.question, top_k=8,
+            max_chapter_number=effective_max_chapter,
         )
     except Exception as exc:
         # Never block the plot assistant if intelligence isn't ready yet, but do
@@ -205,6 +220,10 @@ async def plot_assistant(
                 character_context = character_context or None,
                 note_context      = note_context or None,
                 scope_limited     = effective_max_chapter is not None,
+                # Stage 12 A13: Story Intelligence for Q&A too — already limited
+                # to this request's scope by build_integration_context (chapter
+                # scope: style facts + memory derived no later than the cap).
+                intel_context     = intel_context,
             )
             logger.info(f"[plot_assistant] QA answer → {len(answer)} chars")
         elif intent == "creative":
@@ -234,6 +253,10 @@ async def plot_assistant(
                 character_context = character_context or None,
                 note_context      = note_context or None,
                 scope_limited     = effective_max_chapter is not None,
+                # Stage 12 A13: Story Intelligence for Q&A too — already limited
+                # to this request's scope by build_integration_context (chapter
+                # scope: style facts + memory derived no later than the cap).
+                intel_context     = intel_context,
             )
             suggestions_coro = generate_plot_suggestions(
                 question           = data.question,

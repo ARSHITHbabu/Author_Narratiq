@@ -1,5 +1,6 @@
 'use client'
 
+import { isOffPage, presenceLabel } from '@/lib/presence'
 import { User, Crown, Sword, Users, Eye } from 'lucide-react'
 import { Character } from '@/lib/types'
 
@@ -49,6 +50,11 @@ export default function CharacterCard({ character, onClick }: Props) {
               title={character.status}
             />
             <span className="text-sm font-medium text-[#e8eaf6] truncate">{character.name}</span>
+            {isOffPage(character.presence) && (
+              <span data-testid="presence-badge" className="text-[9px] px-1.5 py-0.5 rounded-full border border-sky-500/30 bg-sky-500/10 text-sky-300 flex-shrink-0">
+                {presenceLabel(character.presence)}
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-1.5 mb-1">

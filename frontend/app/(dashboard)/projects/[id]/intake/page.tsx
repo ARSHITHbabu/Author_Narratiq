@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import { Sparkles, Loader2, Edit3, Check, Feather, RefreshCw, BookOpen, AlertCircle } from 'lucide-react'
 import { intakeApi } from '@/lib/api'
@@ -116,8 +116,10 @@ function ProfileReadout({ profile }: { profile: GenreProfile }) {
   )
 }
 
-export default function StoryIntakePage({ params }: { params: { id: string } }) {
-  const { id: storyId } = params
+export default function StoryIntakePage() {
+  // Next.js 15 (Stage 12 A5): route params come from useParams(); the page prop
+  // is a Promise in Next 15, and a client component cannot await it.
+  const { id: storyId } = useParams<{ id: string }>()
   const router = useRouter()
   const queryClient = useQueryClient()
 

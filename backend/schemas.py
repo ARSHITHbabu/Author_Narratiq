@@ -505,6 +505,9 @@ class TransformResponse(BaseModel):
     warnings: List[GenerationWarning] = []
     context_used: Dict[str, Any] = {}     # counts only — never text
     name_autofix: List[Dict[str, str]] = []
+    # Stage 12 A15 — measured edit profile (kept_share, new_share, word_order,
+    # min_sentence_kept, sentence_delta, strength). Data only: no threshold.
+    strength_detail: Optional[Dict[str, Any]] = None
 
 
 # ── Copyright / Plagiarism Risk Detection ──────────────────────────────────────
@@ -711,6 +714,7 @@ class CharacterCreate(BaseModel):
     aliases: Optional[List[str]] = []
     role:    Optional[str] = "supporting"   # protagonist | antagonist | supporting | minor
     status:  Optional[str] = "active"       # active | deceased | unknown
+    presence: Optional[str] = None           # Stage 12 A10: on_page | referenced | historical
 
 
 class CharacterUpdate(BaseModel):
@@ -718,6 +722,7 @@ class CharacterUpdate(BaseModel):
     aliases: Optional[List[str]] = None
     role:    Optional[str] = None
     status:  Optional[str] = None
+    presence: Optional[str] = None
 
 
 class CharacterProfileUpdate(BaseModel):
@@ -756,6 +761,7 @@ class CharacterOut(BaseModel):
     aliases:      List[str]
     role:         str
     status:       str
+    presence:     Optional[str] = None   # Stage 12 A10 — None = not recorded
     created_at:   datetime
     updated_at:   datetime
     profile:      Optional[CharacterProfileOut] = None
@@ -830,7 +836,7 @@ class ManuscriptUploadResponse(BaseModel):
 
 class JobStatus(BaseModel):
     job_id: str
-    status: str  # pending | processing | complete | error
+    status: str  # pending | processing | complete | partial | error
     stage: str
     percent: int
     message: str
@@ -890,7 +896,7 @@ class ChapterSearchResult(BaseModel):
 
 
 class ExactSearchRequest(BaseModel):
-    query: str
+    query: str = Field(max_length=500)
     case_sensitive: bool = False
     whole_word: bool = False
     chapter_ids: Optional[List[str]] = None
@@ -929,8 +935,8 @@ class ReplacePreviewItem(BaseModel):
 
 
 class ReplaceRequest(BaseModel):
-    query: str
-    replacement: str
+    query: str = Field(max_length=500)
+    replacement: str = Field(max_length=5000)
     case_sensitive: bool = False
     whole_word: bool = False
     chapter_ids: Optional[List[str]] = None   # None = all chapters
@@ -967,6 +973,21 @@ class CastSuggestion(BaseModel):
     traits:                List[str] = []
     already_exists:        bool = False
     existing_character_id: Optional[str] = None
+    # Stage 12 A7 (CAST-C4): not an exact match, but the name may refer to an
+    # existing character ("Captain Mara" vs "Mara Halloran"). A hint for the
+    # author only; confirming still creates a separate character.
+    possible_duplicate_of:   Optional[str] = None
+    possible_duplicate_name: Optional[str] = None
+    # Stage 12 A10: on_page | referenced | historical (separate from status).
+    presence:                str = "on_page"
+    # Stage 12 A11: another suggestion in THIS result that may be the same
+    # person (never merged automatically — e.g. "Tomas" and "Tomas Reyne").
+    possible_duplicate_in_suggestions: Optional[str] = None
+    # Stage 12 A11: this one record also carries another full name (e.g. alias
+    # "Tomas Hale" on "Tomas Reyne") — it may combine two people.
+    possible_combined_with:  Optional[str] = None
+    # Stage 12 A12: whole-word occurrences of the name/aliases in the scanned text.
+    mention_count:           int = 0
 
 
 class CastGenerationResult(BaseModel):
@@ -981,6 +1002,7 @@ class CastConfirmItem(BaseModel):
     name:             str
     role:             str
     status:           str
+    presence:         str = "on_page"   # Stage 12 A10
     description:      str
     aliases:          List[str]
     evidence_snippet: str
@@ -1009,6 +1031,29 @@ class CastConfirmResult(BaseModel):
 
 
 # ── Character Deduplication (task 4.8) ─────────────────────────────────────────
+
+class DuplicateCharacterRef(BaseModel):
+    character_id: str
+    name:         str
+    aliases:      List[str] = []
+    role:         Optional[str] = None
+    status:       Optional[str] = None
+
+
+class DuplicateReason(BaseModel):
+    kind: str   # same_name | name_part | similar_spelling | similar_profile
+    text: str   # author-facing explanation
+
+
+class DuplicateCandidateOut(BaseModel):
+    """Stage 12 A7 (CAST-C4): two characters that may be the same person.
+    Never merged automatically — the author decides (merge endpoint below)."""
+    character_a:        DuplicateCharacterRef
+    character_b:        DuplicateCharacterRef
+    score:              float
+    profile_similarity: Optional[float] = None
+    reasons:            List[DuplicateReason]
+
 
 class MergeCharactersRequest(BaseModel):
     duplicate_id: str   # the character being merged away and deleted

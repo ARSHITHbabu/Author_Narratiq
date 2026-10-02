@@ -74,6 +74,7 @@ def _response(data_text: str, mode: str, tokens: int, result: dict) -> Transform
         preservation_violations=result.get("preservation_violations", []),
         failed=result.get("failed", False), warnings=result.get("warnings", []),
         context_used=result.get("context_used", {}), name_autofix=result.get("name_autofix", []),
+        strength_detail=result.get("strength_detail"),
     )
 
 
@@ -116,6 +117,19 @@ def _validate_locks(data, text: str) -> None:
     validate_locked_ranges(text, _locked_range_dicts(data))
 
 
+def _streaming_enabled(current_user: User = Depends(get_current_user)) -> None:
+    """Dependency on every /stream route (Stage 12 remediation A3). Those routes
+    return raw model tokens without the locks, strength limits, no-change check,
+    preservation checks or injection output check the non-streaming routes
+    apply, and nothing in the frontend calls them — so unless
+    AI_STREAM_ROUTES_ENABLED is set they do not exist (404). Authentication runs
+    first, so a missing or bad session is still 401 like every other route
+    (test_security_stage9's invariant); FastAPI resolves get_current_user once
+    per request, so the endpoint's own dependency reuses it."""
+    if not settings.ai_stream_routes_enabled:
+        raise HTTPException(status_code=404, detail="Not Found")
+
+
 def _sse_stream(async_gen):
     """Wrap an async generator of tokens into an SSE StreamingResponse."""
     async def _generate():
@@ -148,7 +162,7 @@ async def refine(request: Request, data: TransformRequest, current_user: User = 
                              mode=data.mode or "standard", tokens_used=len(data.text.split()) * 2)
 
 
-@router.post("/refine/stream")
+@router.post("/refine/stream", dependencies=[Depends(_streaming_enabled)])
 @limiter.limit(settings.rate_limit_realtime_ai, key_func=get_user_id)
 async def refine_stream(request: Request, data: TransformRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     story_id = _owned_story_id(data.story_id, current_user, db)
@@ -177,7 +191,7 @@ async def tone_transform(request: Request, data: ToneRequest, current_user: User
     return _response(data.text, f"tone:{data.tone}", len(text.split()) * 2, result)
 
 
-@router.post("/tone/stream")
+@router.post("/tone/stream", dependencies=[Depends(_streaming_enabled)])
 @limiter.limit(settings.rate_limit_realtime_ai, key_func=get_user_id)
 async def tone_stream(request: Request, data: ToneRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     story_id = _owned_story_id(data.story_id, current_user, db)
@@ -199,7 +213,7 @@ async def emotion_rewrite(request: Request, data: EmotionRequest, current_user: 
     return _response(data.text, f"emotion:{data.emotion}", len(text.split()) * 2, result)
 
 
-@router.post("/emotion/stream")
+@router.post("/emotion/stream", dependencies=[Depends(_streaming_enabled)])
 @limiter.limit(settings.rate_limit_realtime_ai, key_func=get_user_id)
 async def emotion_stream(request: Request, data: EmotionRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     story_id = _owned_story_id(data.story_id, current_user, db)
@@ -223,7 +237,7 @@ async def age_adapt(request: Request, data: AgeAdaptRequest, current_user: User 
     return _response(data.text, f"age:{data.target_age}", len(text.split()) * 2, result)
 
 
-@router.post("/age-adapt/stream")
+@router.post("/age-adapt/stream", dependencies=[Depends(_streaming_enabled)])
 @limiter.limit(settings.rate_limit_realtime_ai, key_func=get_user_id)
 async def age_adapt_stream(request: Request, data: AgeAdaptRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     story_id = _owned_story_id(data.story_id, current_user, db)
@@ -247,7 +261,7 @@ async def style_transform(request: Request, data: StyleRequest, current_user: Us
     return _response(data.text, f"style:{data.style}", len(text.split()) * 2, result)
 
 
-@router.post("/style/stream")
+@router.post("/style/stream", dependencies=[Depends(_streaming_enabled)])
 @limiter.limit(settings.rate_limit_realtime_ai, key_func=get_user_id)
 async def style_stream(request: Request, data: StyleRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     story_id = _owned_story_id(data.story_id, current_user, db)
@@ -293,7 +307,7 @@ async def author_style_transform(request: Request, data: AuthorStyleRequest, cur
                              mode=f"author:{data.author}", tokens_used=len(text.split()) * 2)
 
 
-@router.post("/author-style/stream")
+@router.post("/author-style/stream", dependencies=[Depends(_streaming_enabled)])
 @limiter.limit(settings.rate_limit_realtime_ai, key_func=get_user_id)
 async def author_style_stream(request: Request, data: AuthorStyleRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     text = _validate_transform_text(data.text)
@@ -316,7 +330,7 @@ async def translate(request: Request, data: TranslationRequest, current_user: Us
                              preservation_violations=result["preservation_violations"])
 
 
-@router.post("/translate/stream")
+@router.post("/translate/stream", dependencies=[Depends(_streaming_enabled)])
 @limiter.limit(settings.rate_limit_realtime_ai, key_func=get_user_id)
 async def translate_stream(request: Request, data: TranslationRequest, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     # Stage 9: a supplied story_id must be the caller's (C7-6), as on /translate.

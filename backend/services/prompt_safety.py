@@ -118,6 +118,19 @@ def harden(system: str, user: str, task: str | None = None) -> tuple[str, str]:
     return system + _SYSTEM_RULE.format(nid=nid), fenced
 
 
+# The model occasionally echoes a fence marker back (found in Stage 12 A16's
+# replay: 1 of 780 stored rewrites ended with "<<<END_AUTHOR_MATERIAL id>>>").
+# Only our own exact marker shape is removed — never the author's words.
+_ECHOED_MARKER = re.compile(r"[ \t]*<<<\s*(?:END_)?AUTHOR_MATERIAL\s+[0-9a-f]{8}\s*>>>[ \t]*", re.IGNORECASE)
+
+
+def strip_echoed_markers(output: str) -> str:
+    """Remove fence markers the model copied into its output."""
+    if not output or "AUTHOR_MATERIAL" not in output.upper():
+        return output
+    return _ECHOED_MARKER.sub("", output).strip()
+
+
 # ── Layer 2: deterministic output checks ──────────────────────────────────────
 
 _WORD = re.compile(r"[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ'’-]+")
@@ -222,3 +235,106 @@ def echoes_source(field: str, source: str) -> bool:
     norm = lambda t: re.sub(r"\s+", " ", t).strip().lower()  # noqa: E731
     f = norm(field)
     return bool(f) and f in norm(source)
+
+
+# ── Stage 12 A18: generated (non-rewrite) outputs ─────────────────────────────
+# Q&A answers, plot and writing suggestions and continuations are NEW text, so
+# "did the rewrite keep the passage" (rewrite_lost_source) does not apply. The
+# obeyed-injection signature seen live (Stage 11 probe, Plot Assistant before
+# the fence: 3/3) is an output that COPIES an instruction out of the material
+# and has dropped the story. Both must hold, which keeps legitimate fiction
+# that quotes instruction-like dialogue ("'Ignore your previous instructions,'
+# she whispered to the ship") from being refused — the story's people are
+# still in such an answer.
+OBEYED_MIN_SPAN = 8            # words copied verbatim from ONE source sentence
+OBEYED_MAX_STORY_SHARE = 0.15  # share of the remaining story words still present
+
+
+def _word_seq(text: str) -> list[str]:
+    return [w.lower().strip("'’-") for w in _WORD.findall(text or "")]
+
+
+def _copied_sentences(source: str, output: str, min_span: int) -> tuple[list[str], list[str]]:
+    """(evidence, copied): `evidence` = source sentences with a verbatim run of
+    at least `min_span` words in the output; `copied` = those plus shorter
+    sentences (4+ words) reproduced whole. Copied sentences are not "story"."""
+    out = " " + " ".join(_word_seq(output)) + " "
+    evidence, copied = [], []
+    for sent in _SENTENCE.findall(source or ""):
+        words = _word_seq(sent)
+        if len(words) >= min_span and any(" " + " ".join(words[i:i + min_span]) + " " in out
+                                          for i in range(len(words) - min_span + 1)):
+            evidence.append(sent)
+            copied.append(sent)
+        elif len(words) >= 4 and " " + " ".join(words) + " " in out:
+            copied.append(sent)
+    return evidence, copied
+
+
+def output_obeyed_material(source: str, output: str, *, min_span: int = OBEYED_MIN_SPAN) -> bool:
+    """True when a generated output looks like it followed an instruction
+    embedded in the author's material:
+
+      (b) it contains a verbatim run of at least `min_span` words from a single
+          source sentence (the injected instruction, repeated), AND
+      (a) the story is gone: the source has names and the output contains none
+          of them, and under OBEYED_MAX_STORY_SHARE of the content words of the
+          OTHER source sentences (the story, not the copied instruction).
+
+    A nameless source is never flagged (no reliable story signal — documented
+    residual risk), and neither is an answer that paraphrases an injection
+    without copying it. No check is a guarantee."""
+    if not settings_guard_on() or not source.strip() or not (output or "").strip():
+        return False
+    names = _names(source)
+    if not names:
+        return False
+    out_lower = output.lower()
+    if any(re.search(rf"\b{re.escape(n)}\b", out_lower) for n in names):
+        return False
+    evidence, copied = _copied_sentences(source, output, min_span)
+    if not evidence:
+        return False
+    story = set()
+    for sent in _SENTENCE.findall(source):
+        if sent not in copied:
+            story |= _content_words(sent)
+    if not story:
+        return True
+    return len(story & _content_words(output)) / len(story) < OBEYED_MAX_STORY_SHARE
+
+
+def settings_guard_on() -> bool:
+    from config import settings
+    return bool(settings.prompt_injection_guard)
+
+
+# Author-facing text for an A18 refusal. Honest about what happened, never
+# quotes the material, and says nothing was changed.
+INSTRUCTION_LIKE_ANSWER = (
+    "Part of your story text reads like instructions to an AI, and the answer followed them "
+    "instead of your question. Nothing was changed. Ask again, or rephrase the question."
+)
+INSTRUCTION_LIKE_SUGGESTIONS = (
+    "Part of your story text reads like instructions to an AI, and the suggestions followed them "
+    "instead of your request. Nothing was changed. Try again."
+)
+
+
+def material_text(*parts) -> str:
+    """The author's material a generated output is checked against: passage
+    texts, chapter text, notes, character blocks — never prompt headings."""
+    out = []
+    for p in parts:
+        if not p:
+            continue
+        if isinstance(p, str):
+            out.append(p)
+        elif isinstance(p, dict):
+            for key in ("text", "raw_summary", "summary", "events"):
+                v = p.get(key)
+                if v:
+                    out.append(" ".join(map(str, v)) if isinstance(v, (list, tuple)) else str(v))
+        else:
+            out.extend(material_text(x) for x in p)
+    return "\n".join(x for x in out if x)

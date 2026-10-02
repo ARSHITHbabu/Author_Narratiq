@@ -1,0 +1,41 @@
+{
+  "clean_prose": {
+    "calls": 60,
+    "per_output_kind": {
+      "answer": {
+        "checked": 24,
+        "flagged": 0
+      },
+      "plot_suggestion": {
+        "checked": 95,
+        "flagged": 0
+      },
+      "writing_item": {
+        "checked": 24,
+        "flagged": 0
+      },
+      "writing_recommendation": {
+        "checked": 24,
+        "flagged": 0
+      },
+      "continuation": {
+        "checked": 36,
+        "flagged": 0
+      }
+    },
+    "flagged": []
+  },
+  "stage11_rewrites": {
+    "outputs": 84,
+    "output_obeyed_material": 0,
+    "rewrite_lost_source": 0
+  },
+  "injection_plot_assistant_before_fix": {
+    "samples": 3,
+    "flagged": 3
+  },
+  "injection_plot_assistant_after_fix": {
+    "samples": 3,
+    "flagged": 0
+  }
+}

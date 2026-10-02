@@ -8,7 +8,7 @@ indefinitely. This sweep finds them and marks them as failed so authors can retr
 
 What is swept:
   AudioUpload:   status='processing'           → status='failed'
-  ManuscriptJob: status='processing'           → status='error'
+  ManuscriptJob: status='processing'           → status='partial' (chapters already saved)
   StoryIntelJob: status in ('pending','running') → status='error'
   StoryBible:    status='running'              → status='failed'
 
@@ -58,8 +58,13 @@ async def recover_orphaned_jobs() -> dict[str, int]:
             .all()
         )
         for job in stuck_manuscript:
-            job.status     = "error"
-            job.message    = _ORPHAN_MESSAGE
+            # Since Stage 12 (A8) every chapter is saved before the job exists;
+            # only AI indexing was interrupted, so the import itself succeeded.
+            job.status     = "partial"
+            job.stage      = "Imported — AI preparation incomplete"
+            job.message    = ("All chapters were imported and saved. AI preparation was "
+                              "interrupted by a server restart; chapters are prepared again "
+                              "the next time you save them.")
             job.updated_at = now
         counts["manuscript_jobs"] = len(stuck_manuscript)
 

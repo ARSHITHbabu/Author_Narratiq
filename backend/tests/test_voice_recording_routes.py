@@ -91,6 +91,38 @@ def _auth(client, db, slot="primary"):
     return headers, db.query(User).filter(User.email == email).first()
 
 
+def _delete_cached_accounts() -> None:
+    """Remove the accounts `_auth` registered. They are cached for the whole
+    module (rate limit), so per-test cleanup never reached them and every run
+    left two users behind. Deleted through the application's own account
+    deletion, which removes everything the account owns."""
+    if not _ACCOUNTS:
+        return
+    from database import SessionLocal
+    from models import User
+    from services.account_deletion import delete_account
+    db = SessionLocal()
+    try:
+        for _headers, email in list(_ACCOUNTS.values()):
+            user = db.query(User).filter(User.email == email).first()
+            if user is not None and user.email == email:
+                delete_account(db, user.user_id)
+        _ACCOUNTS.clear()
+    finally:
+        db.close()
+
+
+try:
+    import pytest
+
+    @pytest.fixture(scope="module", autouse=True)
+    def _accounts_are_deleted_after_the_module():
+        yield
+        _delete_cached_accounts()
+except ImportError:  # running as a plain script without pytest installed
+    pass
+
+
 def _story(db, user_id):
     from models import Story
     s = Story(story_id=str(uuid.uuid4()), user_id=user_id, title="voice route test")
@@ -256,5 +288,6 @@ if __name__ == "__main__":
         except Exception as exc:  # noqa: BLE001
             print(f"  FAIL  {fn.__name__}: {type(exc).__name__}: {exc}")
             failed += 1
+    _delete_cached_accounts()
     print(f"\n{passed}/{passed + failed} passed")
     sys.exit(1 if failed else 0)

@@ -1,0 +1,24 @@
+{
+  "_comment": "Shared by backend/tests/test_search_module.py and frontend/tests/studio/search-consistency.spec.ts (Stage 12 A9). Each case is chapter HTML as TipTap saves it; `count` is the number of matches BOTH the backend and the editor must find. Rules: services/search_match.py docstring.",
+  "cases": [
+    {"id": "plain", "html": "<p>The river ran red at the river's bend.</p>", "query": "river", "whole_word": true, "case_sensitive": false, "count": 2},
+    {"id": "bold-inside-name", "html": "<p>Dev<strong>ika</strong> met Devika.</p>", "query": "Devika", "whole_word": false, "case_sensitive": false, "count": 2},
+    {"id": "nested-marks", "html": "<p>the <strong>old <em>cas</em></strong>tle and the old castle</p>", "query": "old castle", "whole_word": false, "case_sensitive": false, "count": 2},
+    {"id": "link", "html": "<p>See <a href=\"https://example.org\" target=\"_blank\" rel=\"noopener noreferrer nofollow\">the harbour</a> chart.</p>", "query": "the harbour chart", "whole_word": false, "case_sensitive": false, "count": 1},
+    {"id": "underline-highlight", "html": "<p><u>Mar</u><mark>a</mark> Coste</p>", "query": "Mara", "whole_word": true, "case_sensitive": true, "count": 1},
+    {"id": "entity-amp", "html": "<p>Tom &amp; Jerry, ampersand.</p>", "query": "amp", "whole_word": false, "case_sensitive": false, "count": 1},
+    {"id": "entity-query", "html": "<p>Tom &amp; Jerry &amp; Spike</p>", "query": "&", "whole_word": false, "case_sensitive": false, "count": 2},
+    {"id": "lt-gt", "html": "<p>a &lt;b&gt; tag in prose</p>", "query": "<b>", "whole_word": false, "case_sensitive": false, "count": 1},
+    {"id": "across-paragraphs", "html": "<p>end here.</p><p>Next one</p>", "query": "here. Next", "whole_word": false, "case_sensitive": false, "count": 0},
+    {"id": "across-line-break", "html": "<p>line one<br>two lines</p>", "query": "one two", "whole_word": false, "case_sensitive": false, "count": 0},
+    {"id": "heading-and-list", "html": "<h2>The Harbour</h2><ul><li><p>harbour lights</p></li><li><p>the harbour</p></li></ul><blockquote><p>A harbour.</p></blockquote>", "query": "harbour", "whole_word": true, "case_sensitive": false, "count": 4},
+    {"id": "unicode-whole-word-latin", "html": "<p>Café, cafés and the café.</p>", "query": "café", "whole_word": true, "case_sensitive": false, "count": 2},
+    {"id": "unicode-whole-word-devanagari", "html": "<p>हिंदी भाषा हिंदीभाषा हिंदी</p>", "query": "हिंदी", "whole_word": true, "case_sensitive": false, "count": 2},
+    {"id": "unicode-case", "html": "<p>ÉLÉONORE and éléonore</p>", "query": "éléonore", "whole_word": false, "case_sensitive": false, "count": 2},
+    {"id": "whole-word-off-partial", "html": "<p>wolf wolfhound wolf</p>", "query": "wolf", "whole_word": false, "case_sensitive": false, "count": 3},
+    {"id": "whole-word-on", "html": "<p>wolf wolfhound wolf</p>", "query": "wolf", "whole_word": true, "case_sensitive": false, "count": 2},
+    {"id": "case-sensitive", "html": "<p>Rook rook ROOK</p>", "query": "Rook", "whole_word": false, "case_sensitive": true, "count": 1},
+    {"id": "nbsp-distinct", "html": "<p>Mr.&nbsp;Vance and Mr. Vance</p>", "query": "Mr. Vance", "whole_word": false, "case_sensitive": false, "count": 1},
+    {"id": "special-chars", "html": "<p>Cost: $5.00 (approx.) — fair? [yes]</p>", "query": "(approx.)", "whole_word": false, "case_sensitive": false, "count": 1}
+  ]
+}

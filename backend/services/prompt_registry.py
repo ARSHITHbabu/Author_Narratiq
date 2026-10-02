@@ -393,6 +393,82 @@ def _style_v3(style: str, genre_context: str,
     return _with_genre(base, genre_context)
 
 
+# ── Cast extraction (Stage 12 A10) ───────────────────────────────────────────
+# v2 is the cast prompt exactly as it was before Stage 12 (frozen). v3 adds
+# PRESENCE — on-page vs referenced vs historical — separately from life status,
+# so a dead ancestor or an absent ruler is listed and labelled, never silently
+# dropped and never passed off as an ordinary on-page character.
+_CAST_V2_TEXT = (
+    'You are a literary analyst building a character bible from a manuscript.\n'
+    'Extract every named character and every significant recurring person from the '
+    'story text below, with as much grounded detail as the text supports.\n\n'
+    'Return ONLY a valid JSON array. Each element must be an object with these exact keys:\n'
+    '  "name": canonical full name (string)\n'
+    '  "role": one of "protagonist", "antagonist", "supporting", "minor"\n'
+    '  "status": one of "active", "deceased", "unknown"\n'
+    '  "aliases": other names/nicknames/titles this character is called by (array of strings; [] if none)\n'
+    '  "description": 1-2 sentence summary of who this character is (string)\n'
+    '  "age": age or life-stage if stated or strongly implied, else "" (string, e.g. "early 30s", "teenager")\n'
+    '  "appearance": physical description grounded in the text, else "" (string)\n'
+    '  "personality": personality/temperament grounded in behaviour and dialogue, else "" (string)\n'
+    '  "goals": what the character is actively trying to achieve, else "" (string)\n'
+    '  "motivations": why they pursue those goals — their drives/fears, else "" (string)\n'
+    '  "backstory": established history/origin revealed in the text, else "" (string)\n'
+    '  "arc_notes": how the character changes or what unfolds across chapters, else "" (string)\n'
+    '  "traits": 3-8 personality adjectives drawn from the text (array of strings; [] if unclear)\n'
+    '  "first_appearance": chapter where the character first appears (e.g. "Chapter 1")\n'
+    '  "evidence_snippet": short quote or close paraphrase confirming this character (max 80 words)\n'
+    '  "confidence": "high" if clearly named and present; "uncertain" if inferred or ambiguous\n\n'
+    'Rules:\n'
+    '- Include named individuals AND named groups/collectives that act as characters.\n'
+    '- Include unnamed but significant recurring characters by their role (e.g. "Ravi\'s Mother").\n'
+    '- Extract ALL evidence available — fill appearance/personality/goals/motivations/backstory '
+    'whenever the text supports them. Do not leave a field empty if the text gives evidence for it.\n'
+    '- Do NOT invent facts. If a field is genuinely not established in the text, use "" (or [] for arrays).\n'
+    '- Do NOT invent characters absent from the text.\n'
+    '- Return [] if no characters are found.\n'
+    '- Output ONLY the JSON array — no preamble, no markdown fences, no trailing prose.'
+)
+
+
+def _cast_v2(**_ignored) -> str:
+    return _CAST_V2_TEXT
+
+
+_CAST_V3_TEXT = _CAST_V2_TEXT.replace(
+    '  "status": one of "active", "deceased", "unknown"\n',
+    '  "status": one of "active", "deceased", "unknown" (alive or dead — this is NOT presence)\n'
+    '  "presence": where the character exists in THIS text, one of:\n'
+    '      "on_page": physically present in at least one scene — they act, speak or are seen in\n'
+    '      the moment. This includes characters who were believed dead or who are hiding, if they\n'
+    '      appear in any scene. When in doubt, use "on_page".\n'
+    '      "referenced": alive or of unknown fate, but never present in any scene — only talked about.\n'
+    '      "historical": died or was gone before the events of the text and never appears in any\n'
+    '      scene — known only from memories, records or other characters\' accounts.\n',
+).replace(
+    '- Include unnamed but significant recurring characters by their role (e.g. "Ravi\'s Mother").\n',
+    # The v2 example name is replaced by a placeholder: with off-page people now
+    # requested, Qwen-7B listed the example ("Ravi's Mother") as a character in
+    # 4 of 5 live runs — the same phantom-from-example defect as Stage 4.16.
+    '- Include unnamed but significant recurring characters by their role, using the words the\n'
+    '  text itself uses for them (e.g. "<the narrator\'s mother>"; never copy this placeholder).\n'
+    '- A person known only by a title or role (e.g. "<the Archivist>") is a character too.\n'
+    '- ALSO list people who never appear in a scene but matter to the plot — for example someone\n'
+    '  whose death the characters investigate, or a ruler whose orders drive events — with presence\n'
+    '  "historical" or "referenced". Do not list passers-by who are mentioned once and do nothing.\n'
+    '- A character believed dead who later appears in a scene is "on_page" (status may be "active").\n'
+    '- "status" is only ever "active", "deceased" or "unknown".\n',
+    # Tried and reverted (measured, Stage 12): an explicit "people who share a
+    # first name are different characters" rule RAISED single-window conflation
+    # of the two Tomases from 2/5 to 4/5 runs. Conflation is flagged in code
+    # instead (_merge_cast: _possible_combined_with).
+)
+
+
+def _cast_v3(**_ignored) -> str:
+    return _CAST_V3_TEXT
+
+
 def register_version(version: str, builders: dict[str, Callable]) -> None:
     """Add a new, additive version to the registry. Never call this to
     overwrite an existing version — that would defeat the whole point of
@@ -448,6 +524,7 @@ register_version("v2", {
     "suggestions": _suggestions_v2,
     "author_style": _author_style_v1,  # unchanged — see _author_style_v1's own docstring
     "continuity": _continuity_v2,  # the exact prompt check_continuity used before registration
+    "cast": _cast_v2,              # Stage 12: the pre-Stage-12 cast prompt, frozen
 })
 
 # v3 (Stage 5, D4 + 5.14): every v2 transform is carried over; only style and
@@ -456,4 +533,58 @@ register_version("v3", {
     **PROMPT_REGISTRY["v2"],
     "style": _style_v3,
     "continuity": _continuity_v3,
+    "cast": _cast_v3,              # Stage 12 A10: + presence (on_page / referenced / historical)
+})
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# v4 (Stage 12 Tranche 2b — A15). Builders now receive `strength`.
+#   style      — v3 told the model "restructuring sentences … is expected" at
+#                EVERY strength, contradicting the Light clause appended after
+#                it. v4 asks for restructuring only at moderate/strong; at
+#                light the style comes through word choice and punctuation.
+#                Measured (tests/fixtures/strength_t2b_*.json): Light now keeps
+#                a median 0.71 of the author's words against Strong's 0.58
+#                (v3: 0.60 vs 0.59 — no difference).
+# Measured and NOT adopted (no change in what Light keeps):
+#   * age_adapt — a light-only "swap hard words, keep every sentence"
+#     instruction: Light median 0.50 of the author's words vs Strong 0.455
+#     (v3: 0.524 vs 0.455);
+#   * age_adapt — a gentler children's guide ("keep difficult events, tell them
+#     gently"): it changed what happened MORE often (A14 — adventure-3
+#     "nobody survived" → "everyone got hurt" in 7/10 runs vs 1/10 on v2).
+# A light-only tone instruction was also measured and NOT adopted: no change
+# in what Light keeps (median 0.568 vs Strong 0.583).
+# Every other transform is carried over from v3 unchanged.
+# ══════════════════════════════════════════════════════════════════════════
+
+_LIGHT_STYLE_V4 = (
+    "At this strength keep the author's sentences, their order and their boundaries; "
+    "express the style only through word choice, connectives and punctuation."
+)
+
+
+def _style_v4(style: str, genre_context: str, preservation_clause: str = "",
+              strength_clause: str = "", strength: str = "light", **_ignored) -> str:
+    if strength != "light":
+        return _style_v3(style, genre_context, preservation_clause=preservation_clause,
+                         strength_clause=strength_clause)
+    # No craft-lever list at light: several levers are structural ("short,
+    # punchy sentences") and would reintroduce the contradiction.
+    base = (
+        f"Edit this passage so it leans toward {style} prose. {_LIGHT_STYLE_V4} "
+        "Keep every event, character, fact and line of dialogue content the same; do not "
+        "add plot, details or imagery. A character's own voice must stay recognisable. "
+        "Return ONLY the edited passage."
+    )
+    if preservation_clause:
+        base += f" {preservation_clause}"
+    if strength_clause:
+        base += f" {strength_clause}"
+    return _with_genre(base, genre_context)
+
+
+register_version("v4", {
+    **PROMPT_REGISTRY["v3"],
+    "style": _style_v4,
 })

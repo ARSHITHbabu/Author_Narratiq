@@ -86,7 +86,7 @@ export function useVoiceAgent({ enabled, getContext, actionCtx }: UseVoiceAgentO
 
   // ── Execute the consolidated plan ───────────────────────────────────────────
   const runPlan = useCallback(async (resp: VoiceAgentResponse) => {
-    const ctx = { ...actionCtxRef.current, storyId: getContextRef.current().story_id || actionCtxRef.current.storyId }
+    const ctx = { ...actionCtxRef.current, storyId: getContextRef.current().story_id || actionCtxRef.current.storyId, chapterNumber: getContextRef.current().chapter_number ?? undefined }
     const nodes = resp.workflow?.nodes ?? []
     const results: Record<string, NodeRun> = {}
     const holds: WorkflowNode[] = []
@@ -122,7 +122,7 @@ export function useVoiceAgent({ enabled, getContext, actionCtx }: UseVoiceAgentO
       setPendingConfirm((p) => p.filter((n) => n.node_key !== node.node_key))
       return
     }
-    const ctx = { ...actionCtxRef.current, storyId: getContextRef.current().story_id || actionCtxRef.current.storyId }
+    const ctx = { ...actionCtxRef.current, storyId: getContextRef.current().story_id || actionCtxRef.current.storyId, chapterNumber: getContextRef.current().chapter_number ?? undefined }
     // Approval and outcome are two different facts, reported separately: the
     // author approving a change is not the same as the change having worked.
     if (resp.command_id) await reportApproval(resp.command_id, node.node_key, true)

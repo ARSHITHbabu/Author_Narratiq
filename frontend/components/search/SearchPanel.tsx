@@ -26,8 +26,13 @@ interface Props {
     query: string,
     caseSensitive: boolean,
     wholeWord: boolean,
+    /** The backend's match count for that chapter — the editor must agree. */
+    expectedCount?: number,
   ) => void
   onReplaceComplete: (affectedChapterIds: string[]) => void
+  /** Save pending editor typing before the backend reads the chapter
+   *  (Stage 12 A9). Resolves false when that save failed. */
+  beforeServerOp?: () => Promise<boolean>
   onSearchStateChange?: (state: { query: string; caseSensitive: boolean; wholeWord: boolean } | null) => void
 }
 
@@ -55,6 +60,7 @@ export default function SearchPanel({
   onJumpToMatch,
   onReplaceComplete,
   onSearchStateChange,
+  beforeServerOp,
 }: Props) {
   const [mode, setMode] = useState<Mode>('exact')
   const [query, setQuery] = useState('')
@@ -129,6 +135,10 @@ export default function SearchPanel({
       setLoading(true)
       try {
         if (mode === 'exact') {
+          // The backend searches the saved chapters, so save what is typed first.
+          if (beforeServerOp && !(await beforeServerOp())) {
+            toast.warning('Your latest typing could not be saved yet, so these results may miss it.')
+          }
           const chIds = sc === 'current' ? [activeChapterId] : null
           const res = await searchApi.exact(storyId, q, cs, ww, chIds)
           const data: ExactSearchResponse = res.data
@@ -137,7 +147,7 @@ export default function SearchPanel({
           setChaptersHit(data.chapters_hit)
           setGlobalIndex(data.total_matches > 0 ? 0 : -1)
           if (data.results.length > 0 && data.results[0].match_count > 0) {
-            onJumpToMatch(data.results[0].chapter_id, 0, q, cs, ww)
+            onJumpToMatch(data.results[0].chapter_id, 0, q, cs, ww, data.results[0].match_count)
           }
         } else {
           const res = await searchApi.semantic(storyId, q)
@@ -150,7 +160,7 @@ export default function SearchPanel({
         setLoading(false)
       }
     },
-    [mode, scope, activeChapterId, storyId, caseSensitive, wholeWord, onJumpToMatch],
+    [mode, scope, activeChapterId, storyId, caseSensitive, wholeWord, onJumpToMatch, beforeServerOp],
   )
 
   const handleQueryChange = (q: string) => {
@@ -181,7 +191,8 @@ export default function SearchPanel({
       setGlobalIndex(next)
       const resolved = resolveGlobalIndex(exactResults, next)
       if (resolved) {
-        onJumpToMatch(resolved.chapterId, resolved.localIndex, query, caseSensitive, wholeWord)
+        onJumpToMatch(resolved.chapterId, resolved.localIndex, query, caseSensitive, wholeWord,
+          exactResults.find((r) => r.chapter_id === resolved.chapterId)?.match_count)
       }
     },
     [globalIndex, totalMatches, exactResults, query, caseSensitive, wholeWord, onJumpToMatch],
@@ -189,7 +200,8 @@ export default function SearchPanel({
 
   const handleResultClick = (chapterId: string, localIndex: number, absGlobal: number) => {
     setGlobalIndex(absGlobal)
-    onJumpToMatch(chapterId, localIndex, query, caseSensitive, wholeWord)
+    onJumpToMatch(chapterId, localIndex, query, caseSensitive, wholeWord,
+      exactResults.find((r) => r.chapter_id === chapterId)?.match_count)
   }
 
   // ── Replace ─────────────────────────────────────────────────────────────────
@@ -198,6 +210,10 @@ export default function SearchPanel({
     if (!query.trim() || globalIndex < 0) return
     const resolved = resolveGlobalIndex(exactResults, globalIndex)
     if (!resolved) return
+    if (beforeServerOp && !(await beforeServerOp())) {
+      toast.error('Your latest typing could not be saved, so nothing was replaced. Please try again.')
+      return
+    }
     setReplacing(true)
     try {
       await searchApi.replace(storyId, {
@@ -221,6 +237,10 @@ export default function SearchPanel({
 
   const handleReplaceAllClick = async () => {
     if (!query.trim() || totalMatches === 0) return
+    if (beforeServerOp && !(await beforeServerOp())) {
+      toast.error('Your latest typing could not be saved, so nothing was replaced. Please try again.')
+      return
+    }
     setReplacing(true)
     try {
       const res = await searchApi.replace(storyId, {
@@ -244,6 +264,11 @@ export default function SearchPanel({
 
   const handleConfirmReplace = async () => {
     setShowConfirm(false)
+    if (beforeServerOp && !(await beforeServerOp())) {
+      toast.error('Your latest typing could not be saved, so nothing was replaced. Please try again.')
+      return
+    }
+
     setReplacing(true)
     try {
       const chIds = [...selectedChapters]
@@ -287,10 +312,12 @@ export default function SearchPanel({
     return base + localIdx
   }
 
-  const optionBtn = (label: string, active: boolean, onClick: () => void) => (
+  const optionBtn = (label: string, active: boolean, onClick: () => void, title?: string) => (
     <button
       onClick={onClick}
-      className={`px-2 py-0.5 rounded text-xs font-mono transition-colors ${
+      aria-pressed={active}
+      title={title}
+      className={`px-2 py-0.5 rounded text-xs transition-colors ${
         active ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'text-[#8e94bd] border border-[#2e3454] hover:text-[#9da3c8]'
       }`}
     >
@@ -361,16 +388,16 @@ export default function SearchPanel({
         {/* Options row (Exact mode only) */}
         {mode === 'exact' && (
           <div className="flex items-center gap-2 flex-wrap">
-            {optionBtn('Aa', caseSensitive, () => {
+            {optionBtn('Match case', caseSensitive, () => {
               const next = !caseSensitive
               setCaseSensitive(next)
               if (query) runSearch(query, { cs: next })
-            })}
-            {optionBtn('\\b', wholeWord, () => {
+            }, 'Only match the same capital and small letters')}
+            {optionBtn('Whole word', wholeWord, () => {
               const next = !wholeWord
               setWholeWord(next)
               if (query) runSearch(query, { ww: next })
-            })}
+            }, 'Only match whole words — "wolf" will not match "wolfhound"')}
             <div className="w-px h-4 bg-[#2e3454]" />
             <button
               onClick={() => { setScope('all'); if (query) runSearch(query, { sc: 'all' }) }}

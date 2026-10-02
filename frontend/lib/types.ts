@@ -356,6 +356,9 @@ export interface CharacterProfile {
   updated_at:    string
 }
 
+// Stage 12 A10 — on the page vs only talked about vs only in the story's past.
+export type CharacterPresence = 'on_page' | 'referenced' | 'historical'
+
 export interface Character {
   character_id:      string
   story_id:          string
@@ -363,6 +366,8 @@ export interface Character {
   aliases:           string[]
   role:              CharacterRole
   status:            CharacterStatus
+  // Stage 12 A10: separate from status; null = not recorded.
+  presence?:         CharacterPresence | null
   created_at:        string
   updated_at:        string
   profile:           CharacterProfile | null
@@ -413,6 +418,31 @@ export interface CastSuggestion {
   traits:                string[]
   already_exists:        boolean
   existing_character_id: string | null
+  // Stage 12 A7 (CAST-C4): may be the same person as an existing character.
+  possible_duplicate_of?:   string | null
+  possible_duplicate_name?: string | null
+  // Stage 12 A10–A12
+  presence?:                CharacterPresence
+  possible_duplicate_in_suggestions?: string | null
+  possible_combined_with?: string | null
+  mention_count?:           number
+}
+
+// Stage 12 A7 (CAST-C4): two characters that may be the same person.
+export interface DuplicateCharacterRef {
+  character_id: string
+  name:         string
+  aliases:      string[]
+  role:         string | null
+  status:       string | null
+}
+
+export interface DuplicateCandidate {
+  character_a:        DuplicateCharacterRef
+  character_b:        DuplicateCharacterRef
+  score:              number
+  profile_similarity: number | null
+  reasons:            { kind: string; text: string }[]
 }
 
 export interface CastGenerationResult {

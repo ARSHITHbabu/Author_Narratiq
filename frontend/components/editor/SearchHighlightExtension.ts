@@ -1,6 +1,7 @@
 import { Extension } from '@tiptap/core'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
 import { Decoration, DecorationSet } from '@tiptap/pm/view'
+import { findMatchRanges } from '@/lib/searchMatch'
 
 interface SearchHighlightState {
   matches: Array<{ from: number; to: number }>
@@ -52,6 +53,10 @@ export const SearchHighlightExtension = Extension.create({
             const { matches, activeIndex } = s
             const decos = matches.map((m, i) =>
               Decoration.inline(m.from, m.to, {
+                class: i === activeIndex ? 'search-hit search-hit-active' : 'search-hit',
+                // One match can span several formatted runs (several DOM pieces);
+                // the index lets tests and tools count matches, not pieces.
+                'data-search-match': String(i),
                 style:
                   i === activeIndex
                     ? 'background-color:rgba(251,146,60,0.55);border-radius:2px;outline:1px solid rgba(251,146,60,0.85);'
@@ -66,14 +71,12 @@ export const SearchHighlightExtension = Extension.create({
   },
 })
 
-// Escape regex special characters in a query string
-function escapeRegex(s: string) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
-
 /**
- * Find all positions of query in the TipTap document.
- * Returns [{from, to}] in document order.
+ * Find all positions of query in the TipTap document, in document order.
+ * Stage 12 (A9): delegates to lib/searchMatch, which mirrors the backend's
+ * text model so the panel's count and these highlights always agree (matches
+ * across bold/italic/links, never across paragraphs or line breaks,
+ * Unicode-aware whole word).
  */
 export function findMatchPositions(
   doc: any,
@@ -81,20 +84,5 @@ export function findMatchPositions(
   caseSensitive: boolean,
   wholeWord: boolean,
 ): Array<{ from: number; to: number }> {
-  if (!query.trim()) return []
-  const flags = caseSensitive ? 'g' : 'gi'
-  const escaped = escapeRegex(query)
-  const pattern = wholeWord ? new RegExp(`\\b${escaped}\\b`, flags) : new RegExp(escaped, flags)
-  const positions: Array<{ from: number; to: number }> = []
-
-  doc.descendants((node: any, pos: number) => {
-    if (!node.isText || !node.text) return
-    const regex = new RegExp(pattern.source, pattern.flags)
-    let m: RegExpExecArray | null
-    while ((m = regex.exec(node.text)) !== null) {
-      positions.push({ from: pos + m.index, to: pos + m.index + m[0].length })
-    }
-  })
-
-  return positions
+  return findMatchRanges(doc, query, caseSensitive, wholeWord)
 }

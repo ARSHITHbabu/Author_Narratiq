@@ -2,11 +2,15 @@
 
 import { useState } from 'react'
 import { Chapter } from '@/lib/types'
-import { Plus, Trash2, Edit3, Check, X, BookOpen, Loader2 } from 'lucide-react'
+import { Plus, Trash2, Edit3, Check, X, BookOpen, Loader2, FileUp } from 'lucide-react'
+import dynamic from 'next/dynamic'
 import { chaptersApi } from '@/lib/api'
 import { toast } from 'sonner'
 import { ChapterIdeasList, ChapterIdeasMarker, useChapterIdeas } from '@/components/ideas/ChapterIdeas'
 import { P3_ENABLED } from '@/lib/generationControls'
+
+// Loaded on demand — only needed when the author imports a file (Stage 12 A8).
+const ManuscriptImportDialog = dynamic(() => import('./ManuscriptImportDialog'), { ssr: false })
 
 interface Props {
   storyId: string
@@ -25,6 +29,7 @@ export default function ChapterSidebar({ storyId, chapters, activeChapterId, onS
   // Phase 3 Idea Shelf markers: "N ideas waiting" per chapter.
   const { byChapter: ideasByChapter, reload: reloadIdeas } = useChapterIdeas(storyId)
   const [ideasOpenFor, setIdeasOpenFor] = useState<string | null>(null)
+  const [importOpen, setImportOpen] = useState(false)
 
   const addChapter = async () => {
     if (!newTitle.trim()) return
@@ -99,6 +104,25 @@ export default function ChapterSidebar({ storyId, chapters, activeChapterId, onS
           <Plus className="w-4 h-4" />
         </button>
       </div>
+      {/* Import a .txt / .docx manuscript (Stage 12 A8). */}
+      <div className="px-4 py-1.5 border-b border-[#1f2440]">
+        <button
+          data-testid="import-manuscript"
+          onClick={() => setImportOpen(true)}
+          className="flex items-center gap-1.5 text-[11px] text-[#8e94bd] hover:text-amber-400 transition-colors"
+        >
+          <FileUp className="w-3.5 h-3.5" />
+          Import manuscript…
+        </button>
+      </div>
+      {importOpen && (
+        <ManuscriptImportDialog
+          storyId={storyId}
+          existingChapters={chapters.length}
+          onClose={() => setImportOpen(false)}
+          onImported={() => onChaptersChange(chapters)}
+        />
+      )}
 
       <div className="flex-1 overflow-y-auto py-2">
         {chapters.map((ch) => (

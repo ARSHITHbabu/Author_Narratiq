@@ -28,7 +28,16 @@ email-validator==2.3.0          # pydantic EmailStr (register/login schemas)
 # (CRITICAL, algorithm confusion) + PYSEC-2024-233 (MODERATE, JWE decompression
 # bomb). This app only uses HS256 with a symmetric secret and decode()'s own
 # algorithms=[...] allowlist. Verified: full backend suite green after the bump.
-python-jose[cryptography]==3.4.0
+# 2026-10-02 (Stage 12 remediation A4): 3.4.0 -> 3.5.0 so pyasn1 can leave the
+# 0.4.x line (python-jose 3.4.0 required pyasn1<0.5). pyasn1 0.6.4 clears four
+# High advisories (GHSA-jr27/8ppf/hm4w/m4p7). Pinned explicitly because it is a
+# transitive dependency and would otherwise float.
+python-jose[cryptography]==3.5.0
+pyasn1==0.6.4
+# Pinned explicitly (Stage 12 A4): the [cryptography] extra accepts any >=3.4,
+# so pip kept the OS package (Ubuntu's 2021 cryptography 3.4.8 in
+# /usr/lib/python3/dist-packages) and JWT signing ran on it unpinned.
+cryptography==50.0.2
 bcrypt==4.0.1
 python-multipart==0.0.32
 aiofiles==23.2.1
@@ -74,5 +83,9 @@ faster-whisper==1.2.1
 # services/voice/vocabulary.py imports these at module load; without them the
 # voice_agent router fails to import and the backend will not start.
 rapidfuzz==3.14.6
+# Stage 12 A9: Unicode property classes (\p{L}\p{M}\p{N}) for whole-word search
+# boundaries that work for accented and non-Latin names. Already installed as a
+# transformers dependency; pinned here so search never depends on that.
+regex==2026.9.29
 jellyfish==1.2.1
 websockets==17.1               # FastAPI WebSocket endpoint /api/voice/stream

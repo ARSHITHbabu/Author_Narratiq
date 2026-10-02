@@ -22,6 +22,9 @@ export interface VoiceActionContext {
   onOpenChapter?: (chapterId: string) => void
   onGuideUpload?: (kind: 'manuscript' | 'ocr' | 'audio') => void
   onLogout?: () => void
+  /** The chapter open in the editor — the D-1 spoiler-safe limit for plot
+   *  brainstorming when the voice command did not name a chapter (Stage 12). */
+  chapterNumber?: number
 }
 
 export interface VoiceActionResult {
@@ -131,7 +134,10 @@ export async function executeVoiceAction(
       // so the plot feature is grounded — fixes the empty-context bug.
       case 'plot_assistant.brainstorm': {
         const chapterText = ctx.editor?.getFullText?.() || str(a.current_chapter_text)
-        return { ok: true, data: (await plotApi.suggest(storyId, str(a.question), chapterText, undefined, num(a.chapter_number, undefined as unknown as number))).data }
+        // D-1: chapter scope needs a chapter; use the one open in the editor
+        // when the command did not name one (the backend refuses otherwise).
+        const chapterNumber = num(a.chapter_number, ctx.chapterNumber as number)
+        return { ok: true, data: (await plotApi.suggest(storyId, str(a.question), chapterText, undefined, chapterNumber)).data }
       }
 
       // ── Text transforms ───────────────────────────────────────────────────

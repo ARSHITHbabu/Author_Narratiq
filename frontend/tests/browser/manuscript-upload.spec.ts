@@ -1,29 +1,18 @@
 import { test, expect, type APIRequestContext, type Page } from '@playwright/test'
 import { seedBrowserSession, sessionToken } from './_session'
 
-// Stage 6 task 6.4 — critical journey: upload a manuscript -> chapters populate.
+// Stage 6 task 6.4 critical journey — upload a manuscript → chapters populate.
 //
-// REAL FINDING from executing this live during Stage 6 closure (2026-09-22):
-// the backend has a fully working manuscript-upload endpoint
-// (POST /api/manuscript/upload/{story_id}, verified passing in
-// backend/tests/test_e2e_checklist_gaps.py::test_manuscript_docx_upload_creates_chapters_from_content)
-// and the frontend even has a typed API client for it (lib/api.ts's
-// `manuscriptApi.upload`) — but NOTHING in the frontend ever calls it.
-// Confirmed by exhaustive search: `grep -rln "manuscriptApi\." frontend/app
-// frontend/components` returns zero results. Every workspace tab
-// (Write/Plan/Characters/World/Analyze/Assistant/Publish/Library) was opened
-// live and none exposes a manuscript-upload control. This is a genuine,
-// previously-undocumented gap: an author cannot upload a manuscript through
-// the app UI at all, even though the backend is ready for it.
+// Until Stage 12 (remediation A8) there was no upload control anywhere in the
+// UI and this spec was written to fail until one existed. The control now lives
+// in the Write binder ("Import manuscript…"). This is the real end-to-end flow
+// against a live stack: choose a .txt file in the browser, the backend saves
+// every chapter (numbered AFTER the story's existing chapters) and then prepares
+// them for AI tools in the background, and the binder shows them.
 //
-// This test therefore does NOT assert the happy path (there is no happy
-// path to assert). It documents the gap as a reproducible, xfail(strict)
-// check across every workspace tab, so a future frontend fix that adds the
-// missing UI will make this test start failing (a *good* failure, meaning
-// "update this test, the gap is closed") rather than silently doing nothing
-// forever.
-//
-//   E2E_EMAIL=… E2E_PASSWORD=… E2E_STORY_ID=…
+// Needs the "manuscript-upload" story from backend/scripts/seed_browser_fixtures.py
+// (two chapters already present):
+//   E2E_EMAIL=… E2E_PASSWORD=… E2E_STORY_ID=… [E2E_API_URL=… E2E_BASE_URL=…]
 //   npx playwright test tests/browser/manuscript-upload.spec.ts --project=browser
 
 const EMAIL = process.env.E2E_EMAIL
@@ -34,56 +23,77 @@ test.skip(!EMAIL || !PASSWORD || !STORY_ID, 'Set E2E_EMAIL, E2E_PASSWORD and E2E
 
 const API_URL = process.env.E2E_API_URL ?? 'http://localhost:8000'
 let cachedToken: string | null = null
-let cachedUser: string | null = null
 
-async function authSession(request: APIRequestContext) {
-  if (!cachedToken || !cachedUser) {
+async function token(request: APIRequestContext) {
+  if (!cachedToken) {
     const res = await request.post(`${API_URL}/api/auth/login`, { data: { email: EMAIL, password: PASSWORD } })
     expect(res.ok(), `login failed: ${res.status()}`).toBe(true)
-    const body = await res.json()
     cachedToken = sessionToken(res)
-    cachedUser = JSON.stringify(body.user)
   }
-  return { token: cachedToken!, user: cachedUser! }
+  return cachedToken
 }
 
-async function openProject(page: Page, request: APIRequestContext) {
-  const { token, user } = await authSession(request)
-  await seedBrowserSession(page, token)
-  await page.goto(`/projects/${STORY_ID}`)
-  await page.locator('.ProseMirror').first().waitFor({ state: 'visible' })
+async function chapters(request: APIRequestContext) {
+  const res = await request.get(`${API_URL}/api/stories/${STORY_ID}/chapters`, {
+    headers: { Authorization: `Bearer ${await token(request)}` },
+  })
+  expect(res.ok()).toBe(true)
+  return (await res.json()) as { chapter_number: number; title: string }[]
 }
 
-const WORKSPACE_TABS = ['Write', 'Plan', 'Characters', 'World', 'Analyze', 'Assistant', 'Publish']
+async function openWrite(page: Page, request: APIRequestContext) {
+  await seedBrowserSession(page, await token(request))
+  await page.goto(`/projects/${STORY_ID}/write`)
+  await page.getByTestId('import-manuscript').waitFor({ state: 'visible' })
+}
 
-// Deliberately a normal (not Playwright test.fail()-annotated) test: per
-// this project's own established policy for known-open defects
-// (backend/tests/test_known_stage5_defects.py), an "expected failure"
-// annotation hides the red in a normal run summary. This stays plainly red
-// until the frontend gap above is actually closed.
-test('a manuscript-upload control is reachable from some workspace tab', async ({ page, request }) => {
-    await openProject(page, request)
+const MANUSCRIPT = [
+  'Chapter 1: The Causeway Road',
+  'The tide had not yet turned when Wren reached the causeway.',
+  '',
+  'She counted the posts as she walked.',
+  'Chapter 2: The Keeper',
+  'The keeper had left his log open at an unfinished page.',
+].join('\n')
 
-    let found = false
-    for (const tabName of WORKSPACE_TABS) {
-      const tab = page.getByRole('button', { name: tabName, exact: true })
-      if (await tab.count()) {
-        await tab.click()
-        await page.waitForTimeout(500)
-      }
-      if (await page.locator('input[type=file]').count()) {
-        found = true
-        break
-      }
-    }
+test('import a .txt manuscript from the Write binder: chapters appended, numbered after the existing ones', async ({ page, request }) => {
+  test.setTimeout(10 * 60_000)        // AI preparation of the new chapters runs on the live model
+  const before = await chapters(request)
+  const highest = Math.max(0, ...before.map((c) => c.chapter_number))
 
-    expect(
-      found,
-      'No workspace tab exposes a manuscript-upload file input, even though ' +
-      'the backend endpoint (POST /api/manuscript/upload/{story_id}) and the ' +
-      'frontend API client (manuscriptApi.upload in lib/api.ts) both exist ' +
-      'and work — confirmed via backend/tests/test_e2e_checklist_gaps.py. ' +
-      'This is a real, reproducible frontend gap, not a selector guess.',
-    ).toBe(true)
-  },
-)
+  await openWrite(page, request)
+  await page.getByTestId('import-manuscript').click()
+  const dialog = page.getByTestId('manuscript-import-dialog')
+  await expect(dialog).toContainText(`added after your existing ${before.length} chapter`)
+  await page.getByTestId('manuscript-file-input').setInputFiles({
+    name: 'causeway.txt', mimeType: 'text/plain', buffer: Buffer.from(MANUSCRIPT),
+  })
+  await page.getByTestId('manuscript-import-start').click()
+  await expect(page.getByTestId('manuscript-import-preparing')).toContainText('2 chapters saved to your story.')
+
+  // Saved before preparation finishes: the database already has them, numbered after the existing ones.
+  const after = await chapters(request)
+  const added = after.filter((c) => !before.some((b) => b.chapter_number === c.chapter_number))
+  expect(added.map((c) => c.chapter_number)).toEqual([highest + 1, highest + 2])
+  expect(added.map((c) => c.title)).toEqual(['The Causeway Road', 'The Keeper'])
+  expect(new Set(after.map((c) => c.chapter_number)).size).toBe(after.length)
+
+  // The binder shows them without a page reload.
+  await expect(page.getByText('The Causeway Road')).toBeVisible()
+
+  // Preparation for AI tools ends honestly: complete, or a partial notice that keeps the text.
+  await expect(page.getByTestId('manuscript-import-done').or(page.getByTestId('manuscript-import-partial')))
+    .toBeVisible({ timeout: 9 * 60_000 })
+})
+
+test('an unsupported file is refused in the browser and nothing is uploaded', async ({ page, request }) => {
+  const before = await chapters(request)
+  await openWrite(page, request)
+  await page.getByTestId('import-manuscript').click()
+  await page.getByTestId('manuscript-file-input').setInputFiles({
+    name: 'novel.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4'),
+  })
+  await expect(page.getByRole('alert')).toContainText('Choose a .txt or .docx file')
+  await expect(page.getByTestId('manuscript-import-start')).toBeDisabled()
+  expect((await chapters(request)).length).toBe(before.length)
+})

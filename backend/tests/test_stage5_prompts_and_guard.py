@@ -41,13 +41,17 @@ def test_every_v2_key_resolves_under_v3_without_fallback(transform, caplog):
     builder, resolved = resolve_prompt_version(transform, "v3", "v2")
     assert resolved == "v3"
     assert "unresolvable" not in caplog.text
-    if transform not in ("style", "continuity"):
+    # v3's deliberate overrides: style and continuity (Stage 5), cast (Stage 12
+    # A10, presence labelling — v2 keeps the previous cast prompt frozen).
+    if transform not in ("style", "continuity", "cast"):
         assert builder is PROMPT_REGISTRY["v2"][transform], f"{transform} must reuse its v2 builder"
 
 
-def test_config_defaults_are_v3_with_v2_fallback():
+def test_config_defaults_are_v4_with_v2_fallback():
+    # Stage 12 A15: v4 (Light-strength style prompt) is the default; v3 stays
+    # registered unchanged for rollback by config.
     fields = Settings.model_fields
-    assert fields["prompt_version"].default == "v3"
+    assert fields["prompt_version"].default == "v4"
     assert fields["prompt_version_fallback"].default == "v2"
 
 

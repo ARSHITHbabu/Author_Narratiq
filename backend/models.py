@@ -359,6 +359,9 @@ class Character(Base):
     aliases      = Column(JSON,     default=list)     # alternate names OCR may detect
     role         = Column(String,   default="supporting")  # protagonist|antagonist|supporting|minor
     status       = Column(String,   default="active")      # active|deceased|unknown
+    # Stage 12 A10 (migration 0027): on_page | referenced | historical, separate
+    # from life status. NULL = not recorded (pre-0027 or created by hand).
+    presence     = Column(String,   nullable=True)
     created_at   = Column(DateTime, default=datetime.utcnow)
     updated_at   = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -647,8 +650,9 @@ class ManuscriptJob(Base):
     Replaces the in-memory _jobs dict in manuscript.py so job state survives
     backend restarts, pod restarts, and multiple workers.
 
-    status lifecycle: pending → processing → complete | error
-    percent: 0-100 progress indicator updated by _ingest_pipeline at each chapter.
+    status lifecycle: pending → processing → complete | partial | error
+    (partial: every chapter was saved, AI indexing did not finish — Stage 12 A8)
+    percent: 0-100 progress indicator updated by _index_pipeline at each chapter.
     chapter_count: total chapters detected at parse time (set once, never updated).
     user_id is stored for ownership enforcement on the job_status endpoint.
     """
@@ -656,7 +660,7 @@ class ManuscriptJob(Base):
     job_id        = Column(String,   primary_key=True, default=gen_uuid)
     story_id      = Column(String,   ForeignKey("stories.story_id"), nullable=False)
     user_id       = Column(String,   ForeignKey("users.user_id"),    nullable=False)
-    status        = Column(String,   default="pending")    # pending|processing|complete|error
+    status        = Column(String,   default="pending")    # pending|processing|complete|partial|error
     stage         = Column(String,   default="")
     percent       = Column(Integer,  default=0)
     message       = Column(Text,     default="")

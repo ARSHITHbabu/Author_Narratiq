@@ -162,6 +162,8 @@ def _upsert_memory(
         existing.embedding = emb
         if chapter_number is not None:
             existing.chapter_last_updated = chapter_number
+            if existing.chapter_first_established is None:
+                existing.chapter_first_established = chapter_number
         existing.updated_at = datetime.utcnow()
     else:
         entry = StoryMemoryEntry(
@@ -179,6 +181,44 @@ def _upsert_memory(
             is_ai_generated=True,
         )
         db.add(entry)
+
+
+# P25 wraps the module-level upsert to record which keys it wrote.
+_upsert_memory_impl = _upsert_memory
+
+
+def _tag_memory_upper_bound(db: Session, story_id: str, memory_keys: list[str]) -> Optional[int]:
+    """Chapter provenance for consolidated Story Intelligence memory (Stage 12).
+
+    Meaning of the tag (an UPPER BOUND, owner decision 2026-10-02): an entry
+    tagged chapter N was derived only from material in chapters 1..N — no later
+    chapter contributed. It does NOT mean every chapter up to N was analysed, that
+    the fact originated in chapter N, or that chapter N itself contributed.
+
+    Why the story's current highest chapter number is a safe bound: the upstream
+    passes read chapters that existed before this call, chapters are only ever
+    appended (and deleting one renumbers the rest DOWN), so every source
+    chapter's number is <= MAX(chapter_number) taken now. Taking it after the
+    inputs were read also covers a chapter appended mid-run. A bound that is too
+    high only hides more; too low would leak, so it is never estimated from what
+    a pass happened to read. No chapters → no tag (hidden under a chapter cap).
+    Entries an author added by hand are never tagged here (no trustworthy
+    provenance), so chapter-scoped requests keep hiding them.
+    """
+    if not memory_keys:
+        return None
+    from sqlalchemy import func as _func
+    bound = db.query(_func.max(Chapter.chapter_number)).filter(Chapter.story_id == story_id).scalar()
+    db.flush()
+    for e in (db.query(StoryMemoryEntry)
+              .filter(StoryMemoryEntry.story_id == story_id,
+                      StoryMemoryEntry.memory_key.in_(set(memory_keys)),
+                      StoryMemoryEntry.is_author_added.is_(False))):
+        e.chapter_last_updated = bound
+        if bound is not None and e.chapter_first_established is None:
+            e.chapter_first_established = bound
+    db.flush()
+    return bound
 
 
 # ── P01: Genre Hierarchy ───────────────────────────────────────────────────────
@@ -1101,6 +1141,11 @@ async def run_p25_memory_consolidation(db: Session, story: Story) -> int:
     Returns the number of memory entries written.
     """
     written = 0
+    keys: list[str] = []
+
+    def _upsert_memory(db_, story_id, memory_type, memory_key, *a, **k):
+        keys.append(memory_key)
+        _upsert_memory_impl(db_, story_id, memory_type, memory_key, *a, **k)
 
     # Story DNA
     dna = db.query(StoryDNA).filter_by(story_id=story.story_id).first()
@@ -1199,6 +1244,8 @@ async def run_p25_memory_consolidation(db: Session, story: Story) -> int:
             written += 1
 
     db.flush()
+    # Stage 12: chapter provenance — see _tag_memory_upper_bound.
+    _tag_memory_upper_bound(db, story.story_id, keys)
     return written
 
 
@@ -1368,6 +1415,7 @@ JSON format:
             f"{len(contradictions)} temporal contradiction(s) detected.",
             importance=0.85,
         )
+        _tag_memory_upper_bound(db, story.story_id, ["story.timeline.contradictions"])
 
     return tl
 
@@ -1485,13 +1533,27 @@ async def build_integration_context(
     story_id: str,
     query: Optional[str] = None,
     top_k: int = 12,
+    max_chapter_number: Optional[int] = None,
 ) -> Dict[str, Any]:
     """
     Build a rich context blob for AI assistance features (Plot Assistant, enrichment, etc).
     Reads from story_memory_entries via BGE-M3 semantic search when a query is given,
     otherwise returns a structured summary of all intelligence tables.
+
+    ``max_chapter_number`` (D-1 chapter scope; Stage 12 remediation A1): when set,
+    nothing derived from later chapters may be returned. The intelligence tables
+    (premise, themes, conflict, character motivations/secrets/arc stage, risks)
+    are computed from the whole manuscript and carry no chapter provenance, so
+    under a cap they are omitted entirely; only spoiler-neutral style facts
+    (genre, tone, POV, tense) remain. Memory entries are kept only when their
+    ``chapter_last_updated`` is recorded and within the cap. Since Stage 12, P25
+    and P27 record it as an upper bound (``_tag_memory_upper_bound``: derived
+    only from chapters 1..N), so memory returns to chapter-scoped requests at or
+    past the last analysed chapter; author-added entries are never tagged and
+    stay hidden under a cap.
     """
     context: Dict[str, Any] = {}
+    capped = max_chapter_number is not None
 
     story = db.query(Story).filter_by(story_id=story_id).first()
     if not story:
@@ -1509,10 +1571,13 @@ async def build_integration_context(
                     f"{vector_similarity('embedding', 'qemb')} AS score "
                     "FROM story_memory_entries "
                     "WHERE story_id = :sid AND is_active = true AND embedding IS NOT NULL "
-                    f"ORDER BY {vector_distance('embedding', 'qemb')} "
+                    + ("AND chapter_last_updated IS NOT NULL "
+                       "AND chapter_last_updated <= :cap " if capped else "")
+                    + f"ORDER BY {vector_distance('embedding', 'qemb')} "
                     "LIMIT :k"
                 ),
-                {"qemb": str(query_emb), "sid": story_id, "k": top_k},
+                {"qemb": str(query_emb), "sid": story_id, "k": top_k,
+                 **({"cap": max_chapter_number} if capped else {})},
             ).fetchall()
             context["memory_hits"] = [
                 {
@@ -1531,8 +1596,9 @@ async def build_integration_context(
     # 2. Structured intelligence summary
     dna = db.query(StoryDNA).filter_by(story_id=story_id).first()
     if dna:
-        context["story_premise"] = dna.premise
-        context["central_question"] = dna.central_question
+        if not capped:
+            context["story_premise"] = dna.premise
+            context["central_question"] = dna.central_question
         context["pov_style"] = dna.pov_style
         context["tense"] = dna.tense
 
@@ -1540,6 +1606,10 @@ async def build_integration_context(
     if genre:
         context["genre"] = genre.primary_genre
         context["tone_markers"] = genre.tone_markers or []
+
+    if capped:
+        # Everything below is whole-manuscript analysis (see docstring).
+        return context
 
     themes = db.query(StoryThemes).filter_by(story_id=story_id).first()
     if themes:

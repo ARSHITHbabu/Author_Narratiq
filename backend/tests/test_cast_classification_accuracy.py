@@ -100,16 +100,26 @@ def test_extract_cast_does_not_over_promote_minor_unnamed_mentions():
 
 
 def test_extract_cast_names_exactly_four_characters_no_hallucination():
-    """This fixture has exactly 4 named, significant characters. More than
-    that means something was hallucinated or a walk-on was over-promoted;
-    fewer means a real character was missed."""
+    """This fixture has exactly 4 named, significant characters who appear on
+    the page. More than that means something was hallucinated or a walk-on was
+    over-promoted; fewer means a real character was missed.
+
+    Stage 12 A10: the Cartographer — dead before the story begins and only
+    remembered — may now be listed, but only labelled as historical or
+    referenced (never as an on-page character, never as the protagonist)."""
     async def run():
         texts = [_html_to_plain(c["content"]) for c in CHAPTERS]
         return await extract_cast(texts)
 
     result = asyncio.run(run())
-    print(f"\n[4.9] extracted {len(result)} character(s): {[c['name'] for c in result]}")
-    assert len(result) == 4, f"expected exactly 4 characters, got {len(result)}: {[c['name'] for c in result]}"
+    on_page = [c for c in result if c.get("presence", "on_page") == "on_page"]
+    print(f"\n[4.9] extracted {len(result)} character(s): "
+          f"{[(c['name'], c.get('presence')) for c in result]}")
+    assert len(on_page) == 4, f"expected exactly 4 on-page characters, got {[c['name'] for c in on_page]}"
+    for c in result:
+        if c not in on_page:
+            assert c.get("presence") in ("historical", "referenced"), c
+            assert c.get("role") != "protagonist", c
 
 
 if __name__ == "__main__":

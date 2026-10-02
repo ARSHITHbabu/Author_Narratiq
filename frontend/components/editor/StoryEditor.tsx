@@ -23,6 +23,11 @@ import { SearchHighlightExtension, searchHighlightKey, findMatchPositions } from
 export interface EditorSearchFunctions {
   applySearch: (query: string, caseSensitive: boolean, wholeWord: boolean, targetIndex: number) => number
   clearSearch: () => void
+  /** Save any typing still waiting for autosave, now. Resolves true when there
+   *  was nothing pending or the save succeeded; false when it failed. Search and
+   *  replace call this first (Stage 12 A9), so the backend sees what the author
+   *  sees and a reload after a replace can never discard or overwrite text. */
+  flushSave: () => Promise<boolean>
 }
 
 interface Props {
@@ -64,6 +69,16 @@ export default function StoryEditor({ storyId, chapter, onWordCountChange, onEdi
   const [saving, setSaving] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // The autosave waiting to run, bound to the chapter that was being edited
+  // (Stage 12 A9). Flushed — never dropped — on reload, chapter switch and
+  // before any search/replace.
+  const pendingSave = useRef<null | (() => Promise<boolean>)>(null)
+  const flushPending = useCallback((): Promise<boolean> => {
+    if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null }
+    const run = pendingSave.current
+    pendingSave.current = null
+    return run ? run() : Promise.resolve(true)
+  }, [])
   // Which chapter's content is actually in the document (not just the heading).
   // Exposed as data-content-loaded so tests can wait for the real content before
   // selecting text — a selection made earlier is wiped by setContent.
@@ -107,6 +122,7 @@ export default function StoryEditor({ storyId, chapter, onWordCountChange, onEdi
             editor.view.state.tr.setMeta(searchHighlightKey, { matches: [], activeIndex: -1 }),
           )
         },
+        flushSave: () => flushPending(),
       }
       onEditorReady?.(editor, searchFns)
     },
@@ -115,11 +131,13 @@ export default function StoryEditor({ storyId, chapter, onWordCountChange, onEdi
       const wc = text.trim() ? text.trim().split(/\s+/).length : 0
       onWordCountChange(wc)
 
-      // Auto-save with 1.5s debounce
+      // Auto-save with 1.5s debounce. The pending save is bound to THIS
+      // chapter's save function and reads the editor when it runs, so flushing
+      // it before a reload saves exactly what the author typed.
       if (saveTimer.current) clearTimeout(saveTimer.current)
-      saveTimer.current = setTimeout(() => {
-        saveContent(editor.getHTML())
-      }, 1500)
+      const save = saveContent
+      pendingSave.current = () => save(editor.getHTML())
+      saveTimer.current = setTimeout(() => { flushPending() }, 1500)
     },
   })
 
@@ -153,17 +171,23 @@ export default function StoryEditor({ storyId, chapter, onWordCountChange, onEdi
       onContentLoaded?.()
     }
     load()
-    return () => { if (saveTimer.current) clearTimeout(saveTimer.current) }
+    // Before the content is replaced (chapter switch, reload after a replace),
+    // save pending typing instead of discarding it. getHTML() runs now, while
+    // the document still holds this chapter.
+    return () => { flushPending() }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor, chapter.chapter_id, reloadTrigger])
 
-  const saveContent = useCallback(async (html: string) => {
+  const saveContent = useCallback(async (html: string): Promise<boolean> => {
     setSaving(true)
     try {
       await chaptersApi.update(storyId, chapter.chapter_id, { content: html })
       setLastSaved(new Date())
+      return true
     } catch {
-      // Silent fail on auto-save
+      // Auto-save stays quiet; callers that must know (search/replace) check
+      // the result of flushSave().
+      return false
     } finally {
       setSaving(false)
     }
@@ -175,11 +199,13 @@ export default function StoryEditor({ storyId, chapter, onWordCountChange, onEdi
     if (editor && editor.isEditable === readOnly) editor.setEditable(!readOnly, false)
   }, [editor, readOnly])
 
-  const manualSave = () => {
+  const manualSave = async () => {
     if (!editor) return
-    if (saveTimer.current) clearTimeout(saveTimer.current)
-    saveContent(editor.getHTML())
-    toast.success('Chapter saved')
+    if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null }
+    pendingSave.current = null
+    // Report what actually happened (Stage 12 A9): success only after the save.
+    if (await saveContent(editor.getHTML())) toast.success('Chapter saved')
+    else toast.error('Could not save the chapter. Your text is still here — please try again.')
   }
 
   if (!editor) return null

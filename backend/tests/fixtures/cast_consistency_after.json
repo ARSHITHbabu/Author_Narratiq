@@ -1,0 +1,391 @@
+{
+  "label": "after",
+  "runs": 5,
+  "split_budget_words": 300,
+  "modes": {
+    "whole": {
+      "windows": 1,
+      "failed_runs": 0,
+      "mean": {
+        "grounded": 1.0,
+        "fact_recall": 0.733,
+        "relationship": 1.0,
+        "wrong_merges": 0.4,
+        "cartographer": 0.0,
+        "characters": 5.6,
+        "combined_flagged": 0.4
+      },
+      "stability": 0.874,
+      "runs": [
+        {
+          "characters": 6,
+          "names": [
+            "Corvin Ashe",
+            "Hessa Lin",
+            "Magistrate Ondrej Vell",
+            "Mira Okoye",
+            "Tomas Hale",
+            "Tomas Reyne"
+          ],
+          "grounded": 1.0,
+          "fact_recall": 0.8,
+          "relationship": 1,
+          "wrong_merges": 0,
+          "cartographer": 0,
+          "combined_flagged": 0,
+          "descriptions": {
+            "mira": "A determined traveler seeking the truth about the Cartographer's death.",
+            "corvin": "The gate warden of Greyharn who keeps the seven-toothed key and the watchtower's lower archive.",
+            "hessa": "An old woman who runs a shop on Coopers Row and trades exclusively in maps that no longer match the land they described.",
+            "vell": "The harbor official who ordered the lower quarter's floodgates sealed from the inside, causing the flood that killed three hundred people.",
+            "tomas_reyne": "A young clerk at the customs house who has been forging harbor records for years.",
+            "tomas_hale": "The keeper's son at the lighthouse who is afraid of the sound of the sea at the bottom of the stairs."
+          },
+          "presence": {
+            "Mira Okoye": "on_page",
+            "Corvin Ashe": "on_page",
+            "Hessa Lin": "on_page",
+            "Magistrate Ondrej Vell": "on_page",
+            "Tomas Reyne": "on_page",
+            "Tomas Hale": "on_page"
+          }
+        },
+        {
+          "characters": 6,
+          "names": [
+            "Corvin Ashe",
+            "Hessa Lin",
+            "Magistrate Ondrej Vell",
+            "Mira Okoye",
+            "Tomas Hale",
+            "Tomas Reyne"
+          ],
+          "grounded": 1.0,
+          "fact_recall": 0.8,
+          "relationship": 1,
+          "wrong_merges": 0,
+          "cartographer": 0,
+          "combined_flagged": 0,
+          "descriptions": {
+            "mira": "A determined traveler seeking answers about the Cartographer's death.",
+            "corvin": "The gate warden of Greyharn who keeps the seven-toothed key and the watchtower's lower archive.",
+            "hessa": "An old woman who runs a shop on Coopers Row and trades in maps that no longer match the land they describe.",
+            "vell": "The harbor official who ordered the lower quarter's floodgates sealed and drowned three hundred people to hide a smuggling ledger.",
+            "tomas_reyne": "A young clerk at the customs house who has been forging harbor records for years.",
+            "tomas_hale": "The keeper's son at the lighthouse who has seen lantern lights moving inside the sealed Cistern."
+          },
+          "presence": {
+            "Mira Okoye": "on_page",
+            "Corvin Ashe": "on_page",
+            "Hessa Lin": "on_page",
+            "Magistrate Ondrej Vell": "historical",
+            "Tomas Reyne": "on_page",
+            "Tomas Hale": "on_page"
+          }
+        },
+        {
+          "characters": 6,
+          "names": [
+            "Corvin Ashe",
+            "Hessa Lin",
+            "Magistrate Ondrej Vell",
+            "Mira Okoye",
+            "Tomas Hale",
+            "Tomas Reyne"
+          ],
+          "grounded": 1.0,
+          "fact_recall": 0.8,
+          "relationship": 1,
+          "wrong_merges": 0,
+          "cartographer": 0,
+          "combined_flagged": 0,
+          "descriptions": {
+            "mira": "A determined traveler seeking the truth about the Cartographer's death.",
+            "corvin": "The gate warden of Greyharn who keeps the seven-toothed key and the watchtower's lower archive.",
+            "hessa": "An old woman who runs a shop on Coopers Row and trades in maps that no longer match the land they described.",
+            "vell": "The harbor official who ordered the lower quarter's floodgates sealed and faked his own death.",
+            "tomas_reyne": "A young clerk at the customs house who has forged harbor records for years.",
+            "tomas_hale": "The keeper's son at the lighthouse who saw lantern lights moving inside the sealed Cistern."
+          },
+          "presence": {
+            "Mira Okoye": "on_page",
+            "Corvin Ashe": "on_page",
+            "Hessa Lin": "on_page",
+            "Magistrate Ondrej Vell": "on_page",
+            "Tomas Reyne": "referenced",
+            "Tomas Hale": "referenced"
+          }
+        },
+        {
+          "characters": 5,
+          "names": [
+            "Corvin Ashe",
+            "Hessa Lin",
+            "Magistrate Ondrej Vell",
+            "Mira Okoye",
+            "Tomas Reyne"
+          ],
+          "grounded": 1.0,
+          "fact_recall": 0.667,
+          "relationship": 1,
+          "wrong_merges": 1,
+          "cartographer": 0,
+          "combined_flagged": 1,
+          "descriptions": {
+            "mira": "A determined traveler seeking the truth about the Cartographer's death.",
+            "corvin": "The gate warden of Greyharn who keeps the seven-toothed key and the watchtower's lower archive.",
+            "hessa": "An old woman who runs a shop on Coopers Row and trades in maps that no longer match the land they described.",
+            "vell": "The harbor official who ordered the lower quarter's floodgates sealed from the inside, causing the flood.",
+            "tomas_reyne": "A young clerk at the customs house who has forged harbor records for years.",
+            "tomas_hale": "A young clerk at the customs house who has forged harbor records for years."
+          },
+          "presence": {
+            "Mira Okoye": "on_page",
+            "Corvin Ashe": "on_page",
+            "Hessa Lin": "on_page",
+            "Magistrate Ondrej Vell": "on_page",
+            "Tomas Reyne": "on_page"
+          }
+        },
+        {
+          "characters": 5,
+          "names": [
+            "Corvin Ashe",
+            "Hessa Lin",
+            "Magistrate Ondrej Vell",
+            "Mira Okoye",
+            "Tomas Reyne"
+          ],
+          "grounded": 1.0,
+          "fact_recall": 0.6,
+          "relationship": 1,
+          "wrong_merges": 1,
+          "cartographer": 0,
+          "combined_flagged": 1,
+          "descriptions": {
+            "mira": "A determined traveler seeking the truth about the Cartographer's death.",
+            "corvin": "The gate warden of Greyharn who keeps the seven-toothed key and the watchtower's lower archive.",
+            "hessa": "An old woman who runs a shop on Coopers Row and trades in maps that no longer match the land they described.",
+            "vell": "The harbor official who ordered the lower quarter's floodgates sealed and caused the flood to hide a smuggling ledger.",
+            "tomas_reyne": "A young clerk at the customs house who has forged harbor records for years.",
+            "tomas_hale": "A young clerk at the customs house who has forged harbor records for years."
+          },
+          "presence": {
+            "Mira Okoye": "on_page",
+            "Corvin Ashe": "on_page",
+            "Hessa Lin": "on_page",
+            "Magistrate Ondrej Vell": "on_page",
+            "Tomas Reyne": "on_page"
+          }
+        }
+      ]
+    },
+    "split": {
+      "windows": 4,
+      "failed_runs": 0,
+      "mean": {
+        "grounded": 1.0,
+        "fact_recall": 0.907,
+        "relationship": 1.0,
+        "wrong_merges": 0.0,
+        "cartographer": 0.4,
+        "characters": 8.4,
+        "combined_flagged": 0.0
+      },
+      "stability": 0.78,
+      "runs": [
+        {
+          "characters": 8,
+          "names": [
+            "Corvin Ashe",
+            "Hessa",
+            "Hessa Lin",
+            "Magistrate Ondrej Vell",
+            "Mira",
+            "Mira Okoye",
+            "Tomas Hale",
+            "Tomas Reyne"
+          ],
+          "grounded": 1.0,
+          "fact_recall": 0.867,
+          "relationship": 1,
+          "wrong_merges": 0,
+          "cartographer": 0,
+          "combined_flagged": 0,
+          "descriptions": {
+            "mira": "A determined traveler seeking something important enough to risk her life for.",
+            "corvin": "A gate warden who kept a secret key hidden in the watchtower's lower archive.",
+            "hessa": "An old woman who runs a shop dealing in outdated maps.",
+            "vell": "The harbor official who ordered the lower quarter's floodgates sealed from the inside, causing the flood.",
+            "tomas_reyne": "A young clerk who has been forging harbor records for smugglers and keeping a hidden ledger.",
+            "tomas_hale": "The keeper's son who has seen strange lights in the Cistern and is forbidden to speak of it."
+          },
+          "presence": {
+            "Mira Okoye": "on_page",
+            "Corvin Ashe": "on_page",
+            "Hessa Lin": "on_page",
+            "Mira": "on_page",
+            "Magistrate Ondrej Vell": "on_page",
+            "Hessa": "on_page",
+            "Tomas Reyne": "on_page",
+            "Tomas Hale": "on_page"
+          }
+        },
+        {
+          "characters": 8,
+          "names": [
+            "Corvin Ashe",
+            "Hessa",
+            "Hessa Lin",
+            "Magistrate Ondrej Vell",
+            "Mira",
+            "Mira Okoye",
+            "Tomas Hale",
+            "Tomas Reyne"
+          ],
+          "grounded": 1.0,
+          "fact_recall": 0.867,
+          "relationship": 1,
+          "wrong_merges": 0,
+          "cartographer": 0,
+          "combined_flagged": 0,
+          "descriptions": {
+            "mira": "A determined traveler seeking something important enough to risk her life for.",
+            "corvin": "A heavyset gate warden who recognizes Mira's compass and knows its history.",
+            "hessa": "An old woman who runs a shop dealing in outdated maps and helps Mira.",
+            "vell": "The harbor official responsible for ordering the lower quarter's floodgates to be sealed, resulting in the deaths of three hundred people.",
+            "tomas_reyne": "A young clerk at the customs house who has been forging harbor records for smugglers.",
+            "tomas_hale": "The keeper's son at the lighthouse who has seen strange lights in the Cistern."
+          },
+          "presence": {
+            "Mira Okoye": "on_page",
+            "Corvin Ashe": "on_page",
+            "Hessa Lin": "on_page",
+            "Mira": "on_page",
+            "Magistrate Ondrej Vell": "on_page",
+            "Hessa": "on_page",
+            "Tomas Reyne": "on_page",
+            "Tomas Hale": "on_page"
+          }
+        },
+        {
+          "characters": 9,
+          "names": [
+            "Cartographer",
+            "Corvin Ashe",
+            "Hessa",
+            "Hessa Lin",
+            "Magistrate Ondrej Vell",
+            "Mira",
+            "Mira Okoye",
+            "Tomas Hale",
+            "Tomas Reyne"
+          ],
+          "grounded": 1.0,
+          "fact_recall": 1.0,
+          "relationship": 1,
+          "wrong_merges": 0,
+          "cartographer": 1,
+          "combined_flagged": 0,
+          "descriptions": {
+            "mira": "A determined traveler seeking something important enough to risk her life for.",
+            "corvin": "A heavyset man who recognizes Mira and knows about the compass.",
+            "hessa": "An old woman who runs a shop dealing in outdated maps.",
+            "vell": "The harbor official who ordered the lower quarter's floodgates sealed, causing the flood that killed many.",
+            "cartographer": "Mira's sister who drowned during the flood eleven years ago, and whose notebook Mira seeks.",
+            "tomas_reyne": "A young clerk at the customs house who has been forging harbor records for smugglers.",
+            "tomas_hale": "The keeper's son who works in the lighthouse and has seen strange lights in the Cistern."
+          },
+          "presence": {
+            "Mira Okoye": "on_page",
+            "Corvin Ashe": "on_page",
+            "Hessa Lin": "on_page",
+            "Mira": "on_page",
+            "Magistrate Ondrej Vell": "on_page",
+            "Cartographer": "historical",
+            "Hessa": "on_page",
+            "Tomas Reyne": "on_page",
+            "Tomas Hale": "on_page"
+          }
+        },
+        {
+          "characters": 9,
+          "names": [
+            "Cartographer",
+            "Corvin Ashe",
+            "Hessa",
+            "Hessa Lin",
+            "Magistrate Ondrej Vell",
+            "Mira",
+            "Mira Okoye",
+            "Tomas Hale",
+            "Tomas Reyne"
+          ],
+          "grounded": 1.0,
+          "fact_recall": 0.933,
+          "relationship": 1,
+          "wrong_merges": 0,
+          "cartographer": 1,
+          "combined_flagged": 0,
+          "descriptions": {
+            "mira": "A determined traveler seeking something important enough to risk her life for.",
+            "corvin": "A heavyset man who recognizes Mira's compass and knows its history.",
+            "hessa": "An old woman who trades in outdated maps and helps Mira.",
+            "cartographer": "A woman who died in the flood that took the lower quarter of Greyharn.",
+            "vell": "The harbor official who ordered the lower quarter's floodgates sealed, causing the flood.",
+            "tomas_reyne": "A young clerk who had forged harbor records for smugglers and kept a hidden ledger.",
+            "tomas_hale": "The keeper's son who witnessed strange lantern lights in the Cistern."
+          },
+          "presence": {
+            "Mira Okoye": "on_page",
+            "Corvin Ashe": "on_page",
+            "Hessa Lin": "on_page",
+            "Cartographer": "historical",
+            "Mira": "on_page",
+            "Magistrate Ondrej Vell": "on_page",
+            "Hessa": "on_page",
+            "Tomas Reyne": "on_page",
+            "Tomas Hale": "on_page"
+          }
+        },
+        {
+          "characters": 8,
+          "names": [
+            "Corvin Ashe",
+            "Hessa",
+            "Hessa Lin",
+            "Magistrate Ondrej Vell",
+            "Mira",
+            "Mira Okoye",
+            "Tomas Hale",
+            "Tomas Reyne"
+          ],
+          "grounded": 1.0,
+          "fact_recall": 0.867,
+          "relationship": 1,
+          "wrong_merges": 0,
+          "cartographer": 0,
+          "combined_flagged": 0,
+          "descriptions": {
+            "mira": "A determined traveler seeking something important enough to risk her life for.",
+            "corvin": "A gate warden who knew about the compass and the Cartographer's death.",
+            "hessa": "An old woman who runs a shop dealing in outdated maps.",
+            "vell": "The harbor official responsible for ordering the floodgates sealed, leading to the deaths of three hundred people.",
+            "tomas_reyne": "A young clerk who has been forging harbor records for smugglers.",
+            "tomas_hale": "The keeper's son who has seen strange lights in the sealed Cistern."
+          },
+          "presence": {
+            "Mira Okoye": "on_page",
+            "Corvin Ashe": "on_page",
+            "Hessa Lin": "on_page",
+            "Mira": "on_page",
+            "Magistrate Ondrej Vell": "on_page",
+            "Hessa": "on_page",
+            "Tomas Reyne": "on_page",
+            "Tomas Hale": "on_page"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -277,6 +277,98 @@ def check_strength_violation(original: str, transformed: str, strength: str) -> 
     return False  # "strong" has no structural ceiling beyond preservation rules
 
 
+# ── Stage 12 A14: children's adaptation — sensitive wording ──────────────────
+# Used ONLY to overrule an "already suitable" verdict for children's
+# adaptation (ai_service._children_override): a hit sends the passage to the
+# normal reviewable rewrite. It never blocks, removes or warns. Idioms that
+# merely contain the words ("dead end", "deadline", "killer whale", "dying to
+# know") are excluded first.
+_CHILD_SENSITIVE = _re.compile(
+    r"\b(?:"
+    r"die[ds]?|dying|dead|deaths?|kill(?:s|ed|ing|er|ers)?|murder\w*|slaughter\w*|massacre\w*|"
+    r"blood(?:y|ied)?|bleed(?:s|ing)?|bled|corpses?|stabb?\w*|strangl\w*|drown(?:s|ed|ing)?|"
+    r"suicide|execut(?:e|ed|ion)|behead\w*|"
+    r"(?:nobody|no one|no-one|none)\s+(?:had\s+)?survived|(?:didn't|did not|never)\s+surviv\w+|"
+    r"(?:didn't|did not|never)\s+make\s+it|passed\s+away|lost\s+(?:his|her|their)\s+li(?:fe|ves)|"
+    r"breathed\s+(?:his|her|their)\s+last|put\s+to\s+the\s+sword"
+    r")\b", _re.IGNORECASE)
+_CHILD_SENSITIVE_IDIOMS = _re.compile(
+    r"\b(?:dead\s+(?:end|ends|tired|silence|centre|center|heat|ahead|serious|wrong|still|of\s+night|"
+    r"of\s+winter|giveaway|ringer|weight|calm|set)|deadlines?|deadpan|deadbolts?|drop-dead|"
+    r"killer\s+whales?|kill(?:s|ed|ing)?\s+time|dying\s+to|to\s+die\s+for|die-hard|bloodhounds?|"
+    r"blood\s+oranges?|dead\s+battery)\b", _re.IGNORECASE)
+
+
+def children_sensitive_terms(text: str) -> list[str]:
+    """The death/violence wording found in `text` (idioms removed), in order."""
+    cleaned = _CHILD_SENSITIVE_IDIOMS.sub(" ", text or "")
+    return [m.group(0) for m in _CHILD_SENSITIVE.finditer(cleaned)]
+
+
+# ── Stage 12 A15: measured edit profile ──────────────────────────────────────
+# Measurement, not a gate. The count-based check above cannot tell a light
+# word-choice edit from a full rewrite with the same number of sentences, so
+# every rewrite now also gets a word-level profile of the REWRITABLE text
+# (locked spans are excluded on both sides). No threshold is applied here: the
+# levels that separate an acceptable Light edit from a rewrite are not set
+# until human-labelled outputs exist (see the Tranche 2 report).
+_PROFILE_MIN_WORDS = 12
+_WORD = _re.compile(r"[\w']+", _re.UNICODE)
+
+
+def _words(text: str) -> list[str]:
+    return [w.lower().strip("'") for w in _WORD.findall(text or "") if w.strip("'")]
+
+
+def _unlocked_parts(original: str, transformed: str, locked_ranges) -> tuple[str, str]:
+    if not locked_ranges:
+        return original, transformed
+    _marked, segments = mark_locked_segments(original, locked_ranges)
+    orig_free, out_free = [], transformed
+    for seg in segments:
+        if seg["locked"]:
+            out_free = out_free.replace(seg["text"], " ", 1)
+        else:
+            orig_free.append(seg["text"])
+    return " ".join(orig_free), out_free
+
+
+def light_edit_profile(original: str, transformed: str, locked_ranges=None) -> dict:
+    """How much of the author's own wording survived a rewrite.
+
+    kept_share        share of the original words still present (multiset)
+    new_share         share of the output words that were not in the original
+    word_order        difflib ratio over the two word sequences (shape kept)
+    min_sentence_kept lowest per-sentence share of words kept (one sentence
+                      rewritten wholesale shows here even when the total is high)
+    sentence_delta    change in sentence count
+    measured=False    the rewritable text is under _PROFILE_MIN_WORDS words —
+                      too short for the shares to mean anything.
+    """
+    from collections import Counter
+    from difflib import SequenceMatcher
+    o_text, t_text = _unlocked_parts(original, transformed, locked_ranges)
+    o, t = _words(o_text), _words(t_text)
+    if len(o) < _PROFILE_MIN_WORDS:
+        return {"measured": False, "words": len(o)}
+    oc, tc = Counter(o), Counter(t)
+    common = sum((oc & tc).values())
+    sentences = [s for s in _re.split(r"(?<=[.!?])\s+", o_text.strip()) if _words(s)]
+    per_sentence = []
+    for sent in sentences:
+        sw = Counter(_words(sent))
+        per_sentence.append(sum((sw & tc).values()) / max(1, sum(sw.values())))
+    return {
+        "measured": True,
+        "words": len(o),
+        "kept_share": round(common / len(o), 3),
+        "new_share": round((len(t) - common) / len(t), 3) if t else 0.0,
+        "word_order": round(SequenceMatcher(None, o, t, autojunk=False).ratio(), 3),
+        "min_sentence_kept": round(min(per_sentence), 3) if per_sentence else None,
+        "sentence_delta": _count_sentences(t_text) - _count_sentences(o_text),
+    }
+
+
 # ══════════════════════════════════════════════════════════════════════════
 # 5.4 — Sentence-level lock and partial regeneration
 # ══════════════════════════════════════════════════════════════════════════
@@ -665,6 +757,114 @@ def suggest_name_autofix(output: str, missing_names: list[str], story_id: str | 
         if best and best_score >= 0.75 and best != first:
             fixes.append({"replace": best, "with": first})
     return fixes
+
+
+# ── Stage 12 A16: invented names (warning only) ──────────────────────────────
+# A capitalised word or phrase in the rewrite that the source never contained
+# (in any capitalisation) may be an invented character or place. False
+# positives cost more than misses here, so the check is narrow on purpose:
+#   * sentence and quotation starts are skipped (unless the same word is also
+#     capitalised mid-sentence) — invented names at a sentence start are
+#     missed, a documented limitation;
+#   * anything in the source in ANY capitalisation is kept ("the guide" →
+#     "the Guide" is not a new entity);
+#   * stopwords, "I", days, months, AM/PM, short all-caps words and roman
+#     numerals are skipped; possessives are stripped; bare honorifics are
+#     skipped and "Captain Reyes" is judged on "Reyes" alone.
+# It never blocks or retries — the author gets a soft note at most.
+_NE_TOKEN = _re.compile(r"[A-Za-z][A-Za-z'’\-]*")
+_NE_STOP = frozenset("""
+a an the and or but if then so as at by for from in into of on onto to with without within
+he she it they we you i me my his her its their our your them us him this that these those
+there here what when where who whom whose why how which while after before because though
+although yes no not oh ah well okay ok hey dear god mr mrs ms dr st
+monday tuesday wednesday thursday friday saturday sunday january february march april may june
+july august september october november december am pm
+""".split())
+_NE_HONORIFICS = frozenset("""
+captain capt mr mrs ms miss dr doctor sir lady lord madam madame king queen prince princess
+duke duchess earl baron count countess uncle aunt auntie father mother grandma grandpa grandmother
+grandfather brother sister professor prof sergeant sgt lieutenant lt general colonel major commander
+admiral officer detective inspector chief magistrate master mistress saint
+mum mom mommy mummy ma mama mamma dad daddy pa papa nan nana nanna gran granny grandad granddad
+grandpapa grandmama
+""".split())   # family forms of address: "Mum" → "Mom" is not an invented name
+_NE_ROMAN = _re.compile(r"^(?=[MDCLXVI])M*(?:C[MD]|D?C{0,3})(?:X[CL]|L?X{0,3})(?:I[XV]|V?I{0,3})$")
+_NE_MAX = 5
+
+
+def _ne_norm(word: str) -> str:
+    return _re.sub(r"(?:['’]s|['’])$", "", word).lower()
+
+
+def _ne_candidates(text: str) -> list[tuple[str, bool, int, int]]:
+    """(word, at_start, start, end) for every capitalised token in `text`."""
+    out = []
+    at_start = True
+    for m in _re.finditer(r"[A-Za-z][A-Za-z'’\-]*|[.!?]+|[\"“”‘(:;\n—]|\s+[-–]\s+", text):
+        tok = m.group(0)
+        if not tok[0].isalpha():
+            if tok.strip() and tok.strip()[0] in '.!?"“‘(:\n' or tok == "\n":
+                at_start = True
+            continue
+        if tok[0].isupper():
+            out.append((tok, at_start, m.start(), m.end()))
+        at_start = False
+    return out
+
+
+def check_new_entities(source: str, output: str, known_names=()) -> list[dict]:
+    """Capitalised names in `output` absent from `source`. Returns up to
+    _NE_MAX {"name", "known"} dicts (adjacent flagged words are one name,
+    "Port Halvard"); `known` = the story already has an entity by that name
+    (a character or alias), which changes only the wording of the note."""
+    output = output or ""
+    src_words = {_ne_norm(w) for w in _NE_TOKEN.findall(source or "")}
+    cands = _ne_candidates(output)
+    mid_caps = {_ne_norm(w) for w, start, _a, _b in cands if not start}
+    known = {_ne_norm(p) for n in known_names for p in (n or "").split() if p}
+
+    def new_word(word: str, start: bool) -> bool:
+        key = _ne_norm(word)
+        if (not key or key in src_words or key in _NE_STOP or key in _NE_HONORIFICS or len(key) < 2
+                or (word.isupper() and len(word) <= 4) or _NE_ROMAN.match(word)):
+            return False
+        return not (start and key not in mid_caps)
+
+    groups: list[list[tuple[str, int, int]]] = []
+    for word, start, a, b in cands:
+        if not new_word(word, start):
+            continue
+        if groups and output[groups[-1][-1][2]:a] == " ":
+            groups[-1].append((word, a, b))
+        else:
+            groups.append([(word, a, b)])
+    found: list[dict] = []
+    seen: set[str] = set()
+    for g in groups:
+        name = _re.sub(r"(?:['’]s|['’])$", "", output[g[0][1]:g[-1][2]])
+        if name.lower() in seen:
+            continue
+        seen.add(name.lower())
+        found.append({"name": name, "known": all(_ne_norm(w) in known for w, _a, _b in g)})
+        if len(found) >= _NE_MAX:
+            break
+    return found
+
+
+def new_entity_warning(found: list[dict]) -> dict | None:
+    if not found:
+        return None
+    unknown = [f["name"] for f in found if not f["known"]]
+    known = [f["name"] for f in found if f["known"]]
+    parts = []
+    if unknown:
+        parts.append("adds name(s) not found in your text or story: " + ", ".join(f"“{n}”" for n in unknown))
+    if known:
+        parts.append("mentions " + ", ".join(f"“{n}”" for n in known) + ", who is not in the selected text")
+    return {"kind": "new_entity", "severity": "soft",
+            "message": "The rewrite " + "; and ".join(parts) + ". Check this is intended.",
+            "entity": {"type": "name", "names": [f["name"] for f in found]}}
 
 
 def verify_preservation(source: str, output: str, rules: dict, *, tool: str) -> list[dict]:

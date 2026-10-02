@@ -238,12 +238,18 @@ export const ocrApi = {
 
 // ── Characters ────────────────────────────────────────────────────────────────
 export const charactersApi = {
-  list:   (storyId: string) =>
-    api.get(`/api/stories/${storyId}/characters`),
+  // Stage 12 A12: alphabetical unless the author asks for importance order.
+  list:   (storyId: string, order: 'name' | 'importance' = 'name') =>
+    api.get(`/api/stories/${storyId}/characters`, order === 'importance' ? { params: { order } } : undefined),
   search: (storyId: string, params: { q?: string; role?: string; status?: string }) =>
     api.get(`/api/stories/${storyId}/characters/search`, { params }),
   graph:  (storyId: string) =>
     api.get(`/api/stories/${storyId}/characters/graph`),
+  // Stage 12 A7 (CAST-C4): read-only suggestions; merging is a separate, author-confirmed call.
+  duplicateCandidates: (storyId: string) =>
+    api.get(`/api/stories/${storyId}/characters/duplicate-candidates`),
+  merge: (storyId: string, survivorId: string, duplicateId: string) =>
+    api.post(`/api/stories/${storyId}/characters/${survivorId}/merge`, { duplicate_id: duplicateId }),
   get:    (storyId: string, characterId: string) =>
     api.get(`/api/stories/${storyId}/characters/${characterId}`),
   create: (storyId: string, data: { name: string; aliases?: string[]; role?: string; status?: string }) =>
@@ -263,7 +269,7 @@ export const charactersApi = {
       description: string; aliases: string[]; evidence_snippet: string;
       age?: string; appearance?: string; personality?: string;
       goals?: string; motivations?: string; backstory?: string;
-      arc_notes?: string; traits?: string[];
+      arc_notes?: string; traits?: string[]; presence?: string;
     }[],
   ) => api.post(`/api/stories/${storyId}/characters/confirm-cast`, { suggestions }),
   getMentions: (storyId: string, characterId: string) =>

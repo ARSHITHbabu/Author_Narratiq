@@ -138,13 +138,26 @@ class Settings(BaseSettings):
     # under v3. Fallback is "v2" so a misconfigured version lands on the
     # Stage 5 prompts, not on the pre-Stage-5 v1 baseline. PROMPT_VERSION=v2
     # restores the previous behaviour exactly (rollback by config).
-    prompt_version:          str = "v3"
+    # v4 (Stage 12 A15) changes only the style prompt at Light strength, where
+    # v3 contradicted itself ("restructuring is expected" + "do not restructure").
+    # PROMPT_VERSION=v3 restores the previous behaviour exactly.
+    prompt_version:          str = "v4"
     prompt_version_fallback: str = "v2"
+    # Stage 12 A14: children's adaptation — an "already suitable" verdict on a
+    # passage that mentions death/violence (incl. euphemisms) is overruled and
+    # the normal reviewable rewrite runs. Never blocks; YA/adult unaffected.
+    children_suitability_override: bool = True
     # Stage 11 (P1): fence the author's material as data in every model call and
     # add the "instructions come only from the system message" rule
     # (services/prompt_safety.py). On by default; "false" restores the previous
     # prompts exactly, for measurement or rollback only.
     prompt_injection_guard: bool = True
+    # Stage 12 remediation A3: the /api/ai/<tool>/stream routes return raw model
+    # tokens and skip sentence locks, strength limits, the no-change check, the
+    # preservation checks and the prompt-injection output check. No frontend
+    # calls them, so they are OFF by default (the routes answer 404). Turning
+    # this on is for diagnostics only; it bypasses those protections.
+    ai_stream_routes_enabled: bool = False
 
     # Streaming STT runs faster-whisper on CPU behind a bounded worker pool so it
     # never contends with vLLM/BGE-M3 on the GPU. Scale out via CPU replicas.

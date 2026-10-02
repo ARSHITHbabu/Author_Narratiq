@@ -28,6 +28,7 @@ export const TOOL_HOMES: ToolHome[] = [
   // ── Write ─────────────────────────────────────────────────────────────────
   { id: 'editor', label: 'Manuscript editor', workspace: 'write' },
   { id: 'binder', label: 'Chapter binder', workspace: 'write' },
+  { id: 'manuscript_import', label: 'Import manuscript (TXT / DOCX)', workspace: 'write' },
   { id: 'search', label: 'Search & replace', workspace: 'write', section: 'search' },
   { id: 'ai_rewrite', label: 'AI rewrite tools (refine, tone, emotion, audience, style, author voice, translate)', workspace: 'write', section: 'sidecar' },
   { id: 'ai_generate', label: 'AI continue & outline', workspace: 'write', section: 'sidecar' },

@@ -13,9 +13,15 @@
 # old pod — the script warns when that is the case.
 #
 # Usage:  bash scripts/rollback_frontend.sh [--dry-run]
+#
+# Stage 12 remediation (A6): only the server listening on $PORT is stopped —
+# never every Next.js process on the pod (a second frontend, a test server or a
+# rollback rehearsal on another port is left alone) — and FRONTEND_DIR defaults
+# to the checkout this script lives in, not a hard-coded path.
 set -euo pipefail
 
-FRONTEND_DIR="${FRONTEND_DIR:-/workspace/narratiq-ai/frontend}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+FRONTEND_DIR="${FRONTEND_DIR:-$(cd "$SCRIPT_DIR/.." && pwd)/frontend}"
 PORT="${FRONTEND_PORT:-3000}"
 LOG_DIR="${LOG_DIR:-/tmp/narratiq-logs}"
 DRY="${1:-}"
@@ -33,9 +39,31 @@ if [ -n "${RUNPOD_POD_ID:-}" ] && ! grep -rqs "${RUNPOD_POD_ID}-8000" "$prev/sta
 fi
 [ "$DRY" = "--dry-run" ] && { echo "(dry run — nothing changed)"; exit 0; }
 
-pkill -TERM -f 'next-server|next start|next/dist/bin/next' 2>/dev/null || true
-sleep 2
-pkill -KILL -f 'next-server|next start|next/dist/bin/next' 2>/dev/null || true
+# PIDs of the processes listening on $PORT (ss is part of iproute2 and present
+# on the pod; fuser/lsof are not).
+port_pids() {
+  # `|| true`: grep finds nothing once the port is free, and under pipefail
+  # that would abort the script at the assignment.
+  { ss -ltnpH "sport = :${PORT}" 2>/dev/null | grep -o 'pid=[0-9]*' | cut -d= -f2 | sort -u; } || true
+}
+
+pids="$(port_pids)"
+if [ -n "$pids" ]; then
+  echo "Stopping the server on :${PORT} (PID $(echo $pids))"
+  kill -TERM $pids 2>/dev/null || true
+  for i in $(seq 1 10); do
+    [ -z "$(port_pids)" ] && break
+    sleep 1
+  done
+  pids="$(port_pids)"
+  [ -n "$pids" ] && kill -KILL $pids 2>/dev/null || true
+  sleep 1
+else
+  echo "Nothing is listening on :${PORT}."
+fi
+if [ -n "$(port_pids)" ]; then
+  echo "Port ${PORT} is still in use — not swapping builds."; exit 1
+fi
 
 mv "$cur" "$FRONTEND_DIR/.next.swap"
 mv "$prev" "$cur"

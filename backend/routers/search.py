@@ -7,8 +7,14 @@ Endpoints:
   POST /api/search/replace/{story_id}  — find/replace with version snapshot + BGE-M3 re-index
 
 Safety rules enforced here:
-  - Exact search and replace use only Python regex (deterministic, no AI).
-  - HTML tags are never touched during replace — only text nodes are modified.
+  - Exact search and replace use only deterministic regex matching (no AI).
+  - Count, preview, Replace One and Replace All share ONE text model
+    (services/search_match.py, mirrored by frontend/lib/searchMatch.ts), so the
+    number shown, the number previewed and the number replaced always agree
+    (Stage 12 remediation A9).
+  - HTML tags are never touched during replace; the replacement is escaped as
+    author text; entities outside the match are never altered. Every write is
+    checked to keep the chapter's tag sequence identical, or nothing is saved.
   - A StoryVersion snapshot is created before every non-dry-run replace.
   - BGE-M3 chunk re-index is queued as a FastAPI BackgroundTask (non-blocking).
   - Semantic search uses BGE-M3 retrieval only — no replace option exposed.
@@ -24,6 +30,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from database import get_db
+from services import search_match
 from models import Chapter, Story, StoryVersion
 from routers.auth import User, get_current_user
 from schemas import (
@@ -44,6 +51,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(tags=["search"])
 
 _CONTEXT_CHARS = 80   # characters of context shown around each match
+_TAG_SEQ = re.compile(r"<!--.*?-->|<[^>]*>", re.S)
 
 
 # ── HTML helpers ──────────────────────────────────────────────────────────────
@@ -53,79 +61,6 @@ def _html_to_plain(html: str) -> str:
     text = re.sub(r"</p>|<br\s*/?>|</h[1-6]>", " ", html, flags=re.IGNORECASE)
     text = re.sub(r"<[^>]+>", " ", text)
     return unescape(re.sub(r"\s+", " ", text)).strip()
-
-
-def _replace_in_html(
-    html: str,
-    pattern: re.Pattern,
-    replacement: str,
-    occurrence_index: int = -1,
-) -> tuple[str, int]:
-    """
-    Replace occurrences of pattern inside HTML text nodes only.
-    Tags are never modified.
-
-    occurrence_index:
-      -1  → replace all occurrences
-       N  → replace only the Nth occurrence (0-based, counted across all text nodes)
-
-    Returns (new_html, count_replaced).
-    """
-    parts = re.split(r"(<[^>]+>)", html)
-    new_parts: list[str] = []
-
-    if occurrence_index < 0:
-        total = 0
-        for part in parts:
-            if part.startswith("<"):
-                new_parts.append(part)
-            else:
-                new_part, n = pattern.subn(lambda _: replacement, part)
-                total += n
-                new_parts.append(new_part)
-        return "".join(new_parts), total
-
-    # Replace only the Nth occurrence across all text nodes
-    global_count = 0
-    replaced = 0
-    for part in parts:
-        if part.startswith("<"):
-            new_parts.append(part)
-            continue
-        chars: list[str] = []
-        last = 0
-        for m in pattern.finditer(part):
-            if global_count == occurrence_index:
-                chars.append(part[last : m.start()])
-                chars.append(replacement)
-                last = m.end()
-                replaced = 1
-            global_count += 1
-        chars.append(part[last:])
-        new_parts.append("".join(chars))
-
-    return "".join(new_parts), replaced
-
-
-def _build_pattern(query: str, whole_word: bool, case_sensitive: bool) -> re.Pattern:
-    flags = 0 if case_sensitive else re.IGNORECASE
-    escaped = re.escape(query)
-    pat = rf"\b{escaped}\b" if whole_word else escaped
-    return re.compile(pat, flags)
-
-
-def _search_plain(plain: str, pattern: re.Pattern) -> list[dict]:
-    matches = []
-    for m in pattern.finditer(plain):
-        s, e = m.start(), m.end()
-        before = plain[max(0, s - _CONTEXT_CHARS) : s].lstrip()
-        after  = plain[e : min(len(plain), e + _CONTEXT_CHARS)].rstrip()
-        matches.append({
-            "context_before": before,
-            "match_text":     m.group(),
-            "context_after":  after,
-        })
-    return matches
 
 
 def _next_version_number(chapter_id: str, db: Session) -> int:
@@ -196,15 +131,16 @@ def exact_search(
         q = q.filter(Chapter.chapter_id.in_(data.chapter_ids))
     chapters = q.order_by(Chapter.chapter_number).all()
 
-    pattern = _build_pattern(data.query, data.whole_word, data.case_sensitive)
     results: list[ChapterSearchResult] = []
     total = 0
 
     for ch in chapters:
         if not ch.content:
             continue
-        plain   = _html_to_plain(ch.content)
-        matches = _search_plain(plain, pattern)
+        matches = [
+            {"context_before": m.context_before, "match_text": m.text, "context_after": m.context_after}
+            for m in search_match.find_matches(ch.content, data.query, data.whole_word, data.case_sensitive)
+        ]
         if not matches:
             continue
         total += len(matches)
@@ -292,7 +228,6 @@ async def replace_in_story(
         q = q.filter(Chapter.chapter_id.in_(data.chapter_ids))
     chapters = q.order_by(Chapter.chapter_number).all()
 
-    pattern = _build_pattern(data.query, data.whole_word, data.case_sensitive)
     preview: list[ReplacePreviewItem] = []
     affected: list[Chapter] = []
     total_replaced = 0
@@ -300,16 +235,15 @@ async def replace_in_story(
     for ch in chapters:
         if not ch.content:
             continue
-        plain   = _html_to_plain(ch.content)
-        matches = list(pattern.finditer(plain))
-        if not matches:
+        found = search_match.find_matches(ch.content, data.query, data.whole_word, data.case_sensitive)
+        if not found:
             continue
 
-        # How many will be replaced?
+        # How many will be replaced? The same enumeration the editor highlights.
         if data.occurrence_index is not None:
-            replace_count = 1 if data.occurrence_index < len(matches) else 0
+            replace_count = 1 if 0 <= data.occurrence_index < len(found) else 0
         else:
-            replace_count = len(matches)
+            replace_count = len(found)
 
         if replace_count == 0:
             continue
@@ -324,7 +258,24 @@ async def replace_in_story(
         )
 
         if not data.dry_run:
-            # Create version snapshot before replacing
+            new_content, replaced = search_match.replace(
+                ch.content, data.query, data.replacement,
+                whole_word=data.whole_word, case_sensitive=data.case_sensitive,
+                occurrence_index=data.occurrence_index,
+            )
+            # Integrity guard: replace only ever edits text between tags. If the
+            # tag sequence changed, or fewer occurrences were rewritten than
+            # previewed, something is wrong — save nothing anywhere.
+            if _TAG_SEQ.findall(new_content) != _TAG_SEQ.findall(ch.content) or replaced != replace_count:
+                db.rollback()
+                logger.error("[search] replace integrity check failed: chapter=%s expected=%d got=%d",
+                             ch.chapter_id[:8], replace_count, replaced)
+                raise HTTPException(
+                    status_code=500,
+                    detail="The replacement could not be applied safely, so nothing was changed. "
+                           "Your text is exactly as it was.",
+                )
+            # Version snapshot before the change (kept from the original design).
             db.add(
                 StoryVersion(
                     chapter_id     = ch.chapter_id,
@@ -333,15 +284,8 @@ async def replace_in_story(
                     label          = f"Before replace: '{data.query}' → '{data.replacement}'",
                 )
             )
-
-            new_content, replaced = _replace_in_html(
-                ch.content,
-                pattern,
-                data.replacement,
-                occurrence_index=data.occurrence_index if data.occurrence_index is not None else -1,
-            )
             ch.content    = new_content
-            ch.word_count = len(_html_to_plain(new_content).split())
+            ch.word_count = search_match.plain_word_count(new_content)
             total_replaced += replaced
             affected.append(ch)
 

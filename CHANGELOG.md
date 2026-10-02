@@ -4,6 +4,126 @@ All production changes are documented here in reverse chronological order.
 
 ---
 
+## Unreleased — Stage 12 remediation, Tranche 2b + voice D-1 (release candidate work, not a release)
+
+### Fixed
+- **Voice questions searched the whole manuscript while the author worked in an early chapter.** Voice story,
+  character and relationship questions now stop at the open chapter (passages, character evidence and Story
+  Intelligence, with the same provenance rule as the Plot Assistant). The whole manuscript is searched only when
+  the author asks ("in the whole book", "across the whole manuscript", "all chapters"); a broad question is not
+  such a request. With no chapter open the agent asks the author to open one instead of searching everything.
+  Recorded relationships (no chapter information) are used only for whole-book questions.
+- **Continue and Outline quoted character evidence from later chapters.** Character evidence now has the same
+  chapter boundary as the summaries they already used.
+- **Children's adaptation said "already suitable" for passages that only imply a death** ("nobody survived").
+  For children's adaptation only, such a verdict now goes on to the normal rewrite the author reviews; it never
+  blocks, removes or warns. YA and adult are unchanged. The suitability question no longer reads "ALREADY
+  already …".
+- **A rewrite could end with the prompt-injection fence marker** (`<<<END_AUTHOR_MATERIAL …>>>`, 1 of 780
+  measured outputs). Echoed markers are removed from every model output.
+- **Writing suggestions' sharpening pass never ran** since the v3 prompts became the default (it was gated on
+  the resolved version being exactly "v2"). It runs again for every version except the frozen v1.
+
+### Added
+- **Invented-name note (warning only):** a rewrite that introduces a capitalised name absent from the passage
+  gets a soft note ("adds name(s) not found in your text or story"). Sentence starts, anything already in the
+  passage in any capitalisation, calendar words, short acronyms, roman numerals and honorifics are ignored; it
+  never blocks or retries. Measured: 1 flag in 647 stored rewrites (a fence marker, now stripped), every name
+  inserted mid-sentence found; names at a sentence start are missed (documented).
+- **Output check for generated text** (Q&A, plot suggestions, writing suggestions, continue): an output that
+  copies an instruction out of the author's material verbatim and has dropped the story is retried once
+  (Q&A) or dropped (list items, continuation options), then refused with 422 `instruction_like_text` and an
+  honest message. Both conditions must hold, so fiction that quotes instruction-like dialogue is not refused.
+  Measured before switching on: 0 flags in 203 clean-prose outputs, 0 of 84 Stage 11 rewrites, 3 of 3
+  obeyed samples from before the Stage 11 fence.
+- **`strength_detail`** on rewrite responses: how much of the author's wording survived (kept share, new
+  share, word order, lowest per-sentence share). Data only; no threshold, warning or retry is attached.
+- **Writing-suggestion hygiene:** items with no real recommendation and duplicates within one response are
+  dropped; positive words inside a concrete recommendation never cause a drop.
+
+### Changed
+- **Prompt version v4 is the default:** at Light strength, Style no longer asks the model to restructure
+  sentences (v3 asked for restructuring at every strength, contradicting the Light rule). Measured: Light now
+  keeps a median 0.71 of the author's words against Strong's 0.58 (v3: 0.60 vs 0.59). Light-only wording for
+  tone and age adaptation, and a gentler children's guide, were measured and not adopted.
+  `PROMPT_VERSION=v3` restores the previous prompts exactly.
+
+### Configuration
+- `CHILDREN_SUITABILITY_OVERRIDE` (default `true`).
+
+## Unreleased — Stage 12 remediation, Tranche 2a (release candidate work, not a release)
+
+### Fixed
+- **Search & replace could damage the manuscript.** Replacing "amp" turned `&amp;` into `&X;`; Replace One
+  across bold/italic changed a different occurrence than the one selected; the replacement was inserted as
+  raw HTML; and a reload after a replace could discard (or overwrite) the last 1.5 s of typing. Search,
+  highlighting, the Replace All preview and the replacement itself now share one text model
+  (`services/search_match.py`, mirrored by `frontend/lib/searchMatch.ts`): matches work across formatting,
+  never cross paragraphs or line breaks, and whole-word matching is Unicode-aware. Replacement text is always
+  stored as text; a replace that would alter the chapter's markup is refused and nothing is saved. Typing is
+  saved before any search or replace.
+- **Plot Assistant: "this chapter" with no chapter open searched the whole manuscript.** It now answers
+  "Open a chapter or choose Full manuscript." Voice brainstorming uses the chapter open in the editor.
+- **Cast generation could fail outright** when one pass described many characters (the model's JSON was cut
+  off); every complete character is now kept. Two different people sharing a first name are no longer merged
+  ("Tomas" vs "Tomas Reyne"); a kinship claim ("her sister") must be supported by the text near that
+  character's name.
+
+### Added
+- **Story Intelligence for chapter-scoped answers, safely.** Consolidated memory now records an upper bound
+  (derived only from chapters 1–N); chapter-scoped Plot Assistant requests use it only at or after chapter N.
+- **Cast presence**: each suggestion and character is *On page*, *Mentioned only* or *In the past*, separate
+  from alive/deceased (migration `0027`, `characters.presence`). Off-page figures are listed and labelled,
+  not pre-selected. Possible duplicates within one result, and records the AI may have combined, are noted.
+- **Cast importance order** for suggestions (on page, role, mentions, first appearance, name), and an optional
+  "By importance" sort for the saved cast — alphabetical stays the default.
+- Plot Assistant Q&A: character questions are recognised by title, alias, possessive or part of a name;
+  plot importance only breaks near-ties; evidence is spread across chapters at full scope; the prompt is
+  measured with the real tokenizer and always fits the model window.
+
+### Changed
+- Search options are labelled "Match case" and "Whole word" (whole word stays off by default).
+- Cast prompt is versioned (`cast` v2 = previous prompt, v3 = presence); `PROMPT_VERSION=v2` restores it.
+
+## Unreleased — Stage 12 remediation, Tranche 1 (release candidate work, not a release)
+
+### Added
+- **Import a manuscript from the Write binder** ("Import manuscript…", .txt or .docx, up to 25 MB). Lines such
+  as "Chapter 1" start a new chapter. Every chapter is saved, in one step, before the dialog reports success;
+  imported chapters are numbered after the story's existing chapters, which are never changed. Search and AI
+  preparation then runs in the background with a progress bar. If it stops, the dialog says how many chapters
+  still need preparing, and the text stays saved. Unsupported and empty files are refused before upload.
+- **Possible duplicate characters** (Characters workspace): pairs that may be the same person are listed with
+  the reason (shared name or alias, shorter/longer form of a name, near-identical spelling, very similar
+  profiles). The author picks which character to keep and confirms in-page; nothing merges automatically.
+  "Not the same person" hides a pair in this browser. Cast generation marks a suggestion that may duplicate an
+  existing character and does not pre-select it. `GET /api/stories/{id}/characters/duplicate-candidates`.
+
+### Fixed
+- **Plot Assistant spoiler leak (D-1).** With the default chapter scope, creative and mixed answers still
+  received whole-manuscript Story Intelligence: premise, themes, character secrets and arc stages, open
+  threads and every story-memory entry. Chapter-scoped requests now receive only genre, tone, point of view
+  and tense; "Search entire manuscript" is unchanged.
+- **OCR never read an image** (`'DynamicCache' object has no attribute 'seen_tokens'`). GOT-OCR2.0's vendored
+  code uses two cache members removed from the pinned transformers; `ocr_service` restores them before the
+  model is used. Verified with the real model on the A40.
+- **Manuscript import** created duplicate chapter numbers when the story already had chapters, could stop part
+  way without saying so, showed raw error text, and stored plain text without paragraphs.
+- **`scripts/rollback_frontend.sh`** stopped every Next.js process on the pod; it now stops only the server on
+  its port, and finds the frontend relative to the script.
+
+### Changed
+- **Unprotected streaming rewrite routes are off.** `/api/ai/<tool>/stream` skipped sentence locks, strength
+  limits and the preservation and prompt-injection checks; no screen used them. They answer 404 unless
+  `AI_STREAM_ROUTES_ENABLED=true` (diagnostics only).
+
+### Security
+- vLLM now listens on `127.0.0.1:9001` only (was `0.0.0.0`, no API key).
+- `python-jose` 3.4.0 → 3.5.0 and `pyasn1` 0.4.8 → 0.6.4 (four High advisories).
+- Next.js 14.2.35 → 15.5.27 (see the Stage 12 Tranche 1 report for audit counts); image optimisation is
+  disabled — the app serves no images through it.
+- `requirements.vllm.txt` pins the vLLM version that actually runs (0.9.2).
+
 ## Unreleased — Stage 11: Phase 2 acceptance fixes and documentation tooling
 
 ### Added

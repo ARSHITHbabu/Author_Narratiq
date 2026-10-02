@@ -16,6 +16,7 @@ import type { EditorSearchFunctions } from '@/components/editor/StoryEditor'
 import AISidecar from '@/components/studio/AISidecar'
 import SelectionToolbar from '@/components/studio/SelectionToolbar'
 import dynamic from 'next/dynamic'
+import { toast } from 'sonner'
 import { P3_ENABLED } from '@/lib/generationControls'
 import { useGenerationStore } from '@/lib/generationStore'
 import { useStoryContext } from '@/components/studio/StoryContextEngine'
@@ -92,9 +93,15 @@ export default function WriteWorkspace() {
   }, [])
 
   const handleJumpToMatch = useCallback(
-    (chapterId: string, localIndex: number, query: string, caseSensitive: boolean, wholeWord: boolean) => {
+    (chapterId: string, localIndex: number, query: string, caseSensitive: boolean, wholeWord: boolean, expectedCount?: number) => {
       if (activeChapterId === chapterId) {
-        searchFnsRef.current?.applySearch(query, caseSensitive, wholeWord, localIndex)
+        const found = searchFnsRef.current?.applySearch(query, caseSensitive, wholeWord, localIndex)
+        // Stage 12 A9: the panel's count (backend, saved text) and the editor's
+        // highlights use the same rules, so they can only differ if the author
+        // typed after searching. Say so instead of landing nowhere.
+        if (expectedCount !== undefined && found !== undefined && found !== expectedCount) {
+          toast.message('The chapter changed since you searched — search again to refresh the results.')
+        }
         pendingSearchRef.current = null
       } else {
         pendingSearchRef.current = { query, caseSensitive, wholeWord, targetIndex: localIndex }
@@ -344,6 +351,7 @@ export default function WriteWorkspace() {
           onClose={closeSearch}
           onJumpToMatch={handleJumpToMatch}
           onReplaceComplete={(affected) => { if (affected.includes(activeChapterId)) setEditorReloadKey((k) => k + 1) }}
+          beforeServerOp={() => searchFnsRef.current?.flushSave() ?? Promise.resolve(true)}
           onSearchStateChange={(state) => { activeSearchRef.current = state }}
         />
       )}

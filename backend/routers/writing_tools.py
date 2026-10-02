@@ -108,10 +108,14 @@ async def generate_chapter_continuation(
 
     # Retrieve character context if names detected.
     # Returns list[str] of pre-formatted blocks — join before prompt assembly.
+    # Stage 12: character evidence obeys the same chapter boundary as the
+    # summaries above (D-1) — it used to quote any chapter, so a later reveal
+    # could be written into a continuation of an earlier chapter.
     char_context_blocks = await retrieve_character_context(
         story_id=story_id,
         question=tail_trimmed,
         db=db,
+        max_chapter_number=chapter.chapter_number,
     )
     char_context_str = "\n\n".join(char_context_blocks)
 
@@ -195,10 +199,11 @@ async def generate_outline(
         for c in story_summaries[:4]
     )
 
-    char_context_blocks = await retrieve_character_context(
+    char_context_blocks = await retrieve_character_context(      # same D-1 boundary
         story_id=story_id,
         question=goal_trimmed,
         db=db,
+        max_chapter_number=chapter.chapter_number,
     )
     char_context_str = "\n\n".join(char_context_blocks)
 

@@ -1,0 +1,1548 @@
+{
+  "cases": [
+    {
+      "cap": 3,
+      "k": 6,
+      "query": "What object did Mira carry wrapped in oilcloth?",
+      "expected": 1,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3
+      ],
+      "cosine_spread_top30": 0.0625,
+      "leak_after": false
+    },
+    {
+      "cap": 3,
+      "k": 10,
+      "query": "What object did Mira carry wrapped in oilcloth?",
+      "expected": 1,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3
+      ],
+      "cosine_spread_top30": 0.0625,
+      "leak_after": false
+    },
+    {
+      "cap": 3,
+      "k": 6,
+      "query": "Who is the gate warden of Greyharn?",
+      "expected": 1,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3
+      ],
+      "cosine_spread_top30": 0.0604,
+      "leak_after": false
+    },
+    {
+      "cap": 3,
+      "k": 10,
+      "query": "Who is the gate warden of Greyharn?",
+      "expected": 1,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3
+      ],
+      "cosine_spread_top30": 0.0604,
+      "leak_after": false
+    },
+    {
+      "cap": 3,
+      "k": 6,
+      "query": "What kind of maps does Hessa Lin sell?",
+      "expected": 2,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3
+      ],
+      "cosine_spread_top30": 0.0836,
+      "leak_after": false
+    },
+    {
+      "cap": 3,
+      "k": 10,
+      "query": "What kind of maps does Hessa Lin sell?",
+      "expected": 2,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3
+      ],
+      "cosine_spread_top30": 0.0836,
+      "leak_after": false
+    },
+    {
+      "cap": 3,
+      "k": 6,
+      "query": "Why is Hessa Lin helping Mira?",
+      "expected": 2,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3
+      ],
+      "cosine_spread_top30": 0.07,
+      "leak_after": false
+    },
+    {
+      "cap": 3,
+      "k": 10,
+      "query": "Why is Hessa Lin helping Mira?",
+      "expected": 2,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3
+      ],
+      "cosine_spread_top30": 0.07,
+      "leak_after": false
+    },
+    {
+      "cap": 3,
+      "k": 6,
+      "query": "What does Mira need to reach the Hollow Cistern?",
+      "expected": 2,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3
+      ],
+      "cosine_spread_top30": 0.0315,
+      "leak_after": false
+    },
+    {
+      "cap": 3,
+      "k": 10,
+      "query": "What does Mira need to reach the Hollow Cistern?",
+      "expected": 2,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3
+      ],
+      "cosine_spread_top30": 0.0315,
+      "leak_after": false
+    },
+    {
+      "cap": 3,
+      "k": 6,
+      "query": "What promise does Corvin ask Mira to make about the notebook?",
+      "expected": 3,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3
+      ],
+      "cosine_spread_top30": 0.0615,
+      "leak_after": false
+    },
+    {
+      "cap": 3,
+      "k": 10,
+      "query": "What promise does Corvin ask Mira to make about the notebook?",
+      "expected": 3,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3
+      ],
+      "cosine_spread_top30": 0.0615,
+      "leak_after": false
+    },
+    {
+      "cap": 6,
+      "k": 6,
+      "query": "What object did Mira carry wrapped in oilcloth?",
+      "expected": 1,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0569,
+      "leak_after": false
+    },
+    {
+      "cap": 6,
+      "k": 10,
+      "query": "What object did Mira carry wrapped in oilcloth?",
+      "expected": 1,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0569,
+      "leak_after": false
+    },
+    {
+      "cap": 6,
+      "k": 6,
+      "query": "Who is the gate warden of Greyharn?",
+      "expected": 1,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0489,
+      "leak_after": false
+    },
+    {
+      "cap": 6,
+      "k": 10,
+      "query": "Who is the gate warden of Greyharn?",
+      "expected": 1,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0489,
+      "leak_after": false
+    },
+    {
+      "cap": 6,
+      "k": 6,
+      "query": "What kind of maps does Hessa Lin sell?",
+      "expected": 2,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0936,
+      "leak_after": false
+    },
+    {
+      "cap": 6,
+      "k": 10,
+      "query": "What kind of maps does Hessa Lin sell?",
+      "expected": 2,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0936,
+      "leak_after": false
+    },
+    {
+      "cap": 6,
+      "k": 6,
+      "query": "Why is Hessa Lin helping Mira?",
+      "expected": 2,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0829,
+      "leak_after": false
+    },
+    {
+      "cap": 6,
+      "k": 10,
+      "query": "Why is Hessa Lin helping Mira?",
+      "expected": 2,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0829,
+      "leak_after": false
+    },
+    {
+      "cap": 6,
+      "k": 6,
+      "query": "What does Mira need to reach the Hollow Cistern?",
+      "expected": 2,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0498,
+      "leak_after": false
+    },
+    {
+      "cap": 6,
+      "k": 10,
+      "query": "What does Mira need to reach the Hollow Cistern?",
+      "expected": 2,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0498,
+      "leak_after": false
+    },
+    {
+      "cap": 6,
+      "k": 6,
+      "query": "What promise does Corvin ask Mira to make about the notebook?",
+      "expected": 3,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0562,
+      "leak_after": false
+    },
+    {
+      "cap": 6,
+      "k": 10,
+      "query": "What promise does Corvin ask Mira to make about the notebook?",
+      "expected": 3,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0562,
+      "leak_after": false
+    },
+    {
+      "cap": 6,
+      "k": 6,
+      "query": "What did Mira find at the center of the Hollow Cistern?",
+      "expected": 4,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0437,
+      "leak_after": false
+    },
+    {
+      "cap": 6,
+      "k": 10,
+      "query": "What did Mira find at the center of the Hollow Cistern?",
+      "expected": 4,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0437,
+      "leak_after": false
+    },
+    {
+      "cap": 6,
+      "k": 6,
+      "query": "Who ordered the floodgates sealed during the flood?",
+      "expected": 4,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0436,
+      "leak_after": false
+    },
+    {
+      "cap": 6,
+      "k": 10,
+      "query": "Who ordered the floodgates sealed during the flood?",
+      "expected": 4,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0436,
+      "leak_after": false
+    },
+    {
+      "cap": 6,
+      "k": 6,
+      "query": "Who was hiding behind the far wall of the Hollow Cistern?",
+      "expected": 5,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.052,
+      "leak_after": false
+    },
+    {
+      "cap": 6,
+      "k": 10,
+      "query": "Who was hiding behind the far wall of the Hollow Cistern?",
+      "expected": 5,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.052,
+      "leak_after": false
+    },
+    {
+      "cap": 6,
+      "k": 6,
+      "query": "What excuse does Vell give for causing the flood?",
+      "expected": 5,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0851,
+      "leak_after": false
+    },
+    {
+      "cap": 6,
+      "k": 10,
+      "query": "What excuse does Vell give for causing the flood?",
+      "expected": 5,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0851,
+      "leak_after": false
+    },
+    {
+      "cap": 6,
+      "k": 6,
+      "query": "What does Corvin agree to do with the notebook?",
+      "expected": 6,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0534,
+      "leak_after": false
+    },
+    {
+      "cap": 6,
+      "k": 10,
+      "query": "What does Corvin agree to do with the notebook?",
+      "expected": 6,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0534,
+      "leak_after": false
+    },
+    {
+      "cap": 6,
+      "k": 6,
+      "query": "Is Ondrej Vell still the harbor magistrate?",
+      "expected": 6,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.1269,
+      "leak_after": false
+    },
+    {
+      "cap": 6,
+      "k": 10,
+      "query": "Is Ondrej Vell still the harbor magistrate?",
+      "expected": 6,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.1269,
+      "leak_after": false
+    },
+    {
+      "cap": null,
+      "k": 6,
+      "query": "What object did Mira carry wrapped in oilcloth?",
+      "expected": 1,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0569,
+      "leak_after": false
+    },
+    {
+      "cap": null,
+      "k": 10,
+      "query": "What object did Mira carry wrapped in oilcloth?",
+      "expected": 1,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0569,
+      "leak_after": false
+    },
+    {
+      "cap": null,
+      "k": 6,
+      "query": "Who is the gate warden of Greyharn?",
+      "expected": 1,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0489,
+      "leak_after": false
+    },
+    {
+      "cap": null,
+      "k": 10,
+      "query": "Who is the gate warden of Greyharn?",
+      "expected": 1,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0489,
+      "leak_after": false
+    },
+    {
+      "cap": null,
+      "k": 6,
+      "query": "What kind of maps does Hessa Lin sell?",
+      "expected": 2,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0936,
+      "leak_after": false
+    },
+    {
+      "cap": null,
+      "k": 10,
+      "query": "What kind of maps does Hessa Lin sell?",
+      "expected": 2,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0936,
+      "leak_after": false
+    },
+    {
+      "cap": null,
+      "k": 6,
+      "query": "Why is Hessa Lin helping Mira?",
+      "expected": 2,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0829,
+      "leak_after": false
+    },
+    {
+      "cap": null,
+      "k": 10,
+      "query": "Why is Hessa Lin helping Mira?",
+      "expected": 2,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0829,
+      "leak_after": false
+    },
+    {
+      "cap": null,
+      "k": 6,
+      "query": "What does Mira need to reach the Hollow Cistern?",
+      "expected": 2,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0498,
+      "leak_after": false
+    },
+    {
+      "cap": null,
+      "k": 10,
+      "query": "What does Mira need to reach the Hollow Cistern?",
+      "expected": 2,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0498,
+      "leak_after": false
+    },
+    {
+      "cap": null,
+      "k": 6,
+      "query": "What promise does Corvin ask Mira to make about the notebook?",
+      "expected": 3,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0562,
+      "leak_after": false
+    },
+    {
+      "cap": null,
+      "k": 10,
+      "query": "What promise does Corvin ask Mira to make about the notebook?",
+      "expected": 3,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0562,
+      "leak_after": false
+    },
+    {
+      "cap": null,
+      "k": 6,
+      "query": "What did Mira find at the center of the Hollow Cistern?",
+      "expected": 4,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0437,
+      "leak_after": false
+    },
+    {
+      "cap": null,
+      "k": 10,
+      "query": "What did Mira find at the center of the Hollow Cistern?",
+      "expected": 4,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0437,
+      "leak_after": false
+    },
+    {
+      "cap": null,
+      "k": 6,
+      "query": "Who ordered the floodgates sealed during the flood?",
+      "expected": 4,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0436,
+      "leak_after": false
+    },
+    {
+      "cap": null,
+      "k": 10,
+      "query": "Who ordered the floodgates sealed during the flood?",
+      "expected": 4,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0436,
+      "leak_after": false
+    },
+    {
+      "cap": null,
+      "k": 6,
+      "query": "Who was hiding behind the far wall of the Hollow Cistern?",
+      "expected": 5,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.052,
+      "leak_after": false
+    },
+    {
+      "cap": null,
+      "k": 10,
+      "query": "Who was hiding behind the far wall of the Hollow Cistern?",
+      "expected": 5,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.052,
+      "leak_after": false
+    },
+    {
+      "cap": null,
+      "k": 6,
+      "query": "What excuse does Vell give for causing the flood?",
+      "expected": 5,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0851,
+      "leak_after": false
+    },
+    {
+      "cap": null,
+      "k": 10,
+      "query": "What excuse does Vell give for causing the flood?",
+      "expected": 5,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0851,
+      "leak_after": false
+    },
+    {
+      "cap": null,
+      "k": 6,
+      "query": "What does Corvin agree to do with the notebook?",
+      "expected": 6,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0534,
+      "leak_after": false
+    },
+    {
+      "cap": null,
+      "k": 10,
+      "query": "What does Corvin agree to do with the notebook?",
+      "expected": 6,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.0534,
+      "leak_after": false
+    },
+    {
+      "cap": null,
+      "k": 6,
+      "query": "Is Ondrej Vell still the harbor magistrate?",
+      "expected": 6,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.1269,
+      "leak_after": false
+    },
+    {
+      "cap": null,
+      "k": 10,
+      "query": "Is Ondrej Vell still the harbor magistrate?",
+      "expected": 6,
+      "before_hit": true,
+      "after_hit": true,
+      "before_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "after_chapters": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cosine_spread_top30": 0.1269,
+      "leak_after": false
+    }
+  ],
+  "summary": {
+    "cap=3 k=6": {
+      "questions": 6,
+      "recall_before": 1.0,
+      "recall_after": 1.0,
+      "chapters_before": 3,
+      "chapters_after": 3,
+      "leaks_after": 0
+    },
+    "cap=3 k=10": {
+      "questions": 6,
+      "recall_before": 1.0,
+      "recall_after": 1.0,
+      "chapters_before": 3,
+      "chapters_after": 3,
+      "leaks_after": 0
+    },
+    "cap=6 k=6": {
+      "questions": 12,
+      "recall_before": 1.0,
+      "recall_after": 1.0,
+      "chapters_before": 6,
+      "chapters_after": 6,
+      "leaks_after": 0
+    },
+    "cap=6 k=10": {
+      "questions": 12,
+      "recall_before": 1.0,
+      "recall_after": 1.0,
+      "chapters_before": 6,
+      "chapters_after": 6,
+      "leaks_after": 0
+    },
+    "cap=None k=6": {
+      "questions": 12,
+      "recall_before": 1.0,
+      "recall_after": 1.0,
+      "chapters_before": 6,
+      "chapters_after": 6,
+      "leaks_after": 0
+    },
+    "cap=None k=10": {
+      "questions": 12,
+      "recall_before": 1.0,
+      "recall_after": 1.0,
+      "chapters_before": 6,
+      "chapters_after": 6,
+      "leaks_after": 0
+    },
+    "cosine_spread_top30": {
+      "median": 0.0566,
+      "min": 0.0315,
+      "max": 0.1269,
+      "near_tie_eps": 0.02
+    }
+  }
+}

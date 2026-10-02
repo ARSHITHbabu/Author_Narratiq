@@ -1,0 +1,3718 @@
+{
+  "label": "after_v4_age_light_only",
+  "prompt_version": "v4",
+  "runs": 5,
+  "summary": {
+    "age_adapt/light": {
+      "runs": 60,
+      "changed_runs": 39,
+      "no_change": 21,
+      "failed": 0,
+      "count_check_flagged": 0,
+      "kept_share": {
+        "p05": 0.368,
+        "p25": 0.438,
+        "median": 0.5,
+        "p75": 0.542,
+        "p95": 0.651
+      },
+      "new_share": {
+        "p05": 0.269,
+        "p25": 0.369,
+        "median": 0.438,
+        "p75": 0.54,
+        "p95": 0.651
+      },
+      "word_order": {
+        "p05": 0.253,
+        "p25": 0.374,
+        "median": 0.455,
+        "p75": 0.544,
+        "p95": 0.661
+      },
+      "min_sentence_kept": {
+        "p05": 0.2,
+        "p25": 0.388,
+        "median": 0.438,
+        "p75": 0.532,
+        "p95": 0.562
+      }
+    },
+    "age_adapt/moderate": {
+      "runs": 60,
+      "changed_runs": 42,
+      "no_change": 18,
+      "failed": 0,
+      "count_check_flagged": 0,
+      "kept_share": {
+        "p05": 0.364,
+        "p25": 0.444,
+        "median": 0.5,
+        "p75": 0.541,
+        "p95": 0.583
+      },
+      "new_share": {
+        "p05": 0.263,
+        "p25": 0.367,
+        "median": 0.52,
+        "p75": 0.552,
+        "p95": 0.63
+      },
+      "word_order": {
+        "p05": 0.264,
+        "p25": 0.348,
+        "median": 0.429,
+        "p75": 0.505,
+        "p95": 0.609
+      },
+      "min_sentence_kept": {
+        "p05": 0.2,
+        "p25": 0.381,
+        "median": 0.406,
+        "p75": 0.524,
+        "p95": 0.568
+      }
+    },
+    "age_adapt/strong": {
+      "runs": 60,
+      "changed_runs": 44,
+      "no_change": 16,
+      "failed": 0,
+      "count_check_flagged": 0,
+      "kept_share": {
+        "p05": 0.333,
+        "p25": 0.415,
+        "median": 0.455,
+        "p75": 0.52,
+        "p95": 0.618
+      },
+      "new_share": {
+        "p05": 0.253,
+        "p25": 0.371,
+        "median": 0.526,
+        "p75": 0.641,
+        "p95": 0.708
+      },
+      "word_order": {
+        "p05": 0.173,
+        "p25": 0.286,
+        "median": 0.429,
+        "p75": 0.484,
+        "p95": 0.545
+      },
+      "min_sentence_kept": {
+        "p05": 0.2,
+        "p25": 0.333,
+        "median": 0.4,
+        "p75": 0.504,
+        "p95": 0.618
+      }
+    },
+    "age_adapt/overlap": {
+      "light_below_strong_median": 0.333,
+      "light_minus_strong_median_kept": 0.045
+    }
+  },
+  "rows": [
+    {
+      "passage": "gothic-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 0,
+      "output": "The house was closed for eleven years, and the air felt empty and chilly, with a hint of dust. Mira didn't shout. There was no one to hear her.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 37,
+        "kept_share": 0.432,
+        "new_share": 0.448,
+        "word_order": 0.455,
+        "min_sentence_kept": 0.2,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 1,
+      "output": "The house hadn't been opened for eleven years, and the air inside felt empty — still, cold, with a sweet smell from dust. Mira didn't shout. There was no one left to hear her.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 37,
+        "kept_share": 0.595,
+        "new_share": 0.333,
+        "word_order": 0.6,
+        "min_sentence_kept": 0.2,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 2,
+      "output": "The house was closed for eleven years, and the air felt empty and chilly, with a hint of dust. Mira didn't shout. There was no one to hear her.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 37,
+        "kept_share": 0.432,
+        "new_share": 0.448,
+        "word_order": 0.455,
+        "min_sentence_kept": 0.2,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 3,
+      "output": "The house was closed for eleven years, and the air felt cold and dusty. Mira didn't shout. There was no one to hear her.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 37,
+        "kept_share": 0.378,
+        "new_share": 0.417,
+        "word_order": 0.459,
+        "min_sentence_kept": 0.2,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 4,
+      "output": "The house hadn't been opened for eleven years, and the air inside felt empty and cold, with a sweet smell from dust. Mira didn't call out. There was no one left to answer.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 37,
+        "kept_share": 0.649,
+        "new_share": 0.273,
+        "word_order": 0.657,
+        "min_sentence_kept": 0.56,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 0,
+      "output": "The house hadn't been opened for eleven years. The air felt cold and dusty. Mira didn't shout. There was no one to hear her.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 37,
+        "kept_share": 0.432,
+        "new_share": 0.333,
+        "word_order": 0.492,
+        "min_sentence_kept": 0.2,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "gothic-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 1,
+      "output": "The old house hadn't been opened in eleven years. The air inside felt empty and chilly, with a sweet smell from the dust. Mira didn't shout. There was no one to hear her.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 37,
+        "kept_share": 0.568,
+        "new_share": 0.364,
+        "word_order": 0.514,
+        "min_sentence_kept": 0.2,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "gothic-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 2,
+      "output": "The old house hadn't been opened in eleven years. The air inside felt empty and chilly, with a hint of dust. Mira didn't shout. There was no one to hear her.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 37,
+        "kept_share": 0.541,
+        "new_share": 0.355,
+        "word_order": 0.529,
+        "min_sentence_kept": 0.2,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "gothic-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 3,
+      "output": "The old house hadn't been opened in eleven years. The air felt cold and dusty. Mira didn't shout. There was no one to hear her.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 37,
+        "kept_share": 0.459,
+        "new_share": 0.32,
+        "word_order": 0.516,
+        "min_sentence_kept": 0.2,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "gothic-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 4,
+      "output": "The old house hadn't been opened in eleven years. The air inside felt empty and chilly, with a sweet smell from the dust. Mira didn't shout. There was no one to hear her.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 37,
+        "kept_share": 0.568,
+        "new_share": 0.364,
+        "word_order": 0.514,
+        "min_sentence_kept": 0.2,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "gothic-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 0,
+      "output": "The old house hadn't been opened for eleven years. The air felt cold and dusty. Mira didn't shout. There was no one to hear her.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 37,
+        "kept_share": 0.432,
+        "new_share": 0.36,
+        "word_order": 0.484,
+        "min_sentence_kept": 0.2,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "gothic-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 1,
+      "output": "The old house hadn't been opened for eleven years. The air felt cold and dusty. Mira didn't shout. There was no one to hear her.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 37,
+        "kept_share": 0.432,
+        "new_share": 0.36,
+        "word_order": 0.484,
+        "min_sentence_kept": 0.2,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "gothic-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 2,
+      "output": "The old house hadn't been opened for eleven years. The air felt cold and dusty. Mira didn't shout. There was no one to hear her.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 37,
+        "kept_share": 0.432,
+        "new_share": 0.36,
+        "word_order": 0.484,
+        "min_sentence_kept": 0.2,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "gothic-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 3,
+      "output": "The old house hadn't been opened for eleven years. The air felt cold and dusty. Mira didn't shout. There was no one to hear her.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 37,
+        "kept_share": 0.432,
+        "new_share": 0.36,
+        "word_order": 0.484,
+        "min_sentence_kept": 0.2,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "gothic-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 4,
+      "output": "The old house hadn't been opened for eleven years. The air felt cold and dusty. Mira didn't shout. There was no one to hear her.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 37,
+        "kept_share": 0.432,
+        "new_share": 0.36,
+        "word_order": 0.484,
+        "min_sentence_kept": 0.2,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "gothic-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 0,
+      "output": "She had learned, over the years, to say nothing when she was most afraid. The habit had outlived its reason. Even now, alone in the hall, she found herself arranging her face into something calm.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 35,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 1,
+      "output": "She had learned, over the years, to say nothing when she was most afraid. The habit had outlived its reason. Even now, alone in the hall, she found herself arranging her face into something calm.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 35,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 2,
+      "output": "She learned, over time, to say nothing when she was very scared. This habit stayed even though it wasn't needed anymore. Now, all alone in the hall, she tried to look calm.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 35,
+        "kept_share": 0.514,
+        "new_share": 0.438,
+        "word_order": 0.537,
+        "min_sentence_kept": 0.333,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 3,
+      "output": "She learned to say nothing when she was very scared. This habit stayed even though it wasn't needed anymore. Now, all alone in the hall, she tried to look calm.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 35,
+        "kept_share": 0.486,
+        "new_share": 0.433,
+        "word_order": 0.523,
+        "min_sentence_kept": 0.333,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 4,
+      "output": "She learned, over time, to say nothing when she was very scared. This habit stayed with her even though it wasn't needed anymore. Now, all alone in the hall, she tried to look calm.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 35,
+        "kept_share": 0.543,
+        "new_share": 0.441,
+        "word_order": 0.522,
+        "min_sentence_kept": 0.333,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 0,
+      "output": "She had learned, over the years, to say nothing when she was most afraid. The habit had outlived its reason. Even now, alone in the hall, she found herself arranging her face into something calm.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 35,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 1,
+      "output": "She had learned, over the years, to say nothing when she was most afraid. The habit had outlived its reason. Even now, alone in the hall, she found herself arranging her face into something calm.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 35,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 2,
+      "output": "She had learned, over the years, to say nothing when she was most afraid. The habit had outlived its reason. Even now, alone in the hall, she found herself arranging her face into something calm.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 35,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 3,
+      "output": "She learned to say nothing when she was very scared. This habit stayed with her even though it wasn't needed anymore. Now, all alone in the hall, she tried to look calm.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 35,
+        "kept_share": 0.514,
+        "new_share": 0.438,
+        "word_order": 0.507,
+        "min_sentence_kept": 0.333,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 4,
+      "output": "She learned to keep quiet when she was very scared. This habit stayed with her even though it wasn't needed anymore. Now, all alone in the hall, she tried to look peaceful.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 35,
+        "kept_share": 0.429,
+        "new_share": 0.531,
+        "word_order": 0.418,
+        "min_sentence_kept": 0.333,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 0,
+      "output": "She learned, over time, to keep quiet when she felt very scared. This habit stayed with her even though it wasn't needed anymore. Now, all alone in the hall, she tried to look peaceful on her face.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 35,
+        "kept_share": 0.457,
+        "new_share": 0.568,
+        "word_order": 0.444,
+        "min_sentence_kept": 0.333,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 1,
+      "output": "She had learned, over the years, to say nothing when she was most afraid. The habit had outlived its reason. Even now, alone in the hall, she found herself arranging her face into something calm.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 35,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 2,
+      "output": "She learned to keep quiet when she was very scared. This habit stayed with her even though it wasn't needed anymore. Now, all alone in the hall, she tried to look peaceful.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 35,
+        "kept_share": 0.429,
+        "new_share": 0.531,
+        "word_order": 0.418,
+        "min_sentence_kept": 0.333,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 3,
+      "output": "She learned, over many years, to keep quiet when she was very scared. This habit stayed with her even though it wasn't needed anymore. Now, all alone in the hall, she tried to look peaceful.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 35,
+        "kept_share": 0.486,
+        "new_share": 0.514,
+        "word_order": 0.457,
+        "min_sentence_kept": 0.333,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 4,
+      "output": "She learned to keep quiet when she was very scared. This habit stayed with her even though it wasn't needed anymore. Now, all alone in the hall, she tried to look peaceful.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 35,
+        "kept_share": 0.429,
+        "new_share": 0.531,
+        "word_order": 0.418,
+        "min_sentence_kept": 0.333,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 0,
+      "output": "The letter said lots of things and didn't say anything. Devika read it two times, then folded it again where it was before, like she thought that would make the letter not say anything.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 27,
+        "kept_share": 0.444,
+        "new_share": 0.647,
+        "word_order": 0.393,
+        "min_sentence_kept": 0.4,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 1,
+      "output": "The letter had said everything and nothing. Devika read it twice, then folded it back along its old creases, as if that alone could undo the reading.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 27,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 2,
+      "output": "The letter said lots of things and didn't say anything. Devika read it two times, then folded it again where it was before, like she thought that would make the letter not say anything.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 27,
+        "kept_share": 0.444,
+        "new_share": 0.647,
+        "word_order": 0.393,
+        "min_sentence_kept": 0.4,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 3,
+      "output": "The letter said lots of things and didn't say anything. Devika read it two times, then folded it again where it was before, like she thought that would make the letter not say anything.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 27,
+        "kept_share": 0.444,
+        "new_share": 0.647,
+        "word_order": 0.393,
+        "min_sentence_kept": 0.4,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 4,
+      "output": "The letter said everything and nothing. Devika read it twice, then folded it back along its old creases, as if that could undo the reading.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 27,
+        "kept_share": 0.926,
+        "new_share": 0.0,
+        "word_order": 0.962,
+        "min_sentence_kept": 0.857,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 0,
+      "output": "The letter said everything and nothing. Devika read it twice, then folded it back along its old creases, as if that could make the words disappear.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 27,
+        "kept_share": 0.852,
+        "new_share": 0.115,
+        "word_order": 0.868,
+        "min_sentence_kept": 0.85,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 1,
+      "output": "The letter said lots of things and didn't say anything. Devika read it two times, then folded it again, like she thought that would make the words go away.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 27,
+        "kept_share": 0.444,
+        "new_share": 0.586,
+        "word_order": 0.429,
+        "min_sentence_kept": 0.4,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 2,
+      "output": "The letter said lots of things and didn't say anything. Devika read it two times, then folded it again, like she thought that would make the words go away.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 27,
+        "kept_share": 0.444,
+        "new_share": 0.586,
+        "word_order": 0.429,
+        "min_sentence_kept": 0.4,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 3,
+      "output": "The letter said lots of things and didn't say anything. Devika read it two times, then folded it again, like she hoped that would make the words go away.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 27,
+        "kept_share": 0.444,
+        "new_share": 0.586,
+        "word_order": 0.429,
+        "min_sentence_kept": 0.4,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 4,
+      "output": "The letter said lots of things and didn't say anything. Devika read it two times, then folded it again where it was before, like she thought that would make the words go away.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 27,
+        "kept_share": 0.444,
+        "new_share": 0.636,
+        "word_order": 0.4,
+        "min_sentence_kept": 0.4,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 0,
+      "output": "The letter said lots of things and didn't say anything. Devika read it two times, then folded it again, like she hoped that would make the words go away.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 27,
+        "kept_share": 0.444,
+        "new_share": 0.586,
+        "word_order": 0.429,
+        "min_sentence_kept": 0.4,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 1,
+      "output": "The letter said lots of things and didn't say anything. Devika read it two times, then folded it again, like she thought that would make the words go away.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 27,
+        "kept_share": 0.444,
+        "new_share": 0.586,
+        "word_order": 0.429,
+        "min_sentence_kept": 0.4,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 2,
+      "output": "The letter had said everything and nothing. Devika read it twice, then folded it back along its old creases, as if that alone could undo the reading.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 27,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 3,
+      "output": "Devika picked up the letter and read it carefully. She read it again, slowly. Then she folded the letter back, smoothing out the old creases, hoping it would change what she had learned.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 27,
+        "kept_share": 0.519,
+        "new_share": 0.576,
+        "word_order": 0.333,
+        "min_sentence_kept": 0.5,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "gothic-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 4,
+      "output": "The letter said lots of things and didn't say anything. Devika read it two times, then folded it again, like she hoped that would make the words go away.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 27,
+        "kept_share": 0.444,
+        "new_share": 0.586,
+        "word_order": 0.429,
+        "min_sentence_kept": 0.4,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 0,
+      "output": "He kept the key on a chain he never removed, not because he expected to need it again, but because a man who has once locked a door does not easily trust himself to leave it unlocked.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 37,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 1,
+      "output": "He always wore a chain with a key. He didn't think he would need the key again, but he kept it because someone who locks a door doesn't like to leave it open.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 37,
+        "kept_share": 0.541,
+        "new_share": 0.394,
+        "word_order": 0.257,
+        "min_sentence_kept": 0.541,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "gothic-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 2,
+      "output": "He kept the key on a chain he never removed, not because he expected to need it again, but because a man who has once locked a door does not easily trust himself to leave it unlocked.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 37,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 3,
+      "output": "He kept the key on a chain he never removed, not because he expected to need it again, but because a man who has once locked a door does not easily trust himself to leave it unlocked.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 37,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 4,
+      "output": "He always wore a chain with a key, even when he didn't think he would use it again. He didn't trust himself to leave the door unlocked after locking it once.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 37,
+        "kept_share": 0.486,
+        "new_share": 0.419,
+        "word_order": 0.353,
+        "min_sentence_kept": 0.486,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "gothic-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 0,
+      "output": "He kept the key on a chain he never removed, not because he expected to need it again, but because a man who has once locked a door does not easily trust himself to leave it unlocked.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 37,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 1,
+      "output": "He wore a key on a chain around his neck, even when he didn't think he would use it again. He didn't trust himself to leave the door unlocked after locking it once.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 37,
+        "kept_share": 0.514,
+        "new_share": 0.424,
+        "word_order": 0.4,
+        "min_sentence_kept": 0.514,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "gothic-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 2,
+      "output": "He always wore a chain with a key around his neck. He didn't think he would need the key again, but he kept it because someone who locks a door doesn't want to leave it open.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 37,
+        "kept_share": 0.541,
+        "new_share": 0.444,
+        "word_order": 0.247,
+        "min_sentence_kept": 0.541,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "gothic-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 3,
+      "output": "He wore a chain with a key around his neck. He didn't take it off because he didn't think he would need the key again. But he kept it because someone who locks a door doesn't want to leave it open.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 37,
+        "kept_share": 0.568,
+        "new_share": 0.488,
+        "word_order": 0.231,
+        "min_sentence_kept": 0.568,
+        "sentence_delta": 2
+      }
+    },
+    {
+      "passage": "gothic-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 4,
+      "output": "He always wore a chain with a key around his neck. He didn't think he would need the key again, but he kept it because someone who had locked a door before found it hard to leave it open.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 37,
+        "kept_share": 0.568,
+        "new_share": 0.462,
+        "word_order": 0.263,
+        "min_sentence_kept": 0.568,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "gothic-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 0,
+      "output": "He wore a key on a chain around his neck all the time, not because he thought he would need it again, but because someone who had locked a door before found it hard to keep things unlocked.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 37,
+        "kept_share": 0.622,
+        "new_share": 0.395,
+        "word_order": 0.507,
+        "min_sentence_kept": 0.622,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 1,
+      "output": "He wore a chain with a key around his neck all the time, not because he thought he would use it again, but because someone who had locked a door before found it hard to leave it unlocked.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 37,
+        "kept_share": 0.595,
+        "new_share": 0.421,
+        "word_order": 0.48,
+        "min_sentence_kept": 0.595,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 2,
+      "output": "He kept the key on a chain he never removed, not because he expected to need it again, but because a man who has once locked a door does not easily trust himself to leave it unlocked.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 37,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "gothic-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 3,
+      "output": "He always wore a small chain around his neck. On this chain was a key he didn't use anymore. He didn't keep the key because he thought he might need it later. Instead, he kept it because when someone locks a door, they learn to be careful about leaving it open.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 37,
+        "kept_share": 0.486,
+        "new_share": 0.647,
+        "word_order": 0.159,
+        "min_sentence_kept": 0.486,
+        "sentence_delta": 3
+      }
+    },
+    {
+      "passage": "gothic-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 4,
+      "output": "He always wore a small chain around his neck with a key on it. He didn't think he would need the key again, but he kept it anyway because when someone locks a door, they learn to be careful about leaving it open.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 37,
+        "kept_share": 0.514,
+        "new_share": 0.558,
+        "word_order": 0.175,
+        "min_sentence_kept": 0.514,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "tech-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 0,
+      "output": "The machine recorded a big change at 3:14, happening four minutes sooner than usual. Priya noticed the strange reading and tried the test again. But the result was the same.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 33,
+        "kept_share": 0.424,
+        "new_share": 0.548,
+        "word_order": 0.312,
+        "min_sentence_kept": 0.412,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 1,
+      "output": "The machine recorded a big change at 3:14, happening four minutes sooner than usual. Priya noticed the strange reading and tried the test again. The result was the same.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 33,
+        "kept_share": 0.424,
+        "new_share": 0.533,
+        "word_order": 0.317,
+        "min_sentence_kept": 0.412,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 2,
+      "output": "The machine recorded a big change at 3:14, happening four minutes sooner than usual. Priya noticed this and tried the test again. But the result was the same.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 33,
+        "kept_share": 0.394,
+        "new_share": 0.552,
+        "word_order": 0.29,
+        "min_sentence_kept": 0.412,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 3,
+      "output": "The machine made a loud beep at 3:14, four minutes earlier than usual. Priya noticed the strange sound and checked again. She tried to fix it, but it still didn't work.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 33,
+        "kept_share": 0.303,
+        "new_share": 0.688,
+        "word_order": 0.215,
+        "min_sentence_kept": 0.2,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 4,
+      "output": "The machine made a loud beep at 3:14, four minutes earlier than usual. Priya noticed the strange sound and checked again. She tried to fix it, but it still didn't work.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 33,
+        "kept_share": 0.303,
+        "new_share": 0.688,
+        "word_order": 0.215,
+        "min_sentence_kept": 0.2,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 0,
+      "output": "The machine made a loud beep at 3:14, four minutes before usual. Priya noticed this and tried the test again. The result was the same.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 33,
+        "kept_share": 0.364,
+        "new_share": 0.538,
+        "word_order": 0.305,
+        "min_sentence_kept": 0.4,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 1,
+      "output": "The machine made a loud beep at 3:14, four minutes before usual. Priya noticed this and tried the test again. The result was the same.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 33,
+        "kept_share": 0.364,
+        "new_share": 0.538,
+        "word_order": 0.305,
+        "min_sentence_kept": 0.4,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 2,
+      "output": "The machine made a loud beep at 3:14, four minutes earlier than usual. Priya noticed this and tried the test again. The result was the same.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 33,
+        "kept_share": 0.364,
+        "new_share": 0.556,
+        "word_order": 0.3,
+        "min_sentence_kept": 0.4,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 3,
+      "output": "The machine's sensors showed a big change at 3:14, happening four minutes sooner than usual. Priya noticed this and tried the test again. But the result was the same.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 33,
+        "kept_share": 0.394,
+        "new_share": 0.567,
+        "word_order": 0.286,
+        "min_sentence_kept": 0.412,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 4,
+      "output": "The machine made a loud beep at 3:14, four minutes before usual. Priya noticed this and tried the test again. The result was the same.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 33,
+        "kept_share": 0.364,
+        "new_share": 0.538,
+        "word_order": 0.305,
+        "min_sentence_kept": 0.4,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 0,
+      "output": "At night, when everyone was sleeping, a special machine made a loud beep at 3:14. This was earlier than usual. Priya noticed this and tried to fix it by running the machine again. But the problem didn't go away.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 33,
+        "kept_share": 0.273,
+        "new_share": 0.775,
+        "word_order": 0.055,
+        "min_sentence_kept": 0.2,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "tech-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 1,
+      "output": "Priya looked at her watch and saw it was 3:14. The machine made a loud beep, which happened four minutes earlier than usual. Priya noticed this and decided to check again. She ran the test on the machine one more time. But the result was the same as before.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 33,
+        "kept_share": 0.485,
+        "new_share": 0.68,
+        "word_order": 0.241,
+        "min_sentence_kept": 0.4,
+        "sentence_delta": 2
+      }
+    },
+    {
+      "passage": "tech-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 2,
+      "output": "Priya looked at her watch and saw it was 3:14. The machine made a loud beep, which happened four minutes earlier than usual. Priya thought this was strange. She told the computer to check again. But when the computer checked again, it still said the same thing.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 33,
+        "kept_share": 0.364,
+        "new_share": 0.75,
+        "word_order": 0.173,
+        "min_sentence_kept": 0.2,
+        "sentence_delta": 2
+      }
+    },
+    {
+      "passage": "tech-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 3,
+      "output": "At 3:14 AM, the machine's sensors showed something unusual. It happened four minutes earlier than usual. Priya noticed this and tried the test again. But the result was the same.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 33,
+        "kept_share": 0.333,
+        "new_share": 0.645,
+        "word_order": 0.188,
+        "min_sentence_kept": 0.353,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "tech-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 4,
+      "output": "Priya saw a big change in the numbers at 3:14, happening four minutes sooner than usual. She thought it was strange and tried to fix it again. But when she checked again, the numbers were still different.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 33,
+        "kept_share": 0.333,
+        "new_share": 0.711,
+        "word_order": 0.197,
+        "min_sentence_kept": 0.4,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 0,
+      "output": "The lab needed two badge scans and a supervisor's permission after 10:00 PM. Priya had never used the permission before tonight.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.667,
+        "new_share": 0.273,
+        "word_order": 0.696,
+        "min_sentence_kept": 0.562,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 1,
+      "output": "Access to the lab required two separate badge scans and a supervisor override after 22:00. Priya had never used the override before tonight.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 2,
+      "output": "The lab needed two badge scans and a special permission after 10 at night. Priya never asked for special permission before today.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.458,
+        "new_share": 0.5,
+        "word_order": 0.478,
+        "min_sentence_kept": 0.5,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 3,
+      "output": "The lab needed two badge scans and a special permission after 10:00 PM. Priya had never asked for special permission before tonight.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.583,
+        "new_share": 0.391,
+        "word_order": 0.596,
+        "min_sentence_kept": 0.562,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 4,
+      "output": "Access to the lab required two separate badge scans and a supervisor override after 22:00. Priya had never used the override before tonight.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 0,
+      "output": "Access to the lab required two separate badge scans and a supervisor override after 22:00. Priya had never used the override before tonight.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 1,
+      "output": "The lab needed two special cards to get in. After 10 pm, a grown-up had to say it was okay. Priya had never asked a grown-up for help getting in before tonight.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.458,
+        "new_share": 0.676,
+        "word_order": 0.31,
+        "min_sentence_kept": 0.375,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "tech-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 2,
+      "output": "Access to the lab required two separate badge scans and a supervisor override after 22:00. Priya had never used the override before tonight.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 3,
+      "output": "Access to the lab required two separate badge scans and a supervisor override after 22:00. Priya had never used the override before tonight.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 4,
+      "output": "The lab needed two badge scans and a special permission from a grown-up after 10:00 PM. Priya had never asked for special permission before today.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.542,
+        "new_share": 0.519,
+        "word_order": 0.51,
+        "min_sentence_kept": 0.562,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 0,
+      "output": "Access to the lab required two separate badge scans and a supervisor override after 22:00. Priya had never used the override before tonight.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 1,
+      "output": "Access to the lab required two separate badge scans and a supervisor override after 22:00. Priya had never used the override before tonight.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 2,
+      "output": "Priya needed two badges to get into the lab. After 10:00 PM, she also needed a grown-up to say it was okay. Priya had never asked a grown-up for help getting into the lab before today.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.5,
+        "new_share": 0.692,
+        "word_order": 0.286,
+        "min_sentence_kept": 0.438,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "tech-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 3,
+      "output": "Priya needed to scan her badge twice to get into the lab, and after 10:00 PM, she also needed a grown-up to give special permission. Priya had never done this before tonight.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.542,
+        "new_share": 0.618,
+        "word_order": 0.345,
+        "min_sentence_kept": 0.5,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 4,
+      "output": "Priya needed two badges to get into the lab, and after 10:00 PM, she also needed a grown-up to help her. Priya had never asked for help before today.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.5,
+        "new_share": 0.613,
+        "word_order": 0.327,
+        "min_sentence_kept": 0.5,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 0,
+      "output": "The report was three pages, all of it technically accurate and none of it honest about what the numbers actually implied.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 21,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 1,
+      "output": "The report was three pages long. All the information was correct, but it didn't tell the whole truth about what the numbers meant.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 21,
+        "kept_share": 0.524,
+        "new_share": 0.522,
+        "word_order": 0.5,
+        "min_sentence_kept": 0.524,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "tech-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 2,
+      "output": "The report had three pages. All the information was correct, but it didn't tell the whole truth about what the numbers meant.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 21,
+        "kept_share": 0.524,
+        "new_share": 0.5,
+        "word_order": 0.465,
+        "min_sentence_kept": 0.524,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "tech-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 3,
+      "output": "The report was three pages, all of it technically accurate and none of it honest about what the numbers actually implied.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 21,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 4,
+      "output": "The report was three pages long. All the information was correct, but it didn't tell the truth about what the numbers meant.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 21,
+        "kept_share": 0.524,
+        "new_share": 0.5,
+        "word_order": 0.512,
+        "min_sentence_kept": 0.524,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "tech-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 0,
+      "output": "The report was three pages long. All the information was correct, but it didn't tell the whole truth about what the numbers meant.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 21,
+        "kept_share": 0.524,
+        "new_share": 0.522,
+        "word_order": 0.5,
+        "min_sentence_kept": 0.524,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "tech-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 1,
+      "output": "The report was three pages long. All the information was correct, but it didn't tell the whole truth about what the numbers meant.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 21,
+        "kept_share": 0.524,
+        "new_share": 0.522,
+        "word_order": 0.5,
+        "min_sentence_kept": 0.524,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "tech-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 2,
+      "output": "The report was three pages long. All the information was correct, but it didn't tell the whole truth about what the numbers meant.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 21,
+        "kept_share": 0.524,
+        "new_share": 0.522,
+        "word_order": 0.5,
+        "min_sentence_kept": 0.524,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "tech-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 3,
+      "output": "The report was three pages long. All the information was correct, but it didn't tell the whole truth about what the numbers meant.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 21,
+        "kept_share": 0.524,
+        "new_share": 0.522,
+        "word_order": 0.5,
+        "min_sentence_kept": 0.524,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "tech-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 4,
+      "output": "The report was three pages long. All the information was correct, but it didn't tell the whole truth about what the numbers meant.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 21,
+        "kept_share": 0.524,
+        "new_share": 0.522,
+        "word_order": 0.5,
+        "min_sentence_kept": 0.524,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "tech-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 0,
+      "output": "The report had three pages. All the information was correct, but it didn't tell the whole truth about what the numbers meant.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 21,
+        "kept_share": 0.524,
+        "new_share": 0.5,
+        "word_order": 0.465,
+        "min_sentence_kept": 0.524,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "tech-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 1,
+      "output": "The report was three pages, all of it technically accurate and none of it honest about what the numbers actually implied.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 21,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 2,
+      "output": "The report had three pages. All the information was correct, but it didn't tell the whole truth about what the numbers meant.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 21,
+        "kept_share": 0.524,
+        "new_share": 0.5,
+        "word_order": 0.465,
+        "min_sentence_kept": 0.524,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "tech-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 3,
+      "output": "The report had three pages. All the information was correct, but it didn't tell the whole truth about what the numbers meant.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 21,
+        "kept_share": 0.524,
+        "new_share": 0.5,
+        "word_order": 0.465,
+        "min_sentence_kept": 0.524,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "tech-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 4,
+      "output": "The report was three pages long. All the information was correct, but it didn't tell the whole truth about what the numbers meant.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 21,
+        "kept_share": 0.524,
+        "new_share": 0.522,
+        "word_order": 0.5,
+        "min_sentence_kept": 0.524,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "tech-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 0,
+      "output": "By morning the anomaly had a name, a case number, and a team of four people who had not been told what they were actually looking for.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 27,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 1,
+      "output": "By morning the anomaly had a name, a case number, and a team of four people who had not been told what they were actually looking for.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 27,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 2,
+      "output": "By morning the anomaly had a name, a case number, and a team of four people who had not been told what they were actually looking for.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 27,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 3,
+      "output": "By morning the anomaly had a name, a case number, and a team of four people who had not been told what they were actually looking for.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 27,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 4,
+      "output": "By morning the anomaly had a name, a case number, and a team of four people who had not been told what they were actually looking for.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 27,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 0,
+      "output": "By morning the anomaly had a name, a case number, and a team of four people who had not been told what they were actually looking for.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 27,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 1,
+      "output": "By morning the anomaly had a name, a case number, and a team of four people who had not been told what they were actually looking for.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 27,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 2,
+      "output": "By morning the anomaly had a name, a case number, and a team of four people who had not been told what they were actually looking for.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 27,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 3,
+      "output": "By morning the anomaly had a name, a case number, and a team of four people who had not been told what they were actually looking for.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 27,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 4,
+      "output": "By morning the anomaly had a name, a case number, and a team of four people who had not been told what they were actually looking for.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 27,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 0,
+      "output": "By morning the anomaly had a name, a case number, and a team of four people who had not been told what they were actually looking for.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 27,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 1,
+      "output": "By morning the anomaly had a name, a case number, and a team of four people who had not been told what they were actually looking for.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 27,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 2,
+      "output": "By morning the anomaly had a name, a case number, and a team of four people who had not been told what they were actually looking for.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 27,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 3,
+      "output": "By morning the anomaly had a name, a case number, and a team of four people who had not been told what they were actually looking for.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 27,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "tech-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 4,
+      "output": "By morning the anomaly had a name, a case number, and a team of four people who had not been told what they were actually looking for.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 27,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 0,
+      "output": "The bridge broke behind them with a sound like a big sigh. Kael did not turn around. There was nothing behind them worth looking back for.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 33,
+        "kept_share": 0.576,
+        "new_share": 0.269,
+        "word_order": 0.61,
+        "min_sentence_kept": 0.562,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 1,
+      "output": "The bridge broke behind them with a sound like a big sigh. Kael didn't turn around. There was nothing behind them worth looking back for.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 33,
+        "kept_share": 0.515,
+        "new_share": 0.32,
+        "word_order": 0.552,
+        "min_sentence_kept": 0.4,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 2,
+      "output": "The bridge broke behind them with a sound like a deep sigh. Kael did not turn around. There was nothing behind them worth looking back for.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 33,
+        "kept_share": 0.576,
+        "new_share": 0.269,
+        "word_order": 0.61,
+        "min_sentence_kept": 0.562,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 3,
+      "output": "The bridge broke behind them with a sound like a big sigh. Kael did not turn around. There was nothing behind them worth looking back for.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 33,
+        "kept_share": 0.576,
+        "new_share": 0.269,
+        "word_order": 0.61,
+        "min_sentence_kept": 0.562,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 4,
+      "output": "The bridge broke behind them with a sound like a deep sigh. Kael did not turn around. There was nothing behind them worth looking back for.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 33,
+        "kept_share": 0.576,
+        "new_share": 0.269,
+        "word_order": 0.61,
+        "min_sentence_kept": 0.562,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 0,
+      "output": "The bridge gave way behind them with a sound like a held breath finally let go. Kael did not look back. There was nothing behind them worth the half-second it would cost.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 33,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 1,
+      "output": "The bridge broke behind them with a sound like a big sigh. Kael didn't turn around. There was nothing behind them worth looking back for.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 33,
+        "kept_share": 0.515,
+        "new_share": 0.32,
+        "word_order": 0.552,
+        "min_sentence_kept": 0.4,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 2,
+      "output": "The bridge broke behind them with a quiet sound. Kael didn't turn around. There was nothing behind them that was worth looking back for.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 33,
+        "kept_share": 0.455,
+        "new_share": 0.375,
+        "word_order": 0.491,
+        "min_sentence_kept": 0.4,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 3,
+      "output": "The bridge broke behind them with a sound like a big sigh. Kael did not turn around. There was nothing behind them worth looking back for.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 33,
+        "kept_share": 0.576,
+        "new_share": 0.269,
+        "word_order": 0.61,
+        "min_sentence_kept": 0.562,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 4,
+      "output": "The bridge broke behind them with a sound like a big sigh. Kael did not turn around. There was nothing behind them worth looking back for.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 33,
+        "kept_share": 0.576,
+        "new_share": 0.269,
+        "word_order": 0.61,
+        "min_sentence_kept": 0.562,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 0,
+      "output": "The bridge broke behind them with a sound like a deep sigh. Kael didn't turn around. There was nothing behind them worth looking back for.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 33,
+        "kept_share": 0.515,
+        "new_share": 0.32,
+        "word_order": 0.552,
+        "min_sentence_kept": 0.4,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 1,
+      "output": "The bridge broke behind them with a sound like a deep sigh. Kael did not turn around. There was nothing behind them worth looking back for.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 33,
+        "kept_share": 0.576,
+        "new_share": 0.269,
+        "word_order": 0.61,
+        "min_sentence_kept": 0.562,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 2,
+      "output": "The bridge broke behind them with a quiet sound. Kael didn't turn around. There was nothing behind them that was worth looking back for.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 33,
+        "kept_share": 0.455,
+        "new_share": 0.375,
+        "word_order": 0.491,
+        "min_sentence_kept": 0.4,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 3,
+      "output": "The bridge broke behind them with a sound like a big sigh. Kael did not turn around. There was nothing behind them worth looking at for even a second.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 33,
+        "kept_share": 0.576,
+        "new_share": 0.345,
+        "word_order": 0.613,
+        "min_sentence_kept": 0.562,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-1",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 4,
+      "output": "The bridge broke behind them with a quiet sound. Kael didn't turn around. There was nothing behind them that was worth looking back for.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 33,
+        "kept_share": 0.455,
+        "new_share": 0.375,
+        "word_order": 0.491,
+        "min_sentence_kept": 0.4,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 0,
+      "output": "Three arrows, three misses, and Aanya had one arrow left in her quiver. She knew she didn't have another chance.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.5,
+        "new_share": 0.4,
+        "word_order": 0.455,
+        "min_sentence_kept": 0.5,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "adventure-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 1,
+      "output": "Three arrows, three misses, and Aanya had one arrow left in her quiver. She knew she didn't get another chance.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.542,
+        "new_share": 0.35,
+        "word_order": 0.455,
+        "min_sentence_kept": 0.542,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "adventure-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 2,
+      "output": "Three arrows, and three misses, and Aanya had one arrow left in her quiver. She knew she couldn't miss again.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.5,
+        "new_share": 0.4,
+        "word_order": 0.455,
+        "min_sentence_kept": 0.5,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "adventure-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 3,
+      "output": "Three arrows, three misses, and Aanya had one arrow left in her quiver. She knew she didn't have another chance.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.5,
+        "new_share": 0.4,
+        "word_order": 0.455,
+        "min_sentence_kept": 0.5,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "adventure-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 4,
+      "output": "Three arrows, three misses, and the fourth still in her quiver — Aanya was not going to get a fifth chance, and she knew it.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 0,
+      "output": "Three arrows, and Aanya missed with each one. She had one arrow left in her quiver. Aanya knew she couldn't miss again.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.375,
+        "new_share": 0.591,
+        "word_order": 0.348,
+        "min_sentence_kept": 0.375,
+        "sentence_delta": 2
+      }
+    },
+    {
+      "passage": "adventure-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 1,
+      "output": "Three arrows, and three misses — Aanya had two arrows left in her quiver. She knew she couldn't miss with the last one.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.5,
+        "new_share": 0.455,
+        "word_order": 0.391,
+        "min_sentence_kept": 0.5,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "adventure-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 2,
+      "output": "Three arrows, and Aanya missed with each one. She had one arrow left in her quiver. Aanya knew she couldn't miss again.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.375,
+        "new_share": 0.591,
+        "word_order": 0.348,
+        "min_sentence_kept": 0.375,
+        "sentence_delta": 2
+      }
+    },
+    {
+      "passage": "adventure-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 3,
+      "output": "Three arrows, three misses, and Aanya had one arrow left in her quiver. She knew she didn't have another chance.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.5,
+        "new_share": 0.4,
+        "word_order": 0.455,
+        "min_sentence_kept": 0.5,
+        "sentence_delta": 1
+      }
+    },
+    {
+      "passage": "adventure-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 4,
+      "output": "Three arrows, and all missed. Aanya had one arrow left in her quiver. She knew this was her last chance.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.458,
+        "new_share": 0.45,
+        "word_order": 0.364,
+        "min_sentence_kept": 0.458,
+        "sentence_delta": 2
+      }
+    },
+    {
+      "passage": "adventure-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 0,
+      "output": "Aanya had three arrows, but she missed with each one. She had one arrow left in her quiver. Aanya knew she couldn't miss again.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.333,
+        "new_share": 0.667,
+        "word_order": 0.292,
+        "min_sentence_kept": 0.333,
+        "sentence_delta": 2
+      }
+    },
+    {
+      "passage": "adventure-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 1,
+      "output": "Aanya had three arrows, but she missed with each one. She had one arrow left in her quiver. Aanya knew she couldn't miss again.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.333,
+        "new_share": 0.667,
+        "word_order": 0.292,
+        "min_sentence_kept": 0.333,
+        "sentence_delta": 2
+      }
+    },
+    {
+      "passage": "adventure-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 2,
+      "output": "Aanya had three arrows, but she missed with each one. She had one arrow left in her quiver. Aanya knew she couldn't miss again.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.333,
+        "new_share": 0.667,
+        "word_order": 0.292,
+        "min_sentence_kept": 0.333,
+        "sentence_delta": 2
+      }
+    },
+    {
+      "passage": "adventure-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 3,
+      "output": "Aanya had three arrows, but she missed with all of them. There was one arrow left in her quiver. She knew she couldn't miss again.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.375,
+        "new_share": 0.64,
+        "word_order": 0.286,
+        "min_sentence_kept": 0.375,
+        "sentence_delta": 2
+      }
+    },
+    {
+      "passage": "adventure-2",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 4,
+      "output": "Aanya had three arrows, but she missed with each one. She had one arrow left in her quiver. Aanya knew she couldn't miss again.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.333,
+        "new_share": 0.667,
+        "word_order": 0.292,
+        "min_sentence_kept": 0.333,
+        "sentence_delta": 2
+      }
+    },
+    {
+      "passage": "adventure-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 0,
+      "output": "The story for kids didn't talk about the sad part where everyone got hurt during the first trip. Mira thought it was better that way.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.458,
+        "new_share": 0.56,
+        "word_order": 0.367,
+        "min_sentence_kept": 0.438,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 1,
+      "output": "The story didn't talk about the first crossing where nobody survived. Mira thought it was better that way.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.458,
+        "new_share": 0.389,
+        "word_order": 0.381,
+        "min_sentence_kept": 0.5,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 2,
+      "output": "The story didn't include the part where everyone didn't survive the first trip. Mira thought it was better that way.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.417,
+        "new_share": 0.5,
+        "word_order": 0.409,
+        "min_sentence_kept": 0.438,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 3,
+      "output": "The story didn't talk about the time when nobody came back from the first trip. Mira thought it was better that way.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.375,
+        "new_share": 0.591,
+        "word_order": 0.348,
+        "min_sentence_kept": 0.375,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 4,
+      "output": "The story for kids didn't talk about the sad part where everyone got hurt during the first trip. Mira thought it was better that way.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.458,
+        "new_share": 0.56,
+        "word_order": 0.367,
+        "min_sentence_kept": 0.438,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 0,
+      "output": "The story didn't talk about the time when nobody made it across. Mira thought it was better that way.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.292,
+        "new_share": 0.632,
+        "word_order": 0.279,
+        "min_sentence_kept": 0.25,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 1,
+      "output": "The story for kids didn't talk about the sad part where everyone got hurt during the first trip. Mira thought it was better this way.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.5,
+        "new_share": 0.52,
+        "word_order": 0.367,
+        "min_sentence_kept": 0.438,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 2,
+      "output": "The story for kids didn't talk about the first crossing where nobody survived. Mira thought this was probably better.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.583,
+        "new_share": 0.263,
+        "word_order": 0.419,
+        "min_sentence_kept": 0.5,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 3,
+      "output": "The story for kids didn't talk about the sad part where everyone got hurt during the first trip. Mira thought it was better that way.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.458,
+        "new_share": 0.56,
+        "word_order": 0.367,
+        "min_sentence_kept": 0.438,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 4,
+      "output": "The story for children didn't include the part where nobody survived the first crossing. Mira thought this was probably better.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.667,
+        "new_share": 0.2,
+        "word_order": 0.591,
+        "min_sentence_kept": 0.625,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 0,
+      "output": "Mira thought that the part about nobody surviving the first crossing was probably better left out of the children's version of the story.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.75,
+        "new_share": 0.217,
+        "word_order": 0.255,
+        "min_sentence_kept": 0.625,
+        "sentence_delta": -1
+      }
+    },
+    {
+      "passage": "adventure-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 1,
+      "output": "Mira thought it was better not to talk about how nobody survived the first crossing.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.333,
+        "new_share": 0.467,
+        "word_order": 0.256,
+        "min_sentence_kept": 0.312,
+        "sentence_delta": -1
+      }
+    },
+    {
+      "passage": "adventure-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 2,
+      "output": "Mira thought it was better to leave out the part where nobody survived the first crossing.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.5,
+        "new_share": 0.25,
+        "word_order": 0.45,
+        "min_sentence_kept": 0.5,
+        "sentence_delta": -1
+      }
+    },
+    {
+      "passage": "adventure-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 3,
+      "output": "Mira thought that the part about nobody surviving the first crossing was left out of the children's version of the story. She believed this was probably for the best.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.917,
+        "new_share": 0.241,
+        "word_order": 0.453,
+        "min_sentence_kept": 0.875,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-3",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 4,
+      "output": "Mira thought it was better not to talk about how nobody survived the first crossing.",
+      "no_change": false,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 24,
+        "kept_share": 0.333,
+        "new_share": 0.467,
+        "word_order": 0.256,
+        "min_sentence_kept": 0.312,
+        "sentence_delta": -1
+      }
+    },
+    {
+      "passage": "adventure-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 0,
+      "output": "The old guide had warned them about the pass, the weather, and the wolves, in that order, as if the order mattered.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 22,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 1,
+      "output": "The old guide had warned them about the pass, the weather, and the wolves, in that order, as if the order mattered.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 22,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 2,
+      "output": "The old guide had warned them about the pass, the weather, and the wolves, in that order, as if the order mattered.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 22,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 3,
+      "output": "The old guide had warned them about the pass, the weather, and the wolves, in that order, as if the order mattered.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 22,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "light",
+      "run": 4,
+      "output": "The old guide had warned them about the pass, the weather, and the wolves, in that order, as if the order mattered.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 22,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 0,
+      "output": "The old guide had warned them about the pass, the weather, and the wolves, in that order, as if the order mattered.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 22,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 1,
+      "output": "The old guide had warned them about the pass, the weather, and the wolves, in that order, as if the order mattered.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 22,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 2,
+      "output": "The old guide had warned them about the pass, the weather, and the wolves, in that order, as if the order mattered.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 22,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 3,
+      "output": "The old guide had warned them about the pass, the weather, and the wolves, in that order, as if the order mattered.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 22,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "moderate",
+      "run": 4,
+      "output": "The old guide had warned them about the pass, the weather, and the wolves, in that order, as if the order mattered.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 22,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 0,
+      "output": "The old guide had warned them about the pass, the weather, and the wolves, in that order, as if the order mattered.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 22,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 1,
+      "output": "The old guide had warned them about the pass, the weather, and the wolves, in that order, as if the order mattered.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 22,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 2,
+      "output": "The old guide had warned them about the pass, the weather, and the wolves, in that order, as if the order mattered.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 22,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 3,
+      "output": "The old guide had warned them about the pass, the weather, and the wolves, in that order, as if the order mattered.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 22,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    },
+    {
+      "passage": "adventure-4",
+      "transform": "age_adapt",
+      "target": "children",
+      "strength": "strong",
+      "run": 4,
+      "output": "The old guide had warned them about the pass, the weather, and the wolves, in that order, as if the order mattered.",
+      "no_change": true,
+      "failed": false,
+      "strength_violation": false,
+      "profile": {
+        "measured": true,
+        "words": 22,
+        "kept_share": 1.0,
+        "new_share": 0.0,
+        "word_order": 1.0,
+        "min_sentence_kept": 1.0,
+        "sentence_delta": 0
+      }
+    }
+  ]
+}

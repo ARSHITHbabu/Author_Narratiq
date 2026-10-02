@@ -151,8 +151,12 @@ def test_plot_assistant_answers_a_question_about_the_manuscript(fixture_user):
                   "she owed the Bureau, and the sister who had stopped writing.</p>")
     db.commit()
 
+    # Stage 12 (D-1): chapter scope — the default — now requires the open
+    # chapter's number, as the Plan workspace always sends; without one the
+    # request is refused instead of silently searching the whole manuscript.
     r2 = client.post("/api/plot-assistant/", headers=headers, json={
         "story_id": story_id, "question": "Who is Devika and what is her main conflict?",
+        "current_chapter_number": ch.chapter_number,
     })
     assert r2.status_code == 200, r2.text
     body = r2.json()

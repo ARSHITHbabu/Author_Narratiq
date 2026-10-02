@@ -1,5 +1,7 @@
 import { test, expect, type APIRequestContext, type Locator, type Page } from '@playwright/test'
 import { seedBrowserSession, sessionToken } from './_session'
+// Shared with the mocked studio suite: the review F1 readiness fixes.
+import { focusEditorSettled, waitForChapterContent } from '../studio/helpers'
 
 // PRE-2 browser verification (Phase 2 QA Issues 1 and 11) — checklist task 3.8.
 //
@@ -52,6 +54,23 @@ async function authSession(request: APIRequestContext): Promise<{ token: string;
 }
 
 async function signIn(page: Page, request: APIRequestContext) {
+  // E2E_LATE_SELECTIONCHANGE_MS (off by default) delivers the editor's
+  // selectionchange events late, so ProseMirror's 20 ms post-focus selection
+  // sync lands inside a fast test gesture every time instead of occasionally —
+  // the live twin of STUDIO_LATE_SELECTIONCHANGE_MS (review F1, second cause).
+  const late = Number(process.env.E2E_LATE_SELECTIONCHANGE_MS || 0)
+  if (late > 0) {
+    await page.addInitScript((ms) => {
+      const add = Document.prototype.addEventListener
+      Document.prototype.addEventListener = function (this: Document, type: string, fn: any, opts?: any) {
+        if (type === 'selectionchange' && typeof fn === 'function') {
+          const self = this
+          return add.call(self, type, (e: Event) => { setTimeout(() => fn.call(self, e), ms) }, opts)
+        }
+        return add.call(this, type, fn, opts)
+      } as typeof Document.prototype.addEventListener
+    }, late)
+  }
   const { token, user } = await authSession(request)
   // The same cookies the app's own sign-in sets (Stage 10, HttpOnly session).
   await seedBrowserSession(page, token)
@@ -61,10 +80,22 @@ async function openWrite(page: Page) {
   await page.goto(`/projects/${STORY_ID}/write`)
   await expect(editorArea(page)).toBeVisible({ timeout: 30_000 })
   await expect(firstParagraph(page)).not.toBeEmpty()
+  // F1, first cause: wait for the chapter's own content to be set in the editor;
+  // a later setContent wipes any selection made before it.
+  await waitForChapterContent(page)
 }
+
+// F1, second cause (why these specs failed intermittently, 7–14 of 85 repeated
+// runs): the first focus of the editor schedules ProseMirror's selection sync
+// 20 ms later. A keyboard gesture inside that window is undone by the sync —
+// Home/ArrowRight are lost and the selection collapses or lands on the wrong
+// text. Every keyboard selection below therefore starts on an editor whose focus
+// has settled (a condition, not a sleep: see focusEditorSettled). Reproduce the
+// race on purpose with E2E_LATE_SELECTIONCHANGE_MS=30.
 
 /** Select the first visual line of chapter one. */
 async function selectLine(page: Page) {
+  await focusEditorSettled(page)
   await firstParagraph(page).click()
   await page.keyboard.press('Home')
   await page.keyboard.press('Shift+End')
@@ -72,12 +103,14 @@ async function selectLine(page: Page) {
 
 /** Collapse the selection without leaving the editor. */
 async function deselect(page: Page) {
+  await focusEditorSettled(page)
   await firstParagraph(page).click()
   await page.keyboard.press('End')
 }
 
 /** Select exactly the space after the leading word "The". */
 async function selectOnlyWhitespace(page: Page) {
+  await focusEditorSettled(page)
   await firstParagraph(page).click()
   await page.keyboard.press('ControlOrMeta+Home')                        // start of the document
   for (let i = 0; i < 3; i++) await page.keyboard.press('ArrowRight')   // past "The"
@@ -92,6 +125,7 @@ async function openChapter(page: Page, n: number) {
   await page.getByText(`Chapter ${n}`, { exact: true }).click()
   await expect(page.getByRole('heading', { name: new RegExp(`Chapter ${n} —`) })).toBeVisible()
   await expect(editorArea(page)).toContainText(n === 1 ? 'The lighthouse' : 'A second chapter')
+  await waitForChapterContent(page)
 }
 
 /** Run a transform from the toolbar and wait for its preview. */
@@ -162,6 +196,7 @@ test('5: the sidebar scope updates when the selection changes', async ({ page })
   await selectLine(page)
   const firstScope = await page.getByText(/words selected/).innerText()
 
+  await focusEditorSettled(page)
   await editorArea(page).click()
   await page.keyboard.press('ControlOrMeta+a')
   await expect

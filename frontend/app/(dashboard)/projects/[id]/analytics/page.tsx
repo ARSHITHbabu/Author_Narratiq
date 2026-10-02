@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useParams } from 'next/navigation'
 import { ArrowLeft, BarChart3, BookOpen, FileText, Clock, Feather, Loader2, TrendingUp, Sparkles } from 'lucide-react'
 import { projectsApi, chaptersApi, analyticsApi } from '@/lib/api'
 import { Story, Chapter, StoryAnalyticsResponse } from '@/lib/types'
@@ -41,8 +42,10 @@ function avgSentenceLength(text: string): number {
   return Math.round(total / sentences.length)
 }
 
-export default function AnalyticsPage({ params }: { params: { id: string } }) {
-  const { id: storyId } = params
+export default function AnalyticsPage() {
+  // Next.js 15 (Stage 12 A5): route params come from useParams(); the page prop
+  // is a Promise in Next 15, and a client component cannot await it.
+  const { id: storyId } = useParams<{ id: string }>()
   const [story, setStory] = useState<Story | null>(null)
   const [chapters, setChapters] = useState<Chapter[]>([])
   const [chapterContents, setChapterContents] = useState<Record<string, string>>({})

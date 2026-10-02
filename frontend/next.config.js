@@ -34,6 +34,10 @@ const nextConfig = {
   // (found in the Stage 10 live check: manuscript creation broke). The backend
   // decides its own slash handling, so the frontend must not redirect.
   skipTrailingSlashRedirect: true,
+  // Stage 12 remediation A4: the app serves no images through next/image, so
+  // the image optimiser (/_next/image) is switched off rather than left
+  // mounted. It carried the Next.js Critical advisory GHSA-2xp9-vwfh-vxw4.
+  images: { unoptimized: true },
   experimental: {
     // Default is 30 s, shorter than the slowest synchronous AI requests
     // (continuation p95 ≈ 16 s today; story-bible and manuscript uploads can

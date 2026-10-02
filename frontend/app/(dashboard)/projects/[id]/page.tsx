@@ -5,11 +5,14 @@
 // 3-column editor page, whose editor now lives in the Write workspace.
 
 import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useStudioStore } from '@/lib/studioStore'
 import { workspacePath } from '@/lib/registries/workspaces'
 
-export default function StoryIndex({ params }: { params: { id: string } }) {
+export default function StoryIndex() {
+  // Next.js 15 (Stage 12 A5): route params come from useParams(); the page prop
+  // is a Promise in Next 15, and a client component cannot await it.
+  const params = useParams<{ id: string }>()
   const router = useRouter()
   useEffect(() => {
     const last = useStudioStore.getState().getStory(params.id).lastWorkspace || 'write'

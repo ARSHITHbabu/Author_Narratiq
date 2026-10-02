@@ -1,0 +1,2511 @@
+{
+  "prompt_version": "v3",
+  "runs": 3,
+  "variants": {
+    "current": {
+      "summary": {
+        "recall": 0.8,
+        "distinct_categories": 11,
+        "dup_pairs": 0,
+        "no_recommendation_items": 0,
+        "praise_in_observation_items": 0,
+        "items_total": 47,
+        "empty_or_error": 0,
+        "hygiene_dropped": []
+      },
+      "rows": [
+        {
+          "case": "repetitive-structure",
+          "run": 0,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Narrative Risk",
+            "Repetitive Actions"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Repetitive Actions",
+              "observation": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out.",
+              "recommendation": "Replace the repetitive actions with a single, more descriptive sentence. For example: 'She entered the room, spotted the note on the table, and picked it up, reading it twice before setting it down.'",
+              "priority": "high",
+              "text": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out.",
+              "reason": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out. Replace the repetitive actions with a single, more descriptive sentence. For example: 'She entered the room, spotted the note on the table, and picked it up, reading it twice before setting it down.'"
+            },
+            {
+              "id": 2,
+              "category": "Narrative Risk",
+              "observation": "The sequence of actions feels mechanical and lacks emotional depth or stakes for the reader.",
+              "recommendation": "Add internal thoughts or reactions to make the sequence more engaging. For example: 'She entered the room, her heart pounding, and spotted the note on the table. It was from him, and she picked it up, reading it twice, each time feeling a mix of fear and hope before setting it down.'",
+              "priority": "medium",
+              "text": "The sequence of actions feels mechanical and lacks emotional depth or stakes for the reader.",
+              "reason": "The sequence of actions feels mechanical and lacks emotional depth or stakes for the reader. Add internal thoughts or reactions to make the sequence more engaging. For example: 'She entered the room, her heart pounding, and spotted the note on the table. It was from him, and she picked it up, reading it twice, each time feeling a mix of fear and hope before setting it down.'"
+            }
+          ]
+        },
+        {
+          "case": "repetitive-structure",
+          "run": 1,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Narrative Risk",
+            "Repetitive Actions"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Repetitive Actions",
+              "observation": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out.",
+              "recommendation": "Replace the repetitive actions with a single sentence or combine them into a more dynamic sequence. For example: 'She strode into the room, spotted the note on the table, snatched it up, and read it twice before setting it down.'",
+              "priority": "high",
+              "text": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out.",
+              "reason": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out. Replace the repetitive actions with a single sentence or combine them into a more dynamic sequence. For example: 'She strode into the room, spotted the note on the table, snatched it up, and read it twice before setting it down.'"
+            },
+            {
+              "id": 2,
+              "category": "Narrative Risk",
+              "observation": "The sequence of actions feels mechanical and unengaging, potentially risking the reader's interest.",
+              "recommendation": "Add some internal conflict or reaction to make the sequence more engaging. For example: 'She strode into the room, spotted the note on the table, snatched it up, and read it twice, her heart pounding with dread before she set it down.'",
+              "priority": "medium",
+              "text": "The sequence of actions feels mechanical and unengaging, potentially risking the reader's interest.",
+              "reason": "The sequence of actions feels mechanical and unengaging, potentially risking the reader's interest. Add some internal conflict or reaction to make the sequence more engaging. For example: 'She strode into the room, spotted the note on the table, snatched it up, and read it twice, her heart pounding with dread before she set it down.'"
+            }
+          ]
+        },
+        {
+          "case": "repetitive-structure",
+          "run": 2,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Lack of Scene",
+            "Repetitive Actions"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Repetitive Actions",
+              "observation": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out.",
+              "recommendation": "Replace the repetitive actions with a single sentence that conveys the same information more succinctly, such as: 'She found a note on the table, read it twice, and then left the room.'",
+              "priority": "high",
+              "text": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out.",
+              "reason": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out. Replace the repetitive actions with a single sentence that conveys the same information more succinctly, such as: 'She found a note on the table, read it twice, and then left the room.'"
+            },
+            {
+              "id": 2,
+              "category": "Lack of Scene",
+              "observation": "The excerpt consists of a series of actions without any description or context.",
+              "recommendation": "Add descriptive details about the room, the note, and her emotional state to create a more vivid scene. For example: 'She stepped into the dimly lit study, her eyes scanning the polished oak table until they landed on the folded piece of paper. The note was written in a familiar scrawl, and she hesitated before unfolding it. Her heart raced as she read the words twice, her fingers trembling as she refolded it and placed it back on the table.'",
+              "priority": "medium",
+              "text": "The excerpt consists of a series of actions without any description or context.",
+              "reason": "The excerpt consists of a series of actions without any description or context. Add descriptive details about the room, the note, and her emotional state to create a more vivid scene. For example: 'She stepped into the dimly lit study, her eyes scanning the polished oak table until they landed on the folded piece of paper. The note was written in a familiar scrawl, and she hesitated before unfolding it. Her heart raced as she read the words twice, her fingers trembling as she refolded it and placed it back on the table.'"
+            }
+          ]
+        },
+        {
+          "case": "telling-not-showing",
+          "run": 0,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Emotional Depth",
+            "Stake Clarity"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 2,
+              "category": "Stake Clarity",
+              "observation": "She felt betrayed and did not know what to do next.",
+              "recommendation": "Clarify the stakes or consequences of Maria's situation. For instance, 'She felt betrayed by her best friend, and now she didn’t know if she could trust anyone else.'",
+              "priority": "high",
+              "text": "She felt betrayed and did not know what to do next.",
+              "reason": "She felt betrayed and did not know what to do next. Clarify the stakes or consequences of Maria's situation. For instance, 'She felt betrayed by her best friend, and now she didn’t know if she could trust anyone else.'"
+            },
+            {
+              "id": 1,
+              "category": "Emotional Depth",
+              "observation": "Maria was furious. She was also very sad about what had happened.",
+              "recommendation": "Combine the emotions into a more nuanced description. For example, 'Maria's rage burned hot, but beneath it lay a deep sadness that threatened to consume her.'",
+              "priority": "medium",
+              "text": "Maria was furious. She was also very sad about what had happened.",
+              "reason": "Maria was furious. She was also very sad about what had happened. Combine the emotions into a more nuanced description. For example, 'Maria's rage burned hot, but beneath it lay a deep sadness that threatened to consume her.'"
+            }
+          ]
+        },
+        {
+          "case": "telling-not-showing",
+          "run": 1,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Emotional Depth",
+            "Specificity"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Emotional Depth",
+              "observation": "Maria was furious. She was also very sad about what had happened.",
+              "recommendation": "Combine the emotions into a more nuanced description, such as 'Maria's rage was mixed with deep sorrow, a toxic brew of emotions that left her reeling.'",
+              "priority": "high",
+              "text": "Maria was furious. She was also very sad about what had happened.",
+              "reason": "Maria was furious. She was also very sad about what had happened. Combine the emotions into a more nuanced description, such as 'Maria's rage was mixed with deep sorrow, a toxic brew of emotions that left her reeling.'"
+            },
+            {
+              "id": 2,
+              "category": "Specificity",
+              "observation": "She felt betrayed and did not know what to do next.",
+              "recommendation": "Specify what she feels betrayed by and what options she considers before deciding on a course of action.",
+              "priority": "medium",
+              "text": "She felt betrayed and did not know what to do next.",
+              "reason": "She felt betrayed and did not know what to do next. Specify what she feels betrayed by and what options she considers before deciding on a course of action."
+            }
+          ]
+        },
+        {
+          "case": "telling-not-showing",
+          "run": 2,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Emotional Depth",
+            "Specificity"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 2,
+              "category": "Specificity",
+              "observation": "She felt betrayed and did not know what to do next.",
+              "recommendation": "Specify what she feels betrayed by and what options she considers, e.g., 'She felt betrayed by John’s betrayal and considered confronting him, seeking support from friends, or distancing herself completely.'",
+              "priority": "high",
+              "text": "She felt betrayed and did not know what to do next.",
+              "reason": "She felt betrayed and did not know what to do next. Specify what she feels betrayed by and what options she considers, e.g., 'She felt betrayed by John’s betrayal and considered confronting him, seeking support from friends, or distancing herself completely.'"
+            },
+            {
+              "id": 1,
+              "category": "Emotional Depth",
+              "observation": "Maria was furious. She was also very sad about what had happened.",
+              "recommendation": "Combine the emotions into a more nuanced description, such as 'Maria's rage was mixed with deep sorrow, a toxic brew of emotions that left her reeling.'",
+              "priority": "medium",
+              "text": "Maria was furious. She was also very sad about what had happened.",
+              "reason": "Maria was furious. She was also very sad about what had happened. Combine the emotions into a more nuanced description, such as 'Maria's rage was mixed with deep sorrow, a toxic brew of emotions that left her reeling.'"
+            }
+          ]
+        },
+        {
+          "case": "generic-dialogue",
+          "run": 0,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Lack of Action",
+            "Repetitive Dialogue"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Repetitive Dialogue",
+              "observation": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+              "recommendation": "Replace the repetitive dialogue with a single line that conveys the interaction, e.g., \"They exchanged polite greetings.\"",
+              "priority": "high",
+              "text": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+              "reason": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said. Replace the repetitive dialogue with a single line that conveys the interaction, e.g., \"They exchanged polite greetings.\""
+            },
+            {
+              "id": 2,
+              "category": "Lack of Action",
+              "observation": "The excerpt consists solely of dialogue without any accompanying action or description.",
+              "recommendation": "Add a brief action or description to show the characters' reactions, such as, \"She smiled and extended her hand, while he nodded politely, his eyes scanning the room.\"",
+              "priority": "medium",
+              "text": "The excerpt consists solely of dialogue without any accompanying action or description.",
+              "reason": "The excerpt consists solely of dialogue without any accompanying action or description. Add a brief action or description to show the characters' reactions, such as, \"She smiled and extended her hand, while he nodded politely, his eyes scanning the room.\""
+            }
+          ]
+        },
+        {
+          "case": "generic-dialogue",
+          "run": 1,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Lack of Subtext",
+            "Repetitive Dialogue"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Repetitive Dialogue",
+              "observation": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+              "recommendation": "Replace the repetitive dialogue with a single line that conveys the interaction, e.g., \"They exchanged polite greetings.\"",
+              "priority": "high",
+              "text": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+              "reason": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said. Replace the repetitive dialogue with a single line that conveys the interaction, e.g., \"They exchanged polite greetings.\""
+            },
+            {
+              "id": 2,
+              "category": "Lack of Subtext",
+              "observation": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+              "recommendation": "Add subtext by implying something beyond the words, e.g., \"She greeted him with a forced smile, while he seemed genuinely interested in her well-being.\"",
+              "priority": "medium",
+              "text": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+              "reason": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said. Add subtext by implying something beyond the words, e.g., \"She greeted him with a forced smile, while he seemed genuinely interested in her well-being.\""
+            }
+          ]
+        },
+        {
+          "case": "generic-dialogue",
+          "run": 2,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Lack of Action",
+            "Repetitive Dialogue"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Repetitive Dialogue",
+              "observation": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+              "recommendation": "Replace the repetitive dialogue with a single line that conveys the interaction, e.g., \"They exchanged polite greetings.\"",
+              "priority": "high",
+              "text": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+              "reason": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said. Replace the repetitive dialogue with a single line that conveys the interaction, e.g., \"They exchanged polite greetings.\""
+            },
+            {
+              "id": 2,
+              "category": "Lack of Action",
+              "observation": "The excerpt consists solely of dialogue without any accompanying action or description.",
+              "recommendation": "Add some action or description to show what the characters are doing while they talk, e.g., \"She smiled and extended her hand, shaking his as they greeted each other politely.\"",
+              "priority": "medium",
+              "text": "The excerpt consists solely of dialogue without any accompanying action or description.",
+              "reason": "The excerpt consists solely of dialogue without any accompanying action or description. Add some action or description to show what the characters are doing while they talk, e.g., \"She smiled and extended her hand, shaking his as they greeted each other politely.\""
+            }
+          ]
+        },
+        {
+          "case": "info-dump",
+          "run": 0,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Exposition",
+            "Narrative Risk"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "The passage introduces the founding of Everholt and the Council of Nine but does not provide any immediate stakes or conflict for the reader.",
+              "recommendation": "Introduce a current conflict or tension related to the Council of Nine or the founding charter to engage the reader immediately.",
+              "priority": "high",
+              "text": "The passage introduces the founding of Everholt and the Council of Nine but does not provide any immediate stakes or conflict for the reader.",
+              "reason": "The passage introduces the founding of Everholt and the Council of Nine but does not provide any immediate stakes or conflict for the reader. Introduce a current conflict or tension related to the Council of Nine or the founding charter to engage the reader immediately."
+            },
+            {
+              "id": 2,
+              "category": "Exposition",
+              "observation": "This passage is purely expository, providing background information without any scene, action, or character interaction.",
+              "recommendation": "Convert this into a scene where characters discuss the Council of Nine or the founding charter, or defer this information until it becomes relevant to the plot.",
+              "priority": "medium",
+              "text": "This passage is purely expository, providing background information without any scene, action, or character interaction.",
+              "reason": "This passage is purely expository, providing background information without any scene, action, or character interaction. Convert this into a scene where characters discuss the Council of Nine or the founding charter, or defer this information until it becomes relevant to the plot."
+            }
+          ]
+        },
+        {
+          "case": "info-dump",
+          "run": 1,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Exposition"
+          ],
+          "n": 1,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Exposition",
+              "observation": "The passage provides detailed historical information about the founding of Everholt and the Council of Nine.",
+              "recommendation": "Convert this into a scene where characters discuss the history, or defer this information until it becomes relevant to the plot.",
+              "priority": "high",
+              "text": "The passage provides detailed historical information about the founding of Everholt and the Council of Nine.",
+              "reason": "The passage provides detailed historical information about the founding of Everholt and the Council of Nine. Convert this into a scene where characters discuss the history, or defer this information until it becomes relevant to the plot."
+            }
+          ]
+        },
+        {
+          "case": "info-dump",
+          "run": 2,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Exposition",
+            "Narrative Risk"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "The passage provides historical context but does not engage the reader with immediate stakes or action.",
+              "recommendation": "Integrate this information into a scene or dialogue that involves the characters directly, such as a council meeting discussing current issues related to the founding charter.",
+              "priority": "high",
+              "text": "The passage provides historical context but does not engage the reader with immediate stakes or action.",
+              "reason": "The passage provides historical context but does not engage the reader with immediate stakes or action. Integrate this information into a scene or dialogue that involves the characters directly, such as a council meeting discussing current issues related to the founding charter."
+            },
+            {
+              "id": 2,
+              "category": "Exposition",
+              "observation": "This is a straightforward exposition about the founding of Everholt and the Council of Nine, lacking any scene, action, or character interaction.",
+              "recommendation": "Convert this into a scene where characters discuss the founding or the council's decisions, or defer this information until it becomes relevant to the plot.",
+              "priority": "medium",
+              "text": "This is a straightforward exposition about the founding of Everholt and the Council of Nine, lacking any scene, action, or character interaction.",
+              "reason": "This is a straightforward exposition about the founding of Everholt and the Council of Nine, lacking any scene, action, or character interaction. Convert this into a scene where characters discuss the founding or the council's decisions, or defer this information until it becomes relevant to the plot."
+            }
+          ]
+        },
+        {
+          "case": "flat-description",
+          "run": 0,
+          "error": null,
+          "detected": false,
+          "categories": [
+            "Narrative Risk",
+            "Repetitive Adjectives"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "The description of the house lacks any stakes or conflict, making it hard for the reader to care about the setting.",
+              "recommendation": "Introduce a character's reaction or a hint of tension related to the house, such as a mysterious noise or a character's reluctance to enter.",
+              "priority": "high",
+              "text": "The description of the house lacks any stakes or conflict, making it hard for the reader to care about the setting.",
+              "reason": "The description of the house lacks any stakes or conflict, making it hard for the reader to care about the setting. Introduce a character's reaction or a hint of tension related to the house, such as a mysterious noise or a character's reluctance to enter."
+            },
+            {
+              "id": 2,
+              "category": "Repetitive Adjectives",
+              "observation": "The word 'nice' is used three times in a short paragraph, which can feel redundant and unengaging.",
+              "recommendation": "Replace some of the 'nice' adjectives with more vivid or contrasting descriptions, such as 'cozy', 'majestic', or 'picturesque'.",
+              "priority": "medium",
+              "text": "The word 'nice' is used three times in a short paragraph, which can feel redundant and unengaging.",
+              "reason": "The word 'nice' is used three times in a short paragraph, which can feel redundant and unengaging. Replace some of the 'nice' adjectives with more vivid or contrasting descriptions, such as 'cozy', 'majestic', or 'picturesque'."
+            }
+          ]
+        },
+        {
+          "case": "flat-description",
+          "run": 1,
+          "error": null,
+          "detected": false,
+          "categories": [
+            "Exposition",
+            "Narrative Risk"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "The description is bland and fails to engage the reader. It does not create a clear sense of stakes or urgency.",
+              "recommendation": "Replace the description with one that evokes emotion or sets up a conflict. For example, 'The house loomed before her, its grandeur masking the secrets hidden behind its walls.'",
+              "priority": "high",
+              "text": "The description is bland and fails to engage the reader. It does not create a clear sense of stakes or urgency.",
+              "reason": "The description is bland and fails to engage the reader. It does not create a clear sense of stakes or urgency. Replace the description with one that evokes emotion or sets up a conflict. For example, 'The house loomed before her, its grandeur masking the secrets hidden behind its walls.'"
+            },
+            {
+              "id": 2,
+              "category": "Exposition",
+              "observation": "The description lacks any scene, action, or character presence, making it purely expository.",
+              "recommendation": "Convert this into a scene by adding dialogue, action, or internal thoughts. For instance, 'She stepped through the threshold, the grandeur of the house overwhelming her. “This place is a trap,” she whispered, glancing around suspiciously.'",
+              "priority": "high",
+              "text": "The description lacks any scene, action, or character presence, making it purely expository.",
+              "reason": "The description lacks any scene, action, or character presence, making it purely expository. Convert this into a scene by adding dialogue, action, or internal thoughts. For instance, 'She stepped through the threshold, the grandeur of the house overwhelming her. “This place is a trap,” she whispered, glancing around suspiciously.'"
+            }
+          ]
+        },
+        {
+          "case": "flat-description",
+          "run": 2,
+          "error": null,
+          "detected": false,
+          "categories": [
+            "Narrative Risk",
+            "Repetitive Adjectives"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "The description of the house lacks any stakes or conflict, making it hard for the reader to care about the setting.",
+              "recommendation": "Introduce a character's reaction or a hint of a problem, such as 'The house was grand, but the creaking floorboards underfoot suggested it might not be as solid as it seemed.'",
+              "priority": "high",
+              "text": "The description of the house lacks any stakes or conflict, making it hard for the reader to care about the setting.",
+              "reason": "The description of the house lacks any stakes or conflict, making it hard for the reader to care about the setting. Introduce a character's reaction or a hint of a problem, such as 'The house was grand, but the creaking floorboards underfoot suggested it might not be as solid as it seemed.'"
+            },
+            {
+              "id": 2,
+              "category": "Repetitive Adjectives",
+              "observation": "The word 'nice' is used three times in a short paragraph, which can feel redundant and unengaging.",
+              "recommendation": "Replace some of the 'nice' adjectives with more vivid descriptions, like 'The house was spacious and well-lit, with a lush, verdant garden that invited exploration.'",
+              "priority": "medium",
+              "text": "The word 'nice' is used three times in a short paragraph, which can feel redundant and unengaging.",
+              "reason": "The word 'nice' is used three times in a short paragraph, which can feel redundant and unengaging. Replace some of the 'nice' adjectives with more vivid descriptions, like 'The house was spacious and well-lit, with a lush, verdant garden that invited exploration.'"
+            }
+          ]
+        },
+        {
+          "case": "strong-1",
+          "run": 0,
+          "error": null,
+          "detected": null,
+          "categories": [
+            "Narrative Risk",
+            "Structure"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "The kettle being cold for an hour is a setup that doesn't seem to have any immediate payoff in this excerpt.",
+              "recommendation": "Integrate the kettle's state into the scene more directly, perhaps by having Ada notice it while she's making tea or by having the sound of a boiling kettle contrast with the quietness of the scene.",
+              "priority": "high",
+              "text": "The kettle being cold for an hour is a setup that doesn't seem to have any immediate payoff in this excerpt.",
+              "reason": "The kettle being cold for an hour is a setup that doesn't seem to have any immediate payoff in this excerpt. Integrate the kettle's state into the scene more directly, perhaps by having Ada notice it while she's making tea or by having the sound of a boiling kettle contrast with the quietness of the scene."
+            },
+            {
+              "id": 2,
+              "category": "Structure",
+              "observation": "The passage focuses on Ada's internal conflict about opening the letter, but there's no clear external action or scene to ground the moment.",
+              "recommendation": "Add some external action or setting details to create a stronger sense of place and tension. For example, describe the room around Ada or the sounds outside the window.",
+              "priority": "medium",
+              "text": "The passage focuses on Ada's internal conflict about opening the letter, but there's no clear external action or scene to ground the moment.",
+              "reason": "The passage focuses on Ada's internal conflict about opening the letter, but there's no clear external action or scene to ground the moment. Add some external action or setting details to create a stronger sense of place and tension. For example, describe the room around Ada or the sounds outside the window."
+            }
+          ]
+        },
+        {
+          "case": "strong-1",
+          "run": 1,
+          "error": null,
+          "detected": null,
+          "categories": [
+            "Exposition",
+            "Narrative Risk"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 2,
+              "category": "Exposition",
+              "observation": "The description of the kettle being cold for an hour is purely expository and does not advance the scene or character development.",
+              "recommendation": "Convert this into a more active scene, such as Ada pacing near the kettle, or having her interact with it in some way that reveals her tension or anticipation.",
+              "priority": "high",
+              "text": "The description of the kettle being cold for an hour is purely expository and does not advance the scene or character development.",
+              "reason": "The description of the kettle being cold for an hour is purely expository and does not advance the scene or character development. Convert this into a more active scene, such as Ada pacing near the kettle, or having her interact with it in some way that reveals her tension or anticipation."
+            },
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "The kettle being cold for an hour before Ada notices seems disconnected from the main action of the scene, which is about the letter.",
+              "recommendation": "Focus the scene more on Ada's emotional state and the significance of the letter, perhaps by showing her thoughts or actions related to the letter while she waits.",
+              "priority": "medium",
+              "text": "The kettle being cold for an hour before Ada notices seems disconnected from the main action of the scene, which is about the letter.",
+              "reason": "The kettle being cold for an hour before Ada notices seems disconnected from the main action of the scene, which is about the letter. Focus the scene more on Ada's emotional state and the significance of the letter, perhaps by showing her thoughts or actions related to the letter while she waits."
+            }
+          ]
+        },
+        {
+          "case": "strong-1",
+          "run": 2,
+          "error": null,
+          "detected": null,
+          "categories": [
+            "Exposition",
+            "Narrative Risk"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "Ada standing by the window with the letter does not create clear stakes or immediate tension.",
+              "recommendation": "Show Ada's reaction to the postman delivering a letter that might contain news about a loved one or a critical event, to establish a stronger emotional connection and raise the stakes.",
+              "priority": "high",
+              "text": "Ada standing by the window with the letter does not create clear stakes or immediate tension.",
+              "reason": "Ada standing by the window with the letter does not create clear stakes or immediate tension. Show Ada's reaction to the postman delivering a letter that might contain news about a loved one or a critical event, to establish a stronger emotional connection and raise the stakes."
+            },
+            {
+              "id": 2,
+              "category": "Exposition",
+              "observation": "The sentence 'The kettle had been cold for an hour before Ada noticed.' provides unnecessary detail that doesn't advance the plot or character development.",
+              "recommendation": "Remove the kettle detail and focus on Ada's emotional state and actions related to the letter.",
+              "priority": "medium",
+              "text": "The sentence 'The kettle had been cold for an hour before Ada noticed.' provides unnecessary detail that doesn't advance the plot or character development.",
+              "reason": "The sentence 'The kettle had been cold for an hour before Ada noticed.' provides unnecessary detail that doesn't advance the plot or character development. Remove the kettle detail and focus on Ada's emotional state and actions related to the letter."
+            }
+          ]
+        },
+        {
+          "case": "strong-2",
+          "run": 0,
+          "error": null,
+          "detected": null,
+          "categories": [
+            "Narrative Risk",
+            "Structure"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "The scene focuses on Tomas counting raindrops, which feels disconnected from the boy who used to count them.",
+              "recommendation": "Show Tomas connecting with the past by having him recall a specific interaction or memory with the boy, making the current action more meaningful.",
+              "priority": "high",
+              "text": "The scene focuses on Tomas counting raindrops, which feels disconnected from the boy who used to count them.",
+              "reason": "The scene focuses on Tomas counting raindrops, which feels disconnected from the boy who used to count them. Show Tomas connecting with the past by having him recall a specific interaction or memory with the boy, making the current action more meaningful."
+            },
+            {
+              "id": 2,
+              "category": "Structure",
+              "observation": "The transition from Tomas counting raindrops to the boy who used to count them is abrupt and lacks context.",
+              "recommendation": "Add a sentence or two explaining why Tomas is thinking about the boy, perhaps mentioning a recent event that triggered this memory.",
+              "priority": "medium",
+              "text": "The transition from Tomas counting raindrops to the boy who used to count them is abrupt and lacks context.",
+              "reason": "The transition from Tomas counting raindrops to the boy who used to count them is abrupt and lacks context. Add a sentence or two explaining why Tomas is thinking about the boy, perhaps mentioning a recent event that triggered this memory."
+            }
+          ]
+        },
+        {
+          "case": "strong-2",
+          "run": 1,
+          "error": null,
+          "detected": null,
+          "categories": [
+            "Narrative Risk",
+            "Structure"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "The scene focuses on Tomas counting raindrops, which feels disconnected from the promise of the boy who used to count them.",
+              "recommendation": "Show Tomas connecting with the past by having him recall a specific interaction or memory with the boy, making the current moment more meaningful.",
+              "priority": "high",
+              "text": "The scene focuses on Tomas counting raindrops, which feels disconnected from the promise of the boy who used to count them.",
+              "reason": "The scene focuses on Tomas counting raindrops, which feels disconnected from the promise of the boy who used to count them. Show Tomas connecting with the past by having him recall a specific interaction or memory with the boy, making the current moment more meaningful."
+            },
+            {
+              "id": 2,
+              "category": "Structure",
+              "observation": "The transition from Tomas counting raindrops to the boy who used to count them is abrupt and lacks a clear connection.",
+              "recommendation": "Add a sentence or two explaining why Tomas is thinking about the boy, perhaps mentioning a similar situation or a shared memory.",
+              "priority": "medium",
+              "text": "The transition from Tomas counting raindrops to the boy who used to count them is abrupt and lacks a clear connection.",
+              "reason": "The transition from Tomas counting raindrops to the boy who used to count them is abrupt and lacks a clear connection. Add a sentence or two explaining why Tomas is thinking about the boy, perhaps mentioning a similar situation or a shared memory."
+            }
+          ]
+        },
+        {
+          "case": "strong-2",
+          "run": 2,
+          "error": null,
+          "detected": null,
+          "categories": [
+            "Exposition",
+            "Narrative Risk"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "The scene focuses on Tomas counting raindrops and reminiscing about a boy who used to count them, but there's no clear connection to the current plot or character development.",
+              "recommendation": "Integrate Tomas's thoughts with the current narrative thread or establish a link to the ongoing story to maintain reader engagement.",
+              "priority": "high",
+              "text": "The scene focuses on Tomas counting raindrops and reminiscing about a boy who used to count them, but there's no clear connection to the current plot or character development.",
+              "reason": "The scene focuses on Tomas counting raindrops and reminiscing about a boy who used to count them, but there's no clear connection to the current plot or character development. Integrate Tomas's thoughts with the current narrative thread or establish a link to the ongoing story to maintain reader engagement."
+            },
+            {
+              "id": 2,
+              "category": "Exposition",
+              "observation": "The passage is primarily expository, providing background information about a past event without immediate scene or action.",
+              "recommendation": "Convert the expository elements into a scene or dialogue that advances the current plot or character development.",
+              "priority": "medium",
+              "text": "The passage is primarily expository, providing background information about a past event without immediate scene or action.",
+              "reason": "The passage is primarily expository, providing background information about a past event without immediate scene or action. Convert the expository elements into a scene or dialogue that advances the current plot or character development."
+            }
+          ]
+        },
+        {
+          "case": "strong-3",
+          "run": 0,
+          "error": null,
+          "detected": null,
+          "categories": [
+            "Narrative Risk",
+            "Structure"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "'You kept it,' she said. The music box sat between them on the table, its lid chipped, its dancer missing an arm. He shrugged as if it were nothing.",
+              "recommendation": "Show more of their reaction to the music box to clarify its significance. Perhaps have her touch it or him react emotionally.",
+              "priority": "high",
+              "text": "'You kept it,' she said. The music box sat between them on the table, its lid chipped, its dancer missing an arm. He shrugged as if it were nothing.",
+              "reason": "'You kept it,' she said. The music box sat between them on the table, its lid chipped, its dancer missing an arm. He shrugged as if it were nothing. Show more of their reaction to the music box to clarify its significance. Perhaps have her touch it or him react emotionally."
+            },
+            {
+              "id": 2,
+              "category": "Structure",
+              "observation": "It played four notes before it caught, and neither of them reached to wind it again.",
+              "recommendation": "Consider expanding this moment by showing their thoughts or reactions while the music box plays, or by having one of them attempt to wind it.",
+              "priority": "medium",
+              "text": "It played four notes before it caught, and neither of them reached to wind it again.",
+              "reason": "It played four notes before it caught, and neither of them reached to wind it again. Consider expanding this moment by showing their thoughts or reactions while the music box plays, or by having one of them attempt to wind it."
+            }
+          ]
+        },
+        {
+          "case": "strong-3",
+          "run": 1,
+          "error": null,
+          "detected": null,
+          "categories": [
+            "Action",
+            "Subtext"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Subtext",
+              "observation": "'You kept it,' she said. The music box sat between them on the table, its lid chipped, its dancer missing an arm.",
+              "recommendation": "Add subtext to her statement to show her feelings about him keeping the music box. For example, 'You kept it,' she said, her voice tinged with a mix of surprise and hurt.",
+              "priority": "high",
+              "text": "'You kept it,' she said. The music box sat between them on the table, its lid chipped, its dancer missing an arm.",
+              "reason": "'You kept it,' she said. The music box sat between them on the table, its lid chipped, its dancer missing an arm. Add subtext to her statement to show her feelings about him keeping the music box. For example, 'You kept it,' she said, her voice tinged with a mix of surprise and hurt."
+            },
+            {
+              "id": 2,
+              "category": "Action",
+              "observation": "He shrugged as if it were nothing.",
+              "recommendation": "Show more of his reaction. Perhaps he fidgets with the music box or looks away, indicating his discomfort or guilt.",
+              "priority": "medium",
+              "text": "He shrugged as if it were nothing.",
+              "reason": "He shrugged as if it were nothing. Show more of his reaction. Perhaps he fidgets with the music box or looks away, indicating his discomfort or guilt."
+            }
+          ]
+        },
+        {
+          "case": "strong-3",
+          "run": 2,
+          "error": null,
+          "detected": null,
+          "categories": [
+            "Action",
+            "Subtext"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Subtext",
+              "observation": "'You kept it,' she said. The music box sat between them on the table, its lid chipped, its dancer missing an arm.",
+              "recommendation": "Add subtext to her statement to show her feelings about him keeping the music box. For example, 'You kept it,' she said, her voice tinged with a mix of surprise and disappointment.",
+              "priority": "high",
+              "text": "'You kept it,' she said. The music box sat between them on the table, its lid chipped, its dancer missing an arm.",
+              "reason": "'You kept it,' she said. The music box sat between them on the table, its lid chipped, its dancer missing an arm. Add subtext to her statement to show her feelings about him keeping the music box. For example, 'You kept it,' she said, her voice tinged with a mix of surprise and disappointment."
+            },
+            {
+              "id": 2,
+              "category": "Action",
+              "observation": "He shrugged as if it were nothing.",
+              "recommendation": "Show more of his reaction. Perhaps he fidgets with the music box or looks away, indicating his discomfort or guilt.",
+              "priority": "medium",
+              "text": "He shrugged as if it were nothing.",
+              "reason": "He shrugged as if it were nothing. Show more of his reaction. Perhaps he fidgets with the music box or looks away, indicating his discomfort or guilt."
+            }
+          ]
+        }
+      ],
+      "dropped_items": []
+    },
+    "hygiene": {
+      "summary": {
+        "recall": 0.867,
+        "distinct_categories": 9,
+        "dup_pairs": 0,
+        "no_recommendation_items": 0,
+        "praise_in_observation_items": 0,
+        "items_total": 45,
+        "empty_or_error": 0,
+        "hygiene_dropped": []
+      },
+      "rows": [
+        {
+          "case": "repetitive-structure",
+          "run": 0,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Narrative Risk",
+            "Repetitive Actions"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Repetitive Actions",
+              "observation": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out.",
+              "recommendation": "Replace the repetitive actions with a single sentence or combine them into a more dynamic sequence. For example: 'She strode into the room, spotted the note on the table, snatched it up, and read it twice before setting it down.'",
+              "priority": "high",
+              "text": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out.",
+              "reason": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out. Replace the repetitive actions with a single sentence or combine them into a more dynamic sequence. For example: 'She strode into the room, spotted the note on the table, snatched it up, and read it twice before setting it down.'"
+            },
+            {
+              "id": 2,
+              "category": "Narrative Risk",
+              "observation": "The sequence of actions feels mechanical and unengaging, potentially risking the reader's interest.",
+              "recommendation": "Add some internal conflict or reaction to make the sequence more engaging. For example: 'She strode into the room, spotted the note on the table, snatched it up, and read it twice, her heart pounding with dread before she set it down.'",
+              "priority": "medium",
+              "text": "The sequence of actions feels mechanical and unengaging, potentially risking the reader's interest.",
+              "reason": "The sequence of actions feels mechanical and unengaging, potentially risking the reader's interest. Add some internal conflict or reaction to make the sequence more engaging. For example: 'She strode into the room, spotted the note on the table, snatched it up, and read it twice, her heart pounding with dread before she set it down.'"
+            }
+          ]
+        },
+        {
+          "case": "repetitive-structure",
+          "run": 1,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Narrative Risk",
+            "Repetitive Actions"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Repetitive Actions",
+              "observation": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out.",
+              "recommendation": "Replace the repetitive actions with a single sentence or combine them into a more dynamic sequence. For example: 'She strode into the room, spotted the note on the table, snatched it up, and read it twice before setting it down.'",
+              "priority": "high",
+              "text": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out.",
+              "reason": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out. Replace the repetitive actions with a single sentence or combine them into a more dynamic sequence. For example: 'She strode into the room, spotted the note on the table, snatched it up, and read it twice before setting it down.'"
+            },
+            {
+              "id": 2,
+              "category": "Narrative Risk",
+              "observation": "The sequence of actions feels mechanical and unengaging, potentially risking the reader's interest.",
+              "recommendation": "Add some internal conflict or reaction to make the sequence more engaging. For example: 'She strode into the room, spotted the note on the table, snatched it up, and read it twice, her heart pounding with dread before she set it down.'",
+              "priority": "medium",
+              "text": "The sequence of actions feels mechanical and unengaging, potentially risking the reader's interest.",
+              "reason": "The sequence of actions feels mechanical and unengaging, potentially risking the reader's interest. Add some internal conflict or reaction to make the sequence more engaging. For example: 'She strode into the room, spotted the note on the table, snatched it up, and read it twice, her heart pounding with dread before she set it down.'"
+            }
+          ]
+        },
+        {
+          "case": "repetitive-structure",
+          "run": 2,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Narrative Risk",
+            "Repetitive Actions"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Repetitive Actions",
+              "observation": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out.",
+              "recommendation": "Replace the repetitive actions with a single, more descriptive sentence. For example: 'She entered the room, spotted the note on the table, and picked it up, reading it twice before setting it down.'",
+              "priority": "high",
+              "text": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out.",
+              "reason": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out. Replace the repetitive actions with a single, more descriptive sentence. For example: 'She entered the room, spotted the note on the table, and picked it up, reading it twice before setting it down.'"
+            },
+            {
+              "id": 2,
+              "category": "Narrative Risk",
+              "observation": "The sequence of actions feels mechanical and lacks emotional depth or stakes for the reader.",
+              "recommendation": "Add internal thoughts or reactions to make the scene more engaging. For example: 'She entered the room, her heart racing as she spotted the note on the table. It was from him, and she picked it up, reading it twice, each time feeling a mix of hope and dread before setting it down.'",
+              "priority": "medium",
+              "text": "The sequence of actions feels mechanical and lacks emotional depth or stakes for the reader.",
+              "reason": "The sequence of actions feels mechanical and lacks emotional depth or stakes for the reader. Add internal thoughts or reactions to make the scene more engaging. For example: 'She entered the room, her heart racing as she spotted the note on the table. It was from him, and she picked it up, reading it twice, each time feeling a mix of hope and dread before setting it down.'"
+            }
+          ]
+        },
+        {
+          "case": "telling-not-showing",
+          "run": 0,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Emotional Depth",
+            "Specificity"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 2,
+              "category": "Specificity",
+              "observation": "She felt betrayed and did not know what to do next.",
+              "recommendation": "Specify what she feels betrayed by and what options she considers before deciding on a course of action.",
+              "priority": "high",
+              "text": "She felt betrayed and did not know what to do next.",
+              "reason": "She felt betrayed and did not know what to do next. Specify what she feels betrayed by and what options she considers before deciding on a course of action."
+            },
+            {
+              "id": 1,
+              "category": "Emotional Depth",
+              "observation": "Maria was furious. She was also very sad about what had happened.",
+              "recommendation": "Combine the emotions into a more nuanced description, such as 'Maria's rage was mixed with deep sorrow, a toxic brew of emotions that left her reeling.'",
+              "priority": "medium",
+              "text": "Maria was furious. She was also very sad about what had happened.",
+              "reason": "Maria was furious. She was also very sad about what had happened. Combine the emotions into a more nuanced description, such as 'Maria's rage was mixed with deep sorrow, a toxic brew of emotions that left her reeling.'"
+            }
+          ]
+        },
+        {
+          "case": "telling-not-showing",
+          "run": 1,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Emotional Depth",
+            "Specificity"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 2,
+              "category": "Specificity",
+              "observation": "She felt betrayed and did not know what to do next.",
+              "recommendation": "Specify what she feels betrayed by and what options she considers before deciding on a course of action.",
+              "priority": "high",
+              "text": "She felt betrayed and did not know what to do next.",
+              "reason": "She felt betrayed and did not know what to do next. Specify what she feels betrayed by and what options she considers before deciding on a course of action."
+            },
+            {
+              "id": 1,
+              "category": "Emotional Depth",
+              "observation": "Maria was furious. She was also very sad about what had happened.",
+              "recommendation": "Combine the emotions into a more nuanced description, such as 'Maria's rage burned hotly alongside a deep sadness, making her feel raw and exposed.'",
+              "priority": "medium",
+              "text": "Maria was furious. She was also very sad about what had happened.",
+              "reason": "Maria was furious. She was also very sad about what had happened. Combine the emotions into a more nuanced description, such as 'Maria's rage burned hotly alongside a deep sadness, making her feel raw and exposed.'"
+            }
+          ]
+        },
+        {
+          "case": "telling-not-showing",
+          "run": 2,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Emotional Depth",
+            "Specificity"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 2,
+              "category": "Specificity",
+              "observation": "She felt betrayed and did not know what to do next.",
+              "recommendation": "Specify what she feels betrayed by and what options she considers, e.g., 'She felt betrayed by John’s betrayal and considered confronting him, seeking support from friends, or distancing herself completely.'",
+              "priority": "high",
+              "text": "She felt betrayed and did not know what to do next.",
+              "reason": "She felt betrayed and did not know what to do next. Specify what she feels betrayed by and what options she considers, e.g., 'She felt betrayed by John’s betrayal and considered confronting him, seeking support from friends, or distancing herself completely.'"
+            },
+            {
+              "id": 1,
+              "category": "Emotional Depth",
+              "observation": "Maria was furious. She was also very sad about what had happened.",
+              "recommendation": "Combine the emotions into a more nuanced description, such as 'Maria's rage was mixed with deep sorrow, a toxic brew of emotions that left her reeling.'",
+              "priority": "medium",
+              "text": "Maria was furious. She was also very sad about what had happened.",
+              "reason": "Maria was furious. She was also very sad about what had happened. Combine the emotions into a more nuanced description, such as 'Maria's rage was mixed with deep sorrow, a toxic brew of emotions that left her reeling.'"
+            }
+          ]
+        },
+        {
+          "case": "generic-dialogue",
+          "run": 0,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Lack of Subtext",
+            "Repetitive Dialogue"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Repetitive Dialogue",
+              "observation": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+              "recommendation": "Replace the repetitive dialogue with a single line that conveys the interaction, e.g., \"They exchanged polite greetings.\"",
+              "priority": "high",
+              "text": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+              "reason": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said. Replace the repetitive dialogue with a single line that conveys the interaction, e.g., \"They exchanged polite greetings.\""
+            },
+            {
+              "id": 2,
+              "category": "Lack of Subtext",
+              "observation": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+              "recommendation": "Add subtext by implying deeper meaning or tension, e.g., \"She greeted him with a forced smile, and he responded with a guarded nod.\"",
+              "priority": "medium",
+              "text": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+              "reason": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said. Add subtext by implying deeper meaning or tension, e.g., \"She greeted him with a forced smile, and he responded with a guarded nod.\""
+            }
+          ]
+        },
+        {
+          "case": "generic-dialogue",
+          "run": 1,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Repetitive Dialogue",
+            "Stilted Conversation"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Repetitive Dialogue",
+              "observation": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+              "recommendation": "Replace the repetitive dialogue with a single line that conveys the exchange, e.g., 'They exchanged polite greetings.'",
+              "priority": "high",
+              "text": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+              "reason": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said. Replace the repetitive dialogue with a single line that conveys the exchange, e.g., 'They exchanged polite greetings.'"
+            },
+            {
+              "id": 2,
+              "category": "Stilted Conversation",
+              "observation": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+              "recommendation": "Make the conversation more natural by adding context or emotion, e.g., 'She greeted him with a smile. He returned it, though his eyes held a hint of worry.'",
+              "priority": "medium",
+              "text": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+              "reason": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said. Make the conversation more natural by adding context or emotion, e.g., 'She greeted him with a smile. He returned it, though his eyes held a hint of worry.'"
+            }
+          ]
+        },
+        {
+          "case": "generic-dialogue",
+          "run": 2,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Repetitive Dialogue",
+            "Stilted Conversation"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Repetitive Dialogue",
+              "observation": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+              "recommendation": "Replace the repetitive dialogue with a single line that conveys the exchange, e.g., 'They exchanged polite greetings.'",
+              "priority": "high",
+              "text": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+              "reason": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said. Replace the repetitive dialogue with a single line that conveys the exchange, e.g., 'They exchanged polite greetings.'"
+            },
+            {
+              "id": 2,
+              "category": "Stilted Conversation",
+              "observation": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+              "recommendation": "Make the conversation more natural by varying the responses, e.g., 'Hello,' she said. 'How are you?' he asked. 'I’m doing well, thanks,' she replied. 'That’s good to hear,' he said.",
+              "priority": "medium",
+              "text": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+              "reason": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said. Make the conversation more natural by varying the responses, e.g., 'Hello,' she said. 'How are you?' he asked. 'I’m doing well, thanks,' she replied. 'That’s good to hear,' he said."
+            }
+          ]
+        },
+        {
+          "case": "info-dump",
+          "run": 0,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Exposition"
+          ],
+          "n": 1,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Exposition",
+              "observation": "The passage provides detailed historical information about the founding of Everholt and the Council of Nine.",
+              "recommendation": "Convert this into a scene or integrate it more dynamically into the narrative. For example, you could have a character reading the founding charter or discussing its significance.",
+              "priority": "high",
+              "text": "The passage provides detailed historical information about the founding of Everholt and the Council of Nine.",
+              "reason": "The passage provides detailed historical information about the founding of Everholt and the Council of Nine. Convert this into a scene or integrate it more dynamically into the narrative. For example, you could have a character reading the founding charter or discussing its significance."
+            }
+          ]
+        },
+        {
+          "case": "info-dump",
+          "run": 1,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Exposition"
+          ],
+          "n": 1,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Exposition",
+              "observation": "The passage provides historical context about the founding of Everholt and the Council of Nine, but it lacks any immediate engagement with characters or current events.",
+              "recommendation": "Convert this into a scene where the narrator or a character references the Council of Nine in a way that advances the plot or reveals something about the current state of the kingdom.",
+              "priority": "high",
+              "text": "The passage provides historical context about the founding of Everholt and the Council of Nine, but it lacks any immediate engagement with characters or current events.",
+              "reason": "The passage provides historical context about the founding of Everholt and the Council of Nine, but it lacks any immediate engagement with characters or current events. Convert this into a scene where the narrator or a character references the Council of Nine in a way that advances the plot or reveals something about the current state of the kingdom."
+            }
+          ]
+        },
+        {
+          "case": "info-dump",
+          "run": 2,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Exposition"
+          ],
+          "n": 1,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Exposition",
+              "observation": "The passage provides detailed historical information about the founding of Everholt and the Council of Nine.",
+              "recommendation": "Convert this into a scene where the narrator or a character discovers or discusses this information, rather than presenting it as a static fact.",
+              "priority": "high",
+              "text": "The passage provides detailed historical information about the founding of Everholt and the Council of Nine.",
+              "reason": "The passage provides detailed historical information about the founding of Everholt and the Council of Nine. Convert this into a scene where the narrator or a character discovers or discusses this information, rather than presenting it as a static fact."
+            }
+          ]
+        },
+        {
+          "case": "flat-description",
+          "run": 0,
+          "error": null,
+          "detected": false,
+          "categories": [
+            "Exposition",
+            "Narrative Risk"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "The description is bland and fails to engage the reader. It does not create a clear sense of stakes or urgency.",
+              "recommendation": "Replace the description with one that evokes emotion or sets up a conflict. For example, 'The house loomed before her, its grandeur masking the secrets hidden behind its walls.'",
+              "priority": "high",
+              "text": "The description is bland and fails to engage the reader. It does not create a clear sense of stakes or urgency.",
+              "reason": "The description is bland and fails to engage the reader. It does not create a clear sense of stakes or urgency. Replace the description with one that evokes emotion or sets up a conflict. For example, 'The house loomed before her, its grandeur masking the secrets hidden behind its walls.'"
+            },
+            {
+              "id": 2,
+              "category": "Exposition",
+              "observation": "The description lacks any scene, action, or character presence, making it purely expository.",
+              "recommendation": "Convert this into a scene by adding dialogue, action, or internal thoughts. For instance, 'She stepped through the threshold, the opulence of the foyer striking her. “This place is a trap,” she whispered, glancing around suspiciously.'",
+              "priority": "high",
+              "text": "The description lacks any scene, action, or character presence, making it purely expository.",
+              "reason": "The description lacks any scene, action, or character presence, making it purely expository. Convert this into a scene by adding dialogue, action, or internal thoughts. For instance, 'She stepped through the threshold, the opulence of the foyer striking her. “This place is a trap,” she whispered, glancing around suspiciously.'"
+            }
+          ]
+        },
+        {
+          "case": "flat-description",
+          "run": 1,
+          "error": null,
+          "detected": false,
+          "categories": [
+            "Exposition",
+            "Narrative Risk"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "The description is bland and fails to engage the reader. It does not create a clear sense of stakes or urgency.",
+              "recommendation": "Replace the description with something that evokes emotion or sets up a conflict. For example, 'The house loomed before her, its grandeur masking the secrets hidden behind its walls.'",
+              "priority": "high",
+              "text": "The description is bland and fails to engage the reader. It does not create a clear sense of stakes or urgency.",
+              "reason": "The description is bland and fails to engage the reader. It does not create a clear sense of stakes or urgency. Replace the description with something that evokes emotion or sets up a conflict. For example, 'The house loomed before her, its grandeur masking the secrets hidden behind its walls.'"
+            },
+            {
+              "id": 2,
+              "category": "Exposition",
+              "observation": "The description lacks any scene, action, or character presence, making it purely expository.",
+              "recommendation": "Convert this into a scene by adding dialogue, action, or internal thoughts. For instance, 'She stepped through the threshold, the opulence of the foyer striking her. “This place is a trap,” she whispered, glancing around suspiciously.'",
+              "priority": "high",
+              "text": "The description lacks any scene, action, or character presence, making it purely expository.",
+              "reason": "The description lacks any scene, action, or character presence, making it purely expository. Convert this into a scene by adding dialogue, action, or internal thoughts. For instance, 'She stepped through the threshold, the opulence of the foyer striking her. “This place is a trap,” she whispered, glancing around suspiciously.'"
+            }
+          ]
+        },
+        {
+          "case": "flat-description",
+          "run": 2,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Narrative Risk",
+            "Repetitive Adjectives"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "The description of the house is bland and lacks any stakes or conflict.",
+              "recommendation": "Add a scene or conflict related to the house, such as a mysterious noise or a hidden room.",
+              "priority": "high",
+              "text": "The description of the house is bland and lacks any stakes or conflict.",
+              "reason": "The description of the house is bland and lacks any stakes or conflict. Add a scene or conflict related to the house, such as a mysterious noise or a hidden room."
+            },
+            {
+              "id": 2,
+              "category": "Repetitive Adjectives",
+              "observation": "The word 'nice' is used three times in a row, which can feel redundant.",
+              "recommendation": "Replace one of the 'nice' adjectives with a more specific descriptor, like 'cozy' or 'picturesque'.",
+              "priority": "medium",
+              "text": "The word 'nice' is used three times in a row, which can feel redundant.",
+              "reason": "The word 'nice' is used three times in a row, which can feel redundant. Replace one of the 'nice' adjectives with a more specific descriptor, like 'cozy' or 'picturesque'."
+            }
+          ]
+        },
+        {
+          "case": "strong-1",
+          "run": 0,
+          "error": null,
+          "detected": null,
+          "categories": [
+            "Exposition",
+            "Narrative Risk"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "The scene focuses on Ada's internal conflict about opening the letter, but it doesn't show any external action or consequence of this decision.",
+              "recommendation": "Add a scene element that shows Ada's decision having an impact, such as her reacting to the postman's arrival or the letter's contents.",
+              "priority": "high",
+              "text": "The scene focuses on Ada's internal conflict about opening the letter, but it doesn't show any external action or consequence of this decision.",
+              "reason": "The scene focuses on Ada's internal conflict about opening the letter, but it doesn't show any external action or consequence of this decision. Add a scene element that shows Ada's decision having an impact, such as her reacting to the postman's arrival or the letter's contents."
+            },
+            {
+              "id": 2,
+              "category": "Exposition",
+              "observation": "The first sentence provides background information about the kettle being cold for an hour, which is not directly relevant to the current scene.",
+              "recommendation": "Remove the sentence about the kettle or integrate it more seamlessly into the narrative, perhaps by showing Ada noticing the kettle and then moving to the window.",
+              "priority": "medium",
+              "text": "The first sentence provides background information about the kettle being cold for an hour, which is not directly relevant to the current scene.",
+              "reason": "The first sentence provides background information about the kettle being cold for an hour, which is not directly relevant to the current scene. Remove the sentence about the kettle or integrate it more seamlessly into the narrative, perhaps by showing Ada noticing the kettle and then moving to the window."
+            }
+          ]
+        },
+        {
+          "case": "strong-1",
+          "run": 1,
+          "error": null,
+          "detected": null,
+          "categories": [
+            "Exposition",
+            "Narrative Risk"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "The scene focuses on Ada's internal conflict about opening the letter, but it doesn't show any external action or consequence of this decision.",
+              "recommendation": "Add a scene element that shows Ada's decision having an impact, such as her reacting to the postman's arrival or the letter's contents.",
+              "priority": "high",
+              "text": "The scene focuses on Ada's internal conflict about opening the letter, but it doesn't show any external action or consequence of this decision.",
+              "reason": "The scene focuses on Ada's internal conflict about opening the letter, but it doesn't show any external action or consequence of this decision. Add a scene element that shows Ada's decision having an impact, such as her reacting to the postman's arrival or the letter's contents."
+            },
+            {
+              "id": 2,
+              "category": "Exposition",
+              "observation": "The first sentence provides backstory about the kettle being cold for an hour, which is not directly relevant to the current scene and seems to interrupt the flow.",
+              "recommendation": "Remove the backstory about the kettle or integrate it more smoothly into the narrative, perhaps by showing Ada noticing the kettle and then moving to the letter.",
+              "priority": "medium",
+              "text": "The first sentence provides backstory about the kettle being cold for an hour, which is not directly relevant to the current scene and seems to interrupt the flow.",
+              "reason": "The first sentence provides backstory about the kettle being cold for an hour, which is not directly relevant to the current scene and seems to interrupt the flow. Remove the backstory about the kettle or integrate it more smoothly into the narrative, perhaps by showing Ada noticing the kettle and then moving to the letter."
+            }
+          ]
+        },
+        {
+          "case": "strong-1",
+          "run": 2,
+          "error": null,
+          "detected": null,
+          "categories": [
+            "Narrative Risk",
+            "Show Don't Tell"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 2,
+              "category": "Show Don't Tell",
+              "observation": "Ada 'did not open it, because opening it would make it true.' This is telling rather than showing Ada's emotional state.",
+              "recommendation": "Describe Ada's physical actions or reactions instead, such as her fingers hovering over the letter, her eyes darting around the room, or her breathing becoming shallow.",
+              "priority": "high",
+              "text": "Ada 'did not open it, because opening it would make it true.' This is telling rather than showing Ada's emotional state.",
+              "reason": "Ada 'did not open it, because opening it would make it true.' This is telling rather than showing Ada's emotional state. Describe Ada's physical actions or reactions instead, such as her fingers hovering over the letter, her eyes darting around the room, or her breathing becoming shallow."
+            },
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "The scene focuses on Ada's internal conflict about opening the letter, but it doesn't show any external action or consequence of this decision.",
+              "recommendation": "Add a small action or reaction that shows the consequences of her decision, such as her hand trembling as she considers opening the letter or the postman's bicycle suddenly stopping outside her house.",
+              "priority": "medium",
+              "text": "The scene focuses on Ada's internal conflict about opening the letter, but it doesn't show any external action or consequence of this decision.",
+              "reason": "The scene focuses on Ada's internal conflict about opening the letter, but it doesn't show any external action or consequence of this decision. Add a small action or reaction that shows the consequences of her decision, such as her hand trembling as she considers opening the letter or the postman's bicycle suddenly stopping outside her house."
+            }
+          ]
+        },
+        {
+          "case": "strong-2",
+          "run": 0,
+          "error": null,
+          "detected": null,
+          "categories": [
+            "Narrative Risk",
+            "Structure"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "The scene focuses on Tomas counting raindrops, which feels disconnected from the promise of the boy who used to live upstairs.",
+              "recommendation": "Show Tomas interacting with the past by having him find a clue or remember something related to the boy, thus tying the present moment more closely to the narrative.",
+              "priority": "high",
+              "text": "The scene focuses on Tomas counting raindrops, which feels disconnected from the promise of the boy who used to live upstairs.",
+              "reason": "The scene focuses on Tomas counting raindrops, which feels disconnected from the promise of the boy who used to live upstairs. Show Tomas interacting with the past by having him find a clue or remember something related to the boy, thus tying the present moment more closely to the narrative."
+            },
+            {
+              "id": 2,
+              "category": "Structure",
+              "observation": "The transition from Tomas's current action to the memory of the boy is abrupt and lacks a clear bridge.",
+              "recommendation": "Add a sentence or two to smooth the transition, perhaps describing how Tomas notices something that reminds him of the boy, like a similar sound or a forgotten object.",
+              "priority": "medium",
+              "text": "The transition from Tomas's current action to the memory of the boy is abrupt and lacks a clear bridge.",
+              "reason": "The transition from Tomas's current action to the memory of the boy is abrupt and lacks a clear bridge. Add a sentence or two to smooth the transition, perhaps describing how Tomas notices something that reminds him of the boy, like a similar sound or a forgotten object."
+            }
+          ]
+        },
+        {
+          "case": "strong-2",
+          "run": 1,
+          "error": null,
+          "detected": null,
+          "categories": [
+            "Narrative Risk",
+            "Structure"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "The scene focuses on Tomas counting raindrops, which feels disconnected from the promise of the boy who used to live upstairs.",
+              "recommendation": "Show Tomas interacting with the past by having him find a clue or remember something related to the boy, thus tying the present moment more closely to the narrative.",
+              "priority": "high",
+              "text": "The scene focuses on Tomas counting raindrops, which feels disconnected from the promise of the boy who used to live upstairs.",
+              "reason": "The scene focuses on Tomas counting raindrops, which feels disconnected from the promise of the boy who used to live upstairs. Show Tomas interacting with the past by having him find a clue or remember something related to the boy, thus tying the present moment more closely to the narrative."
+            },
+            {
+              "id": 2,
+              "category": "Structure",
+              "observation": "The passage is purely expository, providing background information without any immediate scene or action.",
+              "recommendation": "Convert this into a scene where Tomas finds a physical reminder of the boy, like a broken toy or a note, and reflects on it.",
+              "priority": "medium",
+              "text": "The passage is purely expository, providing background information without any immediate scene or action.",
+              "reason": "The passage is purely expository, providing background information without any immediate scene or action. Convert this into a scene where Tomas finds a physical reminder of the boy, like a broken toy or a note, and reflects on it."
+            }
+          ]
+        },
+        {
+          "case": "strong-2",
+          "run": 2,
+          "error": null,
+          "detected": null,
+          "categories": [
+            "Exposition",
+            "Narrative Risk"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "The scene focuses on Tomas counting raindrops, which feels disconnected from the promise of the boy who used to live upstairs.",
+              "recommendation": "Show Tomas interacting with the past by having him find a clue or remember something related to the boy, thus tying the two elements more closely together.",
+              "priority": "high",
+              "text": "The scene focuses on Tomas counting raindrops, which feels disconnected from the promise of the boy who used to live upstairs.",
+              "reason": "The scene focuses on Tomas counting raindrops, which feels disconnected from the promise of the boy who used to live upstairs. Show Tomas interacting with the past by having him find a clue or remember something related to the boy, thus tying the two elements more closely together."
+            },
+            {
+              "id": 2,
+              "category": "Exposition",
+              "observation": "The passage provides backstory about the boy who lived upstairs, but there's no immediate scene or action involving Tomas or this boy.",
+              "recommendation": "Integrate the backstory into a scene where Tomas discovers something about the boy, such as finding a diary or a photo, to make the information more relevant and engaging.",
+              "priority": "medium",
+              "text": "The passage provides backstory about the boy who lived upstairs, but there's no immediate scene or action involving Tomas or this boy.",
+              "reason": "The passage provides backstory about the boy who lived upstairs, but there's no immediate scene or action involving Tomas or this boy. Integrate the backstory into a scene where Tomas discovers something about the boy, such as finding a diary or a photo, to make the information more relevant and engaging."
+            }
+          ]
+        },
+        {
+          "case": "strong-3",
+          "run": 0,
+          "error": null,
+          "detected": null,
+          "categories": [
+            "Narrative Risk",
+            "Structure"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "'You kept it,' she said. The music box sat between them on the table, its lid chipped, its dancer missing an arm. He shrugged as if it were nothing.",
+              "recommendation": "Show more of their reaction to the music box to clarify its significance. Perhaps have her touch it or him react emotionally.",
+              "priority": "high",
+              "text": "'You kept it,' she said. The music box sat between them on the table, its lid chipped, its dancer missing an arm. He shrugged as if it were nothing.",
+              "reason": "'You kept it,' she said. The music box sat between them on the table, its lid chipped, its dancer missing an arm. He shrugged as if it were nothing. Show more of their reaction to the music box to clarify its significance. Perhaps have her touch it or him react emotionally."
+            },
+            {
+              "id": 2,
+              "category": "Structure",
+              "observation": "It played four notes before it caught, and neither of them reached to wind it again.",
+              "recommendation": "Consider expanding this moment by describing their thoughts or reactions as the music box plays, or by having one of them attempt to wind it.",
+              "priority": "medium",
+              "text": "It played four notes before it caught, and neither of them reached to wind it again.",
+              "reason": "It played four notes before it caught, and neither of them reached to wind it again. Consider expanding this moment by describing their thoughts or reactions as the music box plays, or by having one of them attempt to wind it."
+            }
+          ]
+        },
+        {
+          "case": "strong-3",
+          "run": 1,
+          "error": null,
+          "detected": null,
+          "categories": [
+            "Narrative Risk",
+            "Structure"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "'You kept it,' she said. The music box sat between them on the table, its lid chipped, its dancer missing an arm. He shrugged as if it were nothing.",
+              "recommendation": "Show more of their reaction to the music box to clarify its significance. Perhaps have her touch it or him react emotionally.",
+              "priority": "high",
+              "text": "'You kept it,' she said. The music box sat between them on the table, its lid chipped, its dancer missing an arm. He shrugged as if it were nothing.",
+              "reason": "'You kept it,' she said. The music box sat between them on the table, its lid chipped, its dancer missing an arm. He shrugged as if it were nothing. Show more of their reaction to the music box to clarify its significance. Perhaps have her touch it or him react emotionally."
+            },
+            {
+              "id": 2,
+              "category": "Structure",
+              "observation": "It played four notes before it caught, and neither of them reached to wind it again.",
+              "recommendation": "Consider expanding this moment by showing their thoughts or reactions while the music box plays, or by having one of them attempt to wind it.",
+              "priority": "medium",
+              "text": "It played four notes before it caught, and neither of them reached to wind it again.",
+              "reason": "It played four notes before it caught, and neither of them reached to wind it again. Consider expanding this moment by showing their thoughts or reactions while the music box plays, or by having one of them attempt to wind it."
+            }
+          ]
+        },
+        {
+          "case": "strong-3",
+          "run": 2,
+          "error": null,
+          "detected": null,
+          "categories": [
+            "Narrative Risk",
+            "Structure"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "'You kept it,' she said. The music box sat between them on the table, its lid chipped, its dancer missing an arm. He shrugged as if it were nothing.",
+              "recommendation": "Show more of their reaction to the music box to clarify the stakes and emotional weight. Perhaps have her touch it or him react more strongly.",
+              "priority": "high",
+              "text": "'You kept it,' she said. The music box sat between them on the table, its lid chipped, its dancer missing an arm. He shrugged as if it were nothing.",
+              "reason": "'You kept it,' she said. The music box sat between them on the table, its lid chipped, its dancer missing an arm. He shrugged as if it were nothing. Show more of their reaction to the music box to clarify the stakes and emotional weight. Perhaps have her touch it or him react more strongly."
+            },
+            {
+              "id": 2,
+              "category": "Structure",
+              "observation": "It played four notes before it caught, and neither of them reached to wind it again.",
+              "recommendation": "Consider expanding this moment by showing their thoughts or reactions while the music box plays, or by having one of them attempt to wind it again.",
+              "priority": "medium",
+              "text": "It played four notes before it caught, and neither of them reached to wind it again.",
+              "reason": "It played four notes before it caught, and neither of them reached to wind it again. Consider expanding this moment by showing their thoughts or reactions while the music box plays, or by having one of them attempt to wind it again."
+            }
+          ]
+        }
+      ],
+      "dropped_items": []
+    },
+    "hygiene+sharp": {
+      "summary": {
+        "recall": 0.933,
+        "distinct_categories": 11,
+        "dup_pairs": 0,
+        "no_recommendation_items": 0,
+        "praise_in_observation_items": 0,
+        "items_total": 46,
+        "empty_or_error": 0,
+        "hygiene_dropped": []
+      },
+      "rows": [
+        {
+          "case": "repetitive-structure",
+          "run": 0,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Narrative Risk",
+            "Repetitive Actions"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Repetitive Actions",
+              "observation": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out.",
+              "recommendation": "Combine the actions into one descriptive sentence: 'She entered the room, found the note on the table, picked it up, read it twice, and set it down.'",
+              "priority": "high",
+              "text": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out.",
+              "reason": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out. Combine the actions into one descriptive sentence: 'She entered the room, found the note on the table, picked it up, read it twice, and set it down.'"
+            },
+            {
+              "id": 2,
+              "category": "Narrative Risk",
+              "observation": "The sequence of actions feels mechanical and lacks emotional depth or stakes for the reader.",
+              "recommendation": "Enhance the scene by adding internal thoughts: 'She entered the room, her pulse quickening as she spotted the note on the table. It was from him, and she picked it up, reading it twice, each time feeling a surge of hope and a wave of fear before setting it down.', thereby increasing emotional engagement.",
+              "priority": "medium",
+              "text": "The sequence of actions feels mechanical and lacks emotional depth or stakes for the reader.",
+              "reason": "The sequence of actions feels mechanical and lacks emotional depth or stakes for the reader. Enhance the scene by adding internal thoughts: 'She entered the room, her pulse quickening as she spotted the note on the table. It was from him, and she picked it up, reading it twice, each time feeling a surge of hope and a wave of fear before setting it down.', thereby increasing emotional engagement."
+            }
+          ]
+        },
+        {
+          "case": "repetitive-structure",
+          "run": 1,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Narrative Risk",
+            "Repetitive Actions"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Repetitive Actions",
+              "observation": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out.",
+              "recommendation": "Combine the actions into a more dynamic sequence: 'She strode into the room, spotted the note on the table, snatched it up, and read it twice before setting it down.'",
+              "priority": "high",
+              "text": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out.",
+              "reason": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out. Combine the actions into a more dynamic sequence: 'She strode into the room, spotted the note on the table, snatched it up, and read it twice before setting it down.'"
+            },
+            {
+              "id": 2,
+              "category": "Narrative Risk",
+              "observation": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out.",
+              "recommendation": "Add tension by revealing the note contains crucial information: 'She walked into the room, saw the note on the table, snatched it up, and read it twice, her heart racing as she realized the contents were critical.'",
+              "priority": "medium",
+              "text": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out.",
+              "reason": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out. Add tension by revealing the note contains crucial information: 'She walked into the room, saw the note on the table, snatched it up, and read it twice, her heart racing as she realized the contents were critical.'"
+            }
+          ]
+        },
+        {
+          "case": "repetitive-structure",
+          "run": 2,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Narrative Risk",
+            "Repetitive Actions"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Repetitive Actions",
+              "observation": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out.",
+              "recommendation": "Combine the actions into one descriptive sentence: 'She entered the room, found the note on the table, picked it up, read it intently, set it down, and left.'",
+              "priority": "high",
+              "text": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out.",
+              "reason": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out. Combine the actions into one descriptive sentence: 'She entered the room, found the note on the table, picked it up, read it intently, set it down, and left.'"
+            },
+            {
+              "id": 2,
+              "category": "Narrative Risk",
+              "observation": "The sequence of actions feels mechanical and lacks emotional depth or stakes.",
+              "recommendation": "Enhance the emotional impact by adding internal thoughts: 'She entered the room, her pulse quickening as she spotted the note on the table. It was from him, and she picked it up, reading it intently before setting it down, her mind racing with possibilities.', thereby increasing the narrative tension.",
+              "priority": "medium",
+              "text": "The sequence of actions feels mechanical and lacks emotional depth or stakes.",
+              "reason": "The sequence of actions feels mechanical and lacks emotional depth or stakes. Enhance the emotional impact by adding internal thoughts: 'She entered the room, her pulse quickening as she spotted the note on the table. It was from him, and she picked it up, reading it intently before setting it down, her mind racing with possibilities.', thereby increasing the narrative tension."
+            }
+          ]
+        },
+        {
+          "case": "telling-not-showing",
+          "run": 0,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Emotional Depth",
+            "Specificity"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 2,
+              "category": "Specificity",
+              "observation": "She felt betrayed and did not know what to do next.",
+              "recommendation": "Specify what she feels betrayed by and what options she considers, e.g., 'She felt betrayed by John’s infidelity and considered confronting him, seeking support from friends, or distancing herself completely.'",
+              "priority": "high",
+              "text": "She felt betrayed and did not know what to do next.",
+              "reason": "She felt betrayed and did not know what to do next. Specify what she feels betrayed by and what options she considers, e.g., 'She felt betrayed by John’s infidelity and considered confronting him, seeking support from friends, or distancing herself completely.'"
+            },
+            {
+              "id": 1,
+              "category": "Emotional Depth",
+              "observation": "Maria was furious. She was also very sad about what had happened.",
+              "recommendation": "Combine the emotions into a more nuanced description, such as 'Maria's seething fury was intertwined with profound sadness, a complex mix of emotions that left her overwhelmed.'",
+              "priority": "medium",
+              "text": "Maria was furious. She was also very sad about what had happened.",
+              "reason": "Maria was furious. She was also very sad about what had happened. Combine the emotions into a more nuanced description, such as 'Maria's seething fury was intertwined with profound sadness, a complex mix of emotions that left her overwhelmed.'"
+            }
+          ]
+        },
+        {
+          "case": "telling-not-showing",
+          "run": 1,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Emotional Depth",
+            "Stake Clarity"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 2,
+              "category": "Stake Clarity",
+              "observation": "She felt betrayed and did not know what to do next.",
+              "recommendation": "Clarify the stakes by specifying what being betrayed means for Maria and what consequences she fears. For example, 'She felt betrayed by her best friend, and the thought of losing her friendship sent a chill down her spine. What if her friend never spoke to her again?'",
+              "priority": "high",
+              "text": "She felt betrayed and did not know what to do next.",
+              "reason": "She felt betrayed and did not know what to do next. Clarify the stakes by specifying what being betrayed means for Maria and what consequences she fears. For example, 'She felt betrayed by her best friend, and the thought of losing her friendship sent a chill down her spine. What if her friend never spoke to her again?'"
+            },
+            {
+              "id": 1,
+              "category": "Emotional Depth",
+              "observation": "Maria was furious. She was also very sad about what had happened.",
+              "recommendation": "Combine the emotions into a more nuanced description, such as 'Maria's rage was mixed with deep sorrow, a toxic brew of emotions that left her reeling.'",
+              "priority": "medium",
+              "text": "Maria was furious. She was also very sad about what had happened.",
+              "reason": "Maria was furious. She was also very sad about what had happened. Combine the emotions into a more nuanced description, such as 'Maria's rage was mixed with deep sorrow, a toxic brew of emotions that left her reeling.'"
+            }
+          ]
+        },
+        {
+          "case": "telling-not-showing",
+          "run": 2,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "High-Level Emotion",
+            "Unclear Stakes"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "High-Level Emotion",
+              "observation": "Maria was furious. She was also very sad about what had happened.",
+              "recommendation": "Merge the emotions into a more nuanced description: 'Maria was consumed by a storm of fury and sorrow, her heart heavy with betrayal.'",
+              "priority": "high",
+              "text": "Maria was furious. She was also very sad about what had happened.",
+              "reason": "Maria was furious. She was also very sad about what had happened. Merge the emotions into a more nuanced description: 'Maria was consumed by a storm of fury and sorrow, her heart heavy with betrayal.'"
+            },
+            {
+              "id": 2,
+              "category": "Unclear Stakes",
+              "observation": "She felt betrayed and did not know what to do next.",
+              "recommendation": "Specify the stakes: 'She felt betrayed and realized she might lose everything she held dear, her mind racing with the possibilities.'",
+              "priority": "medium",
+              "text": "She felt betrayed and did not know what to do next.",
+              "reason": "She felt betrayed and did not know what to do next. Specify the stakes: 'She felt betrayed and realized she might lose everything she held dear, her mind racing with the possibilities.'"
+            }
+          ]
+        },
+        {
+          "case": "generic-dialogue",
+          "run": 0,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Lack of Action",
+            "Repetitive Dialogue"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Repetitive Dialogue",
+              "observation": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+              "recommendation": "Vary the dialogue tags and responses to avoid repetition, e.g., 'She greeted him with a smile, and he responded with a nod.', or 'He asked how she was, and she replied that she was well.'",
+              "priority": "high",
+              "text": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+              "reason": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said. Vary the dialogue tags and responses to avoid repetition, e.g., 'She greeted him with a smile, and he responded with a nod.', or 'He asked how she was, and she replied that she was well.'"
+            },
+            {
+              "id": 2,
+              "category": "Lack of Action",
+              "observation": "The excerpt consists solely of dialogue without any accompanying action or description.",
+              "recommendation": "Integrate action to enhance the scene, e.g., 'As they stood by the window, she smiled and extended her hand, shaking his as they greeted each other politely.', or 'He leaned against the wall, listening intently as she spoke.',",
+              "priority": "medium",
+              "text": "The excerpt consists solely of dialogue without any accompanying action or description.",
+              "reason": "The excerpt consists solely of dialogue without any accompanying action or description. Integrate action to enhance the scene, e.g., 'As they stood by the window, she smiled and extended her hand, shaking his as they greeted each other politely.', or 'He leaned against the wall, listening intently as she spoke.',"
+            }
+          ]
+        },
+        {
+          "case": "generic-dialogue",
+          "run": 1,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Lack of Action",
+            "Repetitive Dialogue"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Repetitive Dialogue",
+              "observation": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+              "recommendation": "Vary the dialogue tags and responses to avoid repetition, e.g., 'She greeted him with a smile. He responded with a nod.', or 'She asked how he was doing. He assured her everything was well.'",
+              "priority": "high",
+              "text": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+              "reason": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said. Vary the dialogue tags and responses to avoid repetition, e.g., 'She greeted him with a smile. He responded with a nod.', or 'She asked how he was doing. He assured her everything was well.'"
+            },
+            {
+              "id": 2,
+              "category": "Lack of Action",
+              "observation": "The excerpt consists solely of dialogue without any accompanying action or description.",
+              "recommendation": "Integrate action to enhance the scene, e.g., 'She stood by the window, watching the rain as she greeted him. He leaned against the doorframe, his eyes meeting hers.', or 'As they spoke, she fiddled with a necklace, while he adjusted his glasses.',",
+              "priority": "medium",
+              "text": "The excerpt consists solely of dialogue without any accompanying action or description.",
+              "reason": "The excerpt consists solely of dialogue without any accompanying action or description. Integrate action to enhance the scene, e.g., 'She stood by the window, watching the rain as she greeted him. He leaned against the doorframe, his eyes meeting hers.', or 'As they spoke, she fiddled with a necklace, while he adjusted his glasses.',"
+            }
+          ]
+        },
+        {
+          "case": "generic-dialogue",
+          "run": 2,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Lack of Action",
+            "Repetitive Dialogue"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Repetitive Dialogue",
+              "observation": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+              "recommendation": "Vary the dialogue tags and responses to avoid repetition, e.g., 'She greeted him with a smile. He responded with a nod.', or 'She asked how he was doing. He assured her everything was well.'",
+              "priority": "high",
+              "text": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+              "reason": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said. Vary the dialogue tags and responses to avoid repetition, e.g., 'She greeted him with a smile. He responded with a nod.', or 'She asked how he was doing. He assured her everything was well.'"
+            },
+            {
+              "id": 2,
+              "category": "Lack of Action",
+              "observation": "The excerpt consists solely of dialogue without any accompanying action or description.",
+              "recommendation": "Integrate action to enhance the scene, e.g., 'She stood by the window, watching the rain as she greeted him. He leaned against the doorframe, responding with a polite nod.', or 'She reached out to shake his hand, their fingers briefly touching as they exchanged pleasantries.'",
+              "priority": "medium",
+              "text": "The excerpt consists solely of dialogue without any accompanying action or description.",
+              "reason": "The excerpt consists solely of dialogue without any accompanying action or description. Integrate action to enhance the scene, e.g., 'She stood by the window, watching the rain as she greeted him. He leaned against the doorframe, responding with a polite nod.', or 'She reached out to shake his hand, their fingers briefly touching as they exchanged pleasantries.'"
+            }
+          ]
+        },
+        {
+          "case": "info-dump",
+          "run": 0,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Exposition"
+          ],
+          "n": 1,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Exposition",
+              "observation": "The passage provides detailed historical information about the founding of Everholt and the Council of Nine.",
+              "recommendation": "Integrate the historical details into a conversation between characters to make the information feel more organic to the plot.",
+              "priority": "high",
+              "text": "The passage provides detailed historical information about the founding of Everholt and the Council of Nine.",
+              "reason": "The passage provides detailed historical information about the founding of Everholt and the Council of Nine. Integrate the historical details into a conversation between characters to make the information feel more organic to the plot."
+            }
+          ]
+        },
+        {
+          "case": "info-dump",
+          "run": 1,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Exposition",
+            "Narrative Risk"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "The passage introduces the founding of Everholt and the Council of Nine but lacks immediate stakes or conflict.",
+              "recommendation": "Add a character who questions the Council of Nine’s decisions or a recent event that challenges their authority, creating tension.",
+              "priority": "high",
+              "text": "The passage introduces the founding of Everholt and the Council of Nine but lacks immediate stakes or conflict.",
+              "reason": "The passage introduces the founding of Everholt and the Council of Nine but lacks immediate stakes or conflict. Add a character who questions the Council of Nine’s decisions or a recent event that challenges their authority, creating tension."
+            },
+            {
+              "id": 2,
+              "category": "Exposition",
+              "observation": "This passage is purely expository, providing background information without any scene, action, or character interaction.",
+              "recommendation": "Transform this into a scene where characters discuss the Council of Nine or the founding of Everholt, or defer this information until it becomes relevant to the plot.",
+              "priority": "high",
+              "text": "This passage is purely expository, providing background information without any scene, action, or character interaction.",
+              "reason": "This passage is purely expository, providing background information without any scene, action, or character interaction. Transform this into a scene where characters discuss the Council of Nine or the founding of Everholt, or defer this information until it becomes relevant to the plot."
+            }
+          ]
+        },
+        {
+          "case": "info-dump",
+          "run": 2,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Exposition"
+          ],
+          "n": 1,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Exposition",
+              "observation": "The passage provides detailed historical information about the founding of Everholt and the Council of Nine.",
+              "recommendation": "Transform the exposition into a dialogue between characters discussing the history of Everholt and the Council of Nine.",
+              "priority": "high",
+              "text": "The passage provides detailed historical information about the founding of Everholt and the Council of Nine.",
+              "reason": "The passage provides detailed historical information about the founding of Everholt and the Council of Nine. Transform the exposition into a dialogue between characters discussing the history of Everholt and the Council of Nine."
+            }
+          ]
+        },
+        {
+          "case": "flat-description",
+          "run": 0,
+          "error": null,
+          "detected": false,
+          "categories": [
+            "Narrative Risk",
+            "Repetitive Adjectives"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "The description of the house lacks any stakes or conflict, making it hard for the reader to care about the setting.",
+              "recommendation": "Add a character's reaction, such as a character's fear of the house's dark history or a sense of unease upon entering.",
+              "priority": "high",
+              "text": "The description of the house lacks any stakes or conflict, making it hard for the reader to care about the setting.",
+              "reason": "The description of the house lacks any stakes or conflict, making it hard for the reader to care about the setting. Add a character's reaction, such as a character's fear of the house's dark history or a sense of unease upon entering."
+            },
+            {
+              "id": 2,
+              "category": "Repetitive Adjectives",
+              "observation": "The word 'nice' is used three times in a short paragraph, which can feel redundant and unengaging.",
+              "recommendation": "Substitute 'nice' with 'comfortable', 'picturesque', and 'welcoming' to vary the descriptions.",
+              "priority": "medium",
+              "text": "The word 'nice' is used three times in a short paragraph, which can feel redundant and unengaging.",
+              "reason": "The word 'nice' is used three times in a short paragraph, which can feel redundant and unengaging. Substitute 'nice' with 'comfortable', 'picturesque', and 'welcoming' to vary the descriptions."
+            }
+          ]
+        },
+        {
+          "case": "flat-description",
+          "run": 1,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Narrative Risk",
+            "Repetitive Adjectives"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "The setting lacks clear stakes or conflict, making it feel unengaging.",
+              "recommendation": "Add a character who notices something unusual about the setting, such as an old, creaky door or a mysterious garden.",
+              "priority": "high",
+              "text": "The setting lacks clear stakes or conflict, making it feel unengaging.",
+              "reason": "The setting lacks clear stakes or conflict, making it feel unengaging. Add a character who notices something unusual about the setting, such as an old, creaky door or a mysterious garden."
+            },
+            {
+              "id": 2,
+              "category": "Repetitive Adjectives",
+              "observation": "The word 'nice' is overused, making the writing feel repetitive.",
+              "recommendation": "Substitute 'nice' with more specific descriptors like 'cozy', 'lush', or 'panoramic'.",
+              "priority": "medium",
+              "text": "The word 'nice' is overused, making the writing feel repetitive.",
+              "reason": "The word 'nice' is overused, making the writing feel repetitive. Substitute 'nice' with more specific descriptors like 'cozy', 'lush', or 'panoramic'."
+            }
+          ]
+        },
+        {
+          "case": "flat-description",
+          "run": 2,
+          "error": null,
+          "detected": true,
+          "categories": [
+            "Narrative Risk",
+            "Repetitive Adjectives"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "The scene lacks clear stakes or conflict, making it feel passive and unengaging.",
+              "recommendation": "Add a character or event that creates tension, such as a mysterious noise or an unexpected guest.",
+              "priority": "high",
+              "text": "The scene lacks clear stakes or conflict, making it feel passive and unengaging.",
+              "reason": "The scene lacks clear stakes or conflict, making it feel passive and unengaging. Add a character or event that creates tension, such as a mysterious noise or an unexpected guest."
+            },
+            {
+              "id": 2,
+              "category": "Repetitive Adjectives",
+              "observation": "The word 'nice' is used three times in a short paragraph, which can make the writing feel redundant and less engaging.",
+              "recommendation": "Replace some of the 'nice' descriptors with more specific adjectives like 'cozy', 'picturesque', or 'lush'.",
+              "priority": "medium",
+              "text": "The word 'nice' is used three times in a short paragraph, which can make the writing feel redundant and less engaging.",
+              "reason": "The word 'nice' is used three times in a short paragraph, which can make the writing feel redundant and less engaging. Replace some of the 'nice' descriptors with more specific adjectives like 'cozy', 'picturesque', or 'lush'."
+            }
+          ]
+        },
+        {
+          "case": "strong-1",
+          "run": 0,
+          "error": null,
+          "detected": null,
+          "categories": [
+            "Exposition",
+            "Narrative Risk"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 2,
+              "category": "Exposition",
+              "observation": "The passage includes a detail about Ada noticing the cold kettle, which is tangential to the main narrative.",
+              "recommendation": "Integrate Ada's observation of the cold kettle into a relevant action or thought that advances the plot or character development.",
+              "priority": "high",
+              "text": "The passage includes a detail about Ada noticing the cold kettle, which is tangential to the main narrative.",
+              "reason": "The passage includes a detail about Ada noticing the cold kettle, which is tangential to the main narrative. Integrate Ada's observation of the cold kettle into a relevant action or thought that advances the plot or character development."
+            },
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "The scene centers on Ada's internal conflict over opening the letter, but lacks external action or consequences.",
+              "recommendation": "Show Ada's internal struggle through external actions like pacing, a knock at the door, or a phone ringing.",
+              "priority": "medium",
+              "text": "The scene centers on Ada's internal conflict over opening the letter, but lacks external action or consequences.",
+              "reason": "The scene centers on Ada's internal conflict over opening the letter, but lacks external action or consequences. Show Ada's internal struggle through external actions like pacing, a knock at the door, or a phone ringing."
+            }
+          ]
+        },
+        {
+          "case": "strong-1",
+          "run": 1,
+          "error": null,
+          "detected": null,
+          "categories": [
+            "Exposition",
+            "Narrative Risk"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 2,
+              "category": "Exposition",
+              "observation": "The passage is purely expository, describing Ada's state of mind and her surroundings without advancing the plot or showing character development.",
+              "recommendation": "Have Ada walk to the kettle to heat water while she contemplates whether to open the letter, thereby integrating her internal conflict with external action.",
+              "priority": "high",
+              "text": "The passage is purely expository, describing Ada's state of mind and her surroundings without advancing the plot or showing character development.",
+              "reason": "The passage is purely expository, describing Ada's state of mind and her surroundings without advancing the plot or showing character development. Have Ada walk to the kettle to heat water while she contemplates whether to open the letter, thereby integrating her internal conflict with external action."
+            },
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "The scene focuses on Ada's internal conflict about opening the letter, but it doesn't show any external action or consequence of this decision.",
+              "recommendation": "Show Ada's reluctance by depicting her fidgeting with the letter or her tense posture, which affects her interaction with others in the room.",
+              "priority": "medium",
+              "text": "The scene focuses on Ada's internal conflict about opening the letter, but it doesn't show any external action or consequence of this decision.",
+              "reason": "The scene focuses on Ada's internal conflict about opening the letter, but it doesn't show any external action or consequence of this decision. Show Ada's reluctance by depicting her fidgeting with the letter or her tense posture, which affects her interaction with others in the room."
+            }
+          ]
+        },
+        {
+          "case": "strong-1",
+          "run": 2,
+          "error": null,
+          "detected": null,
+          "categories": [
+            "Exposition",
+            "Narrative Risk"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 2,
+              "category": "Exposition",
+              "observation": "The kettle detail introduces unnecessary backstory that distracts from the current scene and lacks clear relevance.",
+              "recommendation": "Integrate the kettle detail by having Ada notice its coldness while she's distracted by the letter.",
+              "priority": "high",
+              "text": "The kettle detail introduces unnecessary backstory that distracts from the current scene and lacks clear relevance.",
+              "reason": "The kettle detail introduces unnecessary backstory that distracts from the current scene and lacks clear relevance. Integrate the kettle detail by having Ada notice its coldness while she's distracted by the letter."
+            },
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "Ada's internal conflict about opening the letter isn't reflected in her external actions or the setting.",
+              "recommendation": "Show Ada's reluctance through her fidgeting with the letter or the tension in her posture.",
+              "priority": "medium",
+              "text": "Ada's internal conflict about opening the letter isn't reflected in her external actions or the setting.",
+              "reason": "Ada's internal conflict about opening the letter isn't reflected in her external actions or the setting. Show Ada's reluctance through her fidgeting with the letter or the tension in her posture."
+            }
+          ]
+        },
+        {
+          "case": "strong-2",
+          "run": 0,
+          "error": null,
+          "detected": null,
+          "categories": [
+            "Narrative Risk",
+            "Structure"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "The scene focusing on Tomas counting raindrops feels disconnected from the boy who used to live upstairs.",
+              "recommendation": "Have Tomas find a memento or recall a shared memory while counting raindrops, linking the two moments more closely.",
+              "priority": "high",
+              "text": "The scene focusing on Tomas counting raindrops feels disconnected from the boy who used to live upstairs.",
+              "reason": "The scene focusing on Tomas counting raindrops feels disconnected from the boy who used to live upstairs. Have Tomas find a memento or recall a shared memory while counting raindrops, linking the two moments more closely."
+            },
+            {
+              "id": 2,
+              "category": "Structure",
+              "observation": "The transition from Tomas counting raindrops to the boy who used to live upstairs is abrupt and lacks a clear connection.",
+              "recommendation": "Insert a sentence explaining why Tomas is thinking about the boy, such as mentioning a recent event that triggered these thoughts.",
+              "priority": "medium",
+              "text": "The transition from Tomas counting raindrops to the boy who used to live upstairs is abrupt and lacks a clear connection.",
+              "reason": "The transition from Tomas counting raindrops to the boy who used to live upstairs is abrupt and lacks a clear connection. Insert a sentence explaining why Tomas is thinking about the boy, such as mentioning a recent event that triggered these thoughts."
+            }
+          ]
+        },
+        {
+          "case": "strong-2",
+          "run": 1,
+          "error": null,
+          "detected": null,
+          "categories": [
+            "Exposition",
+            "Narrative Risk"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "The scene focuses on Tomas counting raindrops and reminiscing about a boy who used to count them, but there's no clear connection to the current plot or character development.",
+              "recommendation": "Connect Tomas's memories to his current situation or internal conflict to strengthen the narrative.",
+              "priority": "high",
+              "text": "The scene focuses on Tomas counting raindrops and reminiscing about a boy who used to count them, but there's no clear connection to the current plot or character development.",
+              "reason": "The scene focuses on Tomas counting raindrops and reminiscing about a boy who used to count them, but there's no clear connection to the current plot or character development. Connect Tomas's memories to his current situation or internal conflict to strengthen the narrative."
+            },
+            {
+              "id": 2,
+              "category": "Exposition",
+              "observation": "The passage is primarily expository, providing background information about a boy who counted raindrops in the past.",
+              "recommendation": "Weave this information into a scene where Tomas interacts with someone or something related to the boy, or defer it until it's relevant to the current story.",
+              "priority": "medium",
+              "text": "The passage is primarily expository, providing background information about a boy who counted raindrops in the past.",
+              "reason": "The passage is primarily expository, providing background information about a boy who counted raindrops in the past. Weave this information into a scene where Tomas interacts with someone or something related to the boy, or defer it until it's relevant to the current story."
+            }
+          ]
+        },
+        {
+          "case": "strong-2",
+          "run": 2,
+          "error": null,
+          "detected": null,
+          "categories": [
+            "Narrative Risk",
+            "Structure"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "The scene focusing on Tomas counting raindrops feels disconnected from the boy who used to live upstairs.",
+              "recommendation": "Have Tomas find a clue or remember a shared memory, linking his current action to the past.",
+              "priority": "high",
+              "text": "The scene focusing on Tomas counting raindrops feels disconnected from the boy who used to live upstairs.",
+              "reason": "The scene focusing on Tomas counting raindrops feels disconnected from the boy who used to live upstairs. Have Tomas find a clue or remember a shared memory, linking his current action to the past."
+            },
+            {
+              "id": 2,
+              "category": "Structure",
+              "observation": "The transition from Tomas counting raindrops to the boy who used to live upstairs is abrupt and lacks a clear connection.",
+              "recommendation": "Explain why Tomas is thinking about the boy, such as mentioning a similar situation or shared memory.",
+              "priority": "medium",
+              "text": "The transition from Tomas counting raindrops to the boy who used to live upstairs is abrupt and lacks a clear connection.",
+              "reason": "The transition from Tomas counting raindrops to the boy who used to live upstairs is abrupt and lacks a clear connection. Explain why Tomas is thinking about the boy, such as mentioning a similar situation or shared memory."
+            }
+          ]
+        },
+        {
+          "case": "strong-3",
+          "run": 0,
+          "error": null,
+          "detected": null,
+          "categories": [
+            "Character Development",
+            "Narrative Risk"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Narrative Risk",
+              "observation": "'You kept it,' she said. The music box sat between them on the table, its lid chipped, its dancer missing an arm. He shrugged as if it were nothing.",
+              "recommendation": "Deepen their interaction by having her touch the music box or him express a hidden emotion about it.",
+              "priority": "high",
+              "text": "'You kept it,' she said. The music box sat between them on the table, its lid chipped, its dancer missing an arm. He shrugged as if it were nothing.",
+              "reason": "'You kept it,' she said. The music box sat between them on the table, its lid chipped, its dancer missing an arm. He shrugged as if it were nothing. Deepen their interaction by having her touch the music box or him express a hidden emotion about it."
+            },
+            {
+              "id": 2,
+              "category": "Character Development",
+              "observation": "He shrugged as if it were nothing.",
+              "recommendation": "Include internal thoughts or dialogue explaining his reaction to provide insight into his character.",
+              "priority": "medium",
+              "text": "He shrugged as if it were nothing.",
+              "reason": "He shrugged as if it were nothing. Include internal thoughts or dialogue explaining his reaction to provide insight into his character."
+            }
+          ]
+        },
+        {
+          "case": "strong-3",
+          "run": 1,
+          "error": null,
+          "detected": null,
+          "categories": [
+            "Stakes",
+            "Subtext"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Subtext",
+              "observation": "'You kept it,' she said. The music box sat between them on the table, its lid chipped, its dancer missing an arm.",
+              "recommendation": "Show her reaction by describing her gaze lingering on the music box, hinting at past memories or unspoken emotions.",
+              "priority": "high",
+              "text": "'You kept it,' she said. The music box sat between them on the table, its lid chipped, its dancer missing an arm.",
+              "reason": "'You kept it,' she said. The music box sat between them on the table, its lid chipped, its dancer missing an arm. Show her reaction by describing her gaze lingering on the music box, hinting at past memories or unspoken emotions."
+            },
+            {
+              "id": 2,
+              "category": "Stakes",
+              "observation": "It played four notes before it caught, and neither of them reached to wind it again.",
+              "recommendation": "Explain that the music box plays only when they are together, suggesting a bond or unresolved tension.",
+              "priority": "medium",
+              "text": "It played four notes before it caught, and neither of them reached to wind it again.",
+              "reason": "It played four notes before it caught, and neither of them reached to wind it again. Explain that the music box plays only when they are together, suggesting a bond or unresolved tension."
+            }
+          ]
+        },
+        {
+          "case": "strong-3",
+          "run": 2,
+          "error": null,
+          "detected": null,
+          "categories": [
+            "Scene Depth",
+            "Subtext"
+          ],
+          "n": 2,
+          "dup_pairs": 0,
+          "no_recommendation": 0,
+          "praise_in_observation": 0,
+          "praise_only": 0,
+          "items": [
+            {
+              "id": 1,
+              "category": "Subtext",
+              "observation": "'You kept it,' she said. The music box sat between them on the table, its lid chipped, its dancer missing an arm.",
+              "recommendation": "Show her reaction by describing her gaze lingering on the music box, hinting at past memories or a shared history.",
+              "priority": "high",
+              "text": "'You kept it,' she said. The music box sat between them on the table, its lid chipped, its dancer missing an arm.",
+              "reason": "'You kept it,' she said. The music box sat between them on the table, its lid chipped, its dancer missing an arm. Show her reaction by describing her gaze lingering on the music box, hinting at past memories or a shared history."
+            },
+            {
+              "id": 2,
+              "category": "Scene Depth",
+              "observation": "He shrugged as if it were nothing. It played four notes before it caught, and neither of them reached to wind it again.",
+              "recommendation": "Describe his shrug and the tension in his shoulders, and their crossed arms, indicating a lack of interest or discomfort.",
+              "priority": "medium",
+              "text": "He shrugged as if it were nothing. It played four notes before it caught, and neither of them reached to wind it again.",
+              "reason": "He shrugged as if it were nothing. It played four notes before it caught, and neither of them reached to wind it again. Describe his shrug and the tension in his shoulders, and their crossed arms, indicating a lack of interest or discomfort."
+            }
+          ]
+        }
+      ],
+      "dropped_items": []
+    }
+  }
+}

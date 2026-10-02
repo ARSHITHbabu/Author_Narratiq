@@ -103,3 +103,58 @@ def names_of(character) -> list[str]:
     names = [getattr(character, "name", "") or ""]
     names.extend(getattr(character, "aliases", None) or [])
     return [n for n in names if n and str(n).strip()]
+
+
+# ── Question → characters (Stage 12 A13, PA-C9) ──────────────────────────────
+# The Plot Assistant decided "is this a character question?" with a raw
+# substring test: it missed "Captain Mara" for "Mara Halloran", and matched
+# "Ash" inside "ashes". One detector now serves Q&A:
+#   * the full name or an alias as a whole phrase, possessive allowed
+#     ("Mara Halloran's", "the Magistrate’s");
+#   * any significant part of a multi-part name (titles stripped, >= 3 letters),
+#     as a whole word — so "Captain Mara" and "Halloran" both find Mara Halloran;
+#   * a part that is also an everyday word ("Will", "Hope", "Rose") only counts
+#     when capitalised in the question;
+#   * Unicode-aware word boundaries.
+
+_EVERYDAY_WORDS = frozenset("""
+will may hope grace rose mark bill faith joy sky river summer august june april
+art jack frank sue pat ray dawn amber ivy holly lily daisy iris crystal hunter
+mason angel king queen reed hunter rich chase drew sterling cash wade lane
+""".split())
+
+
+def detect_named_characters(question: str, characters) -> list:
+    """Characters the question names, in the given order. `characters` are
+    objects with .name and .aliases."""
+    import regex as _rx
+    from services.ai_service import _name_tokens
+    from services.prompt_safety import _STOP     # "the", "of", "and", … never identify anyone
+
+    if not question or not question.strip():
+        return []
+    q = question
+    found = []
+    for c in characters:
+        names = [n for n in [getattr(c, "name", "")] + list(getattr(c, "aliases", None) or []) if n and n.strip()]
+        hit = False
+        for n in names:
+            phrase = _rx.escape(_WHITESPACE.sub(" ", n.strip()))
+            if _rx.search(rf"(?<![\p{{L}}\p{{M}}\p{{N}}_]){phrase}(?:['’]s)?(?![\p{{L}}\p{{M}}\p{{N}}_])", q, _rx.I):
+                hit = True
+                break
+        if not hit:
+            for n in names:
+                for tok in _name_tokens(n):
+                    if len(tok) < 3 or (tok in _STOP and tok not in _EVERYDAY_WORDS):
+                        continue
+                    flags = 0 if tok in _EVERYDAY_WORDS else _rx.I
+                    pat = _rx.escape(tok.capitalize() if tok in _EVERYDAY_WORDS else tok)
+                    if _rx.search(rf"(?<![\p{{L}}\p{{M}}\p{{N}}_]){pat}(?:['’]s)?(?![\p{{L}}\p{{M}}\p{{N}}_])", q, flags):
+                        hit = True
+                        break
+                if hit:
+                    break
+        if hit:
+            found.append(c)
+    return found

@@ -136,7 +136,11 @@ async def execute(graph, context, refs, memory, db, user=None) -> dict:
                 node.result = None
                 lifecycle.transition(node, lifecycle.FAILED, source="orchestrator",
                                      reason="adapter raised", strict=False)
-                node.user_message = "I couldn't complete that just now — please try again."
+                from exceptions import ApiError
+                # An honest, author-facing refusal (e.g. Stage 12 A18
+                # instruction_like_text) is shown as is; anything else stays generic.
+                node.user_message = (exc.detail if isinstance(exc, ApiError) and exc.detail
+                                     else "I couldn't complete that just now — please try again.")
         else:
             # Proposed client action — the frontend executes it via api.ts. It is
             # NOT done yet, and must not be described as if it were: the terminal

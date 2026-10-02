@@ -1,0 +1,27 @@
+{
+  "outputs_replayed": 1397,
+  "false_positive_outputs": 1,
+  "false_positive_rate": 0.0007,
+  "detection_mid_sentence": {
+    "inserted": 1390,
+    "found": 1390,
+    "rate": 1.0
+  },
+  "detection_sentence_start (known blind spot)": {
+    "inserted": 1390,
+    "found": 691,
+    "rate": 0.497
+  },
+  "flagged": [
+    {
+      "file": "strength_t2b_before_v3.json",
+      "names": [
+        "AUTHOR",
+        "MATERIAL"
+      ],
+      "source": "The children's version of the story left out the part where nobody survived the first crossing. This was, Mira thought, probably for the best.",
+      "output": "The story didn't talk about the time when nobody came back from the first trip. Mira thought it was better that way.\n<<<END_AUTHOR_MATERIAL 5dd7975c>>>"
+    }
+  ],
+  "missed_examples": []
+}

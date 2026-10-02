@@ -14,6 +14,7 @@ import asyncio
 import json
 import logging
 import re
+from difflib import SequenceMatcher
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime
@@ -25,7 +26,7 @@ from sentence_transformers import SentenceTransformer
 from config import settings
 from exceptions import AIResponseTruncatedError, AIServiceUnavailableError
 from services.prompt_registry import resolve_prompt_version
-from services.prompt_safety import REWRITE_TASK, TRANSLATE_TASK, harden, question_task
+from services.prompt_safety import REWRITE_TASK, TRANSLATE_TASK, harden, question_task, strip_echoed_markers
 from services.transform_preservation import (
     build_preservation_clause, build_strength_clause,
     mark_locked_segments, reconstruct_with_locks, verify_lock_byte_identity,
@@ -174,7 +175,10 @@ async def _complete_ex(
             stream=False,
             **kwargs,
         )
-        return resp.choices[0].message.content.strip(), resp.choices[0].finish_reason
+        content = resp.choices[0].message.content.strip()
+        if settings.prompt_injection_guard:
+            content = strip_echoed_markers(content)   # Stage 12: never hand a fence marker to the author
+        return content, resp.choices[0].finish_reason
     except APIConnectionError as exc:
         logger.warning("[ai_service] vLLM connection error: %s", exc)
         raise AIServiceUnavailableError() from exc
@@ -843,6 +847,10 @@ async def _assess_change_needed(text: str, target_description: str, transform_ty
     they may still want; it is not a safety filter. Flagged for the
     required blind/manual author review, not silently claimed as solved.
     """
+    # Stage 12 A14: callers phrase targets as "already appropriate for …";
+    # the question already says ALREADY, so strip it rather than ask the model
+    # "is this ALREADY already …" (the doubled word it was asked until now).
+    target_description = re.sub(r"^\s*already\s+", "", target_description or "", flags=re.I)
     system = (
         f"You are assessing a passage for a {transform_type} transform. Question: "
         f"is this passage ALREADY {target_description}? Return ONLY JSON: "
@@ -949,6 +957,53 @@ async def _run_constrained_transform(**kwargs) -> dict:
             "strength_violation": False, "preservation_violations": [], "failed": False}
 
 
+def _new_entity_note(source: str, output: str, rules: dict, tool: str, story_id, db) -> Optional[dict]:
+    """Stage 12 A16 — soft note for names the rewrite introduced. Follows the
+    character-name rule (off → no check); never for translation; never a
+    retry or a block. Names the story already knows change only the wording."""
+    if tool == "translate" or rules.get("character_names") is False:
+        return None
+    from services.transform_preservation import check_new_entities, new_entity_warning
+    known: list[str] = []
+    if story_id and db is not None:
+        from models import Character
+        for name, aliases in db.query(Character.name, Character.aliases).filter(Character.story_id == story_id).all():
+            known.append(name or "")
+            known.extend(a for a in (aliases or []) if isinstance(a, str))
+    return new_entity_warning(check_new_entities(source, output, known))
+
+
+def _strength_detail(text: str, transformed: str, strength: str, locked_ranges) -> dict:
+    """Stage 12 A15 — the measured edit profile of a successful rewrite,
+    returned to the client as data only. No threshold, warning or retry is
+    attached to it until the Light levels are set from human-labelled
+    outputs (see the Tranche 2 report)."""
+    from services.transform_preservation import light_edit_profile
+    detail = light_edit_profile(text, transformed, locked_ranges)
+    detail["strength"] = strength
+    logger.info("[strength_profile] strength=%s kept=%s new=%s", strength,
+                detail.get("kept_share"), detail.get("new_share"))
+    return detail
+
+
+def _children_override(transform_type: str, builder_kwargs: dict, text: str) -> bool:
+    """Stage 12 A14 — children's adaptation only. The 7B suitability check
+    reads indirectly conveyed death or violence ("nobody survived") as
+    already suitable for 5–10 year olds. When the passage contains such
+    wording, an "already suitable" verdict is overruled and the NORMAL
+    rewrite runs — the author reviews it like any other result. It never
+    blocks, removes or warns; YA and adult are never affected."""
+    if (transform_type != "age_adapt" or builder_kwargs.get("target_age") != "children"
+            or not settings.children_suitability_override):
+        return False
+    from services.transform_preservation import children_sensitive_terms
+    terms = children_sensitive_terms(text)
+    if terms:
+        logger.info("[age_adapt] children: 'already suitable' overruled — passage mentions %s",
+                    ", ".join(terms[:3]))
+    return bool(terms)
+
+
 async def _run_constrained_transform_once(
     *, transform_type: str, text: str, temperature: float, max_tokens: int,
     builder_kwargs: dict, story_id: Optional[str] = None, db=None,
@@ -985,6 +1040,8 @@ async def _run_constrained_transform_once(
 
     if change_check_target:
         needs_change, reason = await _assess_change_needed(text, change_check_target, transform_type)
+        if not needs_change and _children_override(transform_type, builder_kwargs, text):
+            needs_change = True
         if not needs_change:
             return {"transformed": text, "no_change": True, "reason": reason,
                     "strength_violation": False, "preservation_violations": [], "failed": False,
@@ -997,7 +1054,8 @@ async def _run_constrained_transform_once(
 
     builder, resolved_version = resolve_prompt_version(transform_type, settings.prompt_version, settings.prompt_version_fallback)
     _log_prompt_version(transform_type, resolved_version)
-    system = builder(preservation_clause=preservation_clause, strength_clause=strength_clause, **builder_kwargs)
+    system = builder(preservation_clause=preservation_clause, strength_clause=strength_clause,
+                     strength=strength, **builder_kwargs)
     if retry_instruction:
         system = f"{system} {retry_instruction}"
     if p3 is not None and p3.system_block:
@@ -1074,6 +1132,7 @@ async def _run_constrained_transform_once(
             "transformed": reconstructed, "no_change": False, "reason": None,
             "strength_violation": strength_violation, "preservation_violations": violations,
             "failed": False, "warnings": [], "context_used": {}, "name_autofix": [],
+            "strength_detail": _strength_detail(text, reconstructed, strength, locked_ranges),
         }
 
     # ── Stage 7 (Phase 3) path ────────────────────────────────────────────
@@ -1120,6 +1179,9 @@ async def _run_constrained_transform_once(
                            "message": f"This result is {round(best * 100)}% similar to an idea you asked to avoid."}
 
     warnings = list(p3.warnings) + checks
+    ne = _new_entity_note(text, reconstructed, rules, tool, story_id, db)
+    if ne:
+        warnings.append(ne)
     if dup_warning:
         warnings.append(dup_warning)
     if p3.derivation == "variation" and p3.source_draft:
@@ -1153,6 +1215,7 @@ async def _run_constrained_transform_once(
         "strength_violation": strength_violation, "preservation_violations": violations,
         "failed": False, "warnings": warnings, "context_used": dict(p3.context_used),
         "name_autofix": autofix,
+        "strength_detail": _strength_detail(text, reconstructed, strength, locked_ranges),
     }
 
 
@@ -1450,39 +1513,16 @@ async def stream_translate(text: str, target_language: str, source_language: str
 
 # ── Cast Extraction ────────────────────────────────────────────────────────────
 
-_CAST_SYSTEM = (
-    'You are a literary analyst building a character bible from a manuscript.\n'
-    'Extract every named character and every significant recurring person from the '
-    'story text below, with as much grounded detail as the text supports.\n\n'
-    'Return ONLY a valid JSON array. Each element must be an object with these exact keys:\n'
-    '  "name": canonical full name (string)\n'
-    '  "role": one of "protagonist", "antagonist", "supporting", "minor"\n'
-    '  "status": one of "active", "deceased", "unknown"\n'
-    '  "aliases": other names/nicknames/titles this character is called by (array of strings; [] if none)\n'
-    '  "description": 1-2 sentence summary of who this character is (string)\n'
-    '  "age": age or life-stage if stated or strongly implied, else "" (string, e.g. "early 30s", "teenager")\n'
-    '  "appearance": physical description grounded in the text, else "" (string)\n'
-    '  "personality": personality/temperament grounded in behaviour and dialogue, else "" (string)\n'
-    '  "goals": what the character is actively trying to achieve, else "" (string)\n'
-    '  "motivations": why they pursue those goals — their drives/fears, else "" (string)\n'
-    '  "backstory": established history/origin revealed in the text, else "" (string)\n'
-    '  "arc_notes": how the character changes or what unfolds across chapters, else "" (string)\n'
-    '  "traits": 3-8 personality adjectives drawn from the text (array of strings; [] if unclear)\n'
-    '  "first_appearance": chapter where the character first appears (e.g. "Chapter 1")\n'
-    '  "evidence_snippet": short quote or close paraphrase confirming this character (max 80 words)\n'
-    '  "confidence": "high" if clearly named and present; "uncertain" if inferred or ambiguous\n\n'
-    'Rules:\n'
-    '- Include named individuals AND named groups/collectives that act as characters.\n'
-    '- Include unnamed but significant recurring characters by their role (e.g. "Ravi\'s Mother").\n'
-    '- Extract ALL evidence available — fill appearance/personality/goals/motivations/backstory '
-    'whenever the text supports them. Do not leave a field empty if the text gives evidence for it.\n'
-    '- Do NOT invent facts. If a field is genuinely not established in the text, use "" (or [] for arrays).\n'
-    '- Do NOT invent characters absent from the text.\n'
-    '- Return [] if no characters are found.\n'
-    '- Output ONLY the JSON array — no preamble, no markdown fences, no trailing prose.'
-)
+# The cast prompt lives in services/prompt_registry.py (Stage 12 A10: versioned,
+# so presence labelling can be rolled back with PROMPT_VERSION). This name is
+# kept for callers that imported it: it is the frozen v2 text.
+from services.prompt_registry import _CAST_V2_TEXT as _CAST_SYSTEM  # noqa: E402
 
-_CAST_COMPLETION_TOKENS = 1500   # headroom for the JSON array of one window
+# Stage 12 (found while measuring A11): 1500 tokens truncated the JSON array
+# for a window with ~8 richly described characters, and the whole cast failed.
+# 2200 fits measured windows; _salvage_json_objects keeps the complete objects
+# if a window still overruns. Raising it shrinks the input window accordingly.
+_CAST_COMPLETION_TOKENS = 2200   # headroom for the JSON array of one window
 _ROLE_PRIORITY   = {"protagonist": 3, "antagonist": 2, "supporting": 1, "minor": 0}
 _STATUS_PRIORITY = {"deceased": 2, "active": 1, "unknown": 0}
 
@@ -1589,21 +1629,107 @@ def _build_cast_windows(chapter_texts: list, words_per_window: int) -> list[str]
     return windows
 
 
-def _merge_cast(window_results: list[list]) -> list:
+_PRESENCE_PRIORITY = {"on_page": 2, "referenced": 1, "historical": 0}
+_KINSHIP = ("sister", "brother", "mother", "father", "daughter", "son", "wife", "husband",
+            "aunt", "uncle", "niece", "nephew", "cousin", "grandmother", "grandfather",
+            "granddaughter", "grandson", "widow", "widower", "twin", "fiancé", "fiancee", "fiancée")
+_KINSHIP_RE = re.compile(r"\b(" + "|".join(_KINSHIP) + r")s?\b", re.I)
+_SENT_SPLIT = re.compile(r"(?<=[.!?])\s+(?=[\"'“‘(A-Z])")
+_MERGED_FIELD_CAP = 700
+
+
+def _salvage_json_objects(raw: str) -> list[dict]:
+    """Complete top-level objects from a JSON array that was cut off mid-way
+    (model output hit the token limit). Scans string-aware for balanced braces;
+    an object is kept only if it parses on its own. Never invents content."""
+    start = raw.find("[")
+    if start < 0:
+        return []
+    out, depth, obj_start, in_str, esc = [], 0, None, False, False
+    for i in range(start + 1, len(raw)):
+        c = raw[i]
+        if in_str:
+            if esc:
+                esc = False
+            elif c == "\\":
+                esc = True
+            elif c == '"':
+                in_str = False
+            continue
+        if c == '"':
+            in_str = True
+        elif c == "{":
+            if depth == 0:
+                obj_start = i
+            depth += 1
+        elif c == "}" and depth:
+            depth -= 1
+            if depth == 0 and obj_start is not None:
+                try:
+                    obj = json.loads(raw[obj_start:i + 1])
+                    if isinstance(obj, dict):
+                        out.append(obj)
+                except ValueError:
+                    pass
+                obj_start = None
+        elif c == "]" and depth == 0:
+            break
+    return out
+
+
+def _split_sentences(text: str) -> list[str]:
+    return [x.strip() for x in _SENT_SPLIT.split(text or "") if x.strip()]
+
+
+def _kinship_grounded(claim: str, name_tokens: frozenset, source: str | None) -> bool:
+    """Stage 12 A11 (CAST-H8): a kinship word in a character's description is
+    kept only if the source window has that word in a sentence that names the
+    character, or in the sentence right after one that does. Measured defect: a
+    window holding Hessa's "the Cartographer was my sister" (but not the book's
+    opening) described MIRA as "seeking the truth behind her sister's drowning",
+    and longest-text-wins kept it. No source → no check (backward compatible)."""
+    kin = {m.group(1).lower() for m in _KINSHIP_RE.finditer(claim or "")}
+    if not kin or source is None:
+        return True
+    toks = {t for t in name_tokens if len(t) >= 3}
+    if not toks:
+        return True
+    sents = [s_.lower() for s_ in _split_sentences(source)]
+    for i, sent in enumerate(sents):
+        if not any(re.search(rf"\b{k}s?\b", sent) for k in kin):
+            continue
+        near = sent + " " + (sents[i - 1] if i > 0 else "")
+        if any(re.search(rf"\b{re.escape(t)}\b", near) for t in toks):
+            return True
+    return False
+
+
+def _merge_cast(window_results: list, window_texts: list[str] | None = None) -> list:
     """
     Merge per-window character lists into one deduplicated cast.
 
-    Characters are keyed by canonical name (case-insensitive). For each repeated
-    character, text fields take the richer (longer) non-empty value, aliases and
-    traits are unioned, role/status take the more central/definite value, and
-    confidence is "high" if any window was confident.
-    """
-    entries: list[dict] = []   # each: {..character.., "_tokens": frozenset}
+    Stage 12 Tranche 2a (A11, measured first — tests/measure_cast_consistency.py):
+      * MATCHING — two records are the same character only when their names
+        (titles stripped) are identical, or one record's name or alias equals the
+        other's. A bare token SUBSET ("Tomas" vs "Tomas Reyne") is never merged:
+        two different people can share a first name. Such pairs stay separate and
+        are flagged (`_possible_duplicate_in_batch`) so the author decides.
+      * PROVENANCE — every value remembers the window it came from. The
+        description and its evidence snippet come from the EARLIEST window whose
+        description passes the kinship check (where a character is introduced
+        is where they are described with full context); goals, motivations,
+        backstory and arc notes are the de-duplicated union of what each window
+        established, in story order, instead of "longest text wins".
+      * KINSHIP GROUNDING — see _kinship_grounded (only when window_texts given).
+      * PRESENCE (A10) — on_page in any window wins over referenced/historical.
+    Role/status keep the more central/definite value; aliases and traits union.
 
-    def _richer(a, b) -> str:
-        a = (str(a).strip() if a is not None else "")
-        b = (str(b).strip() if b is not None else "")
-        return a if len(a) >= len(b) else b
+    window_results: per-window lists, aligned with window_texts when given
+    (a failed window is None or [] in its slot).
+    """
+    from services.character_names import normalise_name
+
+    entries: list[dict] = []
 
     def _norm_list(v) -> list[str]:
         if isinstance(v, list):
@@ -1612,67 +1738,123 @@ def _merge_cast(window_results: list[list]) -> list:
             return [v.strip()]
         return []
 
-    def _find(tokens: frozenset, name: str):
-        """Match an existing entry whose name is the same character: identical
-        tokens, or one token-set is a subset of the other (e.g. {mara} vs
-        {mara, halloran}). Empty token-sets fall back to exact name match."""
-        if not tokens:
-            return next((e for e in entries if e["name"].lower() == name.lower()), None)
+    def _names_of(name: str, aliases: list[str]) -> set[str]:
+        return {normalise_name(n) for n in [name, *aliases] if normalise_name(n)}
+
+    def _find(tokens: frozenset, name: str, aliases: list[str]):
+        # Alias evidence merges only when one record's OWN name is the other's
+        # name or alias ("Mara" vs "Mara Halloran" listing alias "Mara"). Two
+        # records that merely share an alias ("Tomas Reyne" and "Tomas Hale",
+        # both aliased "Tomas") stay separate — measured: merging on a shared
+        # alias collapsed the two Tomases in 2 of 5 live runs.
+        own = normalise_name(name)
+        forms = _names_of(name, aliases)
         for e in entries:
-            et = e["_tokens"]
-            if et and (tokens <= et or et <= tokens):
+            if tokens and e["_tokens"] == tokens:
+                return e
+            if own in e["_forms"] or e["_own"] & forms:
                 return e
         return None
 
-    text_fields = ("description", "appearance", "personality", "goals",
-                   "motivations", "backstory", "arc_notes", "age", "evidence_snippet")
+    single = ("appearance", "personality", "age")
+    union = ("goals", "motivations", "backstory", "arc_notes")
 
-    for lst in window_results:
+    for w_idx, lst in enumerate(window_results):
         if not isinstance(lst, list):
             continue
+        src = window_texts[w_idx] if window_texts and w_idx < len(window_texts) else None
         for ch in lst:
             if not isinstance(ch, dict):
                 continue
             name = str(ch.get("name", "")).strip()
             if not name:
                 continue
+            aliases = _norm_list(ch.get("aliases"))
             tokens = _name_tokens(name)
-            existing = _find(tokens, name)
-            if existing is None:
-                entries.append({
-                    "name": name,
-                    "role": ch.get("role", "supporting"),
-                    "status": ch.get("status", "active"),
-                    "aliases": _norm_list(ch.get("aliases")),
-                    "traits": _norm_list(ch.get("traits")),
+            rec = {"window": w_idx, "src": src, **{f: str(ch.get(f, "") or "").strip()
+                   for f in ("description", "evidence_snippet", *single, *union)}}
+            e = _find(tokens, name, aliases)
+            if e is None:
+                e = {
+                    "name": name, "role": ch.get("role", "supporting"), "status": ch.get("status", "active"),
+                    "presence": ch.get("presence") if ch.get("presence") in _PRESENCE_PRIORITY else "on_page",
+                    "aliases": aliases, "traits": _norm_list(ch.get("traits")),
                     "first_appearance": str(ch.get("first_appearance", "")).strip(),
                     "confidence": ch.get("confidence", "high"),
-                    "_tokens": tokens,
-                    **{f: str(ch.get(f, "") or "").strip() for f in text_fields},
-                })
+                    "_tokens": tokens, "_forms": _names_of(name, aliases), "_records": [],
+                    "_own": {normalise_name(name)},
+                }
+                entries.append(e)
             else:
-                m = existing
-                # Keep the most complete name as canonical; demote the other to alias.
-                if len(tokens) > len(m["_tokens"]):
-                    if m["name"].lower() != name.lower():
-                        m["aliases"] = sorted(set(m["aliases"]) | {m["name"]})
-                    m["name"], m["_tokens"] = name, tokens
-                elif name.lower() != m["name"].lower():
-                    m["aliases"] = sorted(set(m["aliases"]) | {name})
-                for f in text_fields:
-                    m[f] = _richer(m.get(f), ch.get(f))
-                m["aliases"] = sorted((set(m["aliases"]) | set(_norm_list(ch.get("aliases")))) - {m["name"]})
-                m["traits"] = sorted(set(m["traits"]) | set(_norm_list(ch.get("traits"))))
-                if _ROLE_PRIORITY.get(ch.get("role", ""), -1) > _ROLE_PRIORITY.get(m["role"], -1):
-                    m["role"] = ch.get("role")
-                if _STATUS_PRIORITY.get(ch.get("status", ""), -1) > _STATUS_PRIORITY.get(m["status"], -1):
-                    m["status"] = ch.get("status")
+                if len(tokens) > len(e["_tokens"]):
+                    if e["name"].lower() != name.lower():
+                        e["aliases"] = sorted(set(e["aliases"]) | {e["name"]})
+                    e["name"], e["_tokens"] = name, tokens
+                elif name.lower() != e["name"].lower():
+                    e["aliases"] = sorted(set(e["aliases"]) | {name})
+                e["aliases"] = sorted((set(e["aliases"]) | set(aliases)) - {e["name"]})
+                e["_forms"] |= _names_of(name, aliases)
+                e["_own"].add(normalise_name(name))
+                e["traits"] = sorted(set(e["traits"]) | set(_norm_list(ch.get("traits"))))
+                if _ROLE_PRIORITY.get(ch.get("role", ""), -1) > _ROLE_PRIORITY.get(e["role"], -1):
+                    e["role"] = ch.get("role")
+                if _STATUS_PRIORITY.get(ch.get("status", ""), -1) > _STATUS_PRIORITY.get(e["status"], -1):
+                    e["status"] = ch.get("status")
+                p = ch.get("presence")
+                if p in _PRESENCE_PRIORITY and _PRESENCE_PRIORITY[p] > _PRESENCE_PRIORITY.get(e["presence"], -1):
+                    e["presence"] = p
                 if ch.get("confidence") == "high":
-                    m["confidence"] = "high"
+                    e["confidence"] = "high"
+                if not e["first_appearance"]:
+                    e["first_appearance"] = str(ch.get("first_appearance", "")).strip()
+            e["_records"].append(rec)
 
+    out = []
     for e in entries:
+        recs = sorted(e.pop("_records"), key=lambda r: r["window"])
+        toks = e["_tokens"]
+        chosen = next((r for r in recs if r["description"] and _kinship_grounded(r["description"], toks, r["src"])),
+                      next((r for r in recs if r["description"]), recs[0] if recs else {}))
+        e["description"] = chosen.get("description", "")
+        e["evidence_snippet"] = chosen.get("evidence_snippet", "") or next(
+            (r["evidence_snippet"] for r in recs if r["evidence_snippet"]), "")
+        for f in single:
+            e[f] = max((r[f] for r in recs), key=len, default="")
+        for f in union:
+            kept: list[str] = []
+            for r in recs:
+                for sent in _split_sentences(r[f]):
+                    if not _kinship_grounded(sent, toks, r["src"]):
+                        continue
+                    if any(SequenceMatcher(None, sent.lower(), k.lower()).ratio() >= 0.85 for k in kept):
+                        continue
+                    kept.append(sent)
+            text = " ".join(kept)
+            e[f] = text if len(text) <= _MERGED_FIELD_CAP else text[:_MERGED_FIELD_CAP].rsplit(" ", 1)[0] + "…"
+        out.append(e)
+
+    # Uncertain within-batch duplicates (never merged): reuse the Tranche 1
+    # name signals. The less specific name is the one flagged.
+    from services.character_duplicates import name_signals
+    for i, a in enumerate(out):
+        for b in out[i + 1:]:
+            if name_signals([a["name"], *a["aliases"]], [b["name"], *b["aliases"]]):
+                shorter, longer = (a, b) if len(a["_tokens"]) <= len(b["_tokens"]) else (b, a)
+                shorter.setdefault("_possible_duplicate_in_batch", longer["name"])
+    # A record the MODEL itself conflated: an alias that is a different full
+    # name sharing only part of the name ("Tomas Reyne" listing "Tomas Hale").
+    # Measured in 1 of 4 single-window runs. Facts cannot be split back
+    # without inventing which belong to whom, so it is flagged, not changed.
+    for e in out:
+        for al in e["aliases"]:
+            at = _name_tokens(al)
+            if len(at) >= 2 and at & e["_tokens"] and not (at <= e["_tokens"] or e["_tokens"] <= at):
+                e.setdefault("_possible_combined_with", al)
+    for e in out:
         e.pop("_tokens", None)
-    return entries
+        e.pop("_forms", None)
+        e.pop("_own", None)
+    return out
 
 
 async def extract_cast(chapter_texts: list) -> list:
@@ -1704,10 +1886,14 @@ async def extract_cast(chapter_texts: list) -> list:
           f"window(s) of ~{words_per_window} words (model ctx="
           f"{getattr(settings, 'max_model_len', 8192)})")
 
+    builder, resolved = resolve_prompt_version("cast", settings.prompt_version, settings.prompt_version_fallback)
+    cast_system = builder()
+    _log_prompt_version("cast", resolved)
+
     async def _run_window(i: int, body: str):
         try:
             raw = await _complete(
-                _CAST_SYSTEM, f"Story text:\n\n{body}",
+                cast_system, f"Story text:\n\n{body}",
                 temperature=0.1, max_tokens=_CAST_COMPLETION_TOKENS,
             )
         except Exception as exc:
@@ -1715,6 +1901,11 @@ async def extract_cast(chapter_texts: list) -> list:
             return exc  # surfaced below so we can distinguish "all failed"
         parsed = _extract_json(raw, None)
         if not isinstance(parsed, list):
+            salvaged = _salvage_json_objects(raw or "")
+            if salvaged:
+                logger.warning("[ai_service] extract_cast window %d/%d output was cut off — kept %d "
+                               "complete character(s) (chars=%d)", i + 1, len(windows), len(salvaged), len(raw or ""))
+                return salvaged
             logger.warning("[ai_service] extract_cast window %d/%d non-array JSON (chars=%d)",
                            i + 1, len(windows), len(raw or ""))
             return None
@@ -1725,6 +1916,7 @@ async def extract_cast(chapter_texts: list) -> list:
 
     parsed_lists = [r for r in results if isinstance(r, list)]
     errors       = [r for r in results if isinstance(r, Exception)]
+    aligned      = [r if isinstance(r, list) else None for r in results]
 
     if not parsed_lists:
         # Nothing usable came back. Distinguish transport failure from bad output
@@ -1736,7 +1928,7 @@ async def extract_cast(chapter_texts: list) -> list:
             "parsed as JSON. Please try again."
         )
 
-    cast = _merge_cast(parsed_lists)
+    cast = _merge_cast(aligned, windows)
     logger.info(
         "[ai_service] extract_cast merged into %d unique character(s) from %d/%d successful window(s)",
         len(cast), len(parsed_lists), len(windows),
@@ -1756,6 +1948,10 @@ _ADVERSARIAL_CRITIQUE_SYSTEM = (
     "{id, category, observation, recommendation, priority}. Return ONLY the "
     "JSON array."
 )
+
+
+# Set from the A17 measurement (tests/fixtures/suggestions_quality_t2b_*.json).
+_SHARPEN_SUGGESTIONS = True
 
 
 async def _adversarial_sharpen_suggestions(suggestions: list) -> list:
@@ -1799,8 +1995,9 @@ async def generate_suggestions(text: str, story_context: str = "", genre: str = 
     if story_context:
         parts.append(f"Story context: {story_context}")
     parts.append(f"Excerpt:\n{text}")
+    user = "\n\n".join(parts)
     result, meta = await complete_structured(
-        system, "\n\n".join(parts),
+        system, user,
         coerce=coerce_writing_suggestions,
         temperature=0.0, max_tokens=600, label="writing_suggestions",
     )
@@ -1808,13 +2005,53 @@ async def generate_suggestions(text: str, story_context: str = "", genre: str = 
         raise ValueError(
             "Writing suggestions could not be generated. Please try again."
         )
-    # Task 5.13 — the adversarial sharpening pass is part of v2's improved
-    # suggestions design specifically; v1 stays byte-identical to its
-    # pre-Stage-5 behavior (task 5.1's frozen-baseline guarantee), so this
-    # only runs when v2 was the version actually resolved.
-    if resolved == "v2":
+    # v1 stays byte-identical to its pre-Stage-5 behaviour (task 5.1's frozen
+    # baseline): no sharpening, no hygiene.
+    if resolved == "v1":
+        return result
+    # Task 5.13's sharpening pass belongs to the v2+ suggestions design. It was
+    # gated on `resolved == "v2"`, so from the v3 default onwards (Stage 5 D4)
+    # it silently never ran — Stage 12 A17 found and measured this.
+    if _SHARPEN_SUGGESTIONS:
         result = await _adversarial_sharpen_suggestions(result)
-    return result
+    # Stage 12 A17 — drop items with nothing to act on and in-response duplicates.
+    from services.suggestion_hygiene import clean_suggestions
+    from services.prompt_safety import INSTRUCTION_LIKE_SUGGESTIONS, material_text, output_obeyed_material
+    material = material_text(text, story_context)
+    obeyed = 0
+
+    def _filter(items):
+        nonlocal obeyed
+        kept, dropped = clean_suggestions(items or [])
+        if dropped:
+            logger.info("[suggestions] hygiene dropped %d of %d item(s): %s", len(dropped), len(items),
+                        ", ".join(d["why"] for d in dropped))
+        # Stage 12 A18: only the RECOMMENDATION is checked — observations quote
+        # the excerpt by design.
+        safe = [s for s in kept if not output_obeyed_material(material, s.get("recommendation", ""))]
+        if len(safe) < len(kept):
+            obeyed += len(kept) - len(safe)
+            logger.warning("[suggestions] dropped %d item(s) that followed instruction-like material",
+                           len(kept) - len(safe))
+        return safe
+
+    kept = _filter(result)
+    if kept:
+        return kept
+    # Everything was filtered: one silent retry at a little temperature (the
+    # first call was greedy — repeating it would repeat the output), then the
+    # honest error. Never an empty list presented as "no weaknesses".
+    retry, _meta = await complete_structured(
+        system, user, coerce=coerce_writing_suggestions,
+        temperature=0.4, max_tokens=600, label="writing_suggestions_retry",
+    )
+    kept = _filter(retry)
+    if kept:
+        return kept
+    if obeyed:
+        from exceptions import ApiError
+        raise ApiError(422, INSTRUCTION_LIKE_SUGGESTIONS, code="instruction_like_text")
+    raise ValueError("Writing suggestions could not be generated. Please try again.")
 
 
 # ── Plot Assistant — intent detection ─────────────────────────────────────────
@@ -2113,6 +2350,59 @@ async def retrieve_note_context(
 
 # ── Plot Assistant — direct Q&A answer ────────────────────────────────────────
 
+_QA_COMPLETION_TOKENS = 900
+_QA_SAFETY_MARGIN = 300          # chat template + tokenizer drift headroom
+_INTEL_CONTEXT_TOKEN_CAP = 400   # Stage 12 A13: reduced budget for Story Intelligence in Q&A
+_FENCE_ID_VARIANCE = 24          # random fence id: measured token spread is single digits
+
+
+def format_intel_context(intel_context: dict | None) -> str:
+    """One prompt block for Story Intelligence context (P29). Shared by Q&A and
+    plot suggestions so both render exactly what build_integration_context
+    returned — which, under a chapter cap, is only style facts and memory
+    entries derived no later than the cap (Tranche 1 + Stage 12 provenance)."""
+    if not intel_context:
+        return ""
+    parts = []
+    if intel_context.get("story_premise"):
+        parts.append(f"Story premise: {intel_context['story_premise']}")
+    if intel_context.get("central_question"):
+        parts.append(f"Central question: {intel_context['central_question']}")
+    if intel_context.get("primary_theme"):
+        parts.append(f"Theme: {intel_context['primary_theme']}")
+    if intel_context.get("primary_conflict"):
+        parts.append(f"Primary conflict: {intel_context['primary_conflict']}")
+    if intel_context.get("critical_issues"):
+        parts.append(f"Known issues to avoid: {', '.join(intel_context['critical_issues'][:3])}")
+    if intel_context.get("unresolved_threads"):
+        parts.append(f"Unresolved threads: {', '.join(intel_context['unresolved_threads'][:3])}")
+    if intel_context.get("memory_hits"):
+        mem_blocks = [f"  • {h['content']}" for h in intel_context["memory_hits"][:6]]
+        parts.append("Relevant story knowledge:\n" + "\n".join(mem_blocks))
+    return ("Story intelligence context:\n" + "\n".join(parts)) if parts else ""
+
+
+def _trim_to_tokens(text: str, cap: int) -> str:
+    """Cut `text` at a line boundary so it fits `cap` real tokens."""
+    if count_tokens(text) <= cap:
+        return text
+    lines = text.split("\n")
+    while lines and count_tokens("\n".join(lines)) > cap:
+        lines.pop()
+    return "\n".join(lines)
+
+
+def _qa_prompt_tokens(system: str, user: str, question: str) -> int:
+    """Real token count of the Q&A request as it is actually sent (with the
+    prompt-injection fence and restated task when the guard is on)."""
+    if settings.prompt_injection_guard:
+        from services.prompt_safety import harden
+        system, user = harden(system, user, question_task(question))
+    else:
+        user = f"Question: {question}\n\n{user}"
+    return count_tokens(system) + count_tokens(user)
+
+
 async def answer_story_question(
     question: str,
     text_chunks: list,
@@ -2122,6 +2412,7 @@ async def answer_story_question(
     note_context: list[str] = None,
     genre_context: str = "",
     scope_limited: bool = False,
+    intel_context: dict | None = None,
 ) -> str:
     """
     Answer a factual question about the story using top-k semantically retrieved
@@ -2140,6 +2431,13 @@ async def answer_story_question(
     different claim from "this isn't established in your story", and
     conflating them under a chapter-scoped search would tell the author
     something false about their own manuscript.
+
+    intel_context (Stage 12 A13, PA-C9): Story Intelligence from
+    build_integration_context, already limited to the request's scope. Capped
+    to _INTEL_CONTEXT_TOKEN_CAP tokens. The whole prompt is measured with the
+    real tokenizer and trimmed (Story Intelligence first, then the
+    lowest-ranked passages, then the current-chapter excerpt) so it can never
+    exceed max_model_len.
     """
     system = (
         "You are a story knowledge assistant. Answer the writer's question using "
@@ -2170,65 +2468,88 @@ async def answer_story_question(
     # The question is NOT part of the material: the prompt-injection guard places
     # it after the fenced passages (task=question_task), so the last thing the
     # model reads is the author's real question, not a line inside a passage.
-    parts = []
-
+    head: list[str] = []
     # Prefer the rich shared genre-context block; fall back to a one-line genre.
     if genre_context:
-        parts.append(genre_context)
+        head.append(genre_context)
     elif genre_profile:
         g = genre_profile.get("genre", "")
         sg = genre_profile.get("sub_genre", "")
         if g:
-            parts.append(f"Story genre: {g}{(' / ' + sg) if sg else ''}")
+            head.append(f"Story genre: {g}{(' / ' + sg) if sg else ''}")
 
-    if character_context:
-        parts.append(
-            "Relevant character profiles:\n\n" + "\n\n".join(character_context)
-        )
+    intel_block = _trim_to_tokens(format_intel_context(intel_context), _INTEL_CONTEXT_TOKEN_CAP)
+    char_block = ("Relevant character profiles:\n\n" + "\n\n".join(character_context)) if character_context else ""
+    note_block = ("Author's notes (story notes and research cards):\n\n" + "\n\n".join(note_context)) if note_context else ""
+    chunks = list(text_chunks or [])
+    tail = f"Current chapter (last 600 chars):\n{current_chapter[-600:]}" if current_chapter else ""
 
-    if note_context:
-        parts.append(
-            "Author's notes (story notes and research cards):\n\n"
-            + "\n\n".join(note_context)
-        )
-
-    if text_chunks:
-        total_words = sum(c["word_count"] for c in text_chunks)
-        passage_blocks = []
-        for i, c in enumerate(text_chunks, 1):
-            passage_blocks.append(
-                f"--- Passage {i} | Chapter {c['chapter']} "
-                f"| relevance {c['score']:.2f} ---\n"
-                f"{c['text']}"
+    def assemble() -> str:
+        parts = list(head)
+        for block in (intel_block, char_block, note_block):
+            if block:
+                parts.append(block)
+        if chunks:
+            total_words = sum(c["word_count"] for c in chunks)
+            passage_blocks = [
+                f"--- Passage {i} | Chapter {c['chapter']} | relevance {c['score']:.2f} ---\n{c['text']}"
+                for i, c in enumerate(chunks, 1)
+            ]
+            parts.append(
+                f"Retrieved story passages ({len(chunks)} passages · {total_words} words · "
+                f"semantic search via BGE-M3):\n\n" + "\n\n".join(passage_blocks)
             )
-        parts.append(
-            f"Retrieved story passages "
-            f"({len(text_chunks)} passages · {total_words} words · "
-            f"semantic search via BGE-M3):\n\n"
-            + "\n\n".join(passage_blocks)
-        )
-        user_prompt = "\n\n".join(parts)
-        total_chars  = len(system) + len(user_prompt)
-        logger.info(f"[qa_answer] {len(text_chunks)} chunk(s), {total_words} words, "
-            f"char_ctx={len(character_context or [])}, "
-            f"prompt≈{total_chars//4} tokens, max_tokens=900")
-    else:
-        parts.append(
-            "No indexed story passages found for this story. "
-            "The author needs to save their chapters and run sync-summaries "
-            "so the content can be indexed."
-        )
-        user_prompt = "\n\n".join(parts)
-        logger.info("[qa_answer] No chunks available — answering without story context")
+        else:
+            parts.append(
+                "No indexed story passages found for this story. "
+                "The author needs to save their chapters and run sync-summaries "
+                "so the content can be indexed."
+            )
+        if tail:
+            parts.append(tail)
+        return "\n\n".join(parts)
 
-    if current_chapter:
-        parts.append(f"Current chapter (last 600 chars):\n{current_chapter[-600:]}")
-        user_prompt = "\n\n".join(parts)
+    budget = settings.max_model_len - _QA_COMPLETION_TOKENS - _QA_SAFETY_MARGIN
+    # The prompt-injection fence carries a random id per call, which can
+    # tokenise a few tokens differently each time — fit with that allowance.
+    fit_to = budget - _FENCE_ID_VARIANCE
+    user_prompt = assemble()
+    tokens = _qa_prompt_tokens(system, user_prompt, question)
+    trimmed: list[str] = []
+    while tokens > fit_to:
+        if intel_block:
+            intel_block = ""; trimmed.append("intel")
+        elif len(chunks) > 1:
+            chunks.pop(); trimmed.append("passage")
+        elif tail:
+            tail = ""; trimmed.append("chapter_tail")
+        elif char_block:
+            char_block = ""; trimmed.append("characters")
+        else:
+            break
+        user_prompt = assemble()
+        tokens = _qa_prompt_tokens(system, user_prompt, question)
+    logger.info(f"[qa_answer] {len(chunks)} chunk(s), char_ctx={len(character_context or [])}, "
+                f"intel={'yes' if intel_block else 'no'}, prompt={tokens} tokens (real), "
+                f"budget={budget}, trimmed={trimmed or 'none'}")
 
     if not settings.prompt_injection_guard:
         user_prompt = f"Question: {question}\n\n{user_prompt}"   # pre-Stage-11 layout
-    return await _complete(system, user_prompt, temperature=0.0, max_tokens=900,
-                           task=question_task(question))
+    answer = await _complete(system, user_prompt, temperature=0.0, max_tokens=900,
+                             task=question_task(question))
+    # Stage 12 A18: an answer that copies an instruction out of the material and
+    # has dropped the story followed that instruction. One silent retry (with a
+    # little temperature — the first call was greedy), then an honest refusal.
+    from services.prompt_safety import INSTRUCTION_LIKE_ANSWER, material_text, output_obeyed_material
+    material = material_text(chunks, current_chapter, note_context, character_context)
+    if output_obeyed_material(material, answer):
+        logger.warning("[qa_answer] answer followed instruction-like material — retrying once")
+        answer = await _complete(system, user_prompt, temperature=0.3, max_tokens=900,
+                                 task=question_task(question))
+        if output_obeyed_material(material, answer):
+            from exceptions import ApiError
+            raise ApiError(422, INSTRUCTION_LIKE_ANSWER, code="instruction_like_text")
+    return answer
 
 
 # ── Plot Assistant — plot suggestions ─────────────────────────────────────────
@@ -2304,26 +2625,11 @@ async def generate_plot_suggestions(
             + "\n\n".join(note_context)
         )
 
-    # Intelligence context from Story Intelligence System (P29)
-    if intel_context:
-        intel_parts = []
-        if intel_context.get("story_premise"):
-            intel_parts.append(f"Story premise: {intel_context['story_premise']}")
-        if intel_context.get("central_question"):
-            intel_parts.append(f"Central question: {intel_context['central_question']}")
-        if intel_context.get("primary_theme"):
-            intel_parts.append(f"Theme: {intel_context['primary_theme']}")
-        if intel_context.get("primary_conflict"):
-            intel_parts.append(f"Primary conflict: {intel_context['primary_conflict']}")
-        if intel_context.get("critical_issues"):
-            intel_parts.append(f"Known issues to avoid: {', '.join(intel_context['critical_issues'][:3])}")
-        if intel_context.get("unresolved_threads"):
-            intel_parts.append(f"Unresolved threads: {', '.join(intel_context['unresolved_threads'][:3])}")
-        if intel_context.get("memory_hits"):
-            mem_blocks = [f"  • {h['content']}" for h in intel_context["memory_hits"][:6]]
-            intel_parts.append("Relevant story knowledge:\n" + "\n".join(mem_blocks))
-        if intel_parts:
-            parts.append("Story intelligence context:\n" + "\n".join(intel_parts))
+    # Intelligence context from Story Intelligence System (P29) — the shared
+    # formatter, so Q&A and suggestions render the same scope-limited context.
+    intel_block = format_intel_context(intel_context)
+    if intel_block:
+        parts.append(intel_block)
 
     if current_chapter:
         parts.append(f"Current chapter excerpt (last 600 chars):\n{current_chapter[-600:]}")
@@ -2335,18 +2641,43 @@ async def generate_plot_suggestions(
     )
     logger.info("[ai_service] plot_suggestions: calling Qwen — %s", context_status)
 
+    task = question_task(question, what="Respond to the author's plot question, in the JSON format your "
+                                         "instructions specify")
     result, meta = await complete_structured(
         system, "\n\n".join(parts),
         coerce=coerce_text_suggestions,
-        temperature=0.0, max_tokens=800, label="plot_suggestions",
-        task=question_task(question, what="Respond to the author's plot question, in the JSON format your "
-                                           "instructions specify"),
+        temperature=0.0, max_tokens=800, label="plot_suggestions", task=task,
     )
     if result is None:
         raise ValueError(
             "Plot suggestions could not be generated. Please try again."
         )
-    return result
+    # Stage 12 A18: drop only the items that followed an instruction in the
+    # material; if every item did, one retry, then an honest refusal (never an
+    # empty list presented as "no ideas").
+    from services.prompt_safety import INSTRUCTION_LIKE_SUGGESTIONS, material_text, output_obeyed_material
+    material = material_text(retrieved_chunks, summaries, character_profiles, note_context,
+                             current_chapter[-600:] if current_chapter else "")
+
+    def _clean(items):
+        return [s for s in (items or [])
+                if not output_obeyed_material(material, f"{s.get('text', '')} {s.get('rationale', '')}")]
+
+    kept = _clean(result)
+    if len(kept) < len(result):
+        logger.warning("[plot_suggestions] dropped %d item(s) that followed instruction-like material",
+                       len(result) - len(kept))
+    if kept:
+        return kept
+    retry, _meta = await complete_structured(
+        system, "\n\n".join(parts), coerce=coerce_text_suggestions,
+        temperature=0.4, max_tokens=800, label="plot_suggestions_retry", task=task,
+    )
+    kept = _clean(retry)
+    if kept:
+        return kept
+    from exceptions import ApiError
+    raise ApiError(422, INSTRUCTION_LIKE_SUGGESTIONS, code="instruction_like_text")
 
 
 # ── Plot Hole Detection — strategy dispatcher ─────────────────────────────────
@@ -3857,6 +4188,33 @@ async def index_character_mentions(
     return mention_counts
 
 
+def _sample_mentions_evenly(mentions: list, k: int = 10, per_chapter: int = 2) -> list:
+    """Up to k mentions spread evenly across the chapters a character appears
+    in (Stage 12 A13, PA-H11). Previously the first 10 in chapter order were
+    taken, so a long book's embedding described roughly chapters 1–5 only.
+    `mentions` must be in chapter order; the result keeps that order."""
+    by_ch: dict[int, list] = {}
+    for m in mentions:
+        by_ch.setdefault(m.chapter_number, []).append(m)
+    chapters = sorted(by_ch)
+    if not chapters:
+        return []
+    picked: list = []
+    for rnd in range(per_chapter):
+        need = k - len(picked)
+        if need <= 0:
+            break
+        avail = [c for c in chapters if len(by_ch[c]) > rnd]
+        if not avail:
+            break
+        if len(avail) > need:            # evenly spaced, always incl. first and last
+            step = (len(avail) - 1) / (need - 1) if need > 1 else 0
+            avail = sorted({avail[round(i * step)] for i in range(need)})
+        picked.extend(by_ch[c][rnd] for c in avail)
+    order = {id(m): i for i, m in enumerate(mentions)}
+    return sorted(picked[:k], key=lambda m: order[id(m)])
+
+
 async def update_mention_embedding(character_id: str, story_id: str, db) -> bool:
     """
     Compute a story-grounded BGE-M3 embedding from the character's mentions.
@@ -3881,16 +4239,7 @@ async def update_mention_embedding(character_id: str, story_id: str, db) -> bool
     if not all_mentions:
         return False
 
-    # Select up to 10 diverse mentions: at most 2 per chapter
-    selected = []
-    chapter_counts: dict[int, int] = {}
-    for m in all_mentions:
-        ch = m.chapter_number
-        if chapter_counts.get(ch, 0) < 2:
-            selected.append(m)
-            chapter_counts[ch] = chapter_counts.get(ch, 0) + 1
-        if len(selected) >= 10:
-            break
+    selected = _sample_mentions_evenly(all_mentions)
 
     # Build combined text — truncate each passage to ~120 words to stay in BGE-M3 range
     parts = []
@@ -4383,10 +4732,17 @@ async def retrieve_chunks_from_store(
     db,
     top_k: int = 8,
     max_chapter_number: int | None = None,
+    diversify_chapters: bool = False,
 ) -> list[dict]:
     """
     Embed the question with BGE-M3 and return the top-k most semantically
     relevant paragraph-level chunks across the story.
+
+    diversify_chapters (Stage 12 A13, PA-H11; Plot Assistant Q&A only): when the
+    search covers more than a few chapters, no single chapter may take more than
+    a third of the slots while another chapter has a near-equal candidate — so
+    evidence from later chapters is not crowded out. Other callers keep the
+    plain ranking.
 
     max_chapter_number: when provided, only chunks from chapters with
     chapter_number <= max_chapter_number are considered.  None = no filter
@@ -4409,7 +4765,7 @@ async def retrieve_chunks_from_store(
     chapter_filter = "AND chapter_number <= :max_ch" if max_chapter_number is not None else ""
     # Over-fetch a candidate pool so the plot-importance re-rank below has
     # something to work with beyond the raw top-k cosine order.
-    candidate_k = min(top_k * 3, 40)
+    candidate_k = 40 if diversify_chapters else min(top_k * 3, 40)
     params: dict = {"q": q_vec_str, "story_id": story_id, "limit": candidate_k}
     if max_chapter_number is not None:
         params["max_ch"] = max_chapter_number
@@ -4433,19 +4789,19 @@ async def retrieve_chunks_from_store(
         return []
 
     chapter_numbers = {row.chapter_number for row in rows}
-    importance = _plot_importance_by_chapter(story_id, chapter_numbers, db)
-
-    ranked_all = sorted(
-        rows,
-        key=lambda row: float(row.score) + importance.get(row.chapter_number, 0.0),
-        reverse=True,
-    )
+    raw_importance = _plot_importance_raw_by_chapter(story_id, chapter_numbers, db)
+    ranked_all = _rerank_near_ties(rows, raw_importance)
     # Task 4.13: dedupe on CONTENT, not chunk_id — 350-word overlapping chunks
     # legitimately share text, so two different chunk_ids can carry almost the
     # same passage. Greedy: keep a candidate only if it isn't near-duplicate
     # text of something already selected, so top_k slots aren't wasted on
     # near-repeats of the same passage.
-    ranked = _dedupe_chunks_by_content(ranked_all, top_k)
+    use_quota = diversify_chapters and (max_chapter_number is None or max_chapter_number > 5)
+    if use_quota:
+        deduped = _dedupe_chunks_by_content(ranked_all, len(ranked_all))
+        ranked = _select_with_chapter_quota(deduped, top_k)
+    else:
+        ranked = _dedupe_chunks_by_content(ranked_all, top_k)
 
     chapters_hit = sorted({row.chapter_number for row in ranked})
     logger.info(f"[chunk_retrieval] top-{len(ranked)} (of {len(rows)} candidates): "
@@ -4506,6 +4862,84 @@ def _dedupe_chunks_by_content(ranked_rows: list, top_k: int) -> list:
         selected_word_sets.append(words)
         if len(selected) >= top_k:
             break
+    return selected
+
+
+# ── Stage 12 A13 (PA-C6 / PA-H12): importance as a NEAR-TIE adjustment ───────
+# The original boost (below, still used for the manuscript report's display)
+# saturated at 0.08 after only 2–6 events, so most eventful chapters tied and
+# the boost carried no ranking information. Now: an uncapped raw importance per
+# candidate chapter, converted to a percentile rank WITHIN the candidate set,
+# scaled by a fixed epsilon in cosine units. By construction a candidate can
+# only overtake another whose cosine score is less than _NEAR_TIE_EPS higher —
+# a clearly stronger semantic match can never lose to a busier chapter.
+_NEAR_TIE_EPS = 0.02
+# PA-H11 quota: at most ceil(top_k / 3) chunks from one chapter while another
+# chapter still has a candidate within _QUOTA_EPS of the one being deferred.
+_QUOTA_EPS = 0.05
+
+
+def _plot_importance_raw_by_chapter(story_id: str, chapter_numbers: set[int], db) -> dict[int, float]:
+    """Uncapped plot importance per chapter from ChapterSummary: log(1+events)
+    plus small arc/relationship-movement terms. Unsummarised chapters are absent."""
+    if not chapter_numbers:
+        return {}
+    import math
+    from models import ChapterSummary
+
+    rows = (
+        db.query(ChapterSummary.chapter_number, ChapterSummary.key_events,
+                 ChapterSummary.character_arc_notes, ChapterSummary.relationship_changes)
+        .filter(ChapterSummary.story_id == story_id, ChapterSummary.chapter_number.in_(chapter_numbers))
+        .all()
+    )
+    out: dict[int, float] = {}
+    for ch, events, arc, rel in rows:
+        n = len(events) if isinstance(events, list) else 0
+        out[ch] = math.log1p(n) + (0.5 if arc else 0.0) + (0.5 if rel else 0.0)
+    return out
+
+
+def _importance_percentiles(raw: dict[int, float]) -> dict[int, float]:
+    """Percentile rank (0..1) of each chapter's raw importance among the
+    candidates; equal values share their mean rank; a single chapter gets 0."""
+    if len(raw) < 2:
+        return {ch: 0.0 for ch in raw}
+    vals = sorted(raw.values())
+    n = len(vals)
+    pct: dict[int, float] = {}
+    for ch, v in raw.items():
+        lo = vals.index(v)
+        hi = n - 1 - vals[::-1].index(v)
+        pct[ch] = ((lo + hi) / 2) / (n - 1)
+    return pct
+
+
+def _rerank_near_ties(rows: list, raw_importance: dict[int, float], eps: float = _NEAR_TIE_EPS) -> list:
+    """Rows sorted by cosine + eps * importance percentile (stable on ties)."""
+    pct = _importance_percentiles(raw_importance)
+    return sorted(rows, key=lambda r: float(r.score) + eps * pct.get(r.chapter_number, 0.0), reverse=True)
+
+
+def _select_with_chapter_quota(ranked: list, top_k: int, eps: float = _QUOTA_EPS) -> list:
+    """Greedy top_k with a per-chapter quota that only bites when another
+    chapter offers a near-equal candidate (within eps); otherwise the best
+    remaining candidate is taken, so single-chapter answers are not starved."""
+    import math
+    quota = max(1, math.ceil(top_k / 3))
+    selected: list = []
+    per_ch: dict[int, int] = {}
+    pool = list(ranked)
+    while pool and len(selected) < top_k:
+        cand = pool[0]
+        if per_ch.get(cand.chapter_number, 0) >= quota:
+            alt = next((r for r in pool[1:] if per_ch.get(r.chapter_number, 0) < quota
+                        and float(r.score) >= float(cand.score) - eps), None)
+            if alt is not None:
+                cand = alt
+        pool.remove(cand)
+        selected.append(cand)
+        per_ch[cand.chapter_number] = per_ch.get(cand.chapter_number, 0) + 1
     return selected
 
 
@@ -4867,7 +5301,16 @@ async def generate_continuations(
         )
         raise AIResponseTruncatedError(max_tokens=max_tokens)
 
-    return result
+    # Stage 12 A18: an option that copies an instruction out of the material and
+    # has dropped the story is removed; the router shows its existing "could not
+    # generate this suggestion — please retry" card in its place.
+    from services.prompt_safety import material_text, output_obeyed_material
+    material = material_text(tail_text, story_context, character_context)
+    safe = [s for s in result if not output_obeyed_material(material, str(s.get("text", "")))]
+    if len(safe) < len(result):
+        logger.warning("[continuation] dropped %d option(s) that followed instruction-like material",
+                       len(result) - len(safe))
+    return safe
 
 
 # ── P2-03: Dialogue Voice Consistency Checker ─────────────────────────────────

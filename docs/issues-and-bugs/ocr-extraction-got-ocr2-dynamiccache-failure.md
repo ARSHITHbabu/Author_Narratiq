@@ -4,7 +4,7 @@
 |---|---|
 | **Recorded** | 2026-07-26 |
 | **Found during** | Checklist task **3.10** (OCR upload interface renders — Phase 2 Issue 6) |
-| **Status** | Open — **not** part of task 3.10; recorded so it is not lost |
+| **Status** | **Fixed 2026-10-02 (Stage 12 remediation A2) — awaiting the product owner's review.** See "Resolution" below |
 | **Severity** | High — the OCR feature is reachable and correct in the UI, but no image can currently be read |
 | **Area** | Backend / model runtime |
 
@@ -76,3 +76,23 @@ Option 3 is the smallest honest improvement; options 1 and 2 are the real fix.
 A task in **Stage 3** alongside the other Phase 2 defects, or Stage 10 production
 readiness if it is judged non-blocking. It should not be folded into 3.10, whose
 definition of done is the interface being reachable.
+
+## Resolution (2026-10-02, Stage 12 remediation A2)
+
+Root cause confirmed on pod `3cqrpqhew0akdi`: `modeling_GOT.py:400-401` (the model's own code, loaded with
+`trust_remote_code`) reads `past_key_values.seen_tokens` and calls `past_key_values.get_max_length()`. Both
+were removed from `transformers.DynamicCache` before the pinned 4.57.6, and transformers cannot be
+downgraded (vLLM 0.9.2 needs ≥ 4.51). Reproduced with the real model before the fix.
+
+Fix: `services/ocr_service.py::_ensure_got_cache_compat()` restores exactly those two members, with their old
+meaning (`seen_tokens` = `get_seq_length()`; `get_max_length()` = `None` for a dynamic cache), before the model
+loads. It only adds missing members; the model files are not edited, so a re-download cannot undo it.
+
+Verified with the real pinned model on the A40: a rendered three-line page was read exactly (quality 1.0,
+8.8 s). Tests: `backend/tests/test_ocr_compat.py` (shim semantics, idempotence, the vendored code still
+needing it, and a real-model extraction). The earlier docstring claimed these patches already existed; they did
+not, and it has been corrected. The "Tesseract path" in remedy 3 never existed.
+
+Known limitation: the vendored code still calls `.cuda()`, so OCR needs a GPU; `get_best_ocr_device()`'s CPU
+fallback cannot run it.
+

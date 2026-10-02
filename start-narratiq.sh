@@ -291,6 +291,8 @@ else                                TP=1; MML=8192;  UTIL=0.88
 fi
 
 
+# vLLM binds to 127.0.0.1 (Stage 12 remediation A4): the backend is its only
+# client, it has no API key, and 9001 must never be reachable from off the pod.
 # Blackwell (sm_120) requires NCCL_P2P_DISABLE=1 + NCCL_SHM_DISABLE=1:
 # the Blackwell P2P/SHM paths in NCCL 2.21/2.26 deadlock during ncclCommInitRank.
 # Fall back to socket transport, which works correctly on all architectures.
@@ -305,7 +307,7 @@ python3 -m vllm.entrypoints.openai.api_server \
   --max-num-seqs           256 \
   --enable-chunked-prefill \
   --enable-prefix-caching \
-  --host                   0.0.0.0 \
+  --host                   127.0.0.1 \
   --port                   $VLLM_PORT \
   --disable-log-requests \
   > "$LOG_DIR/vllm.log" 2>&1 &

@@ -1,5 +1,6 @@
 'use client'
 
+import { isOffPage, presenceLabel, PRESENCE_OPTIONS } from '@/lib/presence'
 import { useState, useEffect } from 'react'
 import {
   X, Sparkles, Loader2, Users, AlertCircle,
@@ -59,7 +60,13 @@ export default function CastGenerationModal({ storyId, onClose, onConfirmed }: P
         setResult(data)
         // Pre-select all new (non-existing) suggestions
         setSelected(new Set(
-          data.suggestions.filter(s => !s.already_exists).map(s => s.name)
+          // Not pre-selected — the author decides (Stage 12 A7, A10, A11):
+          // a possible duplicate of an existing character, a figure who is only
+          // mentioned or belongs to the past, or the less specific name of a
+          // possible duplicate pair within these suggestions.
+          data.suggestions.filter(s => !s.already_exists && !s.possible_duplicate_of
+            && !isOffPage(s.presence) && !s.possible_duplicate_in_suggestions
+            && !s.possible_combined_with).map(s => s.name)
         ))
         setPhase('review')
       } catch (err: any) {
@@ -96,6 +103,7 @@ export default function CastGenerationModal({ storyId, onClose, onConfirmed }: P
         description:      s.description,
         aliases:          s.aliases,
         evidence_snippet: s.evidence_snippet,
+        presence:         s.presence ?? 'on_page',
         age:              s.age ?? '',
         appearance:       s.appearance ?? '',
         personality:      s.personality ?? '',
@@ -133,7 +141,7 @@ export default function CastGenerationModal({ storyId, onClose, onConfirmed }: P
         <div className="flex items-center gap-2.5 px-5 py-4 border-b border-[#1f2440] flex-shrink-0">
           <Sparkles className="w-4 h-4 text-amber-400" />
           <span className="text-sm font-semibold text-[#e8eaf6] flex-1">Generate Cast from Story</span>
-          <button onClick={onClose} className="text-[#8a90ba] hover:text-[#9da3c8] transition-colors">
+          <button onClick={onClose} aria-label="Close" className="text-[#8a90ba] hover:text-[#9da3c8] transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -308,6 +316,10 @@ function SuggestionRow({ suggestion: s, checked, expanded, disabled, onToggle, o
         <button
           onClick={disabled ? undefined : onToggle}
           disabled={disabled}
+          // Stage 12: an accessible name and state (axe button-name, serious).
+          role="checkbox"
+          aria-checked={checked && !disabled}
+          aria-label={disabled ? `${s.name} is already in your cast` : `Add ${s.name} to the cast`}
           className={`mt-0.5 flex-shrink-0 w-3.5 h-3.5 rounded border transition-all ${
             disabled
               ? 'border-[#2e3454] bg-transparent cursor-default'
@@ -330,6 +342,17 @@ function SuggestionRow({ suggestion: s, checked, expanded, disabled, onToggle, o
             <span className={`text-[9px] px-1.5 py-0.5 rounded-full border capitalize ${roleColor}`}>
               {s.role}
             </span>
+            {isOffPage(s.presence) && (
+              <span data-testid="cast-presence" title={PRESENCE_OPTIONS.find(o => o.value === s.presence)?.hint}
+                className="text-[9px] px-1.5 py-0.5 rounded-full border border-sky-500/30 bg-sky-500/10 text-sky-300">
+                {presenceLabel(s.presence)}
+              </span>
+            )}
+            {!!s.mention_count && (
+              <span className="text-[9px] text-[#8a90ba]" title="How often this name appears in the scanned chapters">
+                {s.mention_count} mention{s.mention_count !== 1 ? 's' : ''}
+              </span>
+            )}
             {s.confidence === 'uncertain' && (
               <span className="text-[9px] px-1.5 py-0.5 rounded-full border border-yellow-500/30 bg-yellow-500/10 text-yellow-400">
                 uncertain
@@ -344,6 +367,24 @@ function SuggestionRow({ suggestion: s, checked, expanded, disabled, onToggle, o
           {s.aliases.length > 0 && (
             <p className="text-[9px] text-[#8a90ba] mt-0.5">
               Also: {s.aliases.join(', ')}
+            </p>
+          )}
+          {!disabled && s.possible_combined_with && (
+            <p data-testid="cast-combined" className="text-[9px] text-amber-300 mt-0.5">
+              Also called &ldquo;{s.possible_combined_with}&rdquo;. If that is a different person, the AI combined
+              two characters here — add them separately instead.
+            </p>
+          )}
+          {!disabled && s.possible_duplicate_in_suggestions && (
+            <p data-testid="cast-batch-duplicate" className="text-[9px] text-amber-300 mt-0.5">
+              May be the same person as &ldquo;{s.possible_duplicate_in_suggestions}&rdquo; in these suggestions.
+              Tick only one if so — or both if they are different people.
+            </p>
+          )}
+          {!disabled && s.possible_duplicate_name && (
+            <p data-testid="cast-possible-duplicate" className="text-[9px] text-amber-300 mt-0.5">
+              May be the same person as &ldquo;{s.possible_duplicate_name}&rdquo;, who is already in your cast.
+              Leave it unticked if so, or add it if this is a different character.
             </p>
           )}
         </div>
