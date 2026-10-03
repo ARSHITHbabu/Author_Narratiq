@@ -132,11 +132,12 @@ export default function PlotAssistantPanel({ storyId, getEditorText, chapterNumb
 
         {/* Search scope toggle — always visible, never a silent default */}
         <div className="flex items-center justify-between text-xs bg-[#0d0f1a] border border-[#1f2440] rounded-xl px-3 py-2">
-          <span className="text-[#8e94bd]">Search scope</span>
-          <div className="flex gap-1">
+          <span id="plot-scope-label" className="text-[#8e94bd]">Search scope</span>
+          <div className="flex gap-1" role="group" aria-labelledby="plot-scope-label">
             <button
               type="button"
               onClick={() => setScope('chapter')}
+              aria-pressed={scope === 'chapter'}
               className={`px-2.5 py-1 rounded-lg transition-colors ${
                 scope === 'chapter'
                   ? 'bg-amber-500 text-black font-medium'
@@ -149,6 +150,7 @@ export default function PlotAssistantPanel({ storyId, getEditorText, chapterNumb
             <button
               type="button"
               onClick={() => setScope('full')}
+              aria-pressed={scope === 'full'}
               className={`px-2.5 py-1 rounded-lg transition-colors ${
                 scope === 'full'
                   ? 'bg-amber-500 text-black font-medium'
@@ -265,6 +267,12 @@ export default function PlotAssistantPanel({ storyId, getEditorText, chapterNumb
                     <Lightbulb className="w-3 h-3 text-amber-500/70" />
                     <span>Creative suggestions based on your story</span>
                   </div>
+                )}
+                {(result.retrieval?.summary_chapters?.length ?? 0) > 0 && (
+                  <p className="text-[10px] text-[#8a90ba]">
+                    Ideas based on the summaries of chapter(s){' '}
+                    {result.retrieval.summary_chapters!.join(', ')}
+                  </p>
                 )}
                 {result.suggestions.map((s, i) => (
                   <div

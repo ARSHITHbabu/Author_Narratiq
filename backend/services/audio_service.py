@@ -7,6 +7,7 @@ Transcription runs in asyncio.to_thread to avoid blocking the event loop.
 import asyncio
 import logging
 import os
+import re
 
 from config import settings
 
@@ -104,13 +105,35 @@ async def transcribe_audio(audio_path: str, language: str | None = None) -> dict
     return await asyncio.to_thread(_transcribe_sync, audio_path, language)
 
 
+# Stage 12 Tranche 3 (A21): the clean-up may only remove fillers and repeats.
+# Measured on the live model: it dropped a whole dictated opening sentence
+# ("Audio note for chapter 3.", "Note to self for the next draft.") in 19 of 20
+# runs, despite "do NOT remove facts" in the prompt, and that text is what the
+# author appends to a note. Code enforces it instead: if the cleaned text has
+# lost more than CLEANUP_MIN_KEPT of the transcript's non-filler words, the raw
+# transcript (already punctuated by Whisper) is kept. The same check keeps a
+# dictation longer than the 3000 characters sent to the model from losing its end.
+_FILLERS = frozenset({"um", "uh", "er", "erm", "hmm", "like", "you", "know", "so", "basically", "actually"})
+CLEANUP_MIN_KEPT = 0.9
+_WORD = re.compile(r"[^\W_]+(?:'[^\W_]+)?")
+
+
+def cleanup_kept_share(raw_text: str, cleaned: str) -> float:
+    """Share of the raw transcript's distinct non-filler words still present."""
+    raw = {w for w in _WORD.findall(raw_text.lower()) if w not in _FILLERS}
+    if not raw:
+        return 1.0
+    return len(raw & set(_WORD.findall(cleaned.lower()))) / len(raw)
+
+
 async def clean_transcript(raw_text: str) -> str:
     """
     Post-process the raw Whisper transcript with Qwen:
     - Remove filler words (um, uh, like, you know)
     - Fix run-on sentences and add punctuation
     - Normalise repeated words
-    Returns the cleaned text, or raw_text on failure.
+    Returns the cleaned text, or raw_text on failure or when the clean-up
+    dropped the author's words (cleanup_kept_share below CLEANUP_MIN_KEPT).
     """
     if not raw_text or len(raw_text.split()) < 5:
         return raw_text
@@ -127,7 +150,17 @@ async def clean_transcript(raw_text: str) -> str:
     )
     try:
         result = await _complete(system=system, user=raw_text[:3000], max_tokens=1024)
-        return result.strip() if result else raw_text
+        cleaned = result.strip() if result else ""
+        if not cleaned:
+            return raw_text
+        # Against the WHOLE transcript: only the first 3000 characters are sent,
+        # so a longer dictation must keep its raw text rather than lose its end.
+        kept = cleanup_kept_share(raw_text, cleaned)
+        if kept < CLEANUP_MIN_KEPT:
+            # Counts only: never log transcript text.
+            logger.warning("[audio_service] clean-up dropped content (kept %.2f of words); keeping the raw transcript", kept)
+            return raw_text
+        return cleaned
     except Exception as exc:
         logger.warning("[audio_service] clean_transcript failed: %s", exc)
         return raw_text

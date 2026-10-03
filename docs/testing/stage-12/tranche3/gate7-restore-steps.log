@@ -1,0 +1,18 @@
+[06:03:36] 1. stop writes: backend pid 16567, backup loop pid 18501
+[06:03:37]    backend stopped: 0 listeners on 8000
+[06:03:37] 2-3. chosen set narratiq-20261003T060251Z; verify
+[06:03:38]    verify PASS
+[06:03:38] 4. database still holds data: safety backup
+[06:03:39]    safety set narratiq-20261003T060338Z (kept)
+[06:03:39] 5. roles from globals
+[06:03:39] 6. drop and restore the database
+createdb: error: database creation failed: ERROR:  permission denied to create database
+[06:04:00] 6. (resumed, PG* variables cleared) create and restore the database
+NOTICE:  database "narratiq" does not exist, skipping
+[06:04:00]    restore done in 0s
+[06:04:00] 7. uploads: move current aside, restore from the archive
+[06:04:00]    uploads files: 1
+[06:04:00] 8. validate against the manifest
+MATCH
+tables compared: 57 | checks: {'chapter_text': {'chapters': 5, 'md5': '48dbaaf36820924403d81743189b7997'}, 'embeddings_stored': {'chapter_chunks.embedding': 4, 'chapter_summaries.embedding': 4, 'character_profiles.embedding': 0, 'character_profiles.mention_embedding': 0, 'note_cards.embedding': 0, 'story_graph_nodes.embedding': 0, 'story_memory_entries.embedding': 0, 'story_notes.embedding': 1}}
+[06:04:01] steps 6-8: 1s

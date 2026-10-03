@@ -7,15 +7,18 @@
 | Plan mix | Supported **active** authors per pod | Evidence |
 |---|---|---|
 | Free / basic plans (no Tier-2 consistency) | **60** — validated | 60 authors × 4 min: 460 requests, **0 errors**; rewrite p95 **3.3 s**, Q&A p95 **5.5 s**, search p95 **0.59 s** — all within targets; vLLM never queued |
-| 50 % pro/studio with Tier-2 strict consistency (D6) | **not established — somewhere between 10 and 60** | at 60: Q&A p95 49.5 s, search p95 10.9 s (far over); at 10: rewrite p95 8.9 s, search p95 2.4 s (slightly over) |
+| 50 % pro/studio with Tier-2 strict consistency (D6) | **No level meets every target strictly. Up to 15 authors meet the rewrite and Q&A targets, with a search tail over target. 20 or more is far over** (measured 2026-10-03, Stage 12 Tranche 3) | 10 authors (6 min): rewrite p95 7.0 s, Q&A p95 3.1 s, search p50 0.16 s / **p95 3.6 s**. 15 authors (6 min): rewrite p95 7.4 s, Q&A p95 5.3 s, search p50 0.19 s / **p95 1.2 s**. 20 authors: rewrite p95 17.9 s, Q&A p95 25.9 s, search p95 9.7 s. 0 errors at every level. *Stage 10 (superseded): "between 10 and 60"* |
+| 10 % pro/studio with Tier-2 | **60** — every target met (Stage 12 Tranche 3 ramp) | 60 authors × 3 min: 321 requests, 0 errors; rewrite p95 6.1 s, Q&A p95 8.0 s, search p95 0.84 s. A 3-minute ramp level, not a settled 4-minute validation like the free-plan figure |
 
 An **active author** is one using AI tools continuously: one AI action every ~30 s (15–45 s), 70 % rewrite tools (tone / refine / style), 20 % Plot Assistant questions, 10 % semantic search, on an indexed manuscript. An author writing without AI costs almost nothing, so the number of *signed-in* authors a pod supports is several times higher; the active count is the one to plan by.
+
+**Tier-2 in one sentence (2026-10-03):** with half of active authors on strict consistency, the pod serves up to about **15** active authors with acceptable rewrite and Q&A latency, but semantic search's p95 exceeds its 1 s target (median under 0.2 s). With 10 % on Tier-2, the free-plan figure of **60** holds. **The onboarding limit stays a product-owner decision (MV-10.8); these numbers do not set it.**
 
 **Onboarding limit (proposed, product owner to accept — MV-10.8):** at most **60 authors simultaneously active**, i.e. with typical use (well under a third of signed-in authors active at the same moment) about **150–200 registered authors per pod**, while fewer than 10 % of them are on pro/studio with strict consistency on. Re-measure before exceeding either figure.
 
 ## 2. Measurements (1 × A40, vLLM 0.9.2, TP=1, BGE-M3 on CPU, one uvicorn worker)
 
-Tool: `backend/scripts/perf/load_probe.py --phase ramp` against an isolated backend bound to `narratiq_test`. Raw reports kept with the Stage 10 report.
+Tool: `backend/scripts/perf/load_probe.py --phase ramp` against an isolated backend bound to `narratiq_test`. Stage 10 raw reports are kept with the Stage 10 report (not in the repository); Stage 12 Tranche 3 raw reports are in `docs/testing/performance/`.
 
 | Run | Authors | Requests | Errors | Rewrite p50 / p95 | Q&A p50 / p95 | Search p50 / p95 | vLLM max waiting / running |
 |---|---|---|---|---|---|---|---|
@@ -25,6 +28,20 @@ Tool: `backend/scripts/perf/load_probe.py --phase ramp` against an isolated back
 | **Validation (free, settled, 4 min)** | **60** | **460** | **0** | **1.3 / 3.3 s** | **2.8 / 5.5 s** | **0.27 / 0.59 s** | 0 / 9 |
 | Tier-2 50 % pro (settled) | 10 | 59 | 0 | 3.2 / 8.9 s | 2.8 / 4.4 s | 0.24 / 2.4 s | 0 / 3 |
 | Tier-2 50 % pro (settled) | 60 | 267 | 0 | 6.2 / 16.6 s | 29.6 / **49.5 s** | 5.8 / **10.9 s** | 0 / 12 |
+| *Stage 12 Tranche 3, 2026-10-03, pod `x0smrkvs4n6wpk`, same tool and architecture (BGE-M3 on CPU, one worker), nothing tuned:* | | | | | | | |
+| Tier-2 50 % ramp (3 min/level) | 5 | 29 | 0 | 2.9 / 5.9 s | 1.5 / 1.5 s | 0.49 / **2.4 s** (4 samples) | 0 / 2 |
+| Tier-2 50 % ramp | 10 | 52 | 0 | 3.0 / 7.1 s | 2.1 / 3.0 s | 0.26 / 0.74 s (4 samples) | 0 / 3 |
+| Tier-2 50 % ramp | 20 | 92 | 0 | 9.2 / **17.9 s** | 8.9 / **25.9 s** | 4.8 / **9.7 s** | 0 / 5 |
+| Tier-2 50 % ramp | 30 | 145 | 0 | 9.7 / **22.0 s** | 8.9 / **26.0 s** | 3.3 / **13.1 s** | 0 / 9 |
+| Tier-2 50 % ramp | 40 | 184 | 0 | 7.4 / **21.9 s** | 16.8 / **48.7 s** | 7.5 / **10.7 s** | 0 / 11 |
+| Tier-2 50 % ramp | 50 | 224 | 0 | 7.5 / **20.5 s** | 21.8 / **39.4 s** | 3.8 / **13.0 s** | 0 / 10 |
+| **Tier-2 50 % validation (6 min, settled)** | **10** | 109 | 0 | 3.0 / 7.0 s | 1.5 / 3.1 s | 0.16 / **3.6 s** (9) | 0 / 3 |
+| **Tier-2 50 % validation (6 min, settled)** | **15** | 165 | 0 | 3.1 / 7.4 s | 1.7 / 5.3 s | 0.19 / **1.2 s** (18) | 0 / 5 |
+| Tier-2 10 % ramp | 20 | 111 | 0 | 2.9 / 4.7 s | 1.5 / 2.2 s | 0.17 / 0.52 s | 0 / 6 |
+| Tier-2 10 % ramp | 40 | 220 | 0 | 2.8 / 5.2 s | 1.7 / 4.3 s | 0.28 / 0.83 s | 0 / 10 |
+| Tier-2 10 % ramp | 60 | 321 | 0 | 3.0 / 6.1 s | 4.3 / 8.0 s | 0.29 / 0.84 s | 0 / 12 |
+
+Targets used: approved concurrent p95 (S10-I) — rewrite ≤ 8 s, Q&A ≤ 10 s, search ≤ 1 s, no errors. Raw reports: `docs/testing/performance/stage-12-tranche3-{ramp-pro50,validate-pro50,ramp-pro10}.json`. Search samples are few at low levels (10 % of actions), so a single slow search decides the p95 there; the 6-minute validation exists to reduce that.
 
 The first ramp's 10- and 20-author levels are excluded: they overlapped the background indexing of the 80 fresh test manuscripts and were slower than the 40- and 60-author levels, which is contamination, not capacity. The later runs wait 240 s after indexing ("settled").
 

@@ -11,7 +11,7 @@ For which environment variables to enter in the RunPod UI, see
 ```
 RunPod pod (1+ NVIDIA GPU, >= 24 GB VRAM)
 │
-├── /workspace/narratiq-ai/          ← project code (path is REQUIRED, see Step 3)
+├── /workspace/narratiq-ai/          ← project code (any path works since Stage 12; see Step 3)
 ├── /workspace/models/               ← model weights (~22 GB total, measured 2026-09-21)
 │   ├── Qwen2.5-7B-Instruct/                 ~15 GB
 │   ├── bge-m3/                              ~4.3 GB (older estimate of ~570 MB was stale)
@@ -173,13 +173,7 @@ cd /workspace
 git clone https://github.com/ARSHITHbabu/Author_Narratiq.git narratiq-ai
 ```
 
-**The directory name matters.** `start-narratiq.sh:14-15` hardcodes `/workspace/narratiq-ai`.
-If you cloned elsewhere, symlink rather than editing the script:
-
-```bash
-ln -s /workspace/Author_Narratiq /workspace/narratiq-ai
-ls /workspace/narratiq-ai/start-narratiq.sh   # must exist before continuing
-```
+**The directory name no longer matters.** Since Stage 12 Tranche 3 (2026-10-03) `start-narratiq.sh` finds its own checkout, so the repository can be at any path (for example `/workspace/narratiq-ai` or `/workspace/Author_Narratiq`); no symlink is needed. The commands in this document use `/workspace/narratiq-ai`. Substitute your path. (Until then the script hardcoded `/workspace/narratiq-ai` and a symlink was required.)
 
 ### 4. Run the Startup Script
 
@@ -293,7 +287,7 @@ python3 -m vllm.entrypoints.openai.api_server \
   --served-model-name "Qwen/Qwen2.5-7B-Instruct" \
   --dtype auto --gpu-memory-utilization 0.88 \
   --tensor-parallel-size 1 --max-model-len 8192 \
-  --host 0.0.0.0 --port 9001
+  --host 127.0.0.1 --port 9001   # loopback only (Stage 12 A4)
 
 # Terminal 2 — backend. MUST run from backend/ so config.py finds ./.env
 cd /workspace/narratiq-ai/backend
@@ -335,7 +329,7 @@ Verified live 2026-09-29: five failed sign-ins through the public frontend URL, 
 The backend cannot reach vLLM. In order of likelihood:
 1. **A stale `VLLM_BASE_URL` in the RunPod UI** pointing at 8001 — delete it, then rerun.
 2. vLLM is still loading. `tail -f /tmp/narratiq-logs/vllm.log` and wait for
-   `Uvicorn running on http://0.0.0.0:9001`.
+   `Uvicorn running on http://127.0.0.1:9001`.
 3. vLLM crashed — check the same log.
 
 The backend does **not** refuse to start when vLLM is unreachable; it logs a warning and continues in

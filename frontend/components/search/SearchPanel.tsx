@@ -97,8 +97,16 @@ export default function SearchPanel({
     queryRef.current?.focus()
   }, [])
 
+  // Stage 12.1 (SEARCH-1/2/3): only the newest request may change results.
+  // Typing sends a request per pause; a slower answer for an earlier, shorter
+  // query ("D") used to arrive after the one for "Devika" and replace its
+  // results and editor highlights. Each request takes a number; an answer whose
+  // number is no longer the latest is dropped.
+  const searchSeqRef = useRef(0)
+
   // Clear results when mode or scope changes
   useEffect(() => {
+    searchSeqRef.current += 1          // answers to requests sent before the change are stale
     setExactResults([])
     setSemanticResults([])
     setTotalMatches(0)
@@ -120,6 +128,8 @@ export default function SearchPanel({
 
   const runSearch = useCallback(
     async (q: string, opts?: { cs?: boolean; ww?: boolean; sc?: 'all' | 'current' }) => {
+      const seq = ++searchSeqRef.current
+      const isLatest = () => seq === searchSeqRef.current
       if (!q.trim()) {
         setExactResults([])
         setSemanticResults([])
@@ -141,6 +151,7 @@ export default function SearchPanel({
           }
           const chIds = sc === 'current' ? [activeChapterId] : null
           const res = await searchApi.exact(storyId, q, cs, ww, chIds)
+          if (!isLatest()) return
           const data: ExactSearchResponse = res.data
           setExactResults(data.results)
           setTotalMatches(data.total_matches)
@@ -151,13 +162,14 @@ export default function SearchPanel({
           }
         } else {
           const res = await searchApi.semantic(storyId, q)
+          if (!isLatest()) return
           const data: SemanticSearchResponse = res.data
           setSemanticResults(data.results)
         }
       } catch (err: any) {
-        toast.error(err?.response?.data?.detail || 'Search failed')
+        if (isLatest()) toast.error(err?.response?.data?.detail || 'Search failed')
       } finally {
-        setLoading(false)
+        if (isLatest()) setLoading(false)
       }
     },
     [mode, scope, activeChapterId, storyId, caseSensitive, wholeWord, onJumpToMatch, beforeServerOp],

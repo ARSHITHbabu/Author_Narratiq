@@ -7,7 +7,7 @@
 | **Where** | A backend bound to the allow-listed `narratiq_test` database (port 8100), synthetic authors created and deleted by the probes. `RATE_LIMIT_*` were raised on that test backend so the limiter did not distort latency; limits themselves are verified in `backend/tests/test_security_stage9.py` |
 | **Tools (no new dependencies)** | `backend/scripts/perf/load_probe.py`, `hnsw_bench.py`, `plot_hole_cap_probe.py` — httpx (already pinned) + asyncio |
 | **Raw results** | `docs/testing/performance/stage-09-*.json`, `stage-09-concurrency.txt` |
-| **Status** | Baselines **recorded**. Targets below are **proposed, not approved** — the product owner approves them separately (Stage 9 instruction 5). "Latency targets defined and met" is not ticked |
+| **Status** | Baselines **recorded**. The targets in §6 were **approved on 2026-09-29** (decision S10-I, Stage 10). Until then they were proposed only (Stage 9 instruction 5). Concurrent capacity against them: `docs/operations/capacity-planning.md` |
 
 ## 1. Single-author latency per AI endpoint (5 sequential calls, 6-chapter indexed story)
 
@@ -87,7 +87,7 @@ hundreds of thousands of chunks. Adding `ix_chapter_chunks_story_id` would be a 
 The 60-chapter prompt fits the 8,192-token context with realistic summaries; the cap is honest (stated, not
 silent).
 
-## 6. Proposed latency targets (for approval — not approved)
+## 6. Latency targets (proposed in Stage 9; approved 2026-09-29, decision S10-I)
 
 Derived from the single-author p95 above × ~1.5 for headroom, rounded; the 10-author row reflects the measured
 embedding bottleneck and should tighten if BGE-M3 moves to the GPU.

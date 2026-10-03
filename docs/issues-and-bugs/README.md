@@ -33,8 +33,9 @@ workspace around a writing-first workflow rather than patching the right-hand pa
 Directly relevant to [Phase 3](../phases/phase-3-planned/), which specifies preservation rules and
 sentence-level locks as the fix.
 
-Also open, outside the two reports: [`ocr-extraction-got-ocr2-dynamiccache-failure.md`](./ocr-extraction-got-ocr2-dynamiccache-failure.md)
-(High — OCR image-to-text inference fails; the upload interface itself, Phase 2 Issue 6, is fixed).
+Also outside the two reports: [`ocr-extraction-got-ocr2-dynamiccache-failure.md`](./ocr-extraction-got-ocr2-dynamiccache-failure.md)
+(High — OCR image-to-text inference failed). **Fixed 2026-10-02 (Stage 12 remediation A2)**; it stays listed
+here until the product owner has reviewed the fix. The upload interface itself, Phase 2 Issue 6, was fixed earlier.
 
 ## Resolved
 

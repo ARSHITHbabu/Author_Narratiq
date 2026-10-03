@@ -132,6 +132,32 @@ def parse_anchors(summary: dict) -> dict:
             "ages": ages, "flash": flash}
 
 
+_TAG = re.compile(r"<[^>]+>")
+_SENTENCE_END = re.compile(r"(?<=[.!?])\s+")
+
+
+def flash_cue_chapters(chapters: Iterable[tuple[int, str]]) -> set[int]:
+    """Chapter numbers whose OWN text marks a dated passage as a flashback or
+    flash-forward: one sentence carries both a cue (_FLASH) and a date or year.
+
+    Stage 12 Tranche 3 (A20, MV-5.14-A): the chapter summary keeps the date
+    ("April 20, 2010") but the summariser drops the cue ("In a flashback to"),
+    so a marked flashback was reported as a date reversal. Requiring the cue
+    and the anchor in the same sentence keeps an unrelated "years ago" elsewhere
+    in a chapter from hiding a real reversal.
+    """
+    out: set[int] = set()
+    for number, html in chapters:
+        if not isinstance(number, int) or not html:
+            continue
+        text = _TAG.sub(" ", html)
+        for sentence in _SENTENCE_END.split(text):
+            if _FLASH.search(sentence) and (_full_dates(sentence) or _YEAR.search(sentence)):
+                out.add(number)
+                break
+    return out
+
+
 def _latest(dates: list) -> Optional[tuple]:
     return max(dates, key=lambda d: d[0]) if dates else None
 

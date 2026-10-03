@@ -346,6 +346,7 @@ async def plot_assistant(
         chunks_retrieved=len(text_chunks),
         chapters_covered=sorted({c["chapter"] for c in text_chunks}) if text_chunks else [],
         scope_limited=effective_max_chapter is not None,
+        summary_chapters=suggestion_summary_chapters(intent, retrieved_chunks, summary_list),
     )
 
     logger.info(f"[plot_assistant] mode={intent!r} | scope={scope!r} | context_used={context_desc!r}")
@@ -360,6 +361,17 @@ async def plot_assistant(
         scope_used=scope,
         retrieval=retrieval_meta,
     )
+
+
+def suggestion_summary_chapters(intent: str, retrieved_chunks: list, summary_list: list) -> list[int]:
+    """The chapters whose summaries the suggestion prompt received: the
+    semantically retrieved summaries when there are any, otherwise the recent
+    ones (generate_plot_suggestions uses exactly this order). Q&A answers use
+    no summaries."""
+    if intent not in ("creative", "mixed"):
+        return []
+    used = retrieved_chunks or summary_list
+    return sorted({c["chapter"] for c in used})
 
 
 @router.patch("/{session_id}/use")

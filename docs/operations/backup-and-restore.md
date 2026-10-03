@@ -80,6 +80,12 @@ Tests: `scripts/tests/test_backup_pipeline.py` proves a real set verifies PASS a
 2. **Choose the set.** `ls -1t /workspace/backups/narratiq-2*.SHA256SUMS | head`. Prefer the newest set; check `LAST-VERIFY.json` — a set that already passed verification is the safest choice.
 3. **Verify it before trusting it:** `python3 scripts/verify_backup.py --set narratiq-<stamp>` (§3). Do not restore a set that FAILs.
 4. **If the database still holds anything**, keep it first: `bash scripts/backup_database.sh` (a new set — it may be the only copy of the most recent writes), then mark it `touch …/narratiq-<new stamp>.keep`.
+   > **Before step 5, clear the connection variables:** `unset PGHOST PGPORT PGUSER PGPASSWORD PGDATABASE`.
+   > Step 3 needs them (exported as in §3), but `su postgres -c` keeps the caller's environment. With them
+   > still set, step 6's `dropdb` runs as the database owner `narratiq` and **succeeds**, and `createdb`
+   > then fails with "permission denied to create database". The database is gone and the restore has not
+   > started. Found in the Stage 12 Tranche 3 rehearsal (2026-10-03). If it happens, unset the variables
+   > and continue from step 6. The verified set is unaffected.
 5. **Fresh pod only — roles:** `su postgres -c "psql -f /workspace/backups/narratiq-globals-<stamp>.sql"` (role *definitions*; the password comes from `backend/.env`, which `start-narratiq.sh` rewrites).
 6. **Restore the database** (as the database superuser, streaming the dump so its file mode can stay 600):
 
@@ -91,7 +97,7 @@ Tests: `scripts/tests/test_backup_pipeline.py` proves a real set verifies PASS a
        < /workspace/backups/narratiq-<stamp>.dump
    ```
 7. **Restore uploads:** `mkdir -p backend/uploads && tar -xzf /workspace/backups/narratiq-uploads-<stamp>.tar.gz -C backend/uploads`.
-8. **Validate against the manifest** — the same check the verifier runs, now on the live database:
+8. **Validate against the manifest** — the same check the verifier runs, now on the live database (export the connection variables again, as in §3):
 
    ```bash
    python3 scripts/backup_snapshot.py manifest > /tmp/live-manifest.json
@@ -119,10 +125,10 @@ The watchdog (`docs/operations/monitoring-and-alerting.md`) raises:
 
 These are **engineering targets and local measurements**, not a claim that full disaster recovery is achieved: with the off-pod copy deferred, loss of the network volume loses the backups too.
 
-| | Target | Status (2026-09-29) |
+| | Target | Status (2026-09-29; RTO updated 2026-10-03) |
 |---|---|---|
 | **RPO** — data an author can lose | **≤ 1 hour** for loss of the database (pod restart, container rebuild, corruption) | Met by design on-pod: hourly sets + a backup before every migration. **Not met for loss of the network volume** — needs the off-pod copy. |
-| **RTO** — time to have authors writing again | **≤ 2 hours** from a fresh pod | Restore step measured locally — see the Stage 10 report (`restore_seconds` in `LAST-VERIFY.json`). The fresh-pod bring-up (installs + ~30 GB of model downloads) dominates and has not been timed end to end in Stage 10. |
+| **RTO** — time to have authors writing again | **≤ 2 hours** from a fresh pod | **Met, measured end to end 2026-10-03** (Stage 12 Tranche 3, A24, pod `x0smrkvs4n6wpk`). Fresh-pod bring-up with `start-narratiq.sh`: 14 min 35 s (installs, ~22 GB of pinned model downloads, migrations, services). Restore (§4 steps 1–8 on a 57-table set): about 25 s of commands. Restart (step 9): 337 s. Total **about 21 minutes** from a fresh pod, **about 6.3 minutes** on a running pod. Evidence: `docs/testing/stage-12/tranche3/gates-1-2-7.md`. Stage 10 had timed only the restore step (`restore_seconds` in `LAST-VERIFY.json`). |
 
 ## 7. Off-pod copy (deferred)
 

@@ -40,6 +40,13 @@ def load_orphaned_hints(db: Session, story_id: str) -> Optional[list]:
 
 
 def load_flash_chapters(db: Session, story_id: str) -> set[int]:
+    """Chapters that are flashbacks / flash-forwards: marked so by a non-stale
+    Story Intelligence timeline row, or by their own text (a cue and a date in
+    one sentence — timeline_signals.flash_cue_chapters, Stage 12 Tranche 3)."""
+    from models import Chapter
+    from services.timeline_signals import flash_cue_chapters
+    texts = db.query(Chapter.chapter_number, Chapter.content).filter(Chapter.story_id == story_id).all()
+    from_text = flash_cue_chapters((r[0], r[1]) for r in texts)
     rows = (
         db.query(StoryTimelineEvent.chapter_number)
         .filter(StoryTimelineEvent.story_id == story_id,
@@ -47,7 +54,7 @@ def load_flash_chapters(db: Session, story_id: str) -> set[int]:
                 (StoryTimelineEvent.is_flashback.is_(True)) | (StoryTimelineEvent.is_flashforward.is_(True)))
         .all()
     )
-    return {r[0] for r in rows if isinstance(r[0], int)}
+    return {r[0] for r in rows if isinstance(r[0], int)} | from_text
 
 
 def signals_touching(signals: list[dict], chapters: set[int]) -> list[dict]:

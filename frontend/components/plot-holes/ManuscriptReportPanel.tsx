@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import {
   BookOpen, Loader2, AlertTriangle, ChevronDown, ChevronUp,
-  Users, Zap, Link2, Sparkles, TrendingUp, HeartHandshake, Radar,
+  Users, Zap, Link2, Sparkles, TrendingUp, HeartHandshake, Radar, Target, Tags, BarChart3,
 } from 'lucide-react'
 import { analysisApi } from '@/lib/api'
 import {
@@ -314,6 +314,101 @@ export default function ManuscriptReportPanel({ storyId }: Props) {
                     ))}
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* Stakes (task 5.14 — AUDIT-H9) */}
+          {report.stakes && (report.stakes.summary || report.stakes.escalation.length > 0) && (
+            <div className="flex flex-col gap-2" data-testid="report-stakes">
+              <div className="flex items-center gap-2">
+                <Target className="w-3.5 h-3.5 text-rose-400" />
+                <span className="text-[10px] font-medium text-[#9da3c8] uppercase tracking-wider">
+                  Stakes
+                </span>
+              </div>
+              <div className="bg-[#0d0f1a] border border-[#1f2440] rounded-xl p-3 space-y-2">
+                {report.stakes.summary && (
+                  <p className="text-xs text-[#c8cce8] leading-relaxed">{report.stakes.summary}</p>
+                )}
+                {report.stakes.escalation.length > 0 && (
+                  <ol className="space-y-1.5">
+                    {[...report.stakes.escalation].sort((a, b) => a.chapter - b.chapter).map((e, i) => (
+                      <li key={i} className="flex gap-2 items-start">
+                        <ChPill n={e.chapter} />
+                        <span className="text-xs text-[#9da3c8] leading-relaxed">{e.note}</span>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Where the plot moves most (task 5.14 — AUDIT-H10) */}
+          {Object.keys(report.chapter_plot_importance ?? {}).length > 0 && (
+            <div className="flex flex-col gap-2" data-testid="report-plot-weight">
+              <div className="flex items-center gap-2">
+                <BarChart3 className="w-3.5 h-3.5 text-violet-400" />
+                <span className="text-[10px] font-medium text-[#9da3c8] uppercase tracking-wider">
+                  Where the plot moves most
+                </span>
+              </div>
+              <p className="text-[10px] text-[#8e94bd] leading-relaxed">
+                Chapters ranked by how many story events and character or relationship changes they hold, compared
+                with your other chapters. A quiet chapter is not a problem in itself.
+              </p>
+              <div className="bg-[#0d0f1a] border border-[#1f2440] rounded-xl p-3 space-y-1.5">
+                {Object.entries(report.chapter_plot_importance!)
+                  .map(([ch, v]) => [Number(ch), v] as [number, number])
+                  .sort((a, b) => b[1] - a[1] || a[0] - b[0])
+                  .slice(0, 5)
+                  .map(([ch, v]) => (
+                    <div key={ch} className="flex items-center gap-2">
+                      <ChPill n={ch} />
+                      <div className="flex-1 h-1.5 rounded bg-[#1f2440] overflow-hidden" aria-hidden="true">
+                        <div className="h-full bg-violet-500/60" style={{ width: `${Math.max(4, Math.min(100, v))}%` }} />
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {/* Themes (task 5.14 — AUDIT-M12) */}
+          {(report.themes?.length ?? 0) > 0 && (
+            <div className="flex flex-col gap-2" data-testid="report-themes">
+              <div className="flex items-center gap-2">
+                <Tags className="w-3.5 h-3.5 text-teal-400" />
+                <span className="text-[10px] font-medium text-[#9da3c8] uppercase tracking-wider">
+                  Themes
+                </span>
+              </div>
+              {report.themes!.map((t, i) => (
+                <EvidencedCard key={i} text={t.theme} chapters={t.chapters} color="green" />
+              ))}
+            </div>
+          )}
+
+          {/* Open threads recorded by Narrative Threads (task 5.14 — AUDIT-H8) */}
+          {(report.deterministic_open_threads?.length ?? 0) > 0 && (
+            <div className="flex flex-col gap-2" data-testid="report-tracker-threads">
+              <div className="flex items-center gap-2">
+                <Link2 className="w-3.5 h-3.5 text-red-300" />
+                <span className="text-[10px] font-medium text-[#9da3c8] uppercase tracking-wider">
+                  Still open in Narrative Threads
+                </span>
+                <span className="text-[10px] text-[#8a90ba]">({report.deterministic_open_threads!.length})</span>
+              </div>
+              <p className="text-[10px] text-[#8e94bd] leading-relaxed">
+                Threads your last thread scan recorded as open. Compare them with the unresolved threads below.
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {report.deterministic_open_threads!.map((name, i) => (
+                  <span key={i} className="text-[11px] text-[#c8cce8] px-2 py-0.5 rounded bg-red-500/10 border border-red-500/20">
+                    {name}
+                  </span>
+                ))}
               </div>
             </div>
           )}

@@ -1,82 +1,121 @@
+import path from 'path'
 import { test, expect, type APIRequestContext, type Page } from '@playwright/test'
 import { seedBrowserSession, sessionToken } from './_session'
 
-// Stage 6 task 6.4 — critical journey: upload audio -> transcript returned.
+// Stage 6 task 6.4 — critical journey: upload audio -> transcript -> note.
+// Stage 12 Tranche 3 (A21): automated with a committed speech fixture.
 //
-// STATUS (Stage 6 closure, 2026-09-22): NOT executed. Genuinely blocked, not
-// skipped out of laziness — documented per explicit instruction rather than
-// left as an unverified guess.
+// The fixture (fixtures/audio/dictation-fixture.wav) is synthetic speech made
+// offline with espeak-ng; fixtures/audio/README.md holds the exact spoken text
+// and the command that regenerates it. faster-whisper's silence filter turns a
+// silent or tone file into an empty transcript, so only real speech can pass.
 //
-// Why it can't be automated in this environment right now: faster-whisper
-// needs actual SPEECH audio to produce a meaningful transcript; a silent or
-// tone-only WAV would only prove the upload plumbing works, not real
-// transcription, and would risk reporting a false pass. This environment has
-// no text-to-speech tool available (checked: espeak/espeak-ng/festival, the
-// `gtts`/`pyttsx3` Python packages, and `ffmpeg` are all absent), so no real
-// speech fixture could be generated. AudioPanel.tsx is imported by
-// VoiceAgentPanel.tsx (not mounted as its own top-level workspace tab), so
-// the upload control is reached via the Assistant workspace in the left rail.
+// The test checks CONTENT, not "some text appeared":
+//   1. Assistant workspace -> "Saved dictation → note" toggle (AudioPanel is
+//      mounted only when it is open) -> upload the fixture;
+//   2. the upload reaches `completed` and its raw transcript contains at least
+//      KEYWORD_MIN of the fixture's distinctive words (API, so a weak UI match
+//      can never stand in for transcription);
+//   3. the transcript card shows that text;
+//   4. "Append to Note" into the fixture note; the note's stored content now
+//      holds the transcript;
+//   5. after a reload the upload is still shown as appended, and the note in the
+//      World workspace shows the transcript.
 //
-// Manual verification procedure (reproducible, for the author or a future
-// session with TTS/microphone access):
-//   1. Log in, open any story with at least one chapter.
-//   2. Click "Assistant" in the left workspace rail.
-//   3. Find the audio-upload control within that panel (Audio/Recordings
-//      section) and upload a short (5-30s) real speech recording — a phone
-//      voice memo works.
-//   4. Within ~30-60s, confirm BOTH a raw transcript and a Qwen-cleaned
-//      version appear (see backend/services/audio_service.py::clean_transcript
-//      — Stage 3 fixed a bug where this step silently never ran).
-//   5. Confirm the note is saved and reappears after a page reload.
-// Automating this needs either a committed short speech fixture file (a
-// product/legal decision — is it acceptable to ship a recorded voice sample
-// in the repo?) or a TTS tool added to the environment — both out of this
-// closure pass's scope.
-//
-//   E2E_EMAIL=… E2E_PASSWORD=… E2E_STORY_ID=… E2E_AUDIO_FIXTURE_PATH=/path/to/short.wav \
+//   E2E_EMAIL=… E2E_PASSWORD=… E2E_STORY_ID=… E2E_NOTE_ID=… \
 //     npx playwright test tests/browser/audio-transcription.spec.ts --project=browser
+// (seed with backend/scripts/seed_browser_fixtures.py: the "audio-transcription"
+// block. E2E_AUDIO_FIXTURE_PATH overrides the committed fixture.)
 
 const EMAIL = process.env.E2E_EMAIL
 const PASSWORD = process.env.E2E_PASSWORD
 const STORY_ID = process.env.E2E_STORY_ID
+const NOTE_ID = process.env.E2E_NOTE_ID
 const AUDIO_FIXTURE_PATH = process.env.E2E_AUDIO_FIXTURE_PATH
+  ?? path.join(__dirname, 'fixtures', 'audio', 'dictation-fixture.wav')
 
-test.skip(!EMAIL || !PASSWORD || !STORY_ID || !AUDIO_FIXTURE_PATH,
-  'Set E2E_EMAIL, E2E_PASSWORD, E2E_STORY_ID and E2E_AUDIO_FIXTURE_PATH.')
+// Must match fixtures/audio/README.md.
+const NOTE_TITLE = 'Dictation inbox'
+const KEYWORDS = ['lighthouse', 'keeper', 'marigold', 'lantern', 'midnight', 'logbook', 'fishing', 'boats', 'storm']
+const KEYWORD_MIN = 6
+
+test.skip(!EMAIL || !PASSWORD || !STORY_ID || !NOTE_ID,
+  'Set E2E_EMAIL, E2E_PASSWORD, E2E_STORY_ID and E2E_NOTE_ID.')
 
 const API_URL = process.env.E2E_API_URL ?? 'http://localhost:8000'
 let cachedToken: string | null = null
-let cachedUser: string | null = null
 
 async function authSession(request: APIRequestContext) {
-  if (!cachedToken || !cachedUser) {
+  if (!cachedToken) {
     const res = await request.post(`${API_URL}/api/auth/login`, { data: { email: EMAIL, password: PASSWORD } })
     expect(res.ok(), `login failed: ${res.status()}`).toBe(true)
-    const body = await res.json()
     cachedToken = sessionToken(res)
-    cachedUser = JSON.stringify(body.user)
   }
-  return { token: cachedToken!, user: cachedUser! }
+  return cachedToken!
 }
 
-test('uploading an audio file returns a non-empty cleaned transcript', async ({ page, request }) => {
-  const { token, user } = await authSession(request)
-  await seedBrowserSession(page, token)
-  // Audio transcription's one home is the Assistant workspace (Stage 8 Tool Homes).
+function keywordsIn(text: string): string[] {
+  const low = text.toLowerCase()
+  return KEYWORDS.filter((k) => low.includes(k))
+}
+
+async function openDictation(page: Page) {
   await page.goto(`/projects/${STORY_ID}/assistant`)
+  await page.getByRole('button', { name: /Saved dictation/ }).click()
+  await expect(page.getByText('Audio Notes')).toBeVisible({ timeout: 15_000 })
+}
 
-  // Best-effort: exact tab/panel trigger for Audio not confirmed against a
-  // live render. Falls back to a title-based lookup matching the pattern
-  // already used for the AI sidecar toggle in other specs.
-  const audioTab = page.getByTitle(/audio/i).first()
-  if (await audioTab.count()) {
-    await audioTab.click()
-  }
+test('audio upload: real transcript, appended to a note, still there after a reload', async ({ page, request }) => {
+  test.setTimeout(300_000)
+  const token = await authSession(request)
+  const auth = { Authorization: `Bearer ${token}` }
+  await seedBrowserSession(page, token)
+  await page.setViewportSize({ width: 1366, height: 768 })
 
-  const uploadInput = page.locator('input[type=file]').first()
-  await uploadInput.setInputFiles(AUDIO_FIXTURE_PATH!)
+  const before = await request.get(`${API_URL}/api/stories/${STORY_ID}/audio`, { headers: auth })
+  expect(before.ok()).toBe(true)
+  const known = new Set((await before.json()).map((u: { audio_id: string }) => u.audio_id))
 
-  // Transcription (faster-whisper) + Qwen cleanup is real inference — generous wait.
-  const transcriptText = page.locator('text=/./').filter({ hasText: /\w{10,}/ }).first()
-  await expect(transcriptText).toBeVisible({ timeout: 120_000 })
+  // 1. Upload through the UI.
+  await openDictation(page)
+  await page.locator('input[type=file][accept*=".wav"]').setInputFiles(AUDIO_FIXTURE_PATH)
+  await expect(page.getByText('Upload started — transcription in progress')).toBeVisible({ timeout: 30_000 })
+
+  // 2. The new upload completes with the fixture's words (CPU Whisper + Qwen cleanup).
+  let upload: any = null
+  await expect.poll(async () => {
+    const res = await request.get(`${API_URL}/api/stories/${STORY_ID}/audio`, { headers: auth })
+    upload = (await res.json()).find((u: { audio_id: string }) => !known.has(u.audio_id)) ?? null
+    return upload?.status ?? 'missing'
+  }, { timeout: 240_000, intervals: [3_000] }).toBe('completed')
+  const raw: string = upload.raw_transcript ?? ''
+  const found = keywordsIn(raw)
+  expect(found.length, `raw transcript ${JSON.stringify(raw)} matched only ${found}`).toBeGreaterThanOrEqual(KEYWORD_MIN)
+
+  // 3. The card in the panel shows the transcript (the panel polls every 5 s).
+  const card = page.locator('div.rounded-xl', { has: page.getByText('completed', { exact: true }) })
+    .filter({ hasText: /lighthouse/i }).first()
+  await expect(card).toBeVisible({ timeout: 30_000 })
+
+  // 4. Append it to the fixture note.
+  await card.getByPlaceholder('Note ID to append to').fill(NOTE_ID!)
+  await card.getByRole('button', { name: 'Append to Note' }).click()
+  await expect(page.getByText('Transcript appended to note')).toBeVisible({ timeout: 15_000 })
+  const notes = await request.get(`${API_URL}/api/ocr/${STORY_ID}/notes`, { headers: auth })
+  const note = (await notes.json()).find((n: { note_id: string }) => n.note_id === NOTE_ID)
+  expect(note, 'fixture note missing').toBeTruthy()
+  expect(keywordsIn(note.content).length, `note content ${JSON.stringify(note.content)}`)
+    .toBeGreaterThanOrEqual(KEYWORD_MIN)
+
+  // 5. Persistence after a reload: the upload stays appended, the note shows the text.
+  await page.reload()
+  await openDictation(page)
+  const after = await request.get(`${API_URL}/api/stories/${STORY_ID}/audio/${upload.audio_id}`, { headers: auth })
+  expect((await after.json()).confirmed).toBe(true)
+  await expect(page.getByText('Appended to note').first()).toBeVisible({ timeout: 15_000 })
+
+  await page.goto(`/projects/${STORY_ID}/world?section=notes`)
+  await page.getByRole('tab', { name: /^Notes$/ }).click()
+  await page.getByRole('button', { name: new RegExp(NOTE_TITLE) }).click()
+  await expect(page.locator('textarea').first()).toHaveValue(/lighthouse/i, { timeout: 15_000 })
 })

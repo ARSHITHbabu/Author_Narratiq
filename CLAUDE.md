@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 # Start everything (handles installs, patches, vLLM, backend, frontend)
-bash /workspace/narratiq-ai/start-narratiq.sh
+bash start-narratiq.sh   # from the repository root; it finds its own checkout (any path)
 
 # Manual vLLM start — values for the verified production pod (1× NVIDIA A40).
 # start-narratiq.sh picks TP / max-model-len / utilisation from the GPU count;
@@ -17,7 +17,7 @@ NCCL_P2P_DISABLE=1 NCCL_SHM_DISABLE=1 python3 -m vllm.entrypoints.openai.api_ser
   --dtype auto --gpu-memory-utilization 0.88 \
   --tensor-parallel-size 1 --max-model-len 8192 \
   --max-num-seqs 256 --enable-chunked-prefill --enable-prefix-caching \
-  --host 0.0.0.0 --port 9001
+  --host 127.0.0.1 --port 9001   # loopback only (Stage 12 A4): vLLM has no API key
 
 # Backend — exactly one worker (D-3; the startup guard refuses more) and
 # --no-proxy-headers (client_ip() reads CF-Connecting-IP itself; see Stage 10 below)
@@ -49,7 +49,7 @@ curl -X POST http://localhost:8000/api/stories/{id}/chapters/sync-summaries \
 
 ## Architecture
 
-**Three-service stack:** vLLM (port 9001) → FastAPI backend (port 8000) → Next.js 14 frontend (port 3000).
+**Three-service stack:** vLLM (port 9001, loopback only) → FastAPI backend (port 8000) → Next.js 15 frontend (port 3000; Next.js 15.5, React 18.3 since Stage 12 A5).
 
 **Backend startup sequence** (`main.py` `lifespan`): single-worker guard (`startup/worker_guard.py`, refuses more than one worker, D-3) → orphan-job recovery → Phase 3 pin-backend / context-budget validation → upload dirs → model paths validated → BGE-M3 loaded synchronously via `get_bge()` → voice capability index → pgvector self-check → vLLM health check → warmup request → `_run_periodic_cleanup()` scheduled → ready.
 
@@ -122,7 +122,7 @@ Alembic manages schema migrations (`backend/migrations/`). `start-narratiq.sh` r
 
 ## GPU / Hardware Notes
 
-**Verified production hardware:** **1× NVIDIA A40, 46068 MiB** (task 1.6; re-observed on every pod since, most recently `xtkhp8n020qo5a` on 2026-10-01). vLLM runs at **TP=1, `max-model-len` 8192, `gpu-memory-utilization` 0.88**. Any card with ≥ 24 GB VRAM works.
+**Verified production hardware:** **1× NVIDIA A40, 46068 MiB** (task 1.6; re-observed on every pod since, most recently `x0smrkvs4n6wpk` on 2026-10-03). vLLM runs at **TP=1, `max-model-len` 8192, `gpu-memory-utilization` 0.88**. Any card with ≥ 24 GB VRAM works.
 
 `start-narratiq.sh` (STEP 3) chooses the vLLM settings from the number of GPUs `nvidia-smi` reports:
 
@@ -187,7 +187,7 @@ Numbering follows the Phase 2 roadmap §19 (`docs/phases/phase-2-completed/phase
 | P2-10 | Duplicate Scene Detection | `analysis.py` | BGE-M3 + pgvector | `POST /api/stories/{id}/duplicate-scenes` |
 | P2-11 | Audio Transcription | `audio.py` | faster-whisper + Qwen | `POST /api/stories/{id}/audio`, `GET …/audio/{audio_id}`, `POST …/audio/{audio_id}/confirm` |
 
-OCR (`POST /api/ocr/extract/{story_id}`, `routers/ocr.py`, GOT-OCR2.0) is a **Phase 1** feature, not a Phase 2 task. Its extraction step currently fails, a known High defect: `docs/issues-and-bugs/ocr-extraction-got-ocr2-dynamiccache-failure.md`.
+OCR (`POST /api/ocr/extract/{story_id}`, `routers/ocr.py`, GOT-OCR2.0) is a **Phase 1** feature, not a Phase 2 task. Extraction works since Stage 12 A2 (2026-10-02): `ocr_service._ensure_got_cache_compat()` restores two cache members GOT-OCR2.0's vendored code needs from the pinned transformers. History: `docs/issues-and-bugs/ocr-extraction-got-ocr2-dynamiccache-failure.md`. GOT-OCR needs a GPU; handwriting quality is not measured.
 
 ## Phase 2 New DB Tables
 
@@ -197,8 +197,8 @@ OCR (`POST /api/ocr/extract/{story_id}`, `routers/ocr.py`, GOT-OCR2.0) is a **Ph
 
 ## Database Migrations (Alembic)
 
-Current chain: **22 migration files**, head **`0026`**:
-`0001 → 0002 → 0007 → 0008 → … → 0026`
+Current chain: **23 migration files**, head **`0027`**:
+`0001 → 0002 → 0007 → 0008 → … → 0027`
 
 Revisions `0003`–`0006` were never created. The chain is unbroken, because `0007` sets `down_revision = "0002"`, but the numbering gap looks like missing files when auditing. The Phase 1 Production Implementation Report's `0003_story_bibles` / `0004_narrative_threads` / `0005_pacing_goals` names are wrong; the files are `0008`–`0010`.
 
@@ -226,6 +226,7 @@ Revisions `0003`–`0006` were never created. The chain is unbroken, because `00
 | `0024` | `users.token_version`, `revoked_sessions`, `error_events` | Stage 10 |
 | `0025` | `story_bibles.source_fingerprint` (Story Bible stale warning) | Stage 11 (P2-06) |
 | `0026` | Records in Alembic four columns that only `create_all()` / the startup guard ever created (`character_profiles.goals`, `.traits`, `chapter_chunks.character_ids`, `chapter_summaries.character_ids`). Guarded no-op where present; downgrade deliberately keeps them (author data) | Stage 11 (R11) |
+| `0027` | `characters.presence` (on page / mentioned only / in the past), separate from life status | Stage 12 A10 |
 
 The Phase 3 spec numbered its migrations `0016`–`0019`; they were renumbered `0019`–`0022` at implementation (decision C7-1).
 
@@ -402,7 +403,7 @@ Full evidence for each stage is in `docs/NarratIQ_Master_Implementation_Checklis
 |---|---|---|
 | 3 — Phase 2 defects | Retrieval call-signature fix (continuation/outline); Story Bible `completed`/`partial`/`failed` per-section status, `failed_sections` and per-section retry; `_extract_json` hard-fail audit; voice-agent action execution and honest success reporting | `routers/writing_tools.py`, `routers/story_bible.py` (`derive_status`), `services/ai_service.py`, `services/voice/`; migrations `0015`, `0016` |
 | 4 — Retrieval correctness | Plot Assistant chapter-scoped by default with a full-manuscript option (D-1); chapter-capped character evidence; character merge; search fixes; arc/relationship summary fields | `routers/plot_assistant.py`, `services/character_merge.py`, `routers/search.py`; migration `0017` |
-| 5 — Generation quality | Versioned prompts (`v1` frozen baseline, `v2`); the preservation engine (sentence locks, strength control, name/glossary preservation); suggestions and Story Audit overhaul | `services/prompt_registry.py`, `services/transform_preservation.py`, `services/narrative_signals.py`, `timeline_signals.py`, `relationship_arcs.py`; migrations `0018`, `0023` |
+| 5 — Generation quality | Versioned prompts (`v1` frozen baseline, `v2`; later `v3`, and `v4` — the default since Stage 12 A15, with `v2` as the fallback); the preservation engine (sentence locks, strength control, name/glossary preservation); suggestions and Story Audit overhaul | `services/prompt_registry.py`, `services/transform_preservation.py`, `services/narrative_signals.py`, `timeline_signals.py`, `relationship_arcs.py`; migrations `0018`, `0023` |
 | 6 — Test automation | Backend/frontend regression suites; CI deferred (6.1) | `backend/tests/run_full_regression.sh`, `frontend/tests/` |
 | 7 — Phase 3 | See "Phase 3 — Author-Centric AI Workflow" above | migrations `0019`–`0022` |
 | 8 — Studio UI | See "Studio Frontend Architecture" above | `frontend/app/(dashboard)/projects/[id]/` |

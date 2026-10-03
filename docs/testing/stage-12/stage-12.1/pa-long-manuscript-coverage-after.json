@@ -1,0 +1,235 @@
+{
+  "story_id": "d91e8793-3116-43eb-9b20-e35bc5c1e613",
+  "PA-H10": [
+    {
+      "chapter": 31,
+      "fact": "Liesel Marr poisoned Edric Thorne",
+      "in_summary": true,
+      "summary": "Wren Halloway stands at the salt marsh, reflecting on the recent death of Edric Thorne. She discovers that Liesel Marr poisoned him and feels the weight of his absence. Wren writes in the ledger, remembering Edric's kindness and their shared discoveries. She contemplates the future and the legacy Edric has left behind.",
+      "key_events": [
+        "Wren stands at the edge of the salt marsh, reflecting on Edric Thorne's death",
+        "Wren discovers Liesel Marr poisoned Edric Thorne",
+        "Wren thinks about Edric's last meeting at the fishmonger's",
+        "Wren feels the weight of Edric's absence and writes in the ledger",
+        "Wren reflects on Edric's impact on Greymouth and their shared discoveries"
+      ]
+    },
+    {
+      "chapter": 38,
+      "fact": "Abel Ferris is Wren's father",
+      "in_summary": true,
+      "summary": "Wren, a detective in Greymouth, seeks out Captain Abel Ferris, who reveals he is her father. He hints at a curse related to the Devil's Cleft, a treacherous stretch of water where ships have disappeared. Wren is intrigued and decides to investigate further, despite the dangers.",
+      "key_events": [
+        "Wren stands by the wharf, observing the activity",
+        "Wren approaches Captain Abel Ferris",
+        "Captain Ferris reveals he is Wren's father",
+        "Captain Ferris hints at a curse related to the Devil's Cleft",
+        "Wren learns about the Devil's Cleft and its dangers",
+        "Captain Ferris shares his personal experience with the Devil's Cleft",
+        "Wren expresses her willingness to investigate further"
+      ]
+    },
+    {
+      "chapter": 22,
+      "fact": "the lighthouse oil line was cut on Marr's orders",
+      "in_summary": false,
+      "summary": "Wren follows Tobin to the rope-works, where he reveals that his father cut the lamp's oil line eleven years ago, causing the Marisol to run aground. Tobin disappears, and Wren finds him in a storage building, where he admits to hiding something and warns her about potential danger. Wren agrees to hear his full story.",
+      "key_events": [
+        "Wren follows Tobin to the rope-works",
+        "Tobin reveals that his father cut the lamp's oil line eleven years ago",
+        "Tobin disappears into a shed",
+        "Wren finds Tobin in a storage building",
+        "Tobin admits to hiding something",
+        "Tobin warns Wren about potential danger",
+        "Wren agrees to hear Tobin's full story"
+      ]
+    },
+    {
+      "chapter": 34,
+      "fact": "Crane's clerk Jory Wake betrayed the smugglers",
+      "in_summary": false,
+      "summary": "Wren is accused by Crane of irregularities in her father's salt trade records during a council meeting. Despite her protests of innocence, Crane demands the ledger for closer examination. Wren agrees to bring it to him the next morning, knowing the investigation will be challenging.",
+      "key_events": [
+        "Wren stands in the customs house facing Crane",
+        "Council members discuss the salt trade discrepancies",
+        "Crane accuses Wren's father of irregularities in the salt trade",
+        "Wren explains her father's meticulous record-keeping",
+        "Mayor Thorne demands clarification on the discrepancies",
+        "Wren offers to assist with the investigation",
+        "Crane requests to see the ledger",
+        "Wren agrees to bring the ledger to Crane the next morning"
+      ]
+    },
+    {
+      "chapter": 39,
+      "fact": "Liesel Marr set the rope-works fire",
+      "in_summary": true,
+      "summary": "Wren Halloway arrives at the Anchor Inn in Greymouth, where she overhears Tobin accusing Liesel Marr of setting a fire. Sheriff Tom Marston then reveals that Samuel Blackwood, a respected member of the community, is the main suspect in the recent disappearances and the sabotage of the saltworks. Blackwood is arrested, and Wren is thanked for her efforts in uncovering the truth.",
+      "key_events": [
+        "Wren arrives at the Anchor Inn in Greymouth",
+        "Tobin accuses Liesel Marr of setting the rope-works fire",
+        "Tom Marston reveals that Samuel Blackwood is the main suspect",
+        "Samuel Blackwood is arrested for multiple charges",
+        "Wren is thanked for her efforts in uncovering the truth"
+      ]
+    },
+    {
+      "chapter": 9,
+      "fact": "the second ledger is sewn into the altar cloth",
+      "in_summary": true,
+      "summary": "Wren visits the harbour chapel to pray and discovers a hidden ledger. She notices the chapel's neglected state and the community's financial troubles. Mother Agathe discusses the reasons behind the chapel's decline, and Wren proposes organizing a fundraiser to restore the chapel.",
+      "key_events": [
+        "Wren visits the harbour chapel to pray for souls lost at sea",
+        "Wren discovers the second ledger hidden in the altar cloth",
+        "Wren notices the chapel's neglected state and the community's financial troubles",
+        "Mother Agathe discusses the reasons behind the chapel's decline",
+        "Wren and Mother Agathe discuss the importance of the chapel",
+        "Wren proposes organizing a fundraiser to restore the chapel"
+      ]
+    },
+    {
+      "chapter": 27,
+      "fact": "a brass token with the Ferris crest in the boot",
+      "in_summary": false,
+      "summary": "Wren Halloway and Ada examine the possessions of a stranger found in the marsh. They discover a brass token, a letter in an unknown language, a silver locket with a name engraved on it, coins, and a map with a cryptic message. Wren and Ada discuss the stranger's possible connection to Edmund and decide not to inform the constable yet, instead opting to gather more information.",
+      "key_events": [
+        "Wren Halloway paces the undertaker's office",
+        "Ada finishes examining the stranger's possessions",
+        "Ada finds a brass token, a letter, a silver locket, coins, and a map",
+        "Wren examines the letter and coins",
+        "Ada interprets the map and the message 'Follow the salt and the moon'",
+        "Wren and Ada discuss the stranger's involvement with Edmund",
+        "Ada suggests not telling the constable yet",
+        "Wren and Ada agree to gather more information"
+      ]
+    }
+  ],
+  "PA-H11": [
+    {
+      "query": "What happens in this story?",
+      "delivered_chapters": [
+        28,
+        28,
+        26,
+        11,
+        26,
+        22,
+        37,
+        21,
+        4,
+        27
+      ],
+      "late_share": 0.8,
+      "distinct_chapters": 8
+    },
+    {
+      "query": "Summarize the main events of the story.",
+      "delivered_chapters": [
+        28,
+        13,
+        17,
+        28,
+        13,
+        1,
+        5,
+        13,
+        11,
+        19
+      ],
+      "late_share": 0.2,
+      "distinct_chapters": 7
+    },
+    {
+      "query": "What are the most important turning points in the plot?",
+      "delivered_chapters": [
+        37,
+        16,
+        22,
+        5,
+        28,
+        40,
+        17,
+        29,
+        26,
+        17
+      ],
+      "late_share": 0.6,
+      "distinct_chapters": 9
+    },
+    {
+      "query": "How does the story end?",
+      "delivered_chapters": [
+        28,
+        5,
+        8,
+        36,
+        36,
+        29,
+        26,
+        28,
+        13,
+        27
+      ],
+      "late_share": 0.7,
+      "distinct_chapters": 8
+    }
+  ],
+  "PA-C9": [
+    {
+      "character": "Tobin Gale",
+      "query": "What do we learn about Tobin Gale?",
+      "appears_in_chapters": [
+        11,
+        22,
+        28
+      ],
+      "passage_chapters": [
+        11,
+        22,
+        28
+      ],
+      "coverage": 1.0,
+      "character_context_chars": 508
+    },
+    {
+      "character": "Silas Crane",
+      "query": "What role does Silas Crane play in the story?",
+      "appears_in_chapters": [
+        5,
+        14,
+        15,
+        16,
+        25,
+        34
+      ],
+      "passage_chapters": [
+        5,
+        16,
+        25,
+        34
+      ],
+      "coverage": 0.67,
+      "character_context_chars": 514
+    },
+    {
+      "character": "Abel Ferris",
+      "query": "Who is Abel Ferris and what does he do?",
+      "appears_in_chapters": [
+        3,
+        17,
+        26,
+        27,
+        38
+      ],
+      "passage_chapters": [
+        3,
+        7,
+        17,
+        26,
+        38
+      ],
+      "coverage": 0.8,
+      "character_context_chars": 514
+    }
+  ]
+}

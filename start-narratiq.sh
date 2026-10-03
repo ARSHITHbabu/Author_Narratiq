@@ -5,14 +5,19 @@
 #  Works on a BRAND NEW pod — installs every dependency
 #  automatically, then starts vLLM + Backend + Frontend.
 #
-#  Usage:  bash /workspace/narratiq-ai/start-narratiq.sh
+#  Usage:  bash <repository>/start-narratiq.sh   (e.g. /workspace/narratiq-ai or
+#          /workspace/Author_Narratiq — the script finds its own checkout)
 #
 #  Subsequent runs skip already-installed packages (fast).
 # ═══════════════════════════════════════════════════════════════
 set -e
 
-BACKEND_DIR="/workspace/narratiq-ai/backend"
-FRONTEND_DIR="/workspace/narratiq-ai/frontend"
+# The repository is wherever this script lives (Stage 12 Tranche 3, A25): it
+# used to assume /workspace/narratiq-ai, so a checkout under any other name
+# could not start. Same approach as scripts/rollback_frontend.sh.
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BACKEND_DIR="$REPO_DIR/backend"
+FRONTEND_DIR="$REPO_DIR/frontend"
 MODEL_DIR="/workspace/models"
 VLLM_PORT=9001
 BACKEND_PORT=8000
@@ -259,7 +264,7 @@ if [ "$MODELS_MISSING" -eq 1 ]; then
   # Enable fast Rust-based downloader for ~3x speed
   export HF_XET_HIGH_PERFORMANCE=1
   export MODEL_BASE_DIR="$MODEL_DIR"
-  bash /workspace/narratiq-ai/scripts/download_models.sh 2>&1 | tee "$LOG_DIR/model-download.log"
+  bash "$REPO_DIR/scripts/download_models.sh" 2>&1 | tee "$LOG_DIR/model-download.log"
   echo ""
   echo "  Download complete."
 else
@@ -476,7 +481,7 @@ done
 #
 # Exit 1 from it means a REQUIRED pre-migration backup could not be produced. That
 # aborts startup here, with the database untouched, rather than migrating unprotected.
-if ! bash /workspace/narratiq-ai/scripts/startup_backup.sh; then
+if ! bash "$REPO_DIR/scripts/startup_backup.sh"; then
   echo ""
   echo "  Startup aborted before any migration ran. The database was not modified."
   echo ""
@@ -484,7 +489,7 @@ if ! bash /workspace/narratiq-ai/scripts/startup_backup.sh; then
   echo "  database holding data is exactly the case the backup exists for."
   echo "  Fix the cause (disk space, pg_dump availability, DB reachability), or take a"
   echo "  backup by hand and confirm it, then re-run:"
-  echo "    bash /workspace/narratiq-ai/scripts/backup_database.sh"
+  echo "    bash $REPO_DIR/scripts/backup_database.sh"
   exit 1
 fi
 
@@ -665,7 +670,7 @@ PERIODIC_BACKUP_PIDFILE="$LOG_DIR/periodic-backup.pid"
 if [ -f "$PERIODIC_BACKUP_PIDFILE" ] && kill -0 "$(cat "$PERIODIC_BACKUP_PIDFILE" 2>/dev/null)" 2>/dev/null; then
   echo "  Already running (PID $(cat "$PERIODIC_BACKUP_PIDFILE"))"
 else
-  nohup bash /workspace/narratiq-ai/scripts/periodic_backup_loop.sh >> "$PERSISTENT_LOG_DIR/periodic-backup.log" 2>&1 &
+  nohup bash "$REPO_DIR/scripts/periodic_backup_loop.sh" >> "$PERSISTENT_LOG_DIR/periodic-backup.log" 2>&1 &
   echo $! > "$PERIODIC_BACKUP_PIDFILE"
   echo "  Started (PID $!, every ${NARRATIQ_PERIODIC_BACKUP_INTERVAL_HOURS:-1}h; keeps ${NARRATIQ_BACKUP_KEEP_RECENT:-24} recent + ${NARRATIQ_BACKUP_KEEP_DAILY_DAYS:-7} daily; restore-verified every ${NARRATIQ_BACKUP_VERIFY_EVERY_HOURS:-24}h)"
   echo "  Log: $PERSISTENT_LOG_DIR/periodic-backup.log"
@@ -685,7 +690,7 @@ if [ -f "$WATCHDOG_PIDFILE" ] && kill -0 "$(cat "$WATCHDOG_PIDFILE" 2>/dev/null)
 else
   OPS_TOKEN="$(grep '^OPS_TOKEN=' "$BACKEND_DIR/.env" | head -1 | cut -d= -f2-)" \
   NARRATIQ_BACKEND_URL="http://127.0.0.1:${BACKEND_PORT}" \
-    nohup python3 /workspace/narratiq-ai/scripts/watchdog.py >> "$PERSISTENT_LOG_DIR/watchdog.log" 2>&1 &
+    nohup python3 "$REPO_DIR/scripts/watchdog.py" >> "$PERSISTENT_LOG_DIR/watchdog.log" 2>&1 &
   echo $! > "$WATCHDOG_PIDFILE"
   echo "  Started (PID $!). Alerts: $PERSISTENT_LOG_DIR/alerts.jsonl"
 fi

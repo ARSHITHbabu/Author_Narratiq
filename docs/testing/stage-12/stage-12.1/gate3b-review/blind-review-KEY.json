@@ -1,0 +1,62 @@
+{
+  "item-1": {
+    "A": "v4",
+    "B": "v2",
+    "scenario": "adventure-1|age_adapt"
+  },
+  "item-2": {
+    "A": "v2",
+    "B": "v4",
+    "scenario": "adventure-2|age_adapt"
+  },
+  "item-3": {
+    "A": "v4",
+    "B": "v2",
+    "scenario": "adventure-3|age_adapt"
+  },
+  "item-4": {
+    "A": "v2",
+    "B": "v4",
+    "scenario": "adventure-4|age_adapt"
+  },
+  "item-5": {
+    "A": "v2",
+    "B": "v4",
+    "scenario": "gothic-1|tone"
+  },
+  "item-6": {
+    "A": "v4",
+    "B": "v2",
+    "scenario": "gothic-2|age_adapt"
+  },
+  "item-7": {
+    "A": "v4",
+    "B": "v2",
+    "scenario": "gothic-3|tone"
+  },
+  "item-8": {
+    "A": "v2",
+    "B": "v4",
+    "scenario": "gothic-4|age_adapt"
+  },
+  "item-9": {
+    "A": "v2",
+    "B": "v4",
+    "scenario": "tech-1|style"
+  },
+  "item-10": {
+    "A": "v2",
+    "B": "v4",
+    "scenario": "tech-2|style"
+  },
+  "item-11": {
+    "A": "v4",
+    "B": "v2",
+    "scenario": "tech-3|age_adapt"
+  },
+  "item-12": {
+    "A": "v4",
+    "B": "v2",
+    "scenario": "tech-4|style"
+  }
+}

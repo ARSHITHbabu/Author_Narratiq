@@ -4,6 +4,11 @@ Status: **Design + Implementation reference**
 Author: Engineering
 Scope: NarratIQ AI (FastAPI backend + Next.js 14 frontend + vLLM/Qwen2.5-7B + BGE-M3)
 
+> **Current state (2026-10-03, Stage 12 remediation):** the frontend now runs **Next.js 15.5** (A5). The
+> `/stream` variants described below still exist but are **off by default** (A3): they answer 404 unless
+> `AI_STREAM_ROUTES_ENABLED=true`, because they skip sentence locks, strength limits and the output
+> checks, and no screen uses them. The design below is otherwise unchanged.
+
 This document is the single source of truth for two new features:
 
 1. **Feature 1 — Author-Inspired Style Rewrite** (a new selection text-transform).

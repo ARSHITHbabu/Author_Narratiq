@@ -1,0 +1,91 @@
+{
+  "run_metadata": {
+    "recorded_at": "2026-10-03T06:18:50+00:00",
+    "commit": "f7a7a2ef5df96dfb27ff90223a6c5b70736e0319",
+    "working_tree_dirty": true,
+    "prompt_version": "v4",
+    "prompt_version_fallback": "v2",
+    "prompt_injection_guard": true,
+    "obeyed_min_span": 8,
+    "obeyed_max_story_share": 0.15,
+    "vllm_model": [
+      "Qwen/Qwen2.5-7B-Instruct"
+    ],
+    "qwen_revision": "a09a35458c702b33eeacc393d103063234e8bc28"
+  },
+  "indexed": true,
+  "story_id": "8776926a-2b93-426a-9cd6-804e4ad7ac66",
+  "report_status": 200,
+  "character_names": [
+    "Devika Rao",
+    "Mara Coste",
+    "Sant Okoro",
+    "Teodor Vance"
+  ],
+  "relationship_arcs": [
+    {
+      "characters": [
+        "Devika Rao",
+        "Mara Coste"
+      ],
+      "changes": [
+        {
+          "chapter": 1,
+          "change": "Devika's trust in Mara is tested by the revelation of the second contract"
+        }
+      ],
+      "first_chapter": 1,
+      "last_chapter": 1,
+      "chapter_count": 1
+    }
+  ],
+  "summaries": [
+    {
+      "chapter": 1,
+      "timeline_markers": [],
+      "characters_present": [
+        "Devika Rao",
+        "Mara Coste",
+        "Sant"
+      ],
+      "relationship_changes": [
+        {
+          "characters": [
+            "Devika Rao",
+            "Mara Coste"
+          ],
+          "change": "Devika's trust in Mara is tested by the revelation of the second contract"
+        }
+      ]
+    },
+    {
+      "chapter": 2,
+      "timeline_markers": [],
+      "characters_present": [
+        "Teodor Vance",
+        "Devika",
+        "Mara"
+      ],
+      "relationship_changes": []
+    },
+    {
+      "chapter": 3,
+      "timeline_markers": [
+        "eleven days",
+        "two years"
+      ],
+      "characters_present": [
+        "Sant Okoro",
+        "Devika"
+      ],
+      "relationship_changes": []
+    }
+  ],
+  "checks": {
+    "pairs": 1,
+    "raw_ids": 0,
+    "names_not_current": [],
+    "changes_out_of_order": []
+  },
+  "pass": true
+}

@@ -1,0 +1,3188 @@
+{
+  "runs": [
+    {
+      "run": 0,
+      "windows": 1,
+      "raw": [
+        [
+          {
+            "name": "Mira Okoye",
+            "presence": "on_page",
+            "role": "protagonist",
+            "status": "active"
+          },
+          {
+            "name": "Corvin Ashe",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Hessa Lin",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Magistrate Ondrej Vell",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "The Cartographer",
+            "presence": "historical",
+            "role": "historical",
+            "status": "deceased"
+          }
+        ]
+      ],
+      "final": [
+        {
+          "name": "Mira Okoye",
+          "presence": "on_page",
+          "role": "protagonist",
+          "status": "active",
+          "evidence_snippet": "Mira Okoye had walked the salt road for three days before the watchtower of Greyharn finally rose over the dunes.",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Corvin Ashe",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Hessa Lin",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'Because the Cartographer was my sister,' she said, 'and I want to know why she really drowned.'",
+          "first_appearance": "Chapter 2",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "first_appearance": "Chapter 4",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "The Cartographer",
+          "presence": "historical",
+          "role": "historical",
+          "status": "deceased",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        }
+      ],
+      "on_page": [
+        "Mira Okoye",
+        "Corvin Ashe",
+        "Hessa Lin",
+        "Magistrate Ondrej Vell"
+      ],
+      "pass": true,
+      "ondrej_final": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "role": "antagonist",
+          "status": "active",
+          "presence": "on_page",
+          "aliases": [],
+          "traits": [
+            "cunning",
+            "deceitful",
+            "self-serving"
+          ],
+          "first_appearance": "Chapter 4",
+          "confidence": "high",
+          "description": "The harbor official who ordered the flood and is hiding beneath the city.",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "appearance": "Gaunt, alive, and hiding in the Cistern.",
+          "personality": "Cunning, deceitful, and self-serving.",
+          "age": "",
+          "goals": "Avoid exposure and maintain control.",
+          "motivations": "Fear of consequences and desire to protect his power.",
+          "backstory": "Ordered the flood to hide a smuggling ledger and drowned three hundred people.",
+          "arc_notes": "Admits to faking his own death and hiding in the Cistern."
+        }
+      ],
+      "ondrej_raw": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "run": 1,
+      "windows": 1,
+      "raw": [
+        [
+          {
+            "name": "Mira Okoye",
+            "presence": "on_page",
+            "role": "protagonist",
+            "status": "active"
+          },
+          {
+            "name": "Corvin Ashe",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Hessa Lin",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Magistrate Ondrej Vell",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "The Cartographer",
+            "presence": "historical",
+            "role": "historical",
+            "status": "deceased"
+          }
+        ]
+      ],
+      "final": [
+        {
+          "name": "Mira Okoye",
+          "presence": "on_page",
+          "role": "protagonist",
+          "status": "active",
+          "evidence_snippet": "Mira Okoye had walked the salt road for three days before the watchtower of Greyharn finally rose over the dunes.",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Corvin Ashe",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Hessa Lin",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'Because the Cartographer was my sister,' she said, 'and I want to know why she really drowned.'",
+          "first_appearance": "Chapter 2",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "first_appearance": "Chapter 4",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "The Cartographer",
+          "presence": "historical",
+          "role": "historical",
+          "status": "deceased",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        }
+      ],
+      "on_page": [
+        "Mira Okoye",
+        "Corvin Ashe",
+        "Hessa Lin",
+        "Magistrate Ondrej Vell"
+      ],
+      "pass": true,
+      "ondrej_final": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "role": "antagonist",
+          "status": "active",
+          "presence": "on_page",
+          "aliases": [],
+          "traits": [
+            "cunning",
+            "deceitful",
+            "desperate"
+          ],
+          "first_appearance": "Chapter 4",
+          "confidence": "high",
+          "description": "The harbor official who ordered the flood and is hiding in the Cistern.",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "appearance": "Gaunt, alive, and hiding in the Cistern.",
+          "personality": "Cunning, deceitful, and desperate.",
+          "age": "",
+          "goals": "Avoid exposure and maintain control.",
+          "motivations": "Fear of consequences and a desire to protect his power.",
+          "backstory": "Ordered the flood to hide a smuggling ledger and drowned three hundred people.",
+          "arc_notes": "Admits to smuggling weapons but Mira does not believe him."
+        }
+      ],
+      "ondrej_raw": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "run": 2,
+      "windows": 1,
+      "raw": [
+        [
+          {
+            "name": "Mira Okoye",
+            "presence": "on_page",
+            "role": "protagonist",
+            "status": "active"
+          },
+          {
+            "name": "Corvin Ashe",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Hessa Lin",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Magistrate Ondrej Vell",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "The Cartographer",
+            "presence": "historical",
+            "role": "historical",
+            "status": "deceased"
+          }
+        ]
+      ],
+      "final": [
+        {
+          "name": "Mira Okoye",
+          "presence": "on_page",
+          "role": "protagonist",
+          "status": "active",
+          "evidence_snippet": "Mira Okoye had walked the salt road for three days before the watchtower of Greyharn finally rose over the dunes.",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Corvin Ashe",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Hessa Lin",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'Because the Cartographer was my sister,' she said, 'and I want to know why she really drowned.'",
+          "first_appearance": "Chapter 2",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "first_appearance": "Chapter 4",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "The Cartographer",
+          "presence": "historical",
+          "role": "historical",
+          "status": "deceased",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        }
+      ],
+      "on_page": [
+        "Mira Okoye",
+        "Corvin Ashe",
+        "Hessa Lin",
+        "Magistrate Ondrej Vell"
+      ],
+      "pass": true,
+      "ondrej_final": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "role": "antagonist",
+          "status": "active",
+          "presence": "on_page",
+          "aliases": [],
+          "traits": [
+            "cunning",
+            "deceitful",
+            "desperate"
+          ],
+          "first_appearance": "Chapter 4",
+          "confidence": "high",
+          "description": "The harbor official who ordered the flood and is hiding in the Hollow Cistern.",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "appearance": "Gaunt, alive, and hiding in the Cistern.",
+          "personality": "Cunning, deceitful, and desperate.",
+          "age": "",
+          "goals": "Avoid discovery and maintain control.",
+          "motivations": "Fear of consequences and a desire to protect his power.",
+          "backstory": "Ordered the flood to hide a smuggling ledger and drowned three hundred people.",
+          "arc_notes": "Admits to smuggling weapons to Tharsk but is ultimately rejected by Mira."
+        }
+      ],
+      "ondrej_raw": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "run": 3,
+      "windows": 1,
+      "raw": [
+        [
+          {
+            "name": "Mira Okoye",
+            "presence": "on_page",
+            "role": "protagonist",
+            "status": "active"
+          },
+          {
+            "name": "Corvin Ashe",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Hessa Lin",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Magistrate Ondrej Vell",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "The Cartographer",
+            "presence": "historical",
+            "role": "historical",
+            "status": "deceased"
+          }
+        ]
+      ],
+      "final": [
+        {
+          "name": "Mira Okoye",
+          "presence": "on_page",
+          "role": "protagonist",
+          "status": "active",
+          "evidence_snippet": "Mira Okoye had walked the salt road for three days before the watchtower of Greyharn finally rose over the dunes.",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Corvin Ashe",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Hessa Lin",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'Because the Cartographer was my sister,' she said, 'and I want to know why she really drowned.'",
+          "first_appearance": "Chapter 2",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "first_appearance": "Chapter 4",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "The Cartographer",
+          "presence": "historical",
+          "role": "historical",
+          "status": "deceased",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        }
+      ],
+      "on_page": [
+        "Mira Okoye",
+        "Corvin Ashe",
+        "Hessa Lin",
+        "Magistrate Ondrej Vell"
+      ],
+      "pass": true,
+      "ondrej_final": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "role": "antagonist",
+          "status": "active",
+          "presence": "on_page",
+          "aliases": [],
+          "traits": [
+            "cunning",
+            "deceitful",
+            "desperate"
+          ],
+          "first_appearance": "Chapter 4",
+          "confidence": "high",
+          "description": "The harbor official who orchestrated the flood to hide a smuggling ledger.",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "appearance": "Alive, gaunt, and hiding in the Cistern.",
+          "personality": "Cunning, deceitful, and desperate.",
+          "age": "",
+          "goals": "Prevent the truth from coming to light and avoid punishment.",
+          "motivations": "Fear of consequences and a desire to protect his power.",
+          "backstory": "Ordered the lower quarter's floodgates sealed from the inside, causing the flood.",
+          "arc_notes": "Caught by Mira and forced to reveal his true motives."
+        }
+      ],
+      "ondrej_raw": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "run": 4,
+      "windows": 1,
+      "raw": [
+        [
+          {
+            "name": "Mira Okoye",
+            "presence": "on_page",
+            "role": "protagonist",
+            "status": "active"
+          },
+          {
+            "name": "Corvin Ashe",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "Hessa Lin",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Magistrate Ondrej Vell",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "The Cartographer",
+            "presence": "historical",
+            "role": "supporting",
+            "status": "deceased"
+          }
+        ]
+      ],
+      "final": [
+        {
+          "name": "Mira Okoye",
+          "presence": "on_page",
+          "role": "protagonist",
+          "status": "active",
+          "evidence_snippet": "Mira Okoye had walked the salt road for three days before the watchtower of Greyharn finally rose over the dunes.",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Corvin Ashe",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Hessa Lin",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'Because the Cartographer was my sister,' she said, 'and I want to know why she really drowned.'",
+          "first_appearance": "Chapter 2",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "first_appearance": "Chapter 4",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "The Cartographer",
+          "presence": "historical",
+          "role": "supporting",
+          "status": "deceased",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        }
+      ],
+      "on_page": [
+        "Mira Okoye",
+        "Corvin Ashe",
+        "Hessa Lin",
+        "Magistrate Ondrej Vell"
+      ],
+      "pass": true,
+      "ondrej_final": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "role": "antagonist",
+          "status": "active",
+          "presence": "on_page",
+          "aliases": [],
+          "traits": [
+            "cunning",
+            "deceitful",
+            "desperate"
+          ],
+          "first_appearance": "Chapter 4",
+          "confidence": "high",
+          "description": "The harbor official who orchestrated the flood to protect a smuggling ledger.",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "appearance": "Gaunt, alive, and hiding in the Cistern.",
+          "personality": "Cunning, deceitful, and desperate.",
+          "age": "",
+          "goals": "Prevent the truth from coming to light and avoid punishment.",
+          "motivations": "Fear of consequences and desire to protect his power.",
+          "backstory": "Ordered the lower quarter's floodgates sealed from the inside, causing the flood.",
+          "arc_notes": "Admits to faking his death and smuggling weapons to Tharsk."
+        }
+      ],
+      "ondrej_raw": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "run": 5,
+      "windows": 1,
+      "raw": [
+        [
+          {
+            "name": "Mira Okoye",
+            "presence": "on_page",
+            "role": "protagonist",
+            "status": "active"
+          },
+          {
+            "name": "Corvin Ashe",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Hessa Lin",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Magistrate Ondrej Vell",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "The Cartographer",
+            "presence": "historical",
+            "role": "historical",
+            "status": "deceased"
+          }
+        ]
+      ],
+      "final": [
+        {
+          "name": "Mira Okoye",
+          "presence": "on_page",
+          "role": "protagonist",
+          "status": "active",
+          "evidence_snippet": "Mira Okoye had walked the salt road for three days before the watchtower of Greyharn finally rose over the dunes.",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Corvin Ashe",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Hessa Lin",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'Because the Cartographer was my sister,' she said, 'and I want to know why she really drowned.'",
+          "first_appearance": "Chapter 2",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "first_appearance": "Chapter 4",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "The Cartographer",
+          "presence": "historical",
+          "role": "historical",
+          "status": "deceased",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        }
+      ],
+      "on_page": [
+        "Mira Okoye",
+        "Corvin Ashe",
+        "Hessa Lin",
+        "Magistrate Ondrej Vell"
+      ],
+      "pass": true,
+      "ondrej_final": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "role": "antagonist",
+          "status": "active",
+          "presence": "on_page",
+          "aliases": [],
+          "traits": [
+            "cunning",
+            "deceitful",
+            "desperate"
+          ],
+          "first_appearance": "Chapter 4",
+          "confidence": "high",
+          "description": "The harbor official who ordered the flood and is hiding in the Hollow Cistern.",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "appearance": "Alive, gaunt, and hiding in the Cistern.",
+          "personality": "Cunning, deceitful, and desperate.",
+          "age": "",
+          "goals": "Avoid exposure and maintain control.",
+          "motivations": "Fear of consequences and a desire to protect his power.",
+          "backstory": "Ordered the flood to hide a smuggling ledger and faked his own death.",
+          "arc_notes": "Confronts Mira and tries to convince her to give him the notebook."
+        }
+      ],
+      "ondrej_raw": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "run": 6,
+      "windows": 1,
+      "raw": [
+        [
+          {
+            "name": "Mira Okoye",
+            "presence": "on_page",
+            "role": "protagonist",
+            "status": "active"
+          },
+          {
+            "name": "Corvin Ashe",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "Hessa Lin",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Magistrate Ondrej Vell",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "The Cartographer",
+            "presence": "historical",
+            "role": "historical",
+            "status": "deceased"
+          }
+        ]
+      ],
+      "final": [
+        {
+          "name": "Mira Okoye",
+          "presence": "on_page",
+          "role": "protagonist",
+          "status": "active",
+          "evidence_snippet": "Mira Okoye had walked the salt road for three days before the watchtower of Greyharn finally rose over the dunes.",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Corvin Ashe",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Hessa Lin",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'Because the Cartographer was my sister,' she said, 'and I want to know why she really drowned.'",
+          "first_appearance": "Chapter 2",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "first_appearance": "Chapter 4",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "The Cartographer",
+          "presence": "historical",
+          "role": "historical",
+          "status": "deceased",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        }
+      ],
+      "on_page": [
+        "Mira Okoye",
+        "Corvin Ashe",
+        "Hessa Lin",
+        "Magistrate Ondrej Vell"
+      ],
+      "pass": true,
+      "ondrej_final": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "role": "antagonist",
+          "status": "active",
+          "presence": "on_page",
+          "aliases": [],
+          "traits": [
+            "cunning",
+            "deceitful",
+            "manipulative"
+          ],
+          "first_appearance": "Chapter 4",
+          "confidence": "high",
+          "description": "The harbor official who orchestrated the flood to protect a smuggling ledger.",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "appearance": "Gaunt, alive, and hiding in the Cistern.",
+          "personality": "Cunning, deceitful, and manipulative.",
+          "age": "",
+          "goals": "Maintain his position and cover up his crimes.",
+          "motivations": "Fear of consequences and desire for power.",
+          "backstory": "Ordered the lower quarter's floodgates sealed from the inside, causing the flood.",
+          "arc_notes": "Reveals the truth about the smuggling ledger and tries to bribe Mira."
+        }
+      ],
+      "ondrej_raw": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "run": 7,
+      "windows": 1,
+      "raw": [
+        [
+          {
+            "name": "Mira Okoye",
+            "presence": "on_page",
+            "role": "protagonist",
+            "status": "active"
+          },
+          {
+            "name": "Corvin Ashe",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Hessa Lin",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Magistrate Ondrej Vell",
+            "presence": "historical",
+            "role": "antagonist",
+            "status": "deceased"
+          }
+        ]
+      ],
+      "final": [
+        {
+          "name": "Mira Okoye",
+          "presence": "on_page",
+          "role": "protagonist",
+          "status": "active",
+          "evidence_snippet": "Mira Okoye had walked the salt road for three days before the watchtower of Greyharn finally rose over the dunes.",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Corvin Ashe",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Hessa Lin",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'Because the Cartographer was my sister,' she said, 'and I want to know why she really drowned.'",
+          "first_appearance": "Chapter 2",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "historical",
+          "role": "antagonist",
+          "status": "deceased",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "first_appearance": "Chapter 4",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        }
+      ],
+      "on_page": [
+        "Mira Okoye",
+        "Corvin Ashe",
+        "Hessa Lin"
+      ],
+      "pass": false,
+      "ondrej_final": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "role": "antagonist",
+          "status": "deceased",
+          "presence": "historical",
+          "aliases": [],
+          "traits": [
+            "cunning",
+            "deceitful",
+            "self-serving"
+          ],
+          "first_appearance": "Chapter 4",
+          "confidence": "high",
+          "description": "The harbor official who ordered the lower quarter's floodgates sealed and caused the flood.",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "appearance": "Alive, gaunt, and hiding in the Cistern.",
+          "personality": "Cunning, deceitful, and self-serving.",
+          "age": "",
+          "goals": "Prevent the truth from coming to light and protect his power.",
+          "motivations": "Fear of consequences and desire to maintain control.",
+          "backstory": "Ordered the lower quarter's floodgates sealed from the inside, causing the flood that killed three hundred people.",
+          "arc_notes": "Faked his own death and survived in the Cistern for eleven years, only to be discovered by Mira."
+        }
+      ],
+      "ondrej_raw": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "historical",
+          "role": "antagonist",
+          "status": "deceased"
+        }
+      ]
+    },
+    {
+      "run": 8,
+      "windows": 1,
+      "raw": [
+        [
+          {
+            "name": "Mira Okoye",
+            "presence": "on_page",
+            "role": "protagonist",
+            "status": "active"
+          },
+          {
+            "name": "Corvin Ashe",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "Hessa Lin",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Magistrate Ondrej Vell",
+            "presence": "historical",
+            "role": "antagonist",
+            "status": "deceased"
+          }
+        ]
+      ],
+      "final": [
+        {
+          "name": "Mira Okoye",
+          "presence": "on_page",
+          "role": "protagonist",
+          "status": "active",
+          "evidence_snippet": "Mira Okoye had walked the salt road for three days before the watchtower of Greyharn finally rose over the dunes.",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Corvin Ashe",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Hessa Lin",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'Because the Cartographer was my sister,' she said, 'and I want to know why she really drowned.'",
+          "first_appearance": "Chapter 2",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "historical",
+          "role": "antagonist",
+          "status": "deceased",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "first_appearance": "Chapter 4",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        }
+      ],
+      "on_page": [
+        "Mira Okoye",
+        "Corvin Ashe",
+        "Hessa Lin"
+      ],
+      "pass": false,
+      "ondrej_final": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "role": "antagonist",
+          "status": "deceased",
+          "presence": "historical",
+          "aliases": [],
+          "traits": [
+            "manipulative",
+            "deceitful",
+            "self-serving"
+          ],
+          "first_appearance": "Chapter 4",
+          "confidence": "high",
+          "description": "The harbor official who ordered the flood and faked his own death.",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "appearance": "Alive, gaunt, and hiding in the Hollow Cistern.",
+          "personality": "Manipulative, deceitful, and self-serving.",
+          "age": "",
+          "goals": "Protect his secret and avoid exposure.",
+          "motivations": "Fear of consequences and desire to maintain power.",
+          "backstory": "Ordered the flood to hide a smuggling ledger and faked his own death.",
+          "arc_notes": "Caught by Mira in the Hollow Cistern and exposed as the true culprit."
+        }
+      ],
+      "ondrej_raw": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "historical",
+          "role": "antagonist",
+          "status": "deceased"
+        }
+      ]
+    },
+    {
+      "run": 9,
+      "windows": 1,
+      "raw": [
+        [
+          {
+            "name": "Mira Okoye",
+            "presence": "on_page",
+            "role": "protagonist",
+            "status": "active"
+          },
+          {
+            "name": "Corvin Ashe",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "Hessa Lin",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Magistrate Ondrej Vell",
+            "presence": "historical",
+            "role": "antagonist",
+            "status": "deceased"
+          }
+        ]
+      ],
+      "final": [
+        {
+          "name": "Mira Okoye",
+          "presence": "on_page",
+          "role": "protagonist",
+          "status": "active",
+          "evidence_snippet": "Mira Okoye had walked the salt road for three days before the watchtower of Greyharn finally rose over the dunes.",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Corvin Ashe",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Hessa Lin",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'Because the Cartographer was my sister,' she said, 'and I want to know why she really drowned.'",
+          "first_appearance": "Chapter 2",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "historical",
+          "role": "antagonist",
+          "status": "deceased",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "first_appearance": "Chapter 4",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        }
+      ],
+      "on_page": [
+        "Mira Okoye",
+        "Corvin Ashe",
+        "Hessa Lin"
+      ],
+      "pass": false,
+      "ondrej_final": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "role": "antagonist",
+          "status": "deceased",
+          "presence": "historical",
+          "aliases": [],
+          "traits": [
+            "cunning",
+            "deceitful",
+            "self-serving"
+          ],
+          "first_appearance": "Chapter 4",
+          "confidence": "high",
+          "description": "The harbor official who ordered the flood and faked his own death.",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "appearance": "Gaunt, alive but hidden beneath the city.",
+          "personality": "Cunning, deceitful, and self-serving.",
+          "age": "",
+          "goals": "Avoid exposure and maintain control.",
+          "motivations": "Fear of consequences and desire to protect his power.",
+          "backstory": "Ordered the flood to hide a smuggling ledger and faked his own death.",
+          "arc_notes": "Appears alive in the Cistern, admits to faking his death and smuggling weapons."
+        }
+      ],
+      "ondrej_raw": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "historical",
+          "role": "antagonist",
+          "status": "deceased"
+        }
+      ]
+    },
+    {
+      "run": 10,
+      "windows": 1,
+      "raw": [
+        [
+          {
+            "name": "Mira Okoye",
+            "presence": "on_page",
+            "role": "protagonist",
+            "status": "active"
+          },
+          {
+            "name": "Corvin Ashe",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "Hessa Lin",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Magistrate Ondrej Vell",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "The Cartographer",
+            "presence": "historical",
+            "role": "historical",
+            "status": "deceased"
+          }
+        ]
+      ],
+      "final": [
+        {
+          "name": "Mira Okoye",
+          "presence": "on_page",
+          "role": "protagonist",
+          "status": "active",
+          "evidence_snippet": "Mira Okoye had walked the salt road for three days before the watchtower of Greyharn finally rose over the dunes.",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Corvin Ashe",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Hessa Lin",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'Because the Cartographer was my sister,' she said, 'and I want to know why she really drowned.'",
+          "first_appearance": "Chapter 2",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "first_appearance": "Chapter 4",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "The Cartographer",
+          "presence": "historical",
+          "role": "historical",
+          "status": "deceased",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        }
+      ],
+      "on_page": [
+        "Mira Okoye",
+        "Corvin Ashe",
+        "Hessa Lin",
+        "Magistrate Ondrej Vell"
+      ],
+      "pass": true,
+      "ondrej_final": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "role": "antagonist",
+          "status": "active",
+          "presence": "on_page",
+          "aliases": [],
+          "traits": [
+            "manipulative",
+            "deceitful",
+            "desperate"
+          ],
+          "first_appearance": "Chapter 4",
+          "confidence": "high",
+          "description": "The harbor official who orchestrated the flood to hide a smuggling ledger.",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "appearance": "Gaunt, alive, and hiding in the Cistern.",
+          "personality": "Manipulative, deceitful, and desperate.",
+          "age": "",
+          "goals": "Prevent the truth from coming to light and avoid punishment.",
+          "motivations": "Fear of consequences and desire to protect his power.",
+          "backstory": "Ordered the lower quarter's floodgates sealed from the inside, causing the flood.",
+          "arc_notes": "Fakes his own death, survives in the Cistern, and tries to bribe Mira with the notebook."
+        }
+      ],
+      "ondrej_raw": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "run": 11,
+      "windows": 1,
+      "raw": [
+        [
+          {
+            "name": "Mira Okoye",
+            "presence": "on_page",
+            "role": "protagonist",
+            "status": "active"
+          },
+          {
+            "name": "Corvin Ashe",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "Hessa Lin",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Magistrate Ondrej Vell",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "The Cartographer",
+            "presence": "historical",
+            "role": "historical",
+            "status": "deceased"
+          }
+        ]
+      ],
+      "final": [
+        {
+          "name": "Mira Okoye",
+          "presence": "on_page",
+          "role": "protagonist",
+          "status": "active",
+          "evidence_snippet": "Mira Okoye had walked the salt road for three days before the watchtower of Greyharn finally rose over the dunes.",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Corvin Ashe",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Hessa Lin",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'Because the Cartographer was my sister,' she said, 'and I want to know why she really drowned.'",
+          "first_appearance": "Chapter 2",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "first_appearance": "Chapter 4",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "The Cartographer",
+          "presence": "historical",
+          "role": "historical",
+          "status": "deceased",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        }
+      ],
+      "on_page": [
+        "Mira Okoye",
+        "Corvin Ashe",
+        "Hessa Lin",
+        "Magistrate Ondrej Vell"
+      ],
+      "pass": true,
+      "ondrej_final": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "role": "antagonist",
+          "status": "active",
+          "presence": "on_page",
+          "aliases": [],
+          "traits": [
+            "manipulative",
+            "deceitful",
+            "desperate"
+          ],
+          "first_appearance": "Chapter 4",
+          "confidence": "high",
+          "description": "The harbor official who orchestrated the flood to protect a smuggling ledger.",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "appearance": "Gaunt, alive, and hiding in the Cistern.",
+          "personality": "Manipulative, deceitful, and desperate.",
+          "age": "",
+          "goals": "Avoid exposure and maintain control.",
+          "motivations": "Fear of consequences and desire to protect his power.",
+          "backstory": "Ordered the lower quarter's floodgates sealed from the inside, causing the flood.",
+          "arc_notes": "Appears alive in the Cistern and tries to convince Mira to give him the notebook."
+        }
+      ],
+      "ondrej_raw": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "run": 12,
+      "windows": 1,
+      "raw": [
+        [
+          {
+            "name": "Mira Okoye",
+            "presence": "on_page",
+            "role": "protagonist",
+            "status": "active"
+          },
+          {
+            "name": "Corvin Ashe",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "Hessa Lin",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Magistrate Ondrej Vell",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "The Cartographer",
+            "presence": "historical",
+            "role": "supporting",
+            "status": "deceased"
+          }
+        ]
+      ],
+      "final": [
+        {
+          "name": "Mira Okoye",
+          "presence": "on_page",
+          "role": "protagonist",
+          "status": "active",
+          "evidence_snippet": "Mira Okoye had walked the salt road for three days before the watchtower of Greyharn finally rose over the dunes.",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Corvin Ashe",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Hessa Lin",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'Because the Cartographer was my sister,' she said, 'and I want to know why she really drowned.'",
+          "first_appearance": "Chapter 2",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "first_appearance": "Chapter 4",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "The Cartographer",
+          "presence": "historical",
+          "role": "supporting",
+          "status": "deceased",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        }
+      ],
+      "on_page": [
+        "Mira Okoye",
+        "Corvin Ashe",
+        "Hessa Lin",
+        "Magistrate Ondrej Vell"
+      ],
+      "pass": true,
+      "ondrej_final": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "role": "antagonist",
+          "status": "active",
+          "presence": "on_page",
+          "aliases": [],
+          "traits": [
+            "manipulative",
+            "deceitful",
+            "desperate"
+          ],
+          "first_appearance": "Chapter 4",
+          "confidence": "high",
+          "description": "The harbor official who orchestrated the flood to protect a smuggling ledger.",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "appearance": "Gaunt, alive, and hiding in the Cistern.",
+          "personality": "Manipulative, deceitful, and desperate.",
+          "age": "",
+          "goals": "Prevent the truth from coming to light and avoid punishment.",
+          "motivations": "Fear of consequences and a desire to protect his power.",
+          "backstory": "Ordered the lower quarter's floodgates sealed from the inside, causing the flood.",
+          "arc_notes": "Admits to smuggling weapons to Tharsk but is ultimately unconvincing to Mira."
+        }
+      ],
+      "ondrej_raw": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "run": 13,
+      "windows": 1,
+      "raw": [
+        [
+          {
+            "name": "Mira Okoye",
+            "presence": "on_page",
+            "role": "protagonist",
+            "status": "active"
+          },
+          {
+            "name": "Corvin Ashe",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Hessa Lin",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Magistrate Ondrej Vell",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "The Cartographer",
+            "presence": "historical",
+            "role": "historical",
+            "status": "deceased"
+          }
+        ]
+      ],
+      "final": [
+        {
+          "name": "Mira Okoye",
+          "presence": "on_page",
+          "role": "protagonist",
+          "status": "active",
+          "evidence_snippet": "Mira Okoye had walked the salt road for three days before the watchtower of Greyharn finally rose over the dunes.",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Corvin Ashe",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Hessa Lin",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'Because the Cartographer was my sister,' she said, 'and I want to know why she really drowned.'",
+          "first_appearance": "Chapter 2",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "first_appearance": "Chapter 4",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "The Cartographer",
+          "presence": "historical",
+          "role": "historical",
+          "status": "deceased",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        }
+      ],
+      "on_page": [
+        "Mira Okoye",
+        "Corvin Ashe",
+        "Hessa Lin",
+        "Magistrate Ondrej Vell"
+      ],
+      "pass": true,
+      "ondrej_final": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "role": "antagonist",
+          "status": "active",
+          "presence": "on_page",
+          "aliases": [],
+          "traits": [
+            "cunning",
+            "deceitful",
+            "desperate"
+          ],
+          "first_appearance": "Chapter 4",
+          "confidence": "high",
+          "description": "The harbor official who ordered the flood and is hiding beneath the city.",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "appearance": "Alive, gaunt, and hiding in the Cistern.",
+          "personality": "Cunning, deceitful, and desperate.",
+          "age": "",
+          "goals": "Prevent the truth from coming to light and avoid punishment.",
+          "motivations": "Fear of consequences and a desire to protect his power.",
+          "backstory": "Ordered the flood to hide a smuggling ledger and drowned three hundred people.",
+          "arc_notes": "Fakes his own death and hides in the Cistern for eleven years, eventually confronts Mira."
+        }
+      ],
+      "ondrej_raw": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "run": 14,
+      "windows": 1,
+      "raw": [
+        [
+          {
+            "name": "Mira Okoye",
+            "presence": "on_page",
+            "role": "protagonist",
+            "status": "active"
+          },
+          {
+            "name": "Corvin Ashe",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "Hessa Lin",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Magistrate Ondrej Vell",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "The Cartographer",
+            "presence": "historical",
+            "role": "historical",
+            "status": "deceased"
+          }
+        ]
+      ],
+      "final": [
+        {
+          "name": "Mira Okoye",
+          "presence": "on_page",
+          "role": "protagonist",
+          "status": "active",
+          "evidence_snippet": "Mira Okoye had walked the salt road for three days before the watchtower of Greyharn finally rose over the dunes.",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Corvin Ashe",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Hessa Lin",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'Because the Cartographer was my sister,' she said, 'and I want to know why she really drowned.'",
+          "first_appearance": "Chapter 2",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "first_appearance": "Chapter 4",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "The Cartographer",
+          "presence": "historical",
+          "role": "historical",
+          "status": "deceased",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        }
+      ],
+      "on_page": [
+        "Mira Okoye",
+        "Corvin Ashe",
+        "Hessa Lin",
+        "Magistrate Ondrej Vell"
+      ],
+      "pass": true,
+      "ondrej_final": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "role": "antagonist",
+          "status": "active",
+          "presence": "on_page",
+          "aliases": [],
+          "traits": [
+            "manipulative",
+            "deceitful",
+            "desperate"
+          ],
+          "first_appearance": "Chapter 4",
+          "confidence": "high",
+          "description": "The harbor official who orchestrated the flood to protect a smuggling ledger.",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "appearance": "Alive, gaunt, and hiding in the Cistern.",
+          "personality": "Manipulative, deceitful, and desperate.",
+          "age": "",
+          "goals": "Prevent the truth from coming to light and avoid punishment.",
+          "motivations": "Fear of consequences and desire to protect his power.",
+          "backstory": "Ordered the lower quarter's floodgates sealed from the inside, causing the flood.",
+          "arc_notes": "Emerges from the Cistern and tries to convince Mira to give him the notebook."
+        }
+      ],
+      "ondrej_raw": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "run": 15,
+      "windows": 1,
+      "raw": [
+        [
+          {
+            "name": "Mira Okoye",
+            "presence": "on_page",
+            "role": "protagonist",
+            "status": "active"
+          },
+          {
+            "name": "Corvin Ashe",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Hessa Lin",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Magistrate Ondrej Vell",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "The Cartographer",
+            "presence": "historical",
+            "role": "historical",
+            "status": "deceased"
+          }
+        ]
+      ],
+      "final": [
+        {
+          "name": "Mira Okoye",
+          "presence": "on_page",
+          "role": "protagonist",
+          "status": "active",
+          "evidence_snippet": "Mira Okoye had walked the salt road for three days before the watchtower of Greyharn finally rose over the dunes.",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Corvin Ashe",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Hessa Lin",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'Because the Cartographer was my sister,' she said, 'and I want to know why she really drowned.'",
+          "first_appearance": "Chapter 2",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "first_appearance": "Chapter 4",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "The Cartographer",
+          "presence": "historical",
+          "role": "historical",
+          "status": "deceased",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        }
+      ],
+      "on_page": [
+        "Mira Okoye",
+        "Corvin Ashe",
+        "Hessa Lin",
+        "Magistrate Ondrej Vell"
+      ],
+      "pass": true,
+      "ondrej_final": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "role": "antagonist",
+          "status": "active",
+          "presence": "on_page",
+          "aliases": [],
+          "traits": [
+            "cunning",
+            "deceitful",
+            "manipulative"
+          ],
+          "first_appearance": "Chapter 4",
+          "confidence": "high",
+          "description": "The harbor official who ordered the lower quarter's floodgates sealed and faked his own death.",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "appearance": "Gaunt, alive, hiding in the Hollow Cistern.",
+          "personality": "Cunning, deceitful, and manipulative.",
+          "age": "",
+          "goals": "Prevent the truth from coming to light and protect his power and wealth.",
+          "motivations": "Fear of consequences and a desire to maintain control.",
+          "backstory": "Ordered the floodgates sealed, causing the death of three hundred people to hide a smuggling ledger.",
+          "arc_notes": "Confronts Mira and tries to convince her to give him the notebook, revealing his true motives."
+        }
+      ],
+      "ondrej_raw": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "run": 16,
+      "windows": 1,
+      "raw": [
+        [
+          {
+            "name": "Mira Okoye",
+            "presence": "on_page",
+            "role": "protagonist",
+            "status": "active"
+          },
+          {
+            "name": "Corvin Ashe",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "Hessa Lin",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Magistrate Ondrej Vell",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "The Cartographer",
+            "presence": "historical",
+            "role": "historical",
+            "status": "deceased"
+          }
+        ]
+      ],
+      "final": [
+        {
+          "name": "Mira Okoye",
+          "presence": "on_page",
+          "role": "protagonist",
+          "status": "active",
+          "evidence_snippet": "Mira Okoye had walked the salt road for three days before the watchtower of Greyharn finally rose over the dunes.",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Corvin Ashe",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Hessa Lin",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'Because the Cartographer was my sister,' she said, 'and I want to know why she really drowned.'",
+          "first_appearance": "Chapter 2",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "first_appearance": "Chapter 4",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "The Cartographer",
+          "presence": "historical",
+          "role": "historical",
+          "status": "deceased",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        }
+      ],
+      "on_page": [
+        "Mira Okoye",
+        "Corvin Ashe",
+        "Hessa Lin",
+        "Magistrate Ondrej Vell"
+      ],
+      "pass": true,
+      "ondrej_final": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "role": "antagonist",
+          "status": "active",
+          "presence": "on_page",
+          "aliases": [],
+          "traits": [
+            "cunning",
+            "deceitful",
+            "desperate"
+          ],
+          "first_appearance": "Chapter 4",
+          "confidence": "high",
+          "description": "The harbor official who orchestrated the flood to protect a smuggling ledger.",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "appearance": "Alive, gaunt, and hiding in the Cistern.",
+          "personality": "Cunning, deceitful, and desperate.",
+          "age": "",
+          "goals": "Prevent the truth from coming to light and avoid punishment.",
+          "motivations": "Fear of consequences and a desire to protect his power and wealth.",
+          "backstory": "Ordered the lower quarter's floodgates sealed from the inside, causing the flood that killed three hundred people.",
+          "arc_notes": "Emerges from the Cistern alive and attempts to bribe Mira with gold and passage out of Greyharn."
+        }
+      ],
+      "ondrej_raw": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "run": 17,
+      "windows": 1,
+      "raw": [
+        [
+          {
+            "name": "Mira Okoye",
+            "presence": "on_page",
+            "role": "protagonist",
+            "status": "active"
+          },
+          {
+            "name": "Corvin Ashe",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Hessa Lin",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Magistrate Ondrej Vell",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "The Cartographer",
+            "presence": "historical",
+            "role": "historical",
+            "status": "deceased"
+          }
+        ]
+      ],
+      "final": [
+        {
+          "name": "Mira Okoye",
+          "presence": "on_page",
+          "role": "protagonist",
+          "status": "active",
+          "evidence_snippet": "Mira Okoye had walked the salt road for three days before the watchtower of Greyharn finally rose over the dunes.",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Corvin Ashe",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Hessa Lin",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'Because the Cartographer was my sister,' she said, 'and I want to know why she really drowned.'",
+          "first_appearance": "Chapter 2",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "first_appearance": "Chapter 4",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "The Cartographer",
+          "presence": "historical",
+          "role": "historical",
+          "status": "deceased",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        }
+      ],
+      "on_page": [
+        "Mira Okoye",
+        "Corvin Ashe",
+        "Hessa Lin",
+        "Magistrate Ondrej Vell"
+      ],
+      "pass": true,
+      "ondrej_final": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "role": "antagonist",
+          "status": "active",
+          "presence": "on_page",
+          "aliases": [],
+          "traits": [
+            "cunning",
+            "deceitful",
+            "self-serving"
+          ],
+          "first_appearance": "Chapter 4",
+          "confidence": "high",
+          "description": "The harbor official who ordered the flood and is hiding beneath the city.",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "appearance": "Gaunt, alive, and hiding in the Cistern.",
+          "personality": "Cunning, deceitful, and self-serving.",
+          "age": "",
+          "goals": "Prevent the truth from coming to light and avoid punishment.",
+          "motivations": "Fear of consequences and a desire to protect his power and wealth.",
+          "backstory": "Ordered the flood to hide a smuggling ledger and drowned three hundred people.",
+          "arc_notes": "Caught by Mira and forced to reveal his true motives."
+        }
+      ],
+      "ondrej_raw": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "run": 18,
+      "windows": 1,
+      "raw": [
+        [
+          {
+            "name": "Mira Okoye",
+            "presence": "on_page",
+            "role": "protagonist",
+            "status": "active"
+          },
+          {
+            "name": "Corvin Ashe",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Hessa Lin",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Magistrate Ondrej Vell",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "The Cartographer",
+            "presence": "historical",
+            "role": "historical",
+            "status": "deceased"
+          }
+        ]
+      ],
+      "final": [
+        {
+          "name": "Mira Okoye",
+          "presence": "on_page",
+          "role": "protagonist",
+          "status": "active",
+          "evidence_snippet": "Mira Okoye had walked the salt road for three days before the watchtower of Greyharn finally rose over the dunes.",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Corvin Ashe",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Hessa Lin",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'Because the Cartographer was my sister,' she said, 'and I want to know why she really drowned.'",
+          "first_appearance": "Chapter 2",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "first_appearance": "Chapter 4",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "The Cartographer",
+          "presence": "historical",
+          "role": "historical",
+          "status": "deceased",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        }
+      ],
+      "on_page": [
+        "Mira Okoye",
+        "Corvin Ashe",
+        "Hessa Lin",
+        "Magistrate Ondrej Vell"
+      ],
+      "pass": true,
+      "ondrej_final": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "role": "antagonist",
+          "status": "active",
+          "presence": "on_page",
+          "aliases": [],
+          "traits": [
+            "cunning",
+            "deceitful",
+            "self-serving"
+          ],
+          "first_appearance": "Chapter 4",
+          "confidence": "high",
+          "description": "The harbor official who orchestrated the flood to hide a smuggling ledger.",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "appearance": "Alive, gaunt, and hiding in the Cistern.",
+          "personality": "Cunning, deceitful, and self-serving.",
+          "age": "",
+          "goals": "Prevent the truth from coming to light and avoid punishment.",
+          "motivations": "Fear of consequences and desire to protect his power.",
+          "backstory": "Ordered the lower quarter's floodgates sealed from the inside, causing the flood.",
+          "arc_notes": "Caught by Mira in the Cistern and forced to reveal his crimes."
+        }
+      ],
+      "ondrej_raw": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "run": 19,
+      "windows": 1,
+      "raw": [
+        [
+          {
+            "name": "Mira Okoye",
+            "presence": "on_page",
+            "role": "protagonist",
+            "status": "active"
+          },
+          {
+            "name": "Corvin Ashe",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Hessa Lin",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Magistrate Ondrej Vell",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "The Cartographer",
+            "presence": "historical",
+            "role": "historical",
+            "status": "deceased"
+          }
+        ]
+      ],
+      "final": [
+        {
+          "name": "Mira Okoye",
+          "presence": "on_page",
+          "role": "protagonist",
+          "status": "active",
+          "evidence_snippet": "Mira Okoye had walked the salt road for three days before the watchtower of Greyharn finally rose over the dunes.",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Corvin Ashe",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Hessa Lin",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'Because the Cartographer was my sister,' she said, 'and I want to know why she really drowned.'",
+          "first_appearance": "Chapter 2",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "first_appearance": "Chapter 4",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "The Cartographer",
+          "presence": "historical",
+          "role": "historical",
+          "status": "deceased",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        }
+      ],
+      "on_page": [
+        "Mira Okoye",
+        "Corvin Ashe",
+        "Hessa Lin",
+        "Magistrate Ondrej Vell"
+      ],
+      "pass": true,
+      "ondrej_final": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "role": "antagonist",
+          "status": "active",
+          "presence": "on_page",
+          "aliases": [],
+          "traits": [
+            "cunning",
+            "deceitful",
+            "desperate"
+          ],
+          "first_appearance": "Chapter 4",
+          "confidence": "high",
+          "description": "The harbor official who ordered the lower quarter's floodgates sealed and faked his own death.",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "appearance": "Gaunt, alive, and hiding in the Hollow Cistern.",
+          "personality": "Cunning, deceitful, and desperate.",
+          "age": "",
+          "goals": "Prevent the truth from coming to light and avoid punishment.",
+          "motivations": "Fear of consequences and a desire to protect his power and wealth.",
+          "backstory": "Ordered the floodgates sealed to hide a smuggling ledger, causing the death of three hundred people.",
+          "arc_notes": "Confronts Mira and tries to convince her to give him the notebook, revealing his true motives."
+        }
+      ],
+      "ondrej_raw": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "run": 20,
+      "windows": 1,
+      "raw": [
+        [
+          {
+            "name": "Mira Okoye",
+            "presence": "on_page",
+            "role": "protagonist",
+            "status": "active"
+          },
+          {
+            "name": "Corvin Ashe",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Hessa Lin",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Magistrate Ondrej Vell",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "The Cartographer",
+            "presence": "historical",
+            "role": "historical",
+            "status": "deceased"
+          }
+        ]
+      ],
+      "final": [
+        {
+          "name": "Mira Okoye",
+          "presence": "on_page",
+          "role": "protagonist",
+          "status": "active",
+          "evidence_snippet": "Mira Okoye had walked the salt road for three days before the watchtower of Greyharn finally rose over the dunes.",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Corvin Ashe",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Hessa Lin",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'Because the Cartographer was my sister,' she said, 'and I want to know why she really drowned.'",
+          "first_appearance": "Chapter 2",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "first_appearance": "Chapter 4",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "The Cartographer",
+          "presence": "historical",
+          "role": "historical",
+          "status": "deceased",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        }
+      ],
+      "on_page": [
+        "Mira Okoye",
+        "Corvin Ashe",
+        "Hessa Lin",
+        "Magistrate Ondrej Vell"
+      ],
+      "pass": true,
+      "ondrej_final": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "role": "antagonist",
+          "status": "active",
+          "presence": "on_page",
+          "aliases": [],
+          "traits": [
+            "cunning",
+            "deceitful",
+            "self-serving"
+          ],
+          "first_appearance": "Chapter 4",
+          "confidence": "high",
+          "description": "The harbor official who orchestrated the flood to protect a smuggling ledger.",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "appearance": "Alive, gaunt, and hiding in the Cistern.",
+          "personality": "Cunning, deceitful, and self-serving.",
+          "age": "",
+          "goals": "Prevent the truth from coming to light and avoid punishment.",
+          "motivations": "Fear of consequences and a desire to protect his power and wealth.",
+          "backstory": "Ordered the lower quarter's floodgates sealed from the inside, causing the flood that killed the Cartographer and three hundred others.",
+          "arc_notes": "Confronts Mira in the Cistern and tries to bribe her with gold and passage out of Greyharn."
+        }
+      ],
+      "ondrej_raw": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "run": 21,
+      "windows": 1,
+      "raw": [
+        [
+          {
+            "name": "Mira Okoye",
+            "presence": "on_page",
+            "role": "protagonist",
+            "status": "active"
+          },
+          {
+            "name": "Corvin Ashe",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Hessa Lin",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Magistrate Ondrej Vell",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "The Cartographer",
+            "presence": "historical",
+            "role": "historical",
+            "status": "deceased"
+          }
+        ]
+      ],
+      "final": [
+        {
+          "name": "Mira Okoye",
+          "presence": "on_page",
+          "role": "protagonist",
+          "status": "active",
+          "evidence_snippet": "Mira Okoye had walked the salt road for three days before the watchtower of Greyharn finally rose over the dunes.",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Corvin Ashe",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Hessa Lin",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'Because the Cartographer was my sister,' she said, 'and I want to know why she really drowned.'",
+          "first_appearance": "Chapter 2",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "first_appearance": "Chapter 4",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "The Cartographer",
+          "presence": "historical",
+          "role": "historical",
+          "status": "deceased",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        }
+      ],
+      "on_page": [
+        "Mira Okoye",
+        "Corvin Ashe",
+        "Hessa Lin",
+        "Magistrate Ondrej Vell"
+      ],
+      "pass": true,
+      "ondrej_final": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "role": "antagonist",
+          "status": "active",
+          "presence": "on_page",
+          "aliases": [],
+          "traits": [
+            "cunning",
+            "deceitful",
+            "self-serving"
+          ],
+          "first_appearance": "Chapter 4",
+          "confidence": "high",
+          "description": "The harbor official who orchestrated the flood to protect a smuggling ledger.",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "appearance": "Alive, gaunt, and hiding in the Cistern.",
+          "personality": "Cunning, deceitful, and self-serving.",
+          "age": "",
+          "goals": "Prevent the truth from coming to light and avoid punishment.",
+          "motivations": "Fear of consequences and a desire to protect his power and wealth.",
+          "backstory": "Ordered the lower quarter's floodgates sealed from the inside, causing the flood that killed three hundred people.",
+          "arc_notes": "Caught by Mira in the Cistern and forced to reveal his true motives."
+        }
+      ],
+      "ondrej_raw": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "run": 22,
+      "windows": 1,
+      "raw": [
+        [
+          {
+            "name": "Mira Okoye",
+            "presence": "on_page",
+            "role": "protagonist",
+            "status": "active"
+          },
+          {
+            "name": "Corvin Ashe",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "Hessa Lin",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Magistrate Ondrej Vell",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "The Cartographer",
+            "presence": "historical",
+            "role": "historical",
+            "status": "deceased"
+          }
+        ]
+      ],
+      "final": [
+        {
+          "name": "Mira Okoye",
+          "presence": "on_page",
+          "role": "protagonist",
+          "status": "active",
+          "evidence_snippet": "Mira Okoye had walked the salt road for three days before the watchtower of Greyharn finally rose over the dunes.",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Corvin Ashe",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Hessa Lin",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'Because the Cartographer was my sister,' she said, 'and I want to know why she really drowned.'",
+          "first_appearance": "Chapter 2",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "first_appearance": "Chapter 4",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "The Cartographer",
+          "presence": "historical",
+          "role": "historical",
+          "status": "deceased",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        }
+      ],
+      "on_page": [
+        "Mira Okoye",
+        "Corvin Ashe",
+        "Hessa Lin",
+        "Magistrate Ondrej Vell"
+      ],
+      "pass": true,
+      "ondrej_final": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "role": "antagonist",
+          "status": "active",
+          "presence": "on_page",
+          "aliases": [],
+          "traits": [
+            "cunning",
+            "deceitful",
+            "ruthless"
+          ],
+          "first_appearance": "Chapter 4",
+          "confidence": "high",
+          "description": "The harbor official who orchestrated the flood to protect a smuggling ledger.",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "appearance": "Gaunt, alive after faking his own death.",
+          "personality": "Cunning, deceitful, and ruthless.",
+          "age": "",
+          "goals": "Maintain his power and cover up his crimes.",
+          "motivations": "Fear of consequences and desire to avoid punishment.",
+          "backstory": "Ordered the lower quarter's floodgates sealed from the inside, causing the flood that killed three hundred people.",
+          "arc_notes": "Escapes detection for eleven years and confronts Mira in the Cistern."
+        }
+      ],
+      "ondrej_raw": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active"
+        }
+      ]
+    },
+    {
+      "run": 23,
+      "windows": 1,
+      "raw": [
+        [
+          {
+            "name": "Mira Okoye",
+            "presence": "on_page",
+            "role": "protagonist",
+            "status": "active"
+          },
+          {
+            "name": "Corvin Ashe",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "Hessa Lin",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Magistrate Ondrej Vell",
+            "presence": "historical",
+            "role": "antagonist",
+            "status": "deceased"
+          }
+        ]
+      ],
+      "final": [
+        {
+          "name": "Mira Okoye",
+          "presence": "on_page",
+          "role": "protagonist",
+          "status": "active",
+          "evidence_snippet": "Mira Okoye had walked the salt road for three days before the watchtower of Greyharn finally rose over the dunes.",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Corvin Ashe",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Hessa Lin",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'Because the Cartographer was my sister,' she said, 'and I want to know why she really drowned.'",
+          "first_appearance": "Chapter 2",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "historical",
+          "role": "antagonist",
+          "status": "deceased",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "first_appearance": "Chapter 4",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        }
+      ],
+      "on_page": [
+        "Mira Okoye",
+        "Corvin Ashe",
+        "Hessa Lin"
+      ],
+      "pass": false,
+      "ondrej_final": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "role": "antagonist",
+          "status": "deceased",
+          "presence": "historical",
+          "aliases": [],
+          "traits": [
+            "cunning",
+            "deceitful",
+            "self-serving"
+          ],
+          "first_appearance": "Chapter 4",
+          "confidence": "high",
+          "description": "The harbor official who ordered the flood and faked his own death.",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "appearance": "Alive, gaunt, and hiding in the Cistern.",
+          "personality": "Cunning, deceitful, and self-serving.",
+          "age": "",
+          "goals": "Avoid exposure and maintain control over the city's secrets.",
+          "motivations": "Fear of legal consequences and a desire to protect his power.",
+          "backstory": "Ordered the flood to hide a smuggling ledger, causing the death of three hundred people.",
+          "arc_notes": "Faked his own death and survived in the Cistern for eleven years, only to be exposed by Mira."
+        }
+      ],
+      "ondrej_raw": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "historical",
+          "role": "antagonist",
+          "status": "deceased"
+        }
+      ]
+    },
+    {
+      "run": 24,
+      "windows": 1,
+      "raw": [
+        [
+          {
+            "name": "Mira Okoye",
+            "presence": "on_page",
+            "role": "protagonist",
+            "status": "active"
+          },
+          {
+            "name": "Corvin Ashe",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Hessa Lin",
+            "presence": "on_page",
+            "role": "supporting",
+            "status": "active"
+          },
+          {
+            "name": "Magistrate Ondrej Vell",
+            "presence": "on_page",
+            "role": "antagonist",
+            "status": "active"
+          },
+          {
+            "name": "The Cartographer",
+            "presence": "historical",
+            "role": "historical",
+            "status": "deceased"
+          }
+        ]
+      ],
+      "final": [
+        {
+          "name": "Mira Okoye",
+          "presence": "on_page",
+          "role": "protagonist",
+          "status": "active",
+          "evidence_snippet": "Mira Okoye had walked the salt road for three days before the watchtower of Greyharn finally rose over the dunes.",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Corvin Ashe",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Hessa Lin",
+          "presence": "on_page",
+          "role": "supporting",
+          "status": "active",
+          "evidence_snippet": "'Because the Cartographer was my sister,' she said, 'and I want to know why she really drowned.'",
+          "first_appearance": "Chapter 2",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "first_appearance": "Chapter 4",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        },
+        {
+          "name": "The Cartographer",
+          "presence": "historical",
+          "role": "historical",
+          "status": "deceased",
+          "evidence_snippet": "'That belonged to the Cartographer,' he said. 'She died here eleven years ago, in the flood that took the lower quarter.'",
+          "first_appearance": "Chapter 1",
+          "_possible_duplicate_in_batch": null,
+          "_possible_combined_with": null
+        }
+      ],
+      "on_page": [
+        "Mira Okoye",
+        "Corvin Ashe",
+        "Hessa Lin",
+        "Magistrate Ondrej Vell"
+      ],
+      "pass": true,
+      "ondrej_final": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "role": "antagonist",
+          "status": "active",
+          "presence": "on_page",
+          "aliases": [],
+          "traits": [
+            "cunning",
+            "deceitful",
+            "desperate"
+          ],
+          "first_appearance": "Chapter 4",
+          "confidence": "high",
+          "description": "The harbor official who orchestrated the flood to protect a smuggling ledger.",
+          "evidence_snippet": "He had been surviving on stores smuggled down by a single loyal harbor guard.",
+          "appearance": "Alive, gaunt, and hiding in the Cistern.",
+          "personality": "Cunning, deceitful, and desperate.",
+          "age": "",
+          "goals": "Prevent the truth from coming to light and avoid punishment.",
+          "motivations": "Fear of consequences and a desire to protect his power.",
+          "backstory": "Ordered the lower quarter's floodgates sealed from the inside, causing the flood that killed three hundred people.",
+          "arc_notes": "Caught by Mira and forced to reveal his true motives, but ultimately fails to change her mind."
+        }
+      ],
+      "ondrej_raw": [
+        {
+          "name": "Magistrate Ondrej Vell",
+          "presence": "on_page",
+          "role": "antagonist",
+          "status": "active"
+        }
+      ]
+    }
+  ],
+  "pass": 21,
+  "n": 25
+}

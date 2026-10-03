@@ -13,8 +13,10 @@
 # Decision table
 #   database unreachable                            -> exit 1  (migrations must not run blind)
 #   database empty, no prior backup on record        -> exit 0  (genuine first boot; nothing to protect)
-#   database empty, a valid prior backup exists       -> exit 1  (unexpected loss — see the guard below,
-#                                                                  unless NARRATIQ_ACKNOWLEDGE_EMPTY_RESTART is set)
+#   database empty, a valid prior backup HOLDING      -> exit 1  (unexpected loss — see the guard below,
+#     AUTHOR DATA exists (scripts/backup_evidence.py)               unless NARRATIQ_ACKNOWLEDGE_EMPTY_RESTART is set)
+#   database empty, valid backups exist but every one -> exit 0  (their manifests prove they are backups of an
+#     of them is of an empty database                               empty database: nothing was lost)
 #   schema change pending, or FORCE set               -> backup REQUIRED; failure exits 1
 #   no schema change + fresh backup exists            -> exit 0  (no duplicate dump)
 #   no schema change + backup stale/absent            -> backup attempted; failure only warns
@@ -342,6 +344,38 @@ else
     log "Newest valid backup: none found"
 fi
 
+# ── Newest valid backup that proves author data existed (guard evidence) ──────
+# Only needed when the live database is empty. A dump taken of an EMPTY database
+# (the hourly loop backs up whatever is there) proves nothing was ever lost, so it
+# is not evidence. scripts/backup_evidence.py reads the set's own checksummed
+# integrity manifest. A set counts as evidence unless that manifest positively
+# shows 0 author rows (missing, unverifiable or unknown = evidence, the safe
+# direction). Every valid set is considered, newest first, so one empty dump never
+# hides an older real backup. Stage 12 Tranche 3; earlier, any valid dump counted.
+EVIDENCE_BACKUP=""
+EVIDENCE_REASON=""
+EMPTY_SETS_IGNORED=0
+if [ "${HAS_DATA}" = "no" ]; then
+    while IFS= read -r candidate; do
+        [ -n "${candidate}" ] || continue
+        [ -f "${candidate}.sha256" ] || continue
+        pg_restore --list "${candidate}" >/dev/null 2>&1 || continue
+        VERDICT="$(python3 "${REPO_ROOT}/scripts/backup_evidence.py" "${candidate}" 2>/dev/null \
+                   || echo 'author-data evidence check failed')"
+        case "${VERDICT}" in
+            no-author-data*) EMPTY_SETS_IGNORED=$(( EMPTY_SETS_IGNORED + 1 )) ;;
+            *) EVIDENCE_BACKUP="${candidate}"; EVIDENCE_REASON="${VERDICT#author-data }"; break ;;
+        esac
+    done <<< "$(find "${BACKUP_DIR}" -maxdepth 1 -type f -name 'narratiq-*.dump' \
+                  -printf '%T@ %p\n' 2>/dev/null | sort -rn | cut -d' ' -f2-)"
+    if [ "${EMPTY_SETS_IGNORED}" -gt 0 ]; then
+        log "Ignored ${EMPTY_SETS_IGNORED} backup set(s) whose manifest shows an empty database (not evidence of loss)."
+    fi
+    if [ -n "${EVIDENCE_BACKUP}" ]; then
+        log "Newest backup holding author data: $(basename "${EVIDENCE_BACKUP}") (${EVIDENCE_REASON})"
+    fi
+fi
+
 # ── Decide ────────────────────────────────────────────────────────────────────
 DO_BACKUP="no"
 DECISION=""
@@ -352,20 +386,23 @@ if [ "${HAS_DATA}" = "no" ]; then
     # state of a brand-new environment, and it is also exactly what an ephemeral
     # container filesystem produces after a restart wipes PGDATA (2026-09-21
     # persistence investigation; see docs/operations/storage-and-persistence.md).
-    # $LATEST_BACKUP (computed above) is the tiebreaker: it is only ever non-empty
-    # when a real dump — automatic or manual — was produced at some point, which
-    # can only happen against a database that held data. If one exists, an empty
-    # live database now is not a fresh environment, it is a loss, and startup must
-    # say so instead of quietly building an empty schema and reporting "healthy".
+    # $EVIDENCE_BACKUP (computed above) is the tiebreaker: the newest valid backup
+    # whose own manifest does not prove the snapshot empty, i.e. one that shows
+    # author data existed. (Until Stage 12 Tranche 3 any valid dump counted, but
+    # the hourly loop also backs up an empty database, and such a dump proves
+    # nothing was lost.) If one exists, an empty live database now is not a fresh
+    # environment, it is a loss, and startup must say so instead of quietly
+    # building an empty schema and reporting "healthy".
     ACK="${NARRATIQ_ACKNOWLEDGE_EMPTY_RESTART:-}"
-    if [ -n "${LATEST_BACKUP}" ] && [ "${ACK}" != "yes-start-empty-intentionally" ]; then
+    if [ -n "${EVIDENCE_BACKUP}" ] && [ "${ACK}" != "yes-start-empty-intentionally" ]; then
+        EVIDENCE_AGE_SECONDS=$(( NOW_EPOCH - $(stat -c '%Y' "${EVIDENCE_BACKUP}") ))
         {
             echo ""
             echo "--- STARTUP ABORTED: unexpected empty database (start-narratiq.sh) ---"
             echo "Recorded:    $(date -u +%Y-%m-%dT%H:%M:%SZ) (UTC)"
             echo "Database:    ${PGDATABASE} on ${PGHOST}:${PGPORT}"
-            echo "Result:      ABORTED — database is empty but a valid prior backup exists"
-            echo "Latest backup: $(basename "${LATEST_BACKUP}") (${LATEST_AGE_SECONDS}s old)"
+            echo "Result:      ABORTED — database is empty but a valid prior backup holding author data exists"
+            echo "Latest backup: $(basename "${EVIDENCE_BACKUP}") (${EVIDENCE_AGE_SECONDS}s old)"
         } >> "${RECORD_FILE}" 2>/dev/null || true
         chmod 600 "${RECORD_FILE}" 2>/dev/null || true
 
@@ -376,20 +413,21 @@ if [ "${HAS_DATA}" = "no" ]; then
         echo "   PostgreSQL's data directory lives on the container's ephemeral"
         echo "   storage, not the persistent /workspace volume (see"
         echo "   docs/operations/storage-and-persistence.md). It is currently"
-        echo "   EMPTY, but a valid backup on record proves this environment held"
+        echo "   EMPTY, but a valid backup on record (its manifest shows author"
+        echo "   rows) proves this environment held"
         echo "   real data before. This looks like an unexpected restart wiping the"
         echo "   live database, not a fresh environment — startup will not paper"
         echo "   over that by quietly building an empty schema."
         echo ""
-        echo "   Newest valid backup: $(basename "${LATEST_BACKUP}")"
-        echo "     SHA-256: $(cut -d' ' -f1 "${LATEST_BACKUP}.sha256" 2>/dev/null || echo unknown)"
-        echo "     Age:     $(( LATEST_AGE_SECONDS / 3600 ))h"
+        echo "   Newest backup holding author data: $(basename "${EVIDENCE_BACKUP}")"
+        echo "     SHA-256: $(cut -d' ' -f1 "${EVIDENCE_BACKUP}.sha256" 2>/dev/null || echo unknown)"
+        echo "     Age:     $(( EVIDENCE_AGE_SECONDS / 3600 ))h"
         echo ""
         echo "   To restore it manually (verify the checksum first):"
-        echo "     cd ${BACKUP_DIR} && sha256sum -c $(basename "${LATEST_BACKUP}").sha256"
+        echo "     cd ${BACKUP_DIR} && sha256sum -c $(basename "${EVIDENCE_BACKUP}").sha256"
         echo "     pg_restore --clean --if-exists --no-owner --role=${PGUSER:-narratiq} \\"
         echo "         -h ${PGHOST:-localhost} -U ${PGUSER:-narratiq} -d ${PGDATABASE:-narratiq} \\"
-        echo "         ${LATEST_BACKUP}"
+        echo "         ${EVIDENCE_BACKUP}"
         echo ""
         echo "   If you intend to start with an empty database on purpose (you"
         echo "   deliberately wiped it, or this genuinely is a new environment),"
@@ -403,7 +441,7 @@ if [ "${HAS_DATA}" = "no" ]; then
         echo "  ══════════════════════════════════════════════════════════════"
         exit 1
     fi
-    if [ -n "${LATEST_BACKUP}" ]; then
+    if [ -n "${EVIDENCE_BACKUP}" ]; then
         log "Empty database acknowledged via NARRATIQ_ACKNOWLEDGE_EMPTY_RESTART — proceeding intentionally."
     fi
 

@@ -127,3 +127,38 @@ test('A9: unsaved typing is saved before a replace is sent, and never lost to th
   await expect(page.locator('.ProseMirror')).toContainText('Wren arrived.')
   await expect(page.locator('.ProseMirror')).toContainText('The port was quiet.')
 })
+
+// Stage 12.1 (SEARCH-1/2/3, Critical): typing sends a request per pause, and a
+// slower answer for an earlier, shorter query used to arrive last and replace
+// the current results and editor highlights ("Devika" shown as the matches for
+// "D"). Only the newest request may change the panel.
+test('SEARCH-1/2/3: a late answer for an earlier query never replaces the current results', async ({ page }) => {
+  const html = '<p>Devika met Dara at the dock. Devika waited for the tide.</p>'
+  const answer = (q: string, n: number) => ({
+    query: q, total_matches: n, chapters_hit: 1,
+    results: [{ chapter_id: CH1, chapter_number: 1, chapter_title: 'Chapter 1', match_count: n,
+      matches: Array.from({ length: n }, () => ({ context_before: '', match_text: q, context_after: '' })) }],
+  })
+  const sent: string[] = []
+  await mockApi(page, [
+    (r, m, p) => m === 'GET' && p === `/api/stories/${STORY_ID}/chapters/${CH1}` ? json(r, chapterBody(html)) : false,
+    async (r, m, p) => {
+      if (m !== 'POST' || p !== `/api/search/exact/${STORY_ID}`) return false
+      const q = JSON.parse(r.request().postData() || '{}').query as string
+      sent.push(q)
+      if (q === 'D') await new Promise((res) => setTimeout(res, 1500))   // the slow, stale answer
+      return json(r, q === 'D' ? answer('D', 3) : answer(q, 2))
+    },
+  ])
+  await page.goto(workspaceUrl('write'))
+  await waitForChapterContent(page)
+  const input = await openSearch(page)
+  await input.fill('D')
+  await expect.poll(() => sent.includes('D')).toBe(true)       // the "D" request is in flight
+  await input.fill('Devika')
+  await expect(page.getByText('2 matches across 1 chapter')).toBeVisible()
+  await page.waitForTimeout(2000)                                // the "D" answer arrives now
+  await expect(page.getByText('2 matches across 1 chapter')).toBeVisible()
+  await expect(page.getByText('3 matches across 1 chapter')).toHaveCount(0)
+  expect(await distinctHits(page)).toBe(2)
+})

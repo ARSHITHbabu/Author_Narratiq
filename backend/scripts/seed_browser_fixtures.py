@@ -24,6 +24,10 @@ all read the same E2E_STORY_ID, so one shared story cannot satisfy them all:
                             before each run: the spec replaces text
   manuscript-upload         a story with two chapters, so the import must number
                             the imported chapters 3, 4, … (Stage 12 A8)
+  ocr-to-editor             a story with one chapter ("Lamp Room") that the OCR spec injects
+                            extracted text into (Stage 12.1, task 3.10)
+  audio-transcription       a story with an empty note titled "Dictation inbox" that the
+                            transcript is appended to (Stage 12 A21)
   story-bible-generation    uses the seed_fixture.py story, which must also be
                             indexed first — generation answers 422 "No indexed
                             chapters found" on an unindexed story (correctly).
@@ -113,6 +117,12 @@ def main() -> None:
         ("Before One", "<p>The first chapter the author wrote by hand.</p>"),
         ("Before Two", "<p>The second chapter the author wrote by hand.</p>"),
     ])
+    # Stage 12.1 (Gate 2, task 3.10): the OCR spec sends extracted text into this chapter.
+    ocr, _ = story("OCR to editor", [("Lamp Room", "<p>Wren climbed to the lamp room.</p>")])
+    # Stage 12 Tranche 3 (A21): the audio spec appends its transcript to this note.
+    audio, _ = story("Audio transcription", [("Night Watch", "<p>The keeper climbed the stairs.</p>")])
+    dictation = StoryNote(story_id=audio.story_id, user_id=user.user_id, title="Dictation inbox", content="")
+    db.add(dictation)
     db.commit()
 
     print(f"[seed_browser_fixtures] database: {engine.url.database!r}; account: {email}")
@@ -126,6 +136,8 @@ def main() -> None:
                                 "E2E_HINT_KEEP": "Oriel Thayne"},
         "manuscript-upload": {"E2E_STORY_ID": upload.story_id},
         "search-replace": {"E2E_STORY_ID": search.story_id},
+        "audio-transcription": {"E2E_STORY_ID": audio.story_id, "E2E_NOTE_ID": dictation.note_id},
+        "ocr-to-editor": {"E2E_STORY_ID": ocr.story_id},
     }
     for spec, env in blocks.items():
         print(f"{spec}: " + " ".join(f"{k}={v!r}" for k, v in env.items()))

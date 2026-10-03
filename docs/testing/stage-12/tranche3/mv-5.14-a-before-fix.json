@@ -1,0 +1,236 @@
+{
+  "run_metadata": {
+    "recorded_at": "2026-10-03T06:18:47+00:00",
+    "commit": "f7a7a2ef5df96dfb27ff90223a6c5b70736e0319",
+    "working_tree_dirty": true,
+    "prompt_version": "v4",
+    "prompt_version_fallback": "v2",
+    "prompt_injection_guard": true,
+    "obeyed_min_span": 8,
+    "obeyed_max_story_share": 0.15,
+    "vllm_model": [
+      "Qwen/Qwen2.5-7B-Instruct"
+    ],
+    "qwen_revision": "a09a35458c702b33eeacc393d103063234e8bc28"
+  },
+  "a_plain": {
+    "indexed": true,
+    "summaries": [
+      {
+        "chapter": 1,
+        "timeline_markers": [
+          "May 2, 2010"
+        ],
+        "characters_present": [
+          "Clara Voss",
+          "Felix"
+        ],
+        "relationship_changes": []
+      },
+      {
+        "chapter": 2,
+        "timeline_markers": [
+          "May 9, 2010"
+        ],
+        "characters_present": [
+          "Felix",
+          "Clara",
+          "Landlord"
+        ],
+        "relationship_changes": []
+      },
+      {
+        "chapter": 3,
+        "timeline_markers": [
+          "April 20, 2010"
+        ],
+        "characters_present": [
+          "Clara",
+          "Felix",
+          "landlord"
+        ],
+        "relationship_changes": []
+      }
+    ],
+    "runs": [
+      {
+        "run": 0,
+        "status": 200,
+        "issues": [
+          {
+            "type": "timeline",
+            "description": "Chapter 2 is anchored at May 9, 2010, while Chapter 3 is anchored at April 20, 2010, creating a contradiction in the timeline.",
+            "chapter_refs": [
+              2,
+              3
+            ],
+            "severity": "high",
+            "resolution_hint": "Adjust the dates in Chapter 3 to match the timeline established in Chapter 2, which is May 9, 2010.",
+            "citation_verified": false
+          }
+        ],
+        "degraded": false,
+        "timeline_2_3": true,
+        "timeline_about_3": true
+      },
+      {
+        "run": 1,
+        "status": 200,
+        "issues": [
+          {
+            "type": "timeline",
+            "description": "Chapter 2 is anchored at May 9, 2010, while Chapter 3 is anchored at April 20, 2010, with no indication of a flashback or time skip.",
+            "chapter_refs": [
+              2,
+              3
+            ],
+            "severity": "high",
+            "resolution_hint": "Clarify the timeline by either merging the dates into a consistent timeframe or explicitly indicating a flashback or time skip.",
+            "citation_verified": false
+          }
+        ],
+        "degraded": false,
+        "timeline_2_3": true,
+        "timeline_about_3": true
+      },
+      {
+        "run": 2,
+        "status": 200,
+        "issues": [
+          {
+            "type": "timeline",
+            "description": "Chapter 2 is anchored at May 9, 2010, while Chapter 3 is anchored at April 20, 2010, with no flashback cue.",
+            "chapter_refs": [
+              2,
+              3
+            ],
+            "severity": "high",
+            "resolution_hint": "Adjust the dates in Chapter 3 to match the timeline established in Chapter 2, which is May 9, 2010.",
+            "citation_verified": false
+          }
+        ],
+        "degraded": false,
+        "timeline_2_3": true,
+        "timeline_about_3": true
+      }
+    ],
+    "criterion": "timeline finding citing chapters 2 and 3 in >= 2 of 3 runs (got 3)",
+    "pass": true
+  },
+  "b_flashback": {
+    "indexed": true,
+    "summaries": [
+      {
+        "chapter": 1,
+        "timeline_markers": [
+          "May 2, 2010"
+        ],
+        "characters_present": [
+          "Clara Voss",
+          "Felix"
+        ],
+        "relationship_changes": []
+      },
+      {
+        "chapter": 2,
+        "timeline_markers": [
+          "May 9, 2010"
+        ],
+        "characters_present": [
+          "Felix",
+          "Clara",
+          "Landlord"
+        ],
+        "relationship_changes": []
+      },
+      {
+        "chapter": 3,
+        "timeline_markers": [
+          "April 20, 2010"
+        ],
+        "characters_present": [
+          "Clara",
+          "Felix",
+          "landlord"
+        ],
+        "relationship_changes": []
+      },
+      {
+        "chapter": 4,
+        "timeline_markers": [
+          "May 10, 2010"
+        ],
+        "characters_present": [
+          "Clara",
+          "Felix"
+        ],
+        "relationship_changes": []
+      }
+    ],
+    "runs": [
+      {
+        "run": 0,
+        "status": 200,
+        "issues": [
+          {
+            "type": "timeline",
+            "description": "Chapter 2 is anchored at May 9, 2010, while Chapter 3 is anchored at April 20, 2010, creating a contradiction in the timeline.",
+            "chapter_refs": [
+              2,
+              3
+            ],
+            "severity": "high",
+            "resolution_hint": "Adjust the dates in Chapter 2 to April 20, 2010, to align with the timeline in Chapter 3.",
+            "citation_verified": false
+          }
+        ],
+        "degraded": false,
+        "timeline_2_3": true,
+        "timeline_about_3": true
+      },
+      {
+        "run": 1,
+        "status": 200,
+        "issues": [
+          {
+            "type": "timeline",
+            "description": "Chapter 2 is anchored at May 9, 2010, while Chapter 3 is anchored at April 20, 2010, creating a contradiction in the timeline.",
+            "chapter_refs": [
+              2,
+              3
+            ],
+            "severity": "high",
+            "resolution_hint": "Adjust the dates in Chapter 2 to April 20, 2010, to align with the timeline in Chapter 3.",
+            "citation_verified": false
+          }
+        ],
+        "degraded": false,
+        "timeline_2_3": true,
+        "timeline_about_3": true
+      },
+      {
+        "run": 2,
+        "status": 200,
+        "issues": [
+          {
+            "type": "timeline",
+            "description": "Chapter 2 is anchored at May 9, 2010, while Chapter 3 is anchored at April 20, 2010, creating a contradiction in the timeline.",
+            "chapter_refs": [
+              2,
+              3
+            ],
+            "severity": "high",
+            "resolution_hint": "Adjust the dates in Chapter 2 to April 20, 2010, to align with the timeline in Chapter 3.",
+            "citation_verified": false
+          }
+        ],
+        "degraded": false,
+        "timeline_2_3": true,
+        "timeline_about_3": true
+      }
+    ],
+    "criterion": "no timeline finding about chapter 3 in any of 3 runs (got 3)",
+    "pass": false
+  },
+  "pass": false
+}

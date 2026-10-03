@@ -1,0 +1,196 @@
+{
+  "plot-holes": {
+    "status": 200,
+    "seconds": 1.9,
+    "body": {
+      "story_id": "5e510f0a-1fff-4f68-b078-42cad9e1fe64",
+      "chapters_analyzed": 4,
+      "issues_found": 0,
+      "issues": [],
+      "analysis_note": "No issues detected.",
+      "degraded": false,
+      "degraded_reason": null
+    },
+    "usable": true
+  },
+  "outline": {
+    "status": 200,
+    "seconds": 10.5,
+    "body": {
+      "chapter_id": "6326fb5b-6ed1-4bd1-84b6-dffeadfa6a39",
+      "outline": [
+        {
+          "scene_number": 1,
+          "beat_description": "Wren reads the unfinished log entry by lamplight, noticing the recurring phrase 'the lamp holds'.",
+          "characters_present": [
+            "Wren",
+            "Ada"
+          ],
+          "location": "inside the lighthouse",
+          "pacing_note": "quiet reflection"
+        },
+        {
+          "scene_number": 2,
+          "beat_description": "Ada asks Wren if she wants to share her thoughts on the mysterious log entries.",
+          "characters_present": [
+            "Wren",
+            "Ada"
+          ],
+          "location": "inside the lighthouse",
+          "pacing_note": "slow build"
+        },
+        {
+          "scene_number": 3,
+          "beat_description": "Wren hesitates, then decides to confide in Ada about the last entry mentioning the missing fishing fleet.",
+          "characters_present": [
+            "Wren",
+            "Ada"
+          ],
+          "location": "inside the lighthouse",
+          "pacing_note": "confidential discussion"
+        },
+        {
+          "scene_number": 4,
+          "beat_description": "Ada listens intently as Wren explains the significance of the log entries, suggesting they might need to investigate further.",
+          "characters_present": [
+            "Wren",
+            "Ada"
+          ],
+          "location": "inside the lighthouse",
+          "pacing_note": "high tension"
+        }
+      ]
+    },
+    "usable": true
+  },
+  "continue": {
+    "status": 200,
+    "seconds": 15.8,
+    "body": {
+      "chapter_id": "6326fb5b-6ed1-4bd1-84b6-dffeadfa6a39",
+      "suggestions": [
+        {
+          "direction": "Conflict Escalation",
+          "text": "Wren read the log by lamplight, her heart pounding as she reached the final entry. It read, 'the lamp holds.' She felt a chill run down her spine, the weight of history pressing heavily upon her. Ada stood beside her, sensing the unease. 'That was the night they vanished,' she whispered. 'No one knows what happened to them. Not even the captain’s wife, who was there too.' Wren’s mind raced with possibilities. She had always believed the stories about the fishing fleet’s disappearance were mere legends, but now, with her grandfather’s logbook open before her, everything seemed more real than ever.",
+          "rationale": "This direction escalates the tension by revealing the direct connection between the log and the mystery of the fishing fleet's disappearance."
+        },
+        {
+          "direction": "Character Development",
+          "text": "Wren carefully turned the pages, each one filled with meticulous entries about daily life at the lighthouse. She noticed Ada’s eyes darting from side to side, a look of nervous anticipation. 'I heard some strange noises that night,' Ada confessed softly. 'Like whispers in the wind, but no one listened. They all assumed it was just the sea calling to the ships.' Wren felt a pang of sympathy for her cousin, who had grown up with these tales but never truly believed them. 'We need to find out what really happened,' Wren said, determination in her voice. 'It’s time we solve this mystery.'",
+          "rationale": "This direction deepens the relationship between the cousins and sets up Wren as the protagonist who will drive the investigation forward."
+        },
+        {
+          "direction": "Mystery Deepening",
+          "text": "As Wren continued reading, her gaze fell upon a passage she hadn’t noticed before. It described a peculiar phenomenon: 'Every night, when the stars align in a specific pattern, the lamp seems to hold onto something. A light, almost imperceptible, but there.' Ada gasped, her eyes wide with realization. 'That’s the night they disappeared!' she exclaimed. 'The alignment of the stars matches the log’s entry perfectly. It’s like the lamp was trying to warn us.' Wren felt a shiver of excitement. This new detail could be the key to unraveling the mystery.",
+          "rationale": "This direction introduces a supernatural element that adds depth to the mystery and gives the characters a tangible clue to follow."
+        }
+      ]
+    },
+    "usable": true
+  },
+  "continuity": {
+    "status": 200,
+    "seconds": 0.3,
+    "body": {
+      "story_id": "5e510f0a-1fff-4f68-b078-42cad9e1fe64",
+      "issues_found": 0,
+      "issues": [],
+      "chapters_scanned": 4,
+      "note": "These are potential inconsistencies for author review — verify each before revising.",
+      "degraded": false,
+      "degraded_reason": null
+    },
+    "usable": true
+  },
+  "story-bible": {
+    "status": 200,
+    "seconds": 0.1,
+    "body": {
+      "job_id": "c4de6f99-1d25-4a0e-90fb-522c69f868a7",
+      "status": "processing",
+      "bible_id": "cd0865d8-1283-4b16-b319-0e5f6ffdda7b"
+    },
+    "final": {
+      "status": "completed",
+      "failed_sections": []
+    },
+    "honest": true
+  },
+  "ocr": {
+    "status": 200,
+    "seconds": 10.4,
+    "body": {
+      "upload_id": "11f82b57-883d-494f-bded-3cde27c69a50",
+      "raw_text": "The harbour lamp holds.  Wren keeps the keys.",
+      "cleaned_text": "The harbour lamp holds. Wren keeps the keys.",
+      "note_type": "character",
+      "confidence": 1.0,
+      "ocr_engine": "got-ocr2.0",
+      "lines_detected": 0,
+      "suggestions": []
+    },
+    "text_found": true
+  },
+  "notes": {
+    "status": 200,
+    "seconds": 0.0,
+    "body": [
+      {
+        "note_id": "0fcb3d54-1a0f-4aaf-9d20-5d15721be60f",
+        "story_id": "5e510f0a-1fff-4f68-b078-42cad9e1fe64",
+        "title": "Research",
+        "content": "Check the 1952 harbour sale records.",
+        "ocr_upload_id": null,
+        "created_at": "2026-10-03T05:57:30.458865",
+        "updated_at": "2026-10-03T05:57:32.719245"
+      }
+    ],
+    "usable": true
+  },
+  "analytics": {
+    "status": 200,
+    "seconds": 0.0,
+    "body": {
+      "metrics": {
+        "total_words": {
+          "value": 0,
+          "explanation": "Total word count across all chapters.",
+          "target_words": null
+        },
+        "chapters": {
+          "value": 5,
+          "explanation": "Number of chapters saved for this story.",
+          "target_words": null
+        },
+        "avg_words_per_chapter": {
+          "value": 0,
+          "explanation": "Total words divided by chapter count.",
+          "target_words": null
+        },
+        "readability": {
+          "value": 75.7,
+          "explanation": "Flesch Reading Ease (0-100, higher = easier to read). Easy to read (7th-8th grade level). Estimated from sentence length and syllable count — a guide, not a precise measure.",
+          "target_words": null
+        },
+        "dialogue_ratio": {
+          "value": 0.0,
+          "explanation": "Percentage of manuscript text inside quoted dialogue. Below the typical 15-35% range for this genre — more dialogue may help pacing.",
+          "target_words": null
+        },
+        "avg_sentence_length": {
+          "value": 13.3,
+          "explanation": "Average words per sentence, across sentences longer than 5 characters.",
+          "target_words": null
+        },
+        "word_count_progress": {
+          "value": 0.0,
+          "explanation": "Progress toward a typical 80,000-word manuscript for this genre.",
+          "target_words": 80000
+        }
+      },
+      "story_intelligence": null,
+      "story_intelligence_available": false
+    },
+    "usable": true
+  }
+}

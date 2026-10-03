@@ -1,0 +1,107 @@
+{
+  "started": "2026-10-03T07:51:38.654710Z",
+  "base": "http://127.0.0.1:8100",
+  "bg_ai_concurrency": 3,
+  "embedding_concurrency": 2,
+  "ramp": {
+    "seconds_per_level": 180,
+    "think_seconds": 30.0,
+    "pro_share": 0.1,
+    "settle": 240,
+    "mix": {
+      "rewrite": 0.7,
+      "qa": 0.2,
+      "search": 0.1
+    },
+    "levels": {
+      "20": {
+        "rewrite": {
+          "n": 74,
+          "p50_ms": 2863,
+          "p95_ms": 4698,
+          "min_ms": 899,
+          "max_ms": 8187
+        },
+        "qa": {
+          "n": 24,
+          "p50_ms": 1463,
+          "p95_ms": 2231,
+          "min_ms": 1265,
+          "max_ms": 2236
+        },
+        "search": {
+          "n": 13,
+          "p50_ms": 173,
+          "p95_ms": 524,
+          "min_ms": 129,
+          "max_ms": 1128
+        },
+        "errors": {},
+        "requests": 111,
+        "vllm_max_waiting": 0.0,
+        "vllm_max_running": 6.0
+      },
+      "40": {
+        "rewrite": {
+          "n": 153,
+          "p50_ms": 2821,
+          "p95_ms": 5164,
+          "min_ms": 900,
+          "max_ms": 8638
+        },
+        "qa": {
+          "n": 51,
+          "p50_ms": 1696,
+          "p95_ms": 4279,
+          "min_ms": 1301,
+          "max_ms": 4364
+        },
+        "search": {
+          "n": 16,
+          "p50_ms": 280,
+          "p95_ms": 832,
+          "min_ms": 142,
+          "max_ms": 884
+        },
+        "errors": {},
+        "requests": 220,
+        "vllm_max_waiting": 0.0,
+        "vllm_max_running": 10.0
+      },
+      "60": {
+        "rewrite": {
+          "n": 231,
+          "p50_ms": 2989,
+          "p95_ms": 6111,
+          "min_ms": 932,
+          "max_ms": 16571
+        },
+        "qa": {
+          "n": 64,
+          "p50_ms": 4306,
+          "p95_ms": 8020,
+          "min_ms": 1317,
+          "max_ms": 9780
+        },
+        "search": {
+          "n": 26,
+          "p50_ms": 289,
+          "p95_ms": 844,
+          "min_ms": 119,
+          "max_ms": 1009
+        },
+        "errors": {},
+        "requests": 321,
+        "vllm_max_waiting": 0.0,
+        "vllm_max_running": 12.0
+      }
+    }
+  },
+  "vllm_queue": {
+    "samples": 3054,
+    "max_waiting": 0.0,
+    "max_running": 12.0,
+    "mean_waiting": 0.0
+  },
+  "finished": "2026-10-03T08:21:17.271775Z"
+}

@@ -67,3 +67,32 @@ test('D4: a near-no-op rewrite in the grouped sidecar is shown as unchanged, wit
   await expect(page.getByRole('button', { name: /Replace Selection|Insert at Cursor/ })).toHaveCount(0)
   await noBlockingA11y(page)
 })
+
+// Stage 12.1 (AUDIT-H8/H9/H10, M12): the report's stakes, themes, plot weight and
+// tracker threads were returned by the backend but never shown to the author.
+test('AUDIT-H8/H9/H10: the Manuscript Report shows stakes, plot weight, themes and open tracker threads', async ({ page }) => {
+  await mockApi(page, [
+    (r, m, p) => m === 'GET' && p === `/api/stories/${STORY_ID}/manuscript-report`
+      ? json(r, {
+          story_id: STORY_ID, chapters_analyzed: 3, word_count_total: 1200, character_arcs: [],
+          pacing: { slow_chapters: [], intense_chapters: [], assessment: 'Even pacing.' },
+          unresolved_threads: [], strengths: [], improvements: [], analysis_note: '',
+          stakes: { summary: 'Mira could lose the harbour and her brother.',
+                    escalation: [{ chapter: 3, note: 'The flood gates fail.' }, { chapter: 1, note: 'The debt is called in.' }] },
+          themes: [{ theme: 'Debt and inheritance', chapters: [1, 3] }],
+          chapter_plot_importance: { '1': 40, '2': 0, '3': 100 },
+          deterministic_open_threads: ['The missing ledger'],
+          relationship_arcs: [], narrative_signals: [], generated_at: '2026-10-03T10:00:00Z', is_stale: false, degraded: false,
+        })
+      : false,
+  ])
+  await page.goto(workspaceUrl('analyze'))
+  await page.getByRole('button', { name: /Manuscript Report/ }).click()
+  const stakes = page.getByTestId('report-stakes')
+  await expect(stakes).toContainText('Mira could lose the harbour and her brother.')
+  await expect(stakes.locator('li').first()).toContainText('The debt is called in.')   // chapter order
+  await expect(page.getByTestId('report-plot-weight').locator('span', { hasText: /^Ch\d+$/ }).first()).toHaveText('Ch3')
+  await expect(page.getByTestId('report-themes')).toContainText('Debt and inheritance')
+  await expect(page.getByTestId('report-tracker-threads')).toContainText('The missing ledger')
+  await noBlockingA11y(page)
+})

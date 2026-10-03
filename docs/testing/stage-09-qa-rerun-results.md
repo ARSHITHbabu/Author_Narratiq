@@ -301,3 +301,7 @@ Severity per register task-priority proxy (1.x–4.x High; 5.x Medium). All rele
 2. Manual pod checks for rows marked *Live-pod manual* (answer-level behaviour where only a lower layer is tested).
 3. Completion of the open owning items (Stage 5 5.8/5.14 author decisions, Stage 7/8 carry-forwards).
 4. Product-owner decisions listed above, including acceptance of the 30 post-launch issues.
+
+---
+
+**Addendum 2026-10-03 (Stage 12 remediation Tranche 3, A25):** the P2-6 note above was true when this run was recorded. The OCR image-to-text defect it names was **fixed on 2026-10-02** (Stage 12 remediation A2; `test_ocr_compat.py`, real extraction on the A40) and is awaiting the product owner's review. The table above is kept as it was recorded.

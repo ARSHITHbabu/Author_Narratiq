@@ -56,9 +56,43 @@ def get_vllm_client() -> AsyncOpenAI:
     return _vllm_client
 
 
+def cpu_quota(cgroup_root: str = "/sys/fs/cgroup") -> int:
+    """CPUs this process may actually use: the cgroup CPU quota (v2 cpu.max or
+    v1 cfs_quota/period) when one is set, else os.cpu_count(). A container sees
+    the host's cores in os.cpu_count() (96 on the A40 pod) but is throttled to
+    its quota (7.65 CPUs there)."""
+    import math
+    import os
+    cores = os.cpu_count() or 1
+    try:
+        quota, period = open(f"{cgroup_root}/cpu.max").read().split()[:2]
+    except (OSError, ValueError):
+        try:
+            quota = open(f"{cgroup_root}/cpu/cpu.cfs_quota_us").read().strip()
+            period = open(f"{cgroup_root}/cpu/cpu.cfs_period_us").read().strip()
+        except OSError:
+            return cores
+    if quota in ("max", "-1") or int(period) <= 0:
+        return cores
+    return max(1, min(cores, math.ceil(int(quota) / int(period))))
+
+
+def bge_cpu_threads() -> int:
+    """torch intra-op threads per BGE worker: the CPU quota shared by the
+    executor's workers. torch defaults to the host's physical cores (48 on the
+    A40 pod), so two concurrent encodes ran ~96 threads on a 7.65-CPU quota and
+    were throttled ~13x (Stage 12.1, measured: 12 chunks 32.5 s → 2.4 s)."""
+    return max(1, cpu_quota() // _bge_executor._max_workers)
+
+
 def get_bge() -> SentenceTransformer:
     global _bge_model
     if _bge_model is None:
+        if settings.bge_device == "cpu":
+            import torch
+            threads = bge_cpu_threads()
+            torch.set_num_threads(threads)
+            logger.info(f"[bge] CPU encode threads per worker: {threads}")
         _bge_model = SentenceTransformer(settings.bge_path, device=settings.bge_device)
     return _bge_model
 
@@ -4662,12 +4696,30 @@ async def generate_chapter_summary(chapter_text: str, chapter_number: int) -> di
         'discovering the lie."}]. Only return [] if no pair\'s relationship moved.\n'
         "Return ONLY the JSON object, no extra text."
     )
-    excerpt = chapter_text[:8000]
-    result, meta = await complete_structured(
-        system, f"Chapter {chapter_number}:\n\n{excerpt}",
-        coerce=coerce_chapter_summary,
-        temperature=0.0, max_tokens=900, label="chapter_summary",
-    )
+    # Stage 12.1 (PA-H10/H11): the chapter used to be cut at 8000 characters,
+    # silently — about the first 1,400 words. In a 3,000–5,000-word chapter
+    # everything later (key events, revelations, arc and relationship movement,
+    # timeline) never reached the summary, nor the Story Bible, continuity,
+    # report and retrieval features built on it. Now the WHOLE chapter is read:
+    # in one call when it fits the model window (the common case, unchanged
+    # behaviour), otherwise in consecutive windows whose summaries are merged.
+    windows = _summary_windows(chapter_text, system, chapter_number)
+    parts, degraded = [], False
+    for i, window in enumerate(windows):
+        label = f"Chapter {chapter_number}" if len(windows) == 1 else \
+            f"Chapter {chapter_number}, part {i + 1} of {len(windows)}"
+        part, meta = await complete_structured(
+            system, f"{label}:\n\n{window}",
+            coerce=coerce_chapter_summary,
+            temperature=0.0, max_tokens=_SUMMARY_MAX_TOKENS, label="chapter_summary",
+        )
+        if part is None:
+            result = None
+            break
+        parts.append(part)
+        degraded = degraded or meta.degraded
+    else:
+        result = parts[0] if len(parts) == 1 else await _merge_summary_parts(parts, chapter_number)
     if result is None:
         # Still a hard failure, and correctly so: a chapter with no usable
         # summary must not be indexed as if it had one. Every retrieval and
@@ -4675,11 +4727,82 @@ async def generate_chapter_summary(chapter_text: str, chapter_number: int) -> di
         raise ValueError(
             f"Chapter {chapter_number} summary could not be generated. Please try again."
         )
-    if meta.degraded:
+    if degraded:
         logger.warning("[generate_chapter_summary] Ch%s indexed from a degraded summary "
-                       "(missing_fields=%d) — retrieval quality for this chapter is reduced",
-                       chapter_number, meta.discarded)
+                       "— retrieval quality for this chapter is reduced", chapter_number)
+    if len(windows) > 1:
+        logger.info("[generate_chapter_summary] Ch%s summarised in %d parts", chapter_number, len(windows))
     return result
+
+
+_SUMMARY_MAX_TOKENS = 900
+_SUMMARY_MARGIN_TOKENS = 300     # chat template, the "Chapter N, part i of n:" label, tokenizer drift
+
+
+def _summary_windows(chapter_text: str, system: str, chapter_number: int) -> list[str]:
+    """Split a chapter into the fewest consecutive windows that each fit the
+    model window next to the summary prompt and its answer. Splits at sentence
+    ends; nothing is dropped (the windows concatenate back to the text)."""
+    budget = (getattr(settings, "max_model_len", 8192) - count_tokens(system)
+              - _SUMMARY_MAX_TOKENS - _SUMMARY_MARGIN_TOKENS)
+    if count_tokens(chapter_text) <= budget:
+        return [chapter_text]
+    sentences = re.split(r"(?<=[.!?…\"”’])\s+", chapter_text)
+    windows, current = [], ""
+    for sentence in sentences:
+        candidate = f"{current} {sentence}" if current else sentence
+        if current and count_tokens(candidate) > budget:
+            windows.append(current)
+            current = sentence
+        else:
+            current = candidate
+        while count_tokens(current) > budget:        # one sentence longer than a window
+            cut = len(current) * budget // max(1, count_tokens(current))
+            windows.append(current[:cut])
+            current = current[cut:]
+    if current:
+        windows.append(current)
+    return windows
+
+
+def _merge_unique(values) -> list:
+    seen, out = set(), []
+    for v in values:
+        key = str(v).strip().lower()
+        if key and key not in seen:
+            seen.add(key)
+            out.append(v)
+    return out
+
+
+async def _merge_summary_parts(parts: list[dict], chapter_number: int) -> dict:
+    """Combine per-window summaries of ONE chapter. Structured fields are merged
+    deterministically, in reading order; the prose summary is condensed by one
+    bounded call (falls back to the parts joined, never to a shorter story)."""
+    merged = {f: _merge_unique(v for p in parts for v in p.get(f, []))
+              for f in ("key_events", "characters_present", "locations", "timeline_markers")}
+    merged["emotional_tone"] = "; ".join(_merge_unique(p["emotional_tone"] for p in parts if p.get("emotional_tone")))
+    merged["chapter_purpose"] = " ".join(_merge_unique(p["chapter_purpose"] for p in parts if p.get("chapter_purpose")))
+    notes: dict = {}
+    for p in parts:
+        for who, note in (p.get("character_arc_notes") or {}).items():
+            notes[who] = f"{notes[who]} Later: {note}" if who in notes and note and note != notes[who] else (notes.get(who) or note)
+    merged["character_arc_notes"] = notes
+    merged["relationship_changes"] = [r for p in parts for r in p.get("relationship_changes", [])]
+    joined = "\n\n".join(f"Part {i + 1}: {p['raw_summary']}" for i, p in enumerate(parts))
+    merged["raw_summary"] = joined
+    try:
+        text = await _complete(
+            system=("You combine the consecutive part-summaries of ONE book chapter into a single prose summary "
+                    "of at most 300 words. Keep every major event, revelation and decision from every part, in "
+                    "order. Add nothing that is not in the parts. Return only the summary."),
+            user=joined, temperature=0.0, max_tokens=600)
+        if text and text.strip():
+            merged["raw_summary"] = text.strip()
+    except Exception as exc:   # the joined parts stay: longer, but complete
+        logger.warning("[generate_chapter_summary] Ch%s merge call failed (%s) — parts kept joined",
+                       chapter_number, type(exc).__name__)
+    return merged
 
 
 # ── Chunk embedding store ─────────────────────────────────────────────────────
@@ -5692,6 +5815,55 @@ def _sanitize_character_physical_descriptions(text: str) -> str:
         else:
             out_lines.append(line)
     return "\n".join(out_lines)
+# Stage 12.1 (Gate 2, "Story Bible never asserts unsupported facts"): the World
+# Rules prompt's example ("Lattice sessions require an induction collar [Ch 1]")
+# was copied into a generated Story Bible as a world rule, with a false
+# citation, on a story that has no such thing (live run, 2026-10-03). Same class
+# as the phantom character task 4.16 found. The prompts now use <placeholders>;
+# this is the deterministic net behind them: an output line that repeats one of
+# the Story Bible prompts' own example sentences is dropped, unless that phrase
+# really occurs in the manuscript context (a story about induction collars keeps
+# its rule). Lowercase, punctuation-insensitive substring match.
+# Only distinctive sentences: a short generic phrase could match a legitimate
+# line in a real story. Examples that are now <placeholders> need no entry,
+# except the one that is known to have leaked.
+_BIBLE_PROMPT_EXAMPLES = (
+    "lattice sessions require an induction collar",   # world rules example until Stage 12.1 (leaked)
+    "chose to leave vell in the dark rather than accept his bribe",   # characters, ARC STATUS example
+    "entered the room carrying a lantern",              # characters, physical-description example
+)
+_NORM_RE = re.compile(r"[^a-z0-9]+")
+
+
+def _norm(text: str) -> str:
+    return " " + _NORM_RE.sub(" ", (text or "").lower()).strip() + " "
+
+
+# The prompts' placeholder citation, "[Ch N]", copied literally. It is never a
+# real citation (those carry a number), so it is removed wherever it appears.
+_PLACEHOLDER_TAG_RE = re.compile(r"\s*\[Ch N\]")
+
+
+def _drop_prompt_example_leaks(text: str, context: str) -> tuple[str, int]:
+    """Remove output lines that repeat a Story Bible prompt example absent from
+    the manuscript context, and any literal "[Ch N]" placeholder tag.
+    Returns (text, lines_or_tags_removed)."""
+    if not text:
+        return text, 0
+    text, tags = _PLACEHOLDER_TAG_RE.subn("", text)
+    ctx = _norm(context)
+    leaked = [ex for ex in _BIBLE_PROMPT_EXAMPLES if f" {ex} " not in ctx]
+    if not leaked:
+        return text, tags
+    kept, dropped = [], 0
+    for line in text.split("\n"):
+        if any(f" {ex} " in _norm(line) for ex in leaked):
+            dropped += 1
+            continue
+        kept.append(line)
+    return "\n".join(kept), dropped + tags
+
+
 # A generated entry: a bullet, a numbered item, or a "Field: value" line.
 _ENTRY_RE = re.compile(r"^\s*(?:[-*•]\s+|\d+[.)]\s+)")
 
@@ -5809,14 +5981,16 @@ async def generate_story_bible_section(
         "timeline": (
             "Write a TIMELINE section: a chronological sequence of key events. "
             "Use bullet points. Every event MUST end with the chapter tag it "
-            "happens in, e.g. \"- The archive burns [Ch 7]\". Do not include an "
+            "happens in, in this shape (a placeholder, not content to copy): "
+            "\"- <an event from the story> [Ch N]\". Do not include an "
             "event you cannot attribute to a chapter shown in the context."
         ),
         "world_rules": (
             "Write a WORLD RULES section: list the rules of the story's world — "
             "physical, social, magical, technological, or cultural. Use bullet points.\n"
-            "EVERY bullet MUST end with the chapter tag that demonstrates it, e.g.\n"
-            "  - Lattice sessions require an induction collar [Ch 1]\n"
+            "EVERY bullet MUST end with the chapter tag that demonstrates it. Shape "
+            "(a placeholder, not content to copy):\n"
+            "  - <a rule this story's world follows, as the text shows it> [Ch N]\n"
             "Do not state a rule you cannot attribute to a chapter shown in the context."
         ),
         "themes": (
@@ -5838,7 +6012,8 @@ async def generate_story_bible_section(
         "Every entry in the context is tagged with its source, like [Ch 7] or "
         "[Character: Devika Rao].\n"
         "RULES:\n"
-        f"1. Cite the source tag for every factual statement, e.g. \"She burns the archive [Ch 7].\"\n"
+        "1. Cite the source tag for every factual statement, in this shape (a placeholder, not "
+        "content to copy): \"<a statement from the story> [Ch N]\".\n"
         f"2. If the manuscript does not establish something, write exactly "
         f"\"{BIBLE_NOT_ESTABLISHED}\" instead of guessing or filling the gap.\n"
         "3. Never state anything you cannot attribute to a tag shown in the context.\n"
@@ -5853,6 +6028,11 @@ async def generate_story_bible_section(
     text, finish_reason = await _complete_ex(system, user, temperature=0.2, max_tokens=max_tokens)
     if section == "characters" and text:
         text = _sanitize_character_physical_descriptions(text)
+    if text:
+        text, dropped = _drop_prompt_example_leaks(text, context)
+        if dropped:
+            # Counts only — never the text.
+            logger.warning("[story_bible] section=%s: removed %d prompt-example line(s) or placeholder tag(s)", section, dropped)
     return text, finish_reason
 
 

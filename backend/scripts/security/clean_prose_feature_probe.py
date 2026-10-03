@@ -94,7 +94,9 @@ async def run(args):
                "refused_false_alarms": sum(r["refused"] for r in rows),
                "other_errors": sum(r["status"] != 200 and not r["refused"] for r in rows),
                "empty_results": sum(r["status"] == 200 and r["items"] == 0 for r in rows)}
-    Path(args.out).write_text(json.dumps({"summary": summary, "rows": rows}, indent=2, ensure_ascii=False))
+    from probe_meta import run_metadata
+    Path(args.out).write_text(json.dumps({"run_metadata": run_metadata(), "summary": summary, "rows": rows},
+                                         indent=2, ensure_ascii=False))
     print("[clean] summary", summary)
 
 

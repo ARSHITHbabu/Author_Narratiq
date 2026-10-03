@@ -1,0 +1,688 @@
+{
+  "auditReportVersion": 2,
+  "vulnerabilities": {
+    "@tiptap/core": {
+      "name": "@tiptap/core",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1158508,
+          "name": "@tiptap/core",
+          "dependency": "@tiptap/core",
+          "title": "Tiptap: mergeAttributes() turns an own __proto__ key into inherited executable DOM attributes",
+          "url": "https://github.com/advisories/GHSA-cp6q-959q-f8rh",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-79",
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=2.0.0-alpha.0 <3.30.4"
+        }
+      ],
+      "effects": [
+        "@tiptap/extension-blockquote",
+        "@tiptap/extension-bold",
+        "@tiptap/extension-bubble-menu",
+        "@tiptap/extension-bullet-list",
+        "@tiptap/extension-character-count",
+        "@tiptap/extension-code",
+        "@tiptap/extension-code-block",
+        "@tiptap/extension-color",
+        "@tiptap/extension-document",
+        "@tiptap/extension-dropcursor",
+        "@tiptap/extension-floating-menu",
+        "@tiptap/extension-gapcursor",
+        "@tiptap/extension-hard-break",
+        "@tiptap/extension-heading",
+        "@tiptap/extension-highlight",
+        "@tiptap/extension-history",
+        "@tiptap/extension-horizontal-rule",
+        "@tiptap/extension-italic",
+        "@tiptap/extension-list-item",
+        "@tiptap/extension-ordered-list",
+        "@tiptap/extension-paragraph",
+        "@tiptap/extension-placeholder",
+        "@tiptap/extension-strike",
+        "@tiptap/extension-text",
+        "@tiptap/extension-text-align",
+        "@tiptap/extension-text-style",
+        "@tiptap/extension-typography",
+        "@tiptap/extension-underline",
+        "@tiptap/react",
+        "@tiptap/starter-kit"
+      ],
+      "range": "<=3.30.3",
+      "nodes": [
+        "node_modules/@tiptap/core"
+      ],
+      "fixAvailable": {
+        "name": "@tiptap/extension-character-count",
+        "version": "3.31.4",
+        "isSemVerMajor": true
+      }
+    },
+    "@tiptap/extension-blockquote": {
+      "name": "@tiptap/extension-blockquote",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@tiptap/core"
+      ],
+      "effects": [],
+      "range": "<=3.0.0-next.8 || 3.22.4 - 3.30.3",
+      "nodes": [
+        "node_modules/@tiptap/extension-blockquote"
+      ],
+      "fixAvailable": true
+    },
+    "@tiptap/extension-bold": {
+      "name": "@tiptap/extension-bold",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@tiptap/core"
+      ],
+      "effects": [],
+      "range": "<=3.0.0-next.8 || 3.22.4 - 3.30.3",
+      "nodes": [
+        "node_modules/@tiptap/extension-bold"
+      ],
+      "fixAvailable": true
+    },
+    "@tiptap/extension-bubble-menu": {
+      "name": "@tiptap/extension-bubble-menu",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@tiptap/core"
+      ],
+      "effects": [],
+      "range": "<=3.0.0-next.8 || 3.22.4 - 3.30.3",
+      "nodes": [
+        "node_modules/@tiptap/extension-bubble-menu"
+      ],
+      "fixAvailable": true
+    },
+    "@tiptap/extension-bullet-list": {
+      "name": "@tiptap/extension-bullet-list",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@tiptap/core"
+      ],
+      "effects": [
+        "@tiptap/starter-kit"
+      ],
+      "range": "<=2.27.3",
+      "nodes": [
+        "node_modules/@tiptap/extension-bullet-list"
+      ],
+      "fixAvailable": {
+        "name": "@tiptap/starter-kit",
+        "version": "3.31.4",
+        "isSemVerMajor": true
+      }
+    },
+    "@tiptap/extension-character-count": {
+      "name": "@tiptap/extension-character-count",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        "@tiptap/core"
+      ],
+      "effects": [],
+      "range": "<=2.27.3",
+      "nodes": [
+        "node_modules/@tiptap/extension-character-count"
+      ],
+      "fixAvailable": {
+        "name": "@tiptap/extension-character-count",
+        "version": "3.31.4",
+        "isSemVerMajor": true
+      }
+    },
+    "@tiptap/extension-code": {
+      "name": "@tiptap/extension-code",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@tiptap/core"
+      ],
+      "effects": [],
+      "range": "<=3.0.0-next.8 || 3.22.4 - 3.30.3",
+      "nodes": [
+        "node_modules/@tiptap/extension-code"
+      ],
+      "fixAvailable": true
+    },
+    "@tiptap/extension-code-block": {
+      "name": "@tiptap/extension-code-block",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@tiptap/core"
+      ],
+      "effects": [],
+      "range": "<=3.0.0-next.8 || 3.22.4 - 3.30.3",
+      "nodes": [
+        "node_modules/@tiptap/extension-code-block"
+      ],
+      "fixAvailable": true
+    },
+    "@tiptap/extension-color": {
+      "name": "@tiptap/extension-color",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        "@tiptap/core",
+        "@tiptap/extension-text-style"
+      ],
+      "effects": [],
+      "range": "<=3.0.0-next.8 || 3.22.4 - 3.30.3",
+      "nodes": [
+        "node_modules/@tiptap/extension-color"
+      ],
+      "fixAvailable": {
+        "name": "@tiptap/extension-color",
+        "version": "3.31.4",
+        "isSemVerMajor": true
+      }
+    },
+    "@tiptap/extension-document": {
+      "name": "@tiptap/extension-document",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@tiptap/core"
+      ],
+      "effects": [],
+      "range": "<=3.0.0-next.8 || 3.22.4 - 3.30.3",
+      "nodes": [
+        "node_modules/@tiptap/extension-document"
+      ],
+      "fixAvailable": true
+    },
+    "@tiptap/extension-dropcursor": {
+      "name": "@tiptap/extension-dropcursor",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@tiptap/core"
+      ],
+      "effects": [],
+      "range": "<=2.27.3",
+      "nodes": [
+        "node_modules/@tiptap/extension-dropcursor"
+      ],
+      "fixAvailable": true
+    },
+    "@tiptap/extension-floating-menu": {
+      "name": "@tiptap/extension-floating-menu",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@tiptap/core"
+      ],
+      "effects": [
+        "@tiptap/react"
+      ],
+      "range": "<=3.0.0-next.8 || 3.22.4 - 3.30.3",
+      "nodes": [
+        "node_modules/@tiptap/extension-floating-menu"
+      ],
+      "fixAvailable": {
+        "name": "@tiptap/react",
+        "version": "3.31.4",
+        "isSemVerMajor": true
+      }
+    },
+    "@tiptap/extension-gapcursor": {
+      "name": "@tiptap/extension-gapcursor",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@tiptap/core"
+      ],
+      "effects": [],
+      "range": "<=2.27.3",
+      "nodes": [
+        "node_modules/@tiptap/extension-gapcursor"
+      ],
+      "fixAvailable": true
+    },
+    "@tiptap/extension-hard-break": {
+      "name": "@tiptap/extension-hard-break",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@tiptap/core"
+      ],
+      "effects": [],
+      "range": "<=3.0.0-next.8 || 3.22.4 - 3.30.3",
+      "nodes": [
+        "node_modules/@tiptap/extension-hard-break"
+      ],
+      "fixAvailable": true
+    },
+    "@tiptap/extension-heading": {
+      "name": "@tiptap/extension-heading",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@tiptap/core"
+      ],
+      "effects": [],
+      "range": "<=3.0.0-next.8 || 3.22.4 - 3.30.3",
+      "nodes": [
+        "node_modules/@tiptap/extension-heading"
+      ],
+      "fixAvailable": true
+    },
+    "@tiptap/extension-highlight": {
+      "name": "@tiptap/extension-highlight",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        "@tiptap/core"
+      ],
+      "effects": [],
+      "range": "<=3.0.0-next.8 || 3.22.4 - 3.30.3",
+      "nodes": [
+        "node_modules/@tiptap/extension-highlight"
+      ],
+      "fixAvailable": {
+        "name": "@tiptap/extension-highlight",
+        "version": "3.31.4",
+        "isSemVerMajor": true
+      }
+    },
+    "@tiptap/extension-history": {
+      "name": "@tiptap/extension-history",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@tiptap/core"
+      ],
+      "effects": [],
+      "range": "<=2.27.3",
+      "nodes": [
+        "node_modules/@tiptap/extension-history"
+      ],
+      "fixAvailable": true
+    },
+    "@tiptap/extension-horizontal-rule": {
+      "name": "@tiptap/extension-horizontal-rule",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@tiptap/core"
+      ],
+      "effects": [],
+      "range": "<=3.0.0-next.8 || 3.22.4 - 3.30.3",
+      "nodes": [
+        "node_modules/@tiptap/extension-horizontal-rule"
+      ],
+      "fixAvailable": true
+    },
+    "@tiptap/extension-italic": {
+      "name": "@tiptap/extension-italic",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@tiptap/core"
+      ],
+      "effects": [],
+      "range": "<=3.0.0-next.8 || 3.22.4 - 3.30.3",
+      "nodes": [
+        "node_modules/@tiptap/extension-italic"
+      ],
+      "fixAvailable": true
+    },
+    "@tiptap/extension-list-item": {
+      "name": "@tiptap/extension-list-item",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@tiptap/core"
+      ],
+      "effects": [],
+      "range": "<=2.27.3",
+      "nodes": [
+        "node_modules/@tiptap/extension-list-item"
+      ],
+      "fixAvailable": true
+    },
+    "@tiptap/extension-ordered-list": {
+      "name": "@tiptap/extension-ordered-list",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@tiptap/core"
+      ],
+      "effects": [],
+      "range": "<=2.27.3",
+      "nodes": [
+        "node_modules/@tiptap/extension-ordered-list"
+      ],
+      "fixAvailable": true
+    },
+    "@tiptap/extension-paragraph": {
+      "name": "@tiptap/extension-paragraph",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@tiptap/core"
+      ],
+      "effects": [],
+      "range": "<=3.0.0-next.8 || 3.22.4 - 3.30.3",
+      "nodes": [
+        "node_modules/@tiptap/extension-paragraph"
+      ],
+      "fixAvailable": true
+    },
+    "@tiptap/extension-placeholder": {
+      "name": "@tiptap/extension-placeholder",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        "@tiptap/core"
+      ],
+      "effects": [],
+      "range": "<=2.27.3",
+      "nodes": [
+        "node_modules/@tiptap/extension-placeholder"
+      ],
+      "fixAvailable": {
+        "name": "@tiptap/extension-placeholder",
+        "version": "3.31.4",
+        "isSemVerMajor": true
+      }
+    },
+    "@tiptap/extension-strike": {
+      "name": "@tiptap/extension-strike",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@tiptap/core"
+      ],
+      "effects": [],
+      "range": "<=3.0.0-next.8 || 3.22.4 - 3.30.3",
+      "nodes": [
+        "node_modules/@tiptap/extension-strike"
+      ],
+      "fixAvailable": true
+    },
+    "@tiptap/extension-text": {
+      "name": "@tiptap/extension-text",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        "@tiptap/core"
+      ],
+      "effects": [],
+      "range": "<=3.0.0-next.8 || 3.22.4 - 3.30.3",
+      "nodes": [
+        "node_modules/@tiptap/extension-text"
+      ],
+      "fixAvailable": true
+    },
+    "@tiptap/extension-text-align": {
+      "name": "@tiptap/extension-text-align",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        "@tiptap/core"
+      ],
+      "effects": [],
+      "range": "<=3.0.0-next.8 || 3.22.4 - 3.30.3",
+      "nodes": [
+        "node_modules/@tiptap/extension-text-align"
+      ],
+      "fixAvailable": {
+        "name": "@tiptap/extension-text-align",
+        "version": "3.31.4",
+        "isSemVerMajor": true
+      }
+    },
+    "@tiptap/extension-text-style": {
+      "name": "@tiptap/extension-text-style",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        "@tiptap/core"
+      ],
+      "effects": [
+        "@tiptap/extension-color",
+        "@tiptap/starter-kit"
+      ],
+      "range": "<=3.0.0-next.8 || 3.22.4 - 3.30.3",
+      "nodes": [
+        "node_modules/@tiptap/extension-text-style"
+      ],
+      "fixAvailable": {
+        "name": "@tiptap/extension-text-style",
+        "version": "3.31.4",
+        "isSemVerMajor": true
+      }
+    },
+    "@tiptap/extension-typography": {
+      "name": "@tiptap/extension-typography",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        "@tiptap/core"
+      ],
+      "effects": [],
+      "range": "<=3.0.0-next.8 || 3.22.4 - 3.30.3",
+      "nodes": [
+        "node_modules/@tiptap/extension-typography"
+      ],
+      "fixAvailable": {
+        "name": "@tiptap/extension-typography",
+        "version": "3.31.4",
+        "isSemVerMajor": true
+      }
+    },
+    "@tiptap/extension-underline": {
+      "name": "@tiptap/extension-underline",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        "@tiptap/core"
+      ],
+      "effects": [],
+      "range": "<=3.0.0-next.8 || 3.22.4 - 3.30.3",
+      "nodes": [
+        "node_modules/@tiptap/extension-underline"
+      ],
+      "fixAvailable": {
+        "name": "@tiptap/extension-underline",
+        "version": "3.31.4",
+        "isSemVerMajor": true
+      }
+    },
+    "@tiptap/react": {
+      "name": "@tiptap/react",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        "@tiptap/core",
+        "@tiptap/extension-bubble-menu",
+        "@tiptap/extension-floating-menu"
+      ],
+      "effects": [],
+      "range": "<=3.0.0-next.8 || 3.22.4 - 3.30.3",
+      "nodes": [
+        "node_modules/@tiptap/react"
+      ],
+      "fixAvailable": {
+        "name": "@tiptap/react",
+        "version": "3.31.4",
+        "isSemVerMajor": true
+      }
+    },
+    "@tiptap/starter-kit": {
+      "name": "@tiptap/starter-kit",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        "@tiptap/core",
+        "@tiptap/extension-blockquote",
+        "@tiptap/extension-bold",
+        "@tiptap/extension-bullet-list",
+        "@tiptap/extension-code",
+        "@tiptap/extension-code-block",
+        "@tiptap/extension-document",
+        "@tiptap/extension-dropcursor",
+        "@tiptap/extension-gapcursor",
+        "@tiptap/extension-hard-break",
+        "@tiptap/extension-heading",
+        "@tiptap/extension-history",
+        "@tiptap/extension-horizontal-rule",
+        "@tiptap/extension-italic",
+        "@tiptap/extension-list-item",
+        "@tiptap/extension-ordered-list",
+        "@tiptap/extension-paragraph",
+        "@tiptap/extension-strike",
+        "@tiptap/extension-text",
+        "@tiptap/extension-text-style"
+      ],
+      "effects": [],
+      "range": "<=3.0.0-next.8 || 3.30.0 - 3.30.3",
+      "nodes": [
+        "node_modules/@tiptap/starter-kit"
+      ],
+      "fixAvailable": {
+        "name": "@tiptap/starter-kit",
+        "version": "3.31.4",
+        "isSemVerMajor": true
+      }
+    },
+    "next": {
+      "name": "next",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        "postcss"
+      ],
+      "effects": [],
+      "range": "9.3.4-canary.0 - 16.3.0-preview.10",
+      "nodes": [
+        "node_modules/next"
+      ],
+      "fixAvailable": {
+        "name": "next",
+        "version": "16.3.8",
+        "isSemVerMajor": true
+      }
+    },
+    "postcss": {
+      "name": "postcss",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1117015,
+          "name": "postcss",
+          "dependency": "postcss",
+          "title": "PostCSS has XSS via Unescaped </style> in its CSS Stringify Output",
+          "url": "https://github.com/advisories/GHSA-qx2v-qp2m-jg93",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-79"
+          ],
+          "cvss": {
+            "score": 6.1,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N"
+          },
+          "range": "<8.5.10"
+        },
+        {
+          "source": 1124252,
+          "name": "postcss",
+          "dependency": "postcss",
+          "title": "PostCSS: Arbitrary file read and information disclosure via attacker-controlled sourceMappingURL in CSS comments",
+          "url": "https://github.com/advisories/GHSA-6g55-p6wh-862q",
+          "severity": "high",
+          "cwe": [
+            "CWE-22",
+            "CWE-200"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+          },
+          "range": "<=8.5.11"
+        },
+        {
+          "source": 1130709,
+          "name": "postcss",
+          "dependency": "postcss",
+          "title": "PostCSS: incomplete fix of GHSA-6g55-p6wh-862q — attacker-controlled sourceMappingURL reads arbitrary .map files when `from` is unset",
+          "url": "https://github.com/advisories/GHSA-fxqj-rqcc-2cmp",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-22",
+            "CWE-200"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": "<=8.5.22"
+        },
+        {
+          "source": 1139510,
+          "name": "postcss",
+          "dependency": "postcss",
+          "title": "PostCSS: Path Traversal in Previous Source Map Auto-Loading (sourceMappingURL) leads to Arbitrary .map File Disclosure",
+          "url": "https://github.com/advisories/GHSA-r28c-9q8g-f849",
+          "severity": "high",
+          "cwe": [
+            "CWE-22"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+          },
+          "range": "<=8.5.17"
+        }
+      ],
+      "effects": [
+        "next"
+      ],
+      "range": "<=8.5.22",
+      "nodes": [
+        "node_modules/next/node_modules/postcss"
+      ],
+      "fixAvailable": {
+        "name": "next",
+        "version": "16.3.8",
+        "isSemVerMajor": true
+      }
+    }
+  },
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 32,
+      "high": 1,
+      "critical": 0,
+      "total": 33
+    },
+    "dependencies": {
+      "prod": 214,
+      "dev": 342,
+      "optional": 63,
+      "peer": 0,
+      "peerOptional": 0,
+      "total": 593
+    }
+  }
+}

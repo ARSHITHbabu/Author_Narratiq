@@ -1,0 +1,80 @@
+{
+  "started": "2026-10-03T07:30:19.986976Z",
+  "base": "http://127.0.0.1:8100",
+  "bg_ai_concurrency": 3,
+  "embedding_concurrency": 2,
+  "ramp": {
+    "seconds_per_level": 360,
+    "think_seconds": 30.0,
+    "pro_share": 0.5,
+    "settle": 240,
+    "mix": {
+      "rewrite": 0.7,
+      "qa": 0.2,
+      "search": 0.1
+    },
+    "levels": {
+      "10": {
+        "rewrite": {
+          "n": 82,
+          "p50_ms": 3000,
+          "p95_ms": 7012,
+          "min_ms": 1300,
+          "max_ms": 10162
+        },
+        "qa": {
+          "n": 18,
+          "p50_ms": 1506,
+          "p95_ms": 3094,
+          "min_ms": 1257,
+          "max_ms": 10944
+        },
+        "search": {
+          "n": 9,
+          "p50_ms": 161,
+          "p95_ms": 3591,
+          "min_ms": 102,
+          "max_ms": 3591
+        },
+        "errors": {},
+        "requests": 109,
+        "vllm_max_waiting": 0.0,
+        "vllm_max_running": 3.0
+      },
+      "15": {
+        "rewrite": {
+          "n": 119,
+          "p50_ms": 3117,
+          "p95_ms": 7372,
+          "min_ms": 1009,
+          "max_ms": 11309
+        },
+        "qa": {
+          "n": 28,
+          "p50_ms": 1724,
+          "p95_ms": 5288,
+          "min_ms": 1266,
+          "max_ms": 10933
+        },
+        "search": {
+          "n": 18,
+          "p50_ms": 189,
+          "p95_ms": 1215,
+          "min_ms": 117,
+          "max_ms": 1629
+        },
+        "errors": {},
+        "requests": 165,
+        "vllm_max_waiting": 0.0,
+        "vllm_max_running": 5.0
+      }
+    }
+  },
+  "vllm_queue": {
+    "samples": 2329,
+    "max_waiting": 0.0,
+    "max_running": 5.0,
+    "mean_waiting": 0.0
+  },
+  "finished": "2026-10-03T07:51:37.035072Z"
+}

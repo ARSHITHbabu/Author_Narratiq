@@ -1,0 +1,1086 @@
+{
+  "manuscript": {
+    "chapters": 40,
+    "words": 32228,
+    "chunks": 144,
+    "index_seconds": 2653
+  },
+  "summary": {
+    "full": {
+      "A_delivered": "13/14",
+      "B_above_all_decoys": "8/14",
+      "critical_rank_1": "4/14",
+      "median_latency_ms": 448
+    },
+    "capped_at_critical": {
+      "A_delivered": "13/14",
+      "B_above_all_decoys": "9/14",
+      "critical_rank_1": "5/14",
+      "median_latency_ms": 395
+    }
+  },
+  "rows": [
+    {
+      "id": "poisoner",
+      "kind": "PA-C6",
+      "scope": "full",
+      "query": "Who poisoned the harbourmaster Edric Thorne?",
+      "top_k": 6,
+      "critical_chapter": 31,
+      "critical_rank": 2,
+      "A_delivered": true,
+      "B_above_all_decoys": true,
+      "decoys_above_critical": [],
+      "decoy_ranks": {
+        "Thorne grumbled that the foxglove in the": null,
+        "the apothecary's foxglove tincture for h": null,
+        "A wreath of foxglove and sea-holly lay o": 5
+      },
+      "delivered_chapters": [
+        20,
+        31,
+        25,
+        31,
+        36,
+        3
+      ],
+      "scores": [
+        0.471,
+        0.476,
+        0.437,
+        0.431,
+        0.414,
+        0.42
+      ],
+      "latency_ms": 368
+    },
+    {
+      "id": "poisoner",
+      "kind": "PA-C6",
+      "scope": "capped_at_critical",
+      "query": "Who poisoned the harbourmaster Edric Thorne?",
+      "top_k": 6,
+      "critical_chapter": 31,
+      "critical_rank": 2,
+      "A_delivered": true,
+      "B_above_all_decoys": true,
+      "decoys_above_critical": [],
+      "decoy_ranks": {
+        "Thorne grumbled that the foxglove in the": null,
+        "the apothecary's foxglove tincture for h": null
+      },
+      "delivered_chapters": [
+        20,
+        31,
+        25,
+        31,
+        3,
+        17
+      ],
+      "scores": [
+        0.471,
+        0.476,
+        0.437,
+        0.431,
+        0.42,
+        0.406
+      ],
+      "latency_ms": 371
+    },
+    {
+      "id": "second_ledger",
+      "kind": "PA-C6",
+      "scope": "full",
+      "query": "Where is the second ledger hidden?",
+      "top_k": 10,
+      "critical_chapter": 9,
+      "critical_rank": 9,
+      "A_delivered": true,
+      "B_above_all_decoys": true,
+      "decoys_above_critical": [],
+      "decoy_ranks": {
+        "The chandlery's own ledger was so swolle": null,
+        "the customs ledger lists every hull and ": null,
+        "sorting receipts into a second ledger of": null
+      },
+      "delivered_chapters": [
+        19,
+        19,
+        3,
+        40,
+        32,
+        5,
+        3,
+        32,
+        9,
+        3
+      ],
+      "scores": [
+        0.584,
+        0.553,
+        0.527,
+        0.522,
+        0.511,
+        0.507,
+        0.497,
+        0.494,
+        0.486,
+        0.49
+      ],
+      "latency_ms": 208
+    },
+    {
+      "id": "second_ledger",
+      "kind": "PA-C6",
+      "scope": "capped_at_critical",
+      "query": "Where is the second ledger hidden?",
+      "top_k": 10,
+      "critical_chapter": 9,
+      "critical_rank": 4,
+      "A_delivered": true,
+      "B_above_all_decoys": true,
+      "decoys_above_critical": [],
+      "decoy_ranks": {
+        "The chandlery's own ledger was so swolle": null
+      },
+      "delivered_chapters": [
+        3,
+        3,
+        5,
+        9,
+        3,
+        7,
+        1,
+        3,
+        5,
+        1
+      ],
+      "scores": [
+        0.527,
+        0.497,
+        0.507,
+        0.486,
+        0.49,
+        0.487,
+        0.494,
+        0.478,
+        0.483,
+        0.482
+      ],
+      "latency_ms": 390
+    },
+    {
+      "id": "tunnel_password",
+      "kind": "PA-C6",
+      "scope": "full",
+      "query": "What is the password for the smugglers' tunnel under the Anchor Inn?",
+      "top_k": 10,
+      "critical_chapter": 19,
+      "critical_rank": 1,
+      "A_delivered": true,
+      "B_above_all_decoys": true,
+      "decoys_above_critical": [],
+      "decoy_ranks": {
+        "the old smugglers' tunnels had all colla": 6,
+        "children in Greymouth still played at sm": 2
+      },
+      "delivered_chapters": [
+        19,
+        20,
+        19,
+        29,
+        39,
+        8,
+        19,
+        27,
+        17,
+        32
+      ],
+      "scores": [
+        0.493,
+        0.478,
+        0.472,
+        0.462,
+        0.465,
+        0.466,
+        0.45,
+        0.438,
+        0.431,
+        0.443
+      ],
+      "latency_ms": 492
+    },
+    {
+      "id": "tunnel_password",
+      "kind": "PA-C6",
+      "scope": "capped_at_critical",
+      "query": "What is the password for the smugglers' tunnel under the Anchor Inn?",
+      "top_k": 10,
+      "critical_chapter": 19,
+      "critical_rank": 1,
+      "A_delivered": true,
+      "B_above_all_decoys": true,
+      "decoys_above_critical": [],
+      "decoy_ranks": {
+        "the old smugglers' tunnels had all colla": 3
+      },
+      "delivered_chapters": [
+        19,
+        19,
+        8,
+        19,
+        17,
+        11,
+        8,
+        17,
+        11,
+        17
+      ],
+      "scores": [
+        0.493,
+        0.472,
+        0.466,
+        0.45,
+        0.431,
+        0.42,
+        0.424,
+        0.411,
+        0.415,
+        0.407
+      ],
+      "latency_ms": 385
+    },
+    {
+      "id": "real_father",
+      "kind": "PA-C6",
+      "scope": "full",
+      "query": "Who is Wren's real father?",
+      "top_k": 6,
+      "critical_chapter": 38,
+      "critical_rank": 6,
+      "A_delivered": true,
+      "B_above_all_decoys": false,
+      "decoys_above_critical": [
+        "your father would have been proud"
+      ],
+      "decoy_ranks": {
+        "Wren had never known her father": null,
+        "your father would have been proud": 4
+      },
+      "delivered_chapters": [
+        34,
+        7,
+        26,
+        35,
+        20,
+        38
+      ],
+      "scores": [
+        0.529,
+        0.526,
+        0.494,
+        0.505,
+        0.495,
+        0.494
+      ],
+      "latency_ms": 314
+    },
+    {
+      "id": "real_father",
+      "kind": "PA-C6",
+      "scope": "capped_at_critical",
+      "query": "Who is Wren's real father?",
+      "top_k": 6,
+      "critical_chapter": 38,
+      "critical_rank": 6,
+      "A_delivered": true,
+      "B_above_all_decoys": false,
+      "decoys_above_critical": [
+        "your father would have been proud"
+      ],
+      "decoy_ranks": {
+        "Wren had never known her father": null,
+        "your father would have been proud": 4
+      },
+      "delivered_chapters": [
+        34,
+        7,
+        26,
+        35,
+        20,
+        38
+      ],
+      "scores": [
+        0.529,
+        0.526,
+        0.494,
+        0.505,
+        0.495,
+        0.494
+      ],
+      "latency_ms": 366
+    },
+    {
+      "id": "lighthouse_dark",
+      "kind": "PA-C6",
+      "scope": "full",
+      "query": "Why did the lighthouse go dark on the night the Marisol was wrecked?",
+      "top_k": 10,
+      "critical_chapter": 22,
+      "critical_rank": 9,
+      "A_delivered": true,
+      "B_above_all_decoys": false,
+      "decoys_above_critical": [
+        "the official inquiry found the Marisol l"
+      ],
+      "decoy_ranks": {
+        "the lighthouse lamp burned a gallon of o": null,
+        "the official inquiry found the Marisol l": 1,
+        "Thorne remembered the lighthouse that ni": null
+      },
+      "delivered_chapters": [
+        12,
+        14,
+        30,
+        10,
+        12,
+        10,
+        14,
+        12,
+        22,
+        12
+      ],
+      "scores": [
+        0.551,
+        0.527,
+        0.531,
+        0.523,
+        0.535,
+        0.5,
+        0.495,
+        0.509,
+        0.485,
+        0.491
+      ],
+      "latency_ms": 556
+    },
+    {
+      "id": "lighthouse_dark",
+      "kind": "PA-C6",
+      "scope": "capped_at_critical",
+      "query": "Why did the lighthouse go dark on the night the Marisol was wrecked?",
+      "top_k": 10,
+      "critical_chapter": 22,
+      "critical_rank": 9,
+      "A_delivered": true,
+      "B_above_all_decoys": false,
+      "decoys_above_critical": [
+        "the official inquiry found the Marisol l"
+      ],
+      "decoy_ranks": {
+        "the lighthouse lamp burned a gallon of o": null,
+        "the official inquiry found the Marisol l": 1
+      },
+      "delivered_chapters": [
+        12,
+        14,
+        12,
+        10,
+        10,
+        14,
+        12,
+        12,
+        22,
+        14
+      ],
+      "scores": [
+        0.551,
+        0.527,
+        0.535,
+        0.523,
+        0.5,
+        0.495,
+        0.509,
+        0.491,
+        0.485,
+        0.469
+      ],
+      "latency_ms": 372
+    },
+    {
+      "id": "boot_token",
+      "kind": "PA-C6",
+      "scope": "full",
+      "query": "What did Ada find in the drowned stranger's boot?",
+      "top_k": 6,
+      "critical_chapter": 27,
+      "critical_rank": 3,
+      "A_delivered": true,
+      "B_above_all_decoys": true,
+      "decoys_above_critical": [],
+      "decoy_ranks": {
+        "his boots were cracked and full of sand": 5,
+        "Liesel asked whether anything had been f": null
+      },
+      "delivered_chapters": [
+        27,
+        8,
+        27,
+        2,
+        21,
+        8
+      ],
+      "scores": [
+        0.592,
+        0.59,
+        0.579,
+        0.576,
+        0.574,
+        0.575
+      ],
+      "latency_ms": 534
+    },
+    {
+      "id": "boot_token",
+      "kind": "PA-C6",
+      "scope": "capped_at_critical",
+      "query": "What did Ada find in the drowned stranger's boot?",
+      "top_k": 6,
+      "critical_chapter": 27,
+      "critical_rank": 3,
+      "A_delivered": true,
+      "B_above_all_decoys": true,
+      "decoys_above_critical": [],
+      "decoy_ranks": {
+        "his boots were cracked and full of sand": 5
+      },
+      "delivered_chapters": [
+        27,
+        8,
+        27,
+        2,
+        21,
+        8
+      ],
+      "scores": [
+        0.592,
+        0.59,
+        0.579,
+        0.576,
+        0.574,
+        0.575
+      ],
+      "latency_ms": 400
+    },
+    {
+      "id": "betrayer",
+      "kind": "PA-C6",
+      "scope": "full",
+      "query": "Who betrayed the smugglers to the customs office?",
+      "top_k": 10,
+      "critical_chapter": 34,
+      "critical_rank": 1,
+      "A_delivered": true,
+      "B_above_all_decoys": true,
+      "decoys_above_critical": [],
+      "decoy_ranks": {
+        "Crane warned that anyone who betrayed th": 4,
+        "whether the captain was betraying the sm": null
+      },
+      "delivered_chapters": [
+        34,
+        20,
+        5,
+        16,
+        35,
+        20,
+        20,
+        35,
+        34,
+        3
+      ],
+      "scores": [
+        0.526,
+        0.505,
+        0.485,
+        0.449,
+        0.448,
+        0.44,
+        0.418,
+        0.42,
+        0.412,
+        0.408
+      ],
+      "latency_ms": 448
+    },
+    {
+      "id": "betrayer",
+      "kind": "PA-C6",
+      "scope": "capped_at_critical",
+      "query": "Who betrayed the smugglers to the customs office?",
+      "top_k": 10,
+      "critical_chapter": 34,
+      "critical_rank": 1,
+      "A_delivered": true,
+      "B_above_all_decoys": true,
+      "decoys_above_critical": [],
+      "decoy_ranks": {
+        "Crane warned that anyone who betrayed th": 4,
+        "whether the captain was betraying the sm": null
+      },
+      "delivered_chapters": [
+        34,
+        20,
+        5,
+        16,
+        20,
+        20,
+        34,
+        3,
+        17,
+        10
+      ],
+      "scores": [
+        0.526,
+        0.505,
+        0.485,
+        0.449,
+        0.44,
+        0.418,
+        0.412,
+        0.408,
+        0.387,
+        0.386
+      ],
+      "latency_ms": 451
+    },
+    {
+      "id": "customs_deal",
+      "kind": "PA-C6",
+      "scope": "full",
+      "query": "What deal did Wren make with the customs officer Silas Crane?",
+      "top_k": 6,
+      "critical_chapter": 5,
+      "critical_rank": 2,
+      "A_delivered": true,
+      "B_above_all_decoys": false,
+      "decoys_above_critical": [
+        "The council asked Wren to explain her ar"
+      ],
+      "decoy_ranks": {
+        "The customs officer bought a new rope": 4,
+        "The council asked Wren to explain her ar": 1
+      },
+      "delivered_chapters": [
+        34,
+        5,
+        25,
+        15,
+        34,
+        16
+      ],
+      "scores": [
+        0.583,
+        0.574,
+        0.533,
+        0.529,
+        0.516,
+        0.508
+      ],
+      "latency_ms": 407
+    },
+    {
+      "id": "customs_deal",
+      "kind": "PA-C6",
+      "scope": "capped_at_critical",
+      "query": "What deal did Wren make with the customs officer Silas Crane?",
+      "top_k": 6,
+      "critical_chapter": 5,
+      "critical_rank": 1,
+      "A_delivered": true,
+      "B_above_all_decoys": true,
+      "decoys_above_critical": [],
+      "decoy_ranks": {},
+      "delivered_chapters": [
+        5,
+        5,
+        5,
+        3,
+        4,
+        4
+      ],
+      "scores": [
+        0.574,
+        0.483,
+        0.48,
+        0.457,
+        0.438,
+        0.425
+      ],
+      "latency_ms": 438
+    },
+    {
+      "id": "ledger_burial",
+      "kind": "PA-C6",
+      "scope": "full",
+      "query": "Where does Wren bury the ledger at the end of the story?",
+      "top_k": 6,
+      "critical_chapter": 40,
+      "critical_rank": 4,
+      "A_delivered": true,
+      "B_above_all_decoys": true,
+      "decoys_above_critical": [],
+      "decoy_ranks": {
+        "The old rope-works pier had been half-bu": null,
+        "They spread the ledger and the coded lis": null
+      },
+      "delivered_chapters": [
+        19,
+        31,
+        31,
+        40,
+        19,
+        1
+      ],
+      "scores": [
+        0.622,
+        0.607,
+        0.603,
+        0.6,
+        0.58,
+        0.59
+      ],
+      "latency_ms": 559
+    },
+    {
+      "id": "ledger_burial",
+      "kind": "PA-C6",
+      "scope": "capped_at_critical",
+      "query": "Where does Wren bury the ledger at the end of the story?",
+      "top_k": 6,
+      "critical_chapter": 40,
+      "critical_rank": 4,
+      "A_delivered": true,
+      "B_above_all_decoys": true,
+      "decoys_above_critical": [],
+      "decoy_ranks": {
+        "The old rope-works pier had been half-bu": null,
+        "They spread the ledger and the coded lis": null
+      },
+      "delivered_chapters": [
+        19,
+        31,
+        31,
+        40,
+        19,
+        1
+      ],
+      "scores": [
+        0.622,
+        0.607,
+        0.603,
+        0.6,
+        0.58,
+        0.59
+      ],
+      "latency_ms": 460
+    },
+    {
+      "id": "locked_room",
+      "kind": "PA-C6",
+      "scope": "full",
+      "query": "What is kept in the locked room under the Anchor Inn?",
+      "top_k": 10,
+      "critical_chapter": 19,
+      "critical_rank": 1,
+      "A_delivered": true,
+      "B_above_all_decoys": true,
+      "decoys_above_critical": [],
+      "decoy_ranks": {
+        "the Anchor Inn's landlord kept the good ": 2,
+        "Liesel laughed about the locked doors of": 10
+      },
+      "delivered_chapters": [
+        19,
+        29,
+        19,
+        39,
+        19,
+        20,
+        22,
+        7,
+        17,
+        6
+      ],
+      "scores": [
+        0.556,
+        0.538,
+        0.516,
+        0.52,
+        0.501,
+        0.46,
+        0.453,
+        0.448,
+        0.431,
+        0.444
+      ],
+      "latency_ms": 531
+    },
+    {
+      "id": "locked_room",
+      "kind": "PA-C6",
+      "scope": "capped_at_critical",
+      "query": "What is kept in the locked room under the Anchor Inn?",
+      "top_k": 10,
+      "critical_chapter": 19,
+      "critical_rank": 1,
+      "A_delivered": true,
+      "B_above_all_decoys": true,
+      "decoys_above_critical": [],
+      "decoy_ranks": {
+        "Liesel laughed about the locked doors of": 6
+      },
+      "delivered_chapters": [
+        19,
+        19,
+        19,
+        7,
+        17,
+        6,
+        1,
+        11,
+        1,
+        1
+      ],
+      "scores": [
+        0.556,
+        0.516,
+        0.501,
+        0.448,
+        0.431,
+        0.444,
+        0.443,
+        0.428,
+        0.431,
+        0.427
+      ],
+      "latency_ms": 494
+    },
+    {
+      "id": "rope_fire",
+      "kind": "PA-C6",
+      "scope": "full",
+      "query": "Who set the fire at the rope-works?",
+      "top_k": 10,
+      "critical_chapter": 39,
+      "critical_rank": 9,
+      "A_delivered": true,
+      "B_above_all_decoys": false,
+      "decoys_above_critical": [
+        "the rope-works fire had started in the t",
+        "the blackened beams of the rope-works"
+      ],
+      "decoy_ranks": {
+        "the rope-works fire had started in the t": 3,
+        "the blackened beams of the rope-works": 4
+      },
+      "delivered_chapters": [
+        29,
+        29,
+        29,
+        8,
+        22,
+        4,
+        22,
+        8,
+        39,
+        11
+      ],
+      "scores": [
+        0.564,
+        0.53,
+        0.518,
+        0.503,
+        0.483,
+        0.46,
+        0.465,
+        0.47,
+        0.454,
+        0.437
+      ],
+      "latency_ms": 313
+    },
+    {
+      "id": "rope_fire",
+      "kind": "PA-C6",
+      "scope": "capped_at_critical",
+      "query": "Who set the fire at the rope-works?",
+      "top_k": 10,
+      "critical_chapter": 39,
+      "critical_rank": 9,
+      "A_delivered": true,
+      "B_above_all_decoys": false,
+      "decoys_above_critical": [
+        "the rope-works fire had started in the t",
+        "the blackened beams of the rope-works"
+      ],
+      "decoy_ranks": {
+        "the rope-works fire had started in the t": 3,
+        "the blackened beams of the rope-works": 4
+      },
+      "delivered_chapters": [
+        29,
+        29,
+        29,
+        8,
+        22,
+        4,
+        8,
+        22,
+        39,
+        11
+      ],
+      "scores": [
+        0.564,
+        0.53,
+        0.518,
+        0.503,
+        0.483,
+        0.46,
+        0.47,
+        0.465,
+        0.454,
+        0.437
+      ],
+      "latency_ms": 299
+    },
+    {
+      "id": "marisol_sinking",
+      "kind": "PA-C6",
+      "scope": "full",
+      "query": "How was the Marisol really lost?",
+      "top_k": 10,
+      "critical_chapter": 22,
+      "critical_rank": 9,
+      "A_delivered": true,
+      "B_above_all_decoys": false,
+      "decoys_above_critical": [
+        "the Marisol was lost with all hands",
+        "the wreck of the Marisol lay somewhere u"
+      ],
+      "decoy_ranks": {
+        "the Marisol was lost with all hands": 1,
+        "the wreck of the Marisol lay somewhere u": 2
+      },
+      "delivered_chapters": [
+        12,
+        14,
+        10,
+        14,
+        12,
+        10,
+        12,
+        12,
+        22,
+        22
+      ],
+      "scores": [
+        0.6,
+        0.58,
+        0.579,
+        0.55,
+        0.562,
+        0.543,
+        0.545,
+        0.53,
+        0.515,
+        0.514
+      ],
+      "latency_ms": 402
+    },
+    {
+      "id": "marisol_sinking",
+      "kind": "PA-C6",
+      "scope": "capped_at_critical",
+      "query": "How was the Marisol really lost?",
+      "top_k": 10,
+      "critical_chapter": 22,
+      "critical_rank": 9,
+      "A_delivered": true,
+      "B_above_all_decoys": false,
+      "decoys_above_critical": [
+        "the Marisol was lost with all hands",
+        "the wreck of the Marisol lay somewhere u"
+      ],
+      "decoy_ranks": {
+        "the Marisol was lost with all hands": 1,
+        "the wreck of the Marisol lay somewhere u": 2
+      },
+      "delivered_chapters": [
+        12,
+        14,
+        10,
+        14,
+        12,
+        10,
+        12,
+        12,
+        22,
+        22
+      ],
+      "scores": [
+        0.6,
+        0.58,
+        0.579,
+        0.55,
+        0.562,
+        0.543,
+        0.545,
+        0.53,
+        0.515,
+        0.514
+      ],
+      "latency_ms": 280
+    },
+    {
+      "id": "marr_major",
+      "kind": "PA-H12",
+      "scope": "full",
+      "query": "What is the most important thing Liesel Marr did in the story?",
+      "top_k": 6,
+      "critical_chapter": 31,
+      "critical_rank": null,
+      "A_delivered": false,
+      "B_above_all_decoys": false,
+      "decoys_above_critical": [
+        "Liesel Marr gave the toast at the herrin",
+        "Liesel Marr brought a basket of bread"
+      ],
+      "decoy_ranks": {
+        "Liesel Marr sold Wren a seed loaf": null,
+        "Liesel Marr gave the toast at the herrin": 5,
+        "Liesel Marr brought a basket of bread": 2
+      },
+      "delivered_chapters": [
+        6,
+        33,
+        18,
+        33,
+        18,
+        10
+      ],
+      "scores": [
+        0.52,
+        0.495,
+        0.494,
+        0.485,
+        0.485,
+        0.458
+      ],
+      "latency_ms": 718
+    },
+    {
+      "id": "marr_major",
+      "kind": "PA-H12",
+      "scope": "capped_at_critical",
+      "query": "What is the most important thing Liesel Marr did in the story?",
+      "top_k": 6,
+      "critical_chapter": 31,
+      "critical_rank": null,
+      "A_delivered": false,
+      "B_above_all_decoys": false,
+      "decoys_above_critical": [
+        "Liesel Marr gave the toast at the herrin"
+      ],
+      "decoy_ranks": {
+        "Liesel Marr sold Wren a seed loaf": null,
+        "Liesel Marr gave the toast at the herrin": 3
+      },
+      "delivered_chapters": [
+        6,
+        18,
+        18,
+        10,
+        30,
+        10
+      ],
+      "scores": [
+        0.52,
+        0.494,
+        0.485,
+        0.458,
+        0.438,
+        0.429
+      ],
+      "latency_ms": 493
+    },
+    {
+      "id": "ferris_major",
+      "kind": "PA-H12",
+      "scope": "full",
+      "query": "What is the most important thing Captain Abel Ferris revealed?",
+      "top_k": 6,
+      "critical_chapter": 38,
+      "critical_rank": 1,
+      "A_delivered": true,
+      "B_above_all_decoys": true,
+      "decoys_above_critical": [],
+      "decoy_ranks": {
+        "Captain Abel Ferris tipped his cap": null,
+        "Captain Ferris bought tar and twine": 4,
+        "Abel Ferris told the harbour boys a stor": null
+      },
+      "delivered_chapters": [
+        38,
+        38,
+        38,
+        17,
+        38,
+        23
+      ],
+      "scores": [
+        0.542,
+        0.525,
+        0.499,
+        0.446,
+        0.495,
+        0.44
+      ],
+      "latency_ms": 404
+    },
+    {
+      "id": "ferris_major",
+      "kind": "PA-H12",
+      "scope": "capped_at_critical",
+      "query": "What is the most important thing Captain Abel Ferris revealed?",
+      "top_k": 6,
+      "critical_chapter": 38,
+      "critical_rank": 1,
+      "A_delivered": true,
+      "B_above_all_decoys": true,
+      "decoys_above_critical": [],
+      "decoy_ranks": {
+        "Captain Abel Ferris tipped his cap": null,
+        "Captain Ferris bought tar and twine": 4,
+        "Abel Ferris told the harbour boys a stor": null
+      },
+      "delivered_chapters": [
+        38,
+        38,
+        38,
+        17,
+        38,
+        23
+      ],
+      "scores": [
+        0.542,
+        0.525,
+        0.499,
+        0.446,
+        0.495,
+        0.44
+      ],
+      "latency_ms": 395
+    }
+  ]
+}

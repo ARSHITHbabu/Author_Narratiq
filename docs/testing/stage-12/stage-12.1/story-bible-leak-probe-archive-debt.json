@@ -1,0 +1,520 @@
+{
+  "story": "The Archive Debt (E2E fixture)",
+  "runs": 10,
+  "before_world_rules": [
+    {
+      "run": 0,
+      "text": "- Lattice sessions require an induction collar [Ch 1]  \n- The Bureau maintains public ledgers of contracts and payments [Ch 3]  \n- Devika has been paying off a debt, but there is evidence of a second contract [Ch 2]  \n- The existence of a second contract raises questions about the Bureau's integrity [Ch 3]  \n- Devika's sister's registration number was used two years after it should have gone dormant [Ch 3]  \n- Devika feels uncertain and afraid regarding the implications of the second contract [Ch 3]",
+      "example_leaks": [
+        "lattice sessions require an induction collar",
+        "lattice sessions require an induction collar"
+      ],
+      "placeholder_leaks": [],
+      "bullets": 6,
+      "cited_bullets": 6
+    },
+    {
+      "run": 1,
+      "text": "- Lattice sessions require an induction collar [Ch 1]",
+      "example_leaks": [
+        "lattice sessions require an induction collar",
+        "lattice sessions require an induction collar"
+      ],
+      "placeholder_leaks": [],
+      "bullets": 1,
+      "cited_bullets": 1
+    },
+    {
+      "run": 2,
+      "text": "- Lattice sessions require an induction collar [Ch 1]  \n- The Bureau maintains public ledgers of contracts and payments [Ch 3]  \n- Devika has been paying off a debt, but there is evidence of a second, previously unknown contract [Ch 2]  \n- The existence of a second contract raises questions about the Bureau's integrity and the status of Devika's sister [Ch 3]",
+      "example_leaks": [
+        "lattice sessions require an induction collar",
+        "lattice sessions require an induction collar"
+      ],
+      "placeholder_leaks": [],
+      "bullets": 4,
+      "cited_bullets": 4
+    },
+    {
+      "run": 3,
+      "text": "- Lattice sessions require an induction collar [Ch 1]",
+      "example_leaks": [
+        "lattice sessions require an induction collar",
+        "lattice sessions require an induction collar"
+      ],
+      "placeholder_leaks": [],
+      "bullets": 1,
+      "cited_bullets": 1
+    },
+    {
+      "run": 4,
+      "text": "- Not established in the manuscript [Ch N]\n- Not established in the manuscript [Ch N]\n- Not established in the manuscript [Ch N]\n- Not established in the manuscript [Ch N]",
+      "example_leaks": [],
+      "placeholder_leaks": [
+        "[Ch N]",
+        "[Ch N]",
+        "[Ch N]",
+        "[Ch N]"
+      ],
+      "bullets": 4,
+      "cited_bullets": 0
+    },
+    {
+      "run": 5,
+      "text": "- Lattice sessions require an induction collar [Ch 1]  \n- The Bureau maintains public ledgers of contracts and payments [Ch 3]  \n- Memory work is a form of debt repayment [Ch 1]  \n- There are at least two types of contracts, each representing a separate debt [Ch 2]  \n- Devika's sister's registration number was used two years after it should have gone dormant [Ch 3]  \n- The existence of a second contract can raise questions about the Bureau's integrity [Ch 3]",
+      "example_leaks": [
+        "lattice sessions require an induction collar",
+        "lattice sessions require an induction collar"
+      ],
+      "placeholder_leaks": [],
+      "bullets": 6,
+      "cited_bullets": 6
+    },
+    {
+      "run": 6,
+      "text": "- Lattice sessions require an induction collar [Ch 1]  \n- The Bureau maintains public ledgers of contracts and payments [Ch 3]  \n- Devika has been paying off a debt through memory work [Ch 2]  \n- There are at least two contracts under Devika's name [Ch 2]  \n- Devika's sister's registration number was used in a contract two years after it should have gone dormant [Ch 3]  \n- The existence of a second contract raises questions about the Bureau's integrity and the status of Devika's sister [Ch 3]",
+      "example_leaks": [
+        "lattice sessions require an induction collar",
+        "lattice sessions require an induction collar"
+      ],
+      "placeholder_leaks": [],
+      "bullets": 6,
+      "cited_bullets": 6
+    },
+    {
+      "run": 7,
+      "text": "- Lattice sessions require an induction collar [Ch 1]\n- The Bureau maintains public ledgers of contracts and payments [Ch 3]\n- Devika has been paying off a debt, but there is evidence of a second contract [Ch 2]\n- Mara deduces that Devika has only been paying off one of the two debts [Ch 2]\n- Sant's research in the Bureau's public ledger room uncovers anomalies [Ch 3]\n- Letters from Devika's sister stopped two years before they should have [Ch 3]",
+      "example_leaks": [
+        "lattice sessions require an induction collar",
+        "lattice sessions require an induction collar"
+      ],
+      "placeholder_leaks": [],
+      "bullets": 6,
+      "cited_bullets": 6
+    },
+    {
+      "run": 8,
+      "text": "- Lattice sessions require an induction collar [Ch 1]\n- The Bureau maintains public ledgers of contracts and payments [Ch 3]\n- Devika has been paying off one of two debts [Ch 2]\n- Mara deduces the existence of two separate debts based on Devika's payment history [Ch 2]\n- Sant's research in the Bureau's public ledger room uncovers anomalies [Ch 3]\n- Fear and uncertainty are common emotions among characters regarding the Bureau's practices [Ch 3]",
+      "example_leaks": [
+        "lattice sessions require an induction collar",
+        "lattice sessions require an induction collar"
+      ],
+      "placeholder_leaks": [],
+      "bullets": 6,
+      "cited_bullets": 6
+    },
+    {
+      "run": 9,
+      "text": "- Lattice sessions require an induction collar [Ch 1]\n- The Bureau maintains public ledgers of contracts and payments [Ch 3]\n- Devika has been paying off one of two debts [Ch 2]\n- Mara deduces the existence of two separate debts based on information from Devika and Teodor Vance [Ch 2]\n- Sant's research in the Bureau's public ledger room uncovers anomalies in Devika's sister's registration number [Ch 3]\n- Devika experiences uncertainty and fear regarding the legitimacy of the second contract and her sister's status [Ch 3]",
+      "example_leaks": [
+        "lattice sessions require an induction collar",
+        "lattice sessions require an induction collar"
+      ],
+      "placeholder_leaks": [],
+      "bullets": 6,
+      "cited_bullets": 6
+    }
+  ],
+  "after": [
+    {
+      "run": 0,
+      "sections": {
+        "characters": {
+          "text": "---\n\n**Name:** Devika Rao [Ch 1]\n\n**Role:** Protagonist [Ch 1]\n\n**Physical description:** Not established in the manuscript [Ch 1]\n\n**Personality:** Cautious, doubtful [Ch 1]\n\n**Goals:** Question the validity of a second contract, seek clarity about her situation [Ch 1]\n\n**Backstory summary:** Devika is engaged in memory work for the Bureau, focusing on counting down the remaining years. She discovers a second contract under her name, which she does not remember signing. Her sister’s registration number appears on a dormant contract, raising questions about her sister’s status and the Bureau’s integrity. [Ch 1, Ch 3]\n\n**Arc status:** Questions the validity of a second contract, showing uncertainty about her situation [Ch 1]\n\n---\n\n---",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 10,
+          "cited_bullets": 7
+        },
+        "locations": {
+          "text": "#### Archive steps\n  - **Description:** The steps leading up to the entrance of the archive building where Devika meets Mara for their regular settlement day meeting. [Ch 1]\n  - **Significance:** It marks the beginning of Devika's journey into questioning the validity of the second contract and her current situation. [Ch 1]\n  - **First appearance:** [Ch 1]\n\n---\n\n#### Coopers Row\n  - **Description:** An unspecified location where Teodor Vance's office is located. [Ch 2]\n  - **Significance:** It is where Teodor Vance reveals the existence of a second contract to Devika, leading to further complications in her understanding of her debt. [Ch 2]\n  - **First appearance:** [Ch 2]\n\n---\n\n#### Tea house\n  - **Description:** A place where Devika and Mara meet to discuss the implications of the second contract. [Ch 2]\n  - **Significance:** It is where Mara realizes that Devika has only been paying off one of the two debts, highlighting the complexity of the situation. [Ch 2]\n  - **First appearance:** [Ch 2]\n\n---\n\n#### Bureau's public ledger room\n  - **Description:** A room within the Bureau where Sant Okoro conducted his research and discovered the second contract signed by Devika's late sister's registration number. [Ch 3]\n  - **Significance:** It is the location where Sant uncovered evidence suggesting Devika's sister might not be dead and raised questions about the Bureau's integrity. [Ch 3]\n  - **First appearance:** [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 15,
+          "cited_bullets": 12
+        },
+        "timeline": {
+          "text": "- Devika meets Mara on the archive steps [Ch 1]\n- Mara mentions Sant's discovery of a second contract [Ch 1]\n- Devika questions whether she signed a second contract [Ch 1]\n- Teodor Vance reveals the existence of a second contract to Devika [Ch 2]\n- Vance mentions witnessing the second contract [Ch 2]\n- Devika repeats the information to Mara [Ch 2]\n- Mara realizes there are two debts instead of one [Ch 2]\n- Mara concludes that Devika has only been paying off one debt [Ch 2]\n- Sant Okoro spent eleven days in the Bureau's public ledger room [Ch 3]\n- Sant discovered a second contract co-signed by Devika's late sister's registration number [Ch 3]\n- The registration number was used two years after it should have gone dormant [Ch 3]\n- Sant suggested either Devika's sister is not as gone as the Bureau claimed or someone forged the registration [Ch 3]\n- Devika recalled the letters that had stopped [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 13,
+          "cited_bullets": 13
+        },
+        "world_rules": {
+          "text": "- The existence of a second contract under Devika's name, which she may or may not have signed, is acknowledged within the story [Ch 2]. \n- The Bureau takes memories as partial payment for contracts, as evidenced by Devika's sister's registration number being used two years after it should have gone dormant [Ch 3].",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 2,
+          "cited_bullets": 2
+        },
+        "themes": {
+          "text": "THEMES & MOTIFS\n\n* **Primary Theme:** Memory and Deception\n  - \"Devika questions whether she signed a second contract, showing uncertainty about her situation.\" [Ch 1]\n  - \"Devika has only been paying off one of the two debts.\" [Ch 2]\n  - \"Sant Okoro uncovered a second contract signed by Devika's late sister's registration number.\" [Ch 3]\n\n* **Secondary Themes:**\n  - **Uncertainty and Doubt:** \n    - \"Devika meets Mara on the archive steps, where Mara suggests Devika should focus on living rather than counting down the remaining years of her memory work.\" [Ch 1]\n    - \"Devika feels increasingly uncertain and afraid.\" [Ch 3]\n  - **Trust and Betrayal:**\n    - \"Mara realizes there are two debts instead of one.\" [Ch 2]\n    - \"Sant suggested either Devika's sister is not as gone as the Bureau claimed or someone forged the registration.\" [Ch 3]\n\n* **Recurring Motifs:**\n  - **Contracts and Debt:**\n    - \"Mara mentions Sant's discovery of a second contract under Devika's name.\" [Ch 1]\n    - \"Teodor Vance reveals the existence of a second contract to Devika.\" [Ch 2]\n    - \"Sant discovered a second contract co-signed by Devika's late sister's registration number.\" [Ch 3]\n  - **Letters and Communication:**\n    - \"Devika recalled the letters that had stopped.\" [Ch 3]\n\n* **Symbols:**\n  - **Second Contract:** Represents the hidden truth and the deception surrounding Devika's past and present obligations. [Ch 1-3]\n  - **Letters:** Symbolize communication and the potential for unresolved issues from Devika's past. [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 21,
+          "cited_bullets": 13
+        }
+      }
+    },
+    {
+      "run": 1,
+      "sections": {
+        "characters": {
+          "text": "---\n- **Name:** Devika Rao [Ch 1]\n- **Role:** Protagonist [Ch 1]\n- **Physical description:** Not established in the manuscript [Ch 1]\n- **Personality:** Doubtful and cautious [Ch 1]\n- **Goals:** Question the validity of a second contract, show uncertainty about her situation [Ch 1]\n- **Backstory summary:** Devika is involved in memory work for the Bureau and has been paying off a debt. She discovers a second contract under her name, which she does not remember signing. [Ch 1, Ch 2, Ch 3]\n- **Arc status:** Questions the validity of a second contract, showing uncertainty about her situation [Ch 1]\n\n---\n- **Name:** Mara Coste [Ch 1]\n- **Role:** Supporting character [Ch 1]\n- **Physical description:** Not established in the manuscript [Ch 1]\n- **Personality:** Confident and reassuring [Ch 1]\n- **Goals:** Encourage Devika to live rather than focus on her remaining years of memory work [Ch 1]\n- **Backstory summary:** Mara is familiar with Devika's situation and tries to help her by suggesting she should focus on living. [Ch 1]\n- **Arc status:** Realizes there are two debts instead of one and deduces that Devika has only been paying off one debt [Ch 2]\n\n---\n- **Name:** Teodor Vance [Ch 2]\n- **Role:** Supporting character [Ch 2]\n- **Physical description:** Not established in the manuscript [Ch 2]\n- **Personality:** Informative and possibly secretive [Ch 2]\n- **Goals:** Reveal the existence of a second contract to Devika [Ch 2]\n- **Backstory summary:** Teodor Vance is aware of a second contract Devika was involved in and reveals this information to her. [Ch 2]\n- **Arc status:** Reveals the existence of a second contract to Devika [Ch 2]\n\n---\n- **Name:** Sant Okoro [Ch 3]\n- **Role:** Supporting character [Ch 3]\n- **Physical description:** Not established in the manuscript [Ch 3]\n- **Personality:** Investigative and questioning [Ch 3]\n- **Goals:** Uncover evidence suggesting Devika's sister might not be dead and raise questions about the Bureau's integrity [Ch 3]\n- **Backstory summary:** Sant Okoro spends eleven days researching and uncovers a second contract signed by Devika's late sister's registration number, which had been dormant for two years. [Ch 3]\n- **Arc status:** Discovered evidence suggesting Devika's sister might not be dead and raised questions about the Bureau's integrity [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 32,
+          "cited_bullets": 28
+        },
+        "locations": {
+          "text": "#### Archive steps\n  - **Description:** The steps leading up to the entrance of the archive where Devika meets Mara for their regular settlement day meeting. [Ch 1]\n  - **Significance:** It marks the beginning of Devika's journey into questioning the validity of the second contract and her current situation. [Ch 1]\n  - **First appearance:** [Ch 1]\n\n---\n\n#### Coopers Row\n  - **Description:** An unspecified location where Teodor Vance reveals the existence of a second contract to Devika. [Ch 2]\n  - **Significance:** This revelation leads to further investigation and confusion regarding Devika's financial obligations. [Ch 2]\n  - **First appearance:** [Ch 2]\n\n---\n\n#### Tea house\n  - **Description:** A place where Devika shares the information about the second contract with Mara. [Ch 2]\n  - **Significance:** It is here that Mara deduces the existence of two debts instead of one, highlighting the complexity of Devika's situation. [Ch 2]\n  - **First appearance:** [Ch 2]\n\n---\n\n#### Bureau's public ledger room\n  - **Description:** A room within the Bureau where Sant Okoro conducted extensive research and discovered a second contract signed by Devika's late sister's registration number. [Ch 3]\n  - **Significance:** This discovery raises serious questions about the Bureau's integrity and Devika's sister's possible survival. [Ch 3]\n  - **First appearance:** [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 15,
+          "cited_bullets": 12
+        },
+        "timeline": {
+          "text": "- Devika meets Mara on the archive steps [Ch 1]\n- Mara mentions Sant's discovery of a second contract [Ch 1]\n- Devika questions whether she signed a second contract [Ch 1]\n- Teodor Vance reveals the existence of a second contract to Devika [Ch 2]\n- Vance mentions witnessing the second contract [Ch 2]\n- Devika repeats the information to Mara [Ch 2]\n- Mara realizes there are two debts instead of one [Ch 2]\n- Mara concludes that Devika has only been paying off one debt [Ch 2]\n- Sant Okoro spent eleven days in the Bureau's public ledger room [Ch 3]\n- Sant discovered a second contract co-signed by Devika's late sister's registration number [Ch 3]\n- The registration number was used two years after it should have gone dormant [Ch 3]\n- Sant suggested either Devika's sister is not as gone as the Bureau claimed or someone forged the registration [Ch 3]\n- Devika recalled the letters that had stopped [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 13,
+          "cited_bullets": 13
+        },
+        "world_rules": {
+          "text": "- The existence of a second contract under Devika's name is acknowledged, indicating multiple financial obligations within the story's world [Ch 2].",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 1,
+          "cited_bullets": 1
+        },
+        "themes": {
+          "text": "THEMES & MOTIFS\n\n* **Primary Theme:** The struggle against an oppressive system (Bureau). [Ch 1], [Ch 3]\n  - The Bureau is portrayed as an entity that manipulates individuals through debt and memory suppression, leading to a sense of oppression and uncertainty among the characters.\n\n* **Secondary Themes:**\n  - **Memory and Identity:** The loss and manipulation of personal memories play a significant role in shaping the characters' identities and their understanding of their past. [Ch 1], [Ch 3]\n  - **Debt and Responsibility:** The burden of debt and the moral implications of fulfilling one's responsibilities are central to the narrative. [Ch 2]\n\n* **Recurring Motifs:**\n  - **Discovery and Unveiling:** The act of uncovering hidden truths and secrets, such as the second contract, is a recurring motif. [Ch 1], [Ch 2], [Ch 3]\n  - **Letters:** The cessation of letters serves as a motif, symbolizing the end of communication and the beginning of isolation or uncertainty. [Ch 3]\n\n* **Symbols:**\n  - **Second Contract:** Represents the hidden truth and the manipulation by the Bureau, highlighting the characters' struggle to understand their true obligations. [Ch 1], [Ch 2], [Ch 3]\n  - **Public Ledger Room:** Symbolizes the power and control of the Bureau, where secrets and truths are kept hidden until they are uncovered. [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 11,
+          "cited_bullets": 7
+        }
+      }
+    },
+    {
+      "run": 2,
+      "sections": {
+        "characters": {
+          "text": "---\n**Name:** Devika Rao [Ch 1]\n**Role:** Protagonist [Ch 1]\n**Physical description:** Not established in the manuscript [Ch 1]\n**Personality:** Cautious, doubtful [Ch 1]\n**Goals:** Question the validity of a second contract, seek clarity about her situation [Ch 1]\n**Backstory summary:** Devika is a memory worker whose memories are being taken as partial payment for a debt. She is uncertain about a second contract under her name and fears the implications. [Ch 1, Ch 2, Ch 3]\n**Arc status:** Questions the validity of a second contract, showing uncertainty about her situation [Ch 1]\n\n---\n**Name:** Mara Coste [Ch 1]\n**Role:** Supporting character [Ch 1]\n**Physical description:** Not established in the manuscript [Ch 1]\n**Personality:** Concerned, protective [Ch 1]\n**Goals:** Help Devika understand and navigate her situation [Ch 1, Ch 2]\n**Backstory summary:** Mara is aware of Devika’s situation and tries to guide her towards a better life, focusing on living rather than counting down the remaining years of her memory work. [Ch 1]\n**Arc status:** Realizes there are two debts instead of one, deduces Devika has only been paying off one debt [Ch 2]\n\n---\n**Name:** Teodor Vance [Ch 2]\n**Role:** Supporting character [Ch 2]\n**Physical description:** Not established in the manuscript [Ch 2]\n**Personality:** Informative, possibly secretive [Ch 2]\n**Goals:** Inform Devika about the second contract [Ch 2]\n**Backstory summary:** Teodor Vance reveals to Devika the existence of a second contract she was involved in, which she doesn’t remember due to the Bureau taking that memory as partial payment. [Ch 2]\n**Arc status:** Reveals the existence of a second contract to Devika [Ch 2]\n\n---\n**Name:** Sant Okoro [Ch 3]\n**Role:** Supporting character [Ch 3]\n**Physical description:** Not established in the manuscript [Ch 3]\n**Personality:** Investigative, questioning [Ch 3]\n**Goals:** Uncover the truth behind the second contract [Ch 3]\n**Backstory summary:** Sant Okoro discovers a second contract signed by Devika’s late sister’s registration number, which had been dormant for two years. He suggests either Devika’s sister is not as gone as the Bureau claimed or someone forged the registration. [Ch 3]\n**Arc status:** Discovered evidence suggesting Devika's sister might not be dead and raised questions about the Bureau's integrity [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 32,
+          "cited_bullets": 28
+        },
+        "locations": {
+          "text": "#### Archive steps\n  - **Description:** The steps leading up to the entrance of the archive where Devika meets Mara for their regular settlement day meetings. [Ch 1]\n  - **Significance:** It serves as the setting for the initial revelation of the second contract and marks the beginning of Devika's uncertainty about her situation. [Ch 1]\n  - **First appearance:** [Ch 1]\n\n---\n\n#### Coopers Row\n  - **Description:** An unspecified location, likely a street or area in the city where Teodor Vance's office is located. [Ch 2]\n  - **Significance:** It is where Teodor Vance reveals the existence of the second contract to Devika, leading to further confusion and concern among the characters. [Ch 2]\n  - **First appearance:** [Ch 2]\n\n---\n\n#### Bureau's public ledger room\n  - **Description:** A room within the Bureau where Sant Okoro conducted his research and discovered the second contract signed by Devika's late sister's registration number. [Ch 3]\n  - **Significance:** This location holds crucial evidence that raises questions about the Bureau's integrity and Devika's sister's possible survival. [Ch 3]\n  - **First appearance:** [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 11,
+          "cited_bullets": 9
+        },
+        "timeline": {
+          "text": "- Devika meets Mara on the archive steps [Ch 1]\n- Mara mentions Sant's discovery of a second contract [Ch 1]\n- Devika questions whether she signed a second contract [Ch 1]\n- Teodor Vance reveals the existence of a second contract to Devika [Ch 2]\n- Vance mentions witnessing the second contract [Ch 2]\n- Devika repeats the information to Mara [Ch 2]\n- Mara realizes there are two debts instead of one [Ch 2]\n- Mara concludes that Devika has only been paying off one debt [Ch 2]\n- Sant Okoro spent eleven days in the Bureau's public ledger room [Ch 3]\n- Sant discovered a second contract co-signed by Devika's late sister's registration number [Ch 3]\n- The registration number was used two years after it should have gone dormant [Ch 3]\n- Sant suggested either Devika's sister is not as gone as the Bureau claimed or someone forged the registration [Ch 3]\n- Devika recalled the letters that had stopped [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 13,
+          "cited_bullets": 13
+        },
+        "world_rules": {
+          "text": "- The existence of a second contract under Devika's name is acknowledged, indicating multiple financial obligations within the story's world [Ch 2].",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 1,
+          "cited_bullets": 1
+        },
+        "themes": {
+          "text": "THEMES & MOTIFS\n\n* **Primary Theme:** Memory and Deception\n\t+ Devika's struggle with her own memory and the possibility of deception are central to the narrative. This theme is introduced in [Ch 1] when Mara mentions Sant's discovery of a second contract under Devika's name, which she claims Devika never signed.\n* **Secondary Themes:**\n\t+ **Uncertainty and Doubt:** The characters experience doubt about their situations and memories. This is evident in [Ch 1] when Devika questions the validity of the second contract and in [Ch 3] when Devika recalls the letters that had stopped, feeling increasingly uncertain.\n\t+ **Debt and Obligation:** The concept of debt and obligation is a recurring element, particularly in relation to the contracts and the Bureau. This is explored in [Ch 2] when Mara realizes Devika has only been paying off one of the two debts.\n* **Recurring Motifs:**\n\t+ **Letters:** The cessation of letters is a motif that recurs, symbolizing communication and connection. It is mentioned in [Ch 3] when Devika recalls the letters that had stopped.\n\t+ **Contracts:** Contracts are a significant motif, representing both legal obligations and potential deceit. They are central to the plot and are discussed in [Ch 1], [Ch 2], and [Ch 3].\n* **Symbols:**\n\t+ **Second Contract:** The second contract serves as a symbol of potential deception and unresolved issues. Its discovery and implications are a driving force in the narrative, first introduced in [Ch 1] and further explored in [Ch 2] and [Ch 3].",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 4,
+          "cited_bullets": 0
+        }
+      }
+    },
+    {
+      "run": 3,
+      "sections": {
+        "characters": {
+          "text": "---\n\n**Name:** Devika Rao [Ch 1]\n\n**Role:** Protagonist [Ch 1]\n\n**Physical description:** Not established in the manuscript [Ch 1]\n\n**Personality:** Cautious, doubtful [Ch 1]\n\n**Goals:** Question the validity of a second contract, seek clarity about her situation [Ch 1]\n\n**Backstory summary:** Devika is a memory worker whose memories are being taken as partial payment for a debt. She is uncertain about a second contract under her name and fears the implications of Sant's discovery. [Ch 1, Ch 3]\n\n**Arc status:** Questions the validity of a second contract, showing uncertainty about her situation [Ch 1]\n\n---\n\n--- \n\n**Name:** Mara Coste [Ch 1]\n\n**Role:** Supporting character [Ch 1]\n\n**Physical description:** Not established in the manuscript [Ch 1]\n\n**Personality:** Cautious, supportive [Ch 1]\n\n**Goals:** Encourage Devika to live rather than focus on her remaining years of memory work [Ch 1]\n\n**Backstory summary:** Mara is a friend of Devika who meets her regularly for settlement day meetings. She tries to help Devika see beyond her current situation and understand the broader picture. [Ch 1]\n\n**Arc status:** Realizes there are two debts instead of one, deduces that Devika has only been paying off one debt [Ch 2]\n\n---\n\n--- \n\n**Name:** Teodor Vance [Ch 2]\n\n**Role:** Supporting character [Ch 2]\n\n**Physical description:** Not established in the manuscript [Ch 2]\n\n**Personality:** Confident, authoritative [Ch 2]\n\n**Goals:** Inform Devika about the second contract and its implications [Ch 2]\n\n**Backstory summary:** Teodor Vance is a figure of authority who reveals to Devika the existence of a second contract she was involved in, which she doesn't remember due to the Bureau taking that memory as partial payment. [Ch 2]\n\n**Arc status:** Reveals the existence of a second contract to Devika [Ch 2]\n\n---\n\n--- \n\n**Name:** Sant Okoro [Ch 3]\n\n**Role:** Supporting character [Ch 3]\n\n**Physical description:** Not established in the manuscript [Ch 3]\n\n**Personality:** Investigative, analytical [Ch 3]\n\n**Goals:** Uncover the truth behind the second contract and the Bureau's practices [Ch 3]\n\n**Backstory summary:** Sant Okoro, after extensive research, uncovers a second contract signed by Devika's late sister's registration number, which had been dormant for two years. He raises questions about the Bureau's integrity and Devika's sister's possible survival. [Ch 3]\n\n**Arc status:** Discovered evidence suggesting Devika's sister might not be dead and raised questions about the Bureau's integrity [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 35,
+          "cited_bullets": 28
+        },
+        "locations": {
+          "text": "#### Archive steps\n  - **Description:** The steps leading up to the entrance of the archive where Devika meets Mara for their regular settlement day meeting. [Ch 1]\n  - **Significance:** It marks the beginning of Devika's journey of questioning the validity of the second contract and her current situation. [Ch 1]\n  - **First appearance:** [Ch 1]\n\n---\n\n#### Coopers Row\n  - **Description:** An unspecified location where Teodor Vance's office is located. [Ch 2]\n  - **Significance:** It is where Teodor Vance reveals the existence of a second contract to Devika, leading to further complications in her understanding of her debt. [Ch 2]\n  - **First appearance:** [Ch 2]\n\n---\n\n#### Tea house\n  - **Description:** A place where Devika and Mara meet to discuss the information about the second contract. [Ch 2]\n  - **Significance:** It is where Mara realizes that Devika has only been paying off one of the two debts, highlighting the complexity of Devika's situation. [Ch 2]\n  - **First appearance:** [Ch 2]\n\n---\n\n#### Bureau's public ledger room\n  - **Description:** A room within the Bureau where Sant Okoro conducted his research and discovered the second contract. [Ch 3]\n  - **Significance:** It is the location where Sant found evidence suggesting that Devika's sister might not be dead and raised questions about the Bureau's integrity. [Ch 3]\n  - **First appearance:** [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 15,
+          "cited_bullets": 12
+        },
+        "timeline": {
+          "text": "- Devika meets Mara on the archive steps [Ch 1]\n- Mara mentions Sant's discovery of a second contract [Ch 1]\n- Teodor Vance reveals the existence of a second contract to Devika [Ch 2]\n- Devika repeats the information to Mara [Ch 2]\n- Mara realizes there are two debts instead of one [Ch 2]\n- Mara concludes that Devika has only been paying off one debt [Ch 2]\n- Sant Okoro spent eleven days in the Bureau's public ledger room [Ch 3]\n- Sant discovered a second contract co-signed by Devika's late sister's registration number [Ch 3]\n- The registration number was used two years after it should have gone dormant [Ch 3]\n- Sant suggested either Devika's sister is not as gone as the Bureau claimed or someone forged the registration [Ch 3]\n- Devika recalled the letters that had stopped [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 11,
+          "cited_bullets": 11
+        },
+        "world_rules": {
+          "text": "- The existence of a second contract under Devika's name is acknowledged, indicating multiple financial obligations within the story's world [Ch 2].",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 1,
+          "cited_bullets": 1
+        },
+        "themes": {
+          "text": "THEMES & MOTIFS\n\n* **Primary Theme:** Memory and Deception\n  - \"Devika questions whether she signed a second contract, showing uncertainty about her situation.\" [Ch 1]\n  - \"Devika has only been paying off one of the two debts.\" [Ch 2]\n  - \"Sant uncovered a second contract signed by Devika's late sister's registration number, which had been dormant for two years.\" [Ch 3]\n\n* **Secondary Themes:**\n  - **Uncertainty and Doubt:** Devika's doubt about the validity of the second contract and the uncertainty surrounding her sister's status.\n    - \"Devika questions whether she signed a second contract, showing uncertainty about her situation.\" [Ch 1]\n    - \"Devika, remembering the letters that had stopped, feels increasingly uncertain and afraid.\" [Ch 3]\n  - **Trust and Betrayal:** The trust between Devika and the Bureau is questioned, and there is a sense of betrayal.\n    - \"Sant suggested either Devika's sister is not as gone as the Bureau claimed or someone forged the registration.\" [Ch 3]\n\n* **Recurring Motifs:**\n  - **Contracts and Debt:** The presence of multiple contracts and the ongoing debt are central to the plot.\n    - \"Mara mentions Sant's discovery of a second contract under Devika's name.\" [Ch 1]\n    - \"Devika has only been paying off one of the two debts.\" [Ch 2]\n    - \"Sant uncovered a second contract signed by Devika's late sister's registration number.\" [Ch 3]\n\n* **Symbols:**\n  - **Letters:** The letters that stopped are a symbol of Devika's growing uncertainty and the loss of communication.\n    - \"Devika recalled the letters that had stopped and felt fear and uncertainty.\" [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 18,
+          "cited_bullets": 10
+        }
+      }
+    },
+    {
+      "run": 4,
+      "sections": {
+        "characters": {
+          "text": "---\n\n**Name:** Devika Rao [Ch 1]\n\n**Role:** Protagonist [Ch 1]\n\n**Physical description:** Not established in the manuscript [Ch 1]\n\n**Personality:** Doubtful and cautious [Ch 1]\n\n**Goals:** Questions the validity of a second contract, showing uncertainty about her situation. [Ch 1]\n\n**Backstory summary:** Devika is engaged in memory work for the Bureau, focusing on counting down the remaining years of her contract. She discovers a second contract under her name, which she does not remember signing. [Ch 1, Ch 2, Ch 3]\n\n**Arc status:** Questions the validity of a second contract, showing uncertainty about her situation. [Ch 1]\n\n---\n\n--- \n\n**Name:** Mara Coste [Ch 1]\n\n**Role:** Supporting character [Ch 1]\n\n**Physical description:** Not established in the manuscript [Ch 1]\n\n**Personality:** Confident and reassuring [Ch 1]\n\n**Goals:** Encourages Devika to live rather than focus on her remaining years of memory work. [Ch 1]\n\n**Backstory summary:** Mara is familiar with Devika's situation and provides support and advice during their meetings. She helps Devika understand the implications of the second contract. [Ch 1, Ch 2]\n\n**Arc status:** Realizes there are two debts instead of one and deduces that Devika has only been paying off one of the two debts. [Ch 2]\n\n---\n\n--- \n\n**Name:** Teodor Vance [Ch 2]\n\n**Role:** Supporting character [Ch 2]\n\n**Physical description:** Not established in the manuscript [Ch 2]\n\n**Personality:** Knowledgeable and authoritative [Ch 2]\n\n**Goals:** Reveals the existence of a second contract to Devika. [Ch 2]\n\n**Backstory summary:** Teodor Vance is aware of the second contract and informs Devika about it, providing her with crucial information. [Ch 2]\n\n**Arc status:** Reveals the existence of a second contract to Devika. [Ch 2]\n\n---\n\n--- \n\n**Name:** Sant Okoro [Ch 3]\n\n**Role:** Supporting character [Ch 3]\n\n**Physical description:** Not established in the manuscript [Ch 3]\n\n**Personality:** Investigative and suspicious [Ch 3]\n\n**Goals:** Uncover evidence suggesting Devika's sister might not be dead and raise questions about the Bureau's integrity. [Ch 3]\n\n**Backstory summary:** Sant Okoro spends eleven days researching and uncovers a second contract signed by Devika's late sister's registration number, which had been dormant for two years. [Ch 3]\n\n**Arc status:** Discovered evidence suggesting Devika's sister might not be dead and raised questions about the Bureau's integrity. [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 35,
+          "cited_bullets": 28
+        },
+        "locations": {
+          "text": "#### Archive steps\n  - **Description:** The steps leading up to the entrance of the archive where Devika meets Mara for their regular settlement day meeting. [Ch 1]\n  - **Significance:** It marks the beginning of Devika's journey into questioning the validity of a second contract and her current situation. [Ch 1]\n  - **First appearance:** [Ch 1]\n\n---\n\n#### Coopers Row\n  - **Description:** An unspecified location where Teodor Vance reveals the existence of a second contract to Devika. [Ch 2]\n  - **Significance:** This is where Devika learns about the second contract, which changes her understanding of her debt and her relationship with the Bureau. [Ch 2]\n  - **First appearance:** [Ch 2]\n\n---\n\n#### Tea house\n  - **Description:** A place where Devika shares the information about the second contract with Mara. [Ch 2]\n  - **Significance:** It is here that Mara deduces the existence of two debts instead of one, highlighting the complexity of Devika's situation. [Ch 2]\n  - **First appearance:** [Ch 2]\n\n---\n\n#### Bureau's public ledger room\n  - **Description:** A room within the Bureau where Sant Okoro conducted his research and discovered a second contract signed by Devika's late sister's registration number. [Ch 3]\n  - **Significance:** This discovery raises serious questions about the Bureau's integrity and Devika's sister's possible survival, adding to Devika's fear and uncertainty. [Ch 3]\n  - **First appearance:** [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 15,
+          "cited_bullets": 12
+        },
+        "timeline": {
+          "text": "- Devika meets Mara on the archive steps [Ch 1]\n- Mara mentions Sant's discovery of a second contract [Ch 1]\n- Devika questions whether she signed a second contract [Ch 1]\n- Teodor Vance reveals the existence of a second contract to Devika [Ch 2]\n- Vance mentions witnessing the second contract [Ch 2]\n- Devika repeats the information to Mara [Ch 2]\n- Mara realizes there are two debts instead of one [Ch 2]\n- Mara concludes that Devika has only been paying off one debt [Ch 2]\n- Sant Okoro spent eleven days in the Bureau's public ledger room [Ch 3]\n- Sant discovered a second contract co-signed by Devika's late sister's registration number [Ch 3]\n- The registration number was used two years after it should have gone dormant [Ch 3]\n- Sant suggested either Devika's sister is not as gone as the Bureau claimed or someone forged the registration [Ch 3]\n- Devika recalled the letters that had stopped [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 13,
+          "cited_bullets": 13
+        },
+        "world_rules": {
+          "text": "- The existence of a second contract under Devika's name is acknowledged within the Bureau's records, indicating that Devika may have unknowingly signed additional agreements. [Ch 2]\n- Devika has been paying off only one of the two debts despite the existence of a second contract, suggesting a discrepancy in the Bureau's accounting practices. [Ch 2]\n- Sant Okoro's research in the Bureau's public ledger room revealed a second contract signed by Devika's late sister's registration number, which had been dormant for two years, raising questions about the Bureau's integrity and the status of Devika's sister. [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 3,
+          "cited_bullets": 3
+        },
+        "themes": {
+          "text": "THEMES & MOTIFS\n\n* **Primary Theme:** Memory and Deception\n\t+ Devika questioning the validity of the second contract and the memories associated with it (Ch 1, Ch 2, Ch 3)\n* **Secondary Themes:**\n\t+ Uncertainty and Fear\n\t\t- Devika's growing fear and uncertainty about her sister's status and the Bureau's actions (Ch 3)\n\t+ Debt and Obligation\n\t\t- The existence of multiple contracts and the confusion over which debt Devika has been paying off (Ch 2)\n* **Recurring Motifs:**\n\t+ Contracts and Registration Numbers\n\t\t- The discovery of a second contract and the use of a dormant registration number (Ch 2, Ch 3)\n\t+ Letters\n\t\t- Devika recalling the letters that had stopped, symbolizing unresolved communication or messages (Ch 3)\n* **Symbols:**\n\t+ Dormant Registration Number\n\t\t- Represents the possibility of Devika's sister being alive or the manipulation by the Bureau (Ch 3)",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 9,
+          "cited_bullets": 0
+        }
+      }
+    },
+    {
+      "run": 5,
+      "sections": {
+        "characters": {
+          "text": "---\n- **Name:** Devika Rao [Ch 1]\n- **Role:** Protagonist [Ch 1]\n- **Physical description:** Not established in the manuscript [Ch 1]\n- **Personality:** Cautious, doubtful [Ch 1]\n- **Goals:** Question the validity of a second contract, seek clarity about her situation [Ch 1]\n- **Backstory summary:** Devika is engaged in memory work for the Bureau and is aware of a second contract under her name, which she does not remember signing. Her sister's registration number appears on a dormant contract, raising questions about her sister's fate and the Bureau's integrity. [Ch 1, Ch 3]\n- **Arc status:** Questions the validity of a second contract, showing uncertainty about her situation [Ch 1]\n\n---\n- **Name:** Mara Coste [Ch 1]\n- **Role:** Supporting character [Ch 1]\n- **Physical description:** Not established in the manuscript [Ch 1]\n- **Personality:** Encouraging, observant [Ch 1]\n- **Goals:** Suggests Devika focus on living rather than counting down the remaining years of her memory work [Ch 1]\n- **Backstory summary:** Mara is familiar with Devika's situation and offers advice based on her observations. She deduces that Devika has only been paying off one of the two debts after learning about the second contract. [Ch 1, Ch 2]\n- **Arc status:** Realizes there are two debts instead of one, concludes Devika has only been paying off one debt [Ch 2]\n\n---\n- **Name:** Teodor Vance [Ch 2]\n- **Role:** Supporting character [Ch 2]\n- **Physical description:** Not established in the manuscript [Ch 2]\n- **Personality:** Informative, possibly secretive [Ch 2]\n- **Goals:** Reveals the existence of a second contract to Devika [Ch 2]\n- **Backstory summary:** Teodor Vance is aware of the second contract and informs Devika about it, providing her with crucial information that leads to further investigation. [Ch 2]\n- **Arc status:** Reveals the existence of a second contract to Devika [Ch 2]\n\n---\n- **Name:** Sant Okoro [Ch 3]\n- **Role:** Supporting character [Ch 3]\n- **Physical description:** Not established in the manuscript [Ch 3]\n- **Personality:** Investigative, analytical [Ch 3]\n- **Goals:** Uncover evidence suggesting Devika's sister might not be dead and raise questions about the Bureau's integrity [Ch 3]\n- **Backstory summary:** Sant Okoro spends eleven days researching and discovers a second contract signed by Devika's late sister's registration number, which had been dormant for two years. His findings lead to increased fear and uncertainty for Devika. [Ch 3]\n- **Arc status:** Discovered evidence suggesting Devika's sister might not be dead and raised questions about the Bureau's integrity [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 32,
+          "cited_bullets": 28
+        },
+        "locations": {
+          "text": "#### Archive steps\n  - **Description:** The steps leading up to the entrance of the archive where Devika meets Mara for their regular settlement day meetings. [Ch 1]\n  - **Significance:** It serves as a setting for the initial meeting where Mara introduces the concept of focusing on living rather than counting down the remaining years of Devika’s memory work. [Ch 1]\n  - **First appearance:** [Ch 1]\n\n---\n\n#### Coopers Row\n  - **Description:** An unspecified location, likely a street or area in the city where Teodor Vance's office is located. [Ch 2]\n  - **Significance:** It is where Teodor Vance reveals the existence of a second contract to Devika, which significantly impacts the narrative by introducing a new layer of complexity to Devika’s situation. [Ch 2]\n  - **First appearance:** [Ch 2]\n\n---\n\n#### Tea house\n  - **Description:** A place where Devika and Mara meet to discuss the implications of the second contract. [Ch 2]\n  - **Significance:** It is a setting where Mara deduces that Devika has only been paying off one of the two debts, highlighting the importance of the second contract in understanding Devika’s financial and legal situation. [Ch 2]\n  - **First appearance:** [Ch 2]\n\n---\n\n#### Bureau's public ledger room\n  - **Description:** A room within the Bureau where Sant Okoro conducted his research and discovered the second contract signed by Devika's late sister's registration number. [Ch 3]\n  - **Significance:** It is crucial as it contains evidence that raises questions about Devika’s sister’s status and the Bureau’s practices, contributing to the overall tension and uncertainty in the story. [Ch 3]\n  - **First appearance:** [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 15,
+          "cited_bullets": 12
+        },
+        "timeline": {
+          "text": "- Devika meets Mara on the archive steps [Ch 1]\n- Mara mentions Sant's discovery of a second contract [Ch 1]\n- Devika questions whether she signed a second contract [Ch 1]\n- Teodor Vance reveals the existence of a second contract to Devika [Ch 2]\n- Vance mentions witnessing the second contract [Ch 2]\n- Devika repeats the information to Mara [Ch 2]\n- Mara realizes there are two debts instead of one [Ch 2]\n- Mara concludes that Devika has only been paying off one debt [Ch 2]\n- Sant Okoro spent eleven days in the Bureau's public ledger room [Ch 3]\n- Sant discovered a second contract co-signed by Devika's late sister's registration number [Ch 3]\n- The registration number was used two years after it should have gone dormant [Ch 3]\n- Sant suggested either Devika's sister is not as gone as the Bureau claimed or someone forged the registration [Ch 3]\n- Devika recalled the letters that had stopped [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 13,
+          "cited_bullets": 13
+        },
+        "world_rules": {
+          "text": "- The existence of a second contract under Devika's name is acknowledged within the Bureau's records, indicating that Devika may have unknowingly signed a second agreement. [Ch 2]\n- Devika has been paying off one of the two debts, as revealed when Mara deduces this based on the information shared by Teodor Vance. [Ch 2]\n- Sant Okoro's research in the Bureau's public ledger room uncovered a second contract signed by Devika's late sister's registration number, which had been dormant for two years. This suggests either Devika's sister is not as gone as the Bureau claimed or someone forged the dormant registration. [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 3,
+          "cited_bullets": 3
+        },
+        "themes": {
+          "text": "THEMES & MOTIFS\n\n* **Primary Theme:** Memory and Deception\n\t+ Devika's struggle with her own memory loss and the potential deception surrounding her contracts and debts are central to the narrative. [Ch 1], [Ch 2], [Ch 3]\n* **Secondary Themes:**\n\t+ **Uncertainty and Doubt:** The characters grapple with uncertainty about the truth behind Devika's situation and the actions of the Bureau. [Ch 1], [Ch 2], [Ch 3]\n\t+ **Trust and Betrayal:** The relationships between the characters are tested as they uncover the truth about Devika's contracts and the Bureau's practices. [Ch 2], [Ch 3]\n* **Recurring Motifs:**\n\t+ **Contracts and Debt:** The presence of multiple contracts and the ongoing payment of debts are constant throughout the narrative, driving the plot forward. [Ch 1], [Ch 2], [Ch 3]\n\t+ **Memory Loss and Recovery:** Devika's memory loss and the gradual recovery of lost memories are significant motifs, reflecting her journey of self-discovery. [Ch 1], [Ch 3]\n* **Symbols:**\n\t+ **Letters:** The letters that stopped are symbolic of Devika's lost memories and the potential for new information to emerge. [Ch 3]\n\t+ **Public Ledger Room:** The Bureau's public ledger room represents the hidden truths and the power dynamics within the organization. [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 4,
+          "cited_bullets": 0
+        }
+      }
+    },
+    {
+      "run": 6,
+      "sections": {
+        "characters": {
+          "text": "---\n**Name:** Devika Rao [Ch 1]\n**Role:** Protagonist [Ch 1]\n**Physical description:** Not established in the manuscript [Ch 1]\n**Personality:** Doubtful, cautious, uncertain [Ch 1]\n**Goals:** Question the validity of a second contract, seek clarity about her situation [Ch 1]\n**Backstory summary:** Devika is a memory worker whose sister's registration number was used in a second contract she doesn't remember signing. She feels uncertain and afraid about the implications. [Ch 3]\n**Arc status:** Questions the validity of a second contract, showing uncertainty about her situation. [Ch 1]\n\n---\n**Name:** Mara Coste [Ch 1]\n**Role:** Supporting character [Ch 1]\n**Physical description:** Not established in the manuscript [Ch 1]\n**Personality:** Concerned, insightful [Ch 2]\n**Goals:** Help Devika understand her situation, deduce the truth about the contracts [Ch 2]\n**Backstory summary:** Mara is aware of Devika's memory work and the contracts. She helps Devika and Sant uncover the truth. [Ch 2]\n**Arc status:** Realizes there are two debts instead of one, deduces Devika has only been paying off one debt. [Ch 2]\n\n---\n**Name:** Teodor Vance [Ch 2]\n**Role:** Supporting character [Ch 2]\n**Physical description:** Not established in the manuscript [Ch 2]\n**Personality:** Informative, possibly secretive [Ch 2]\n**Goals:** Inform Devika about the second contract, help her understand the situation [Ch 2]\n**Backstory summary:** Teodor Vance reveals the existence of a second contract to Devika, providing crucial information. [Ch 2]\n**Arc status:** Reveals the existence of a second contract to Devika. [Ch 2]\n\n---\n**Name:** Sant Okoro [Ch 3]\n**Role:** Supporting character [Ch 3]\n**Physical description:** Not established in the manuscript [Ch 3]\n**Personality:** Investigative, analytical [Ch 3]\n**Goals:** Uncover the truth behind the second contract, question the Bureau's integrity [Ch 3]\n**Backstory summary:** Sant discovers a second contract involving Devika's sister's registration number, raising questions about the Bureau's practices. [Ch 3]\n**Arc status:** Discovered evidence suggesting Devika's sister might not be dead and raised questions about the Bureau's integrity. [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 32,
+          "cited_bullets": 28
+        },
+        "locations": {
+          "text": "#### Archive steps\n  - **Description:** The steps leading up to the entrance of the archive where Devika meets Mara for their regular settlement day meetings. [Ch 1]\n  - **Significance:** It serves as a neutral meeting point for Devika and Mara, setting the stage for their discussions about Devika's situation. [Ch 1]\n  - **First appearance:** [Ch 1]\n\n---\n\n#### Coopers Row\n  - **Description:** An unspecified location, likely a street or area in the city where Teodor Vance's office is located. [Ch 2]\n  - **Significance:** It is where Teodor Vance reveals the existence of a second contract to Devika, marking a pivotal moment in the story. [Ch 2]\n  - **First appearance:** [Ch 2]\n\n---\n\n#### Tea house\n  - **Description:** A place where Devika and Mara meet to discuss the implications of the second contract. [Ch 2]\n  - **Significance:** It is a setting for important conversations and revelations, contributing to the growing tension and confusion in the plot. [Ch 2]\n  - **First appearance:** [Ch 2]\n\n---\n\n#### Bureau's public ledger room\n  - **Description:** A room within the Bureau where Sant Okoro conducted his research and discovered the second contract. [Ch 3]\n  - **Significance:** It is the location where critical evidence is found, raising significant questions about Devika's past and the Bureau's practices. [Ch 3]\n  - **First appearance:** [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 15,
+          "cited_bullets": 12
+        },
+        "timeline": {
+          "text": "- Devika meets Mara on the archive steps [Ch 1]\n- Mara mentions Sant's discovery of a second contract [Ch 1]\n- Devika questions whether she signed a second contract [Ch 1]\n- Teodor Vance reveals the existence of a second contract to Devika [Ch 2]\n- Vance mentions witnessing the second contract [Ch 2]\n- Devika repeats the information to Mara [Ch 2]\n- Mara realizes there are two debts instead of one [Ch 2]\n- Mara concludes that Devika has only been paying off one debt [Ch 2]\n- Sant Okoro spent eleven days in the Bureau's public ledger room [Ch 3]\n- Sant discovered a second contract co-signed by Devika's late sister's registration number [Ch 3]\n- The registration number was used two years after it should have gone dormant [Ch 3]\n- Sant suggested either Devika's sister is not as gone as the Bureau claimed or someone forged the registration [Ch 3]\n- Devika recalled the letters that had stopped [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 13,
+          "cited_bullets": 13
+        },
+        "world_rules": {
+          "text": "- The existence of a second contract under Devika's name is acknowledged within the Bureau's records, indicating that Devika may have unknowingly signed a second agreement. [Ch 2]\n- Devika has been paying off only one of the two debts, as revealed when Mara deduces this from the information shared by Teodor Vance. [Ch 2]\n- Sant Okoro's research in the Bureau's public ledger room uncovered a second contract signed by Devika's late sister's registration number, which had been dormant for two years. [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 3,
+          "cited_bullets": 3
+        },
+        "themes": {
+          "text": "THEMES & MOTIFS\n\n* **Primary Theme:** Memory and Deception\n\t+ \"Devika questions whether she signed a second contract\" [Ch 1]\n\t+ \"Sant Okoro uncovered a second contract signed by Devika's late sister's registration number\" [Ch 3]\n* **Secondary Themes:**\n\t+ Uncertainty and Doubt\n\t+ Debt and Obligation\n\t+ Truth and Lies\n* **Recurring Motifs:**\n\t+ Contracts and Agreements\n\t+ Letters and Communication\n* **Symbols:**\n\t+ The Archive Steps: A place of meetings and revelations, symbolizing the intersection of truth and deception [Ch 1]\n\t+ The Second Contract: Represents the hidden truths and the manipulation of memory [Ch 1, Ch 2, Ch 3]\n\nThese elements are derived directly from the provided chapter summaries and character profiles.",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 4,
+          "cited_bullets": 0
+        }
+      }
+    },
+    {
+      "run": 7,
+      "sections": {
+        "characters": {
+          "text": "---\n**Name:** Devika Rao [Ch 1]\n**Role:** Protagonist [Ch 1]\n**Physical description:** Not established in the manuscript [Ch 1]\n**Personality:** Doubtful and cautious [Ch 1]\n**Goals:** Question the validity of a second contract [Ch 1]\n**Backstory summary:** Devika is engaged in memory work for the Bureau and is unsure about a second contract under her name. [Ch 1, Ch 2, Ch 3]\n**Arc status:** Questions the validity of a second contract, showing uncertainty about her situation. [Ch 1]\n\n---\n**Name:** Mara Coste [Ch 1]\n**Role:** Supporting character [Ch 1]\n**Physical description:** Not established in the manuscript [Ch 1]\n**Personality:** Concerned and encouraging [Ch 1]\n**Goals:** Encourage Devika to live rather than focus on her remaining years of memory work [Ch 1]\n**Backstory summary:** Mara is a friend of Devika and tries to help her by suggesting she should focus on living. [Ch 1]\n**Arc status:** Realizes there are two debts instead of one and deduces that Devika has only been paying off one debt. [Ch 2]\n\n---\n**Name:** Teodor Vance [Ch 2]\n**Role:** Supporting character [Ch 2]\n**Physical description:** Not established in the manuscript [Ch 2]\n**Personality:** Revealing and possibly concerned [Ch 2]\n**Goals:** Inform Devika about the second contract [Ch 2]\n**Backstory summary:** Teodor Vance is involved in revealing information about Devika's second contract. [Ch 2]\n**Arc status:** Reveals the existence of a second contract to Devika. [Ch 2]\n\n---\n**Name:** Sant Okoro [Ch 3]\n**Role:** Supporting character [Ch 3]\n**Physical description:** Not established in the manuscript [Ch 3]\n**Personality:** Fearful and uncertain [Ch 3]\n**Goals:** Uncover evidence about Devika's sister's registration number [Ch 3]\n**Backstory summary:** Sant Okoro spends time researching and uncovers evidence suggesting Devika's sister might not be dead. [Ch 3]\n**Arc status:** Discovered evidence suggesting Devika's sister might not be dead and raised questions about the Bureau's integrity. [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 32,
+          "cited_bullets": 28
+        },
+        "locations": {
+          "text": "#### Archive steps\n  - **Description:** The steps leading up to the entrance of the archive where Devika meets Mara for their regular settlement day meeting. [Ch 1]\n  - **Significance:** It marks the beginning of Devika's journey into questioning the validity of the second contract. [Ch 1]\n  - **First appearance:** [Ch 1]\n\n---\n\n#### Coopers Row\n  - **Description:** An unspecified location, likely a street or area where Teodor Vance's office is located. [Ch 2]\n  - **Significance:** It is where Teodor Vance reveals the existence of the second contract to Devika, leading to further complications in her understanding of her situation. [Ch 2]\n  - **First appearance:** [Ch 2]\n\n---\n\n#### Bureau's public ledger room\n  - **Description:** A room within the Bureau where Sant Okoro conducted his research and discovered the second contract. [Ch 3]\n  - **Significance:** It houses crucial evidence that challenges the Bureau's claims about Devika's sister and raises questions about the Bureau's integrity. [Ch 3]\n  - **First appearance:** [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 11,
+          "cited_bullets": 9
+        },
+        "timeline": {
+          "text": "- Devika meets Mara on the archive steps [Ch 1]\n- Mara mentions Sant's discovery of a second contract [Ch 1]\n- Devika questions whether she signed a second contract [Ch 1]\n- Teodor Vance reveals the existence of a second contract to Devika [Ch 2]\n- Vance mentions witnessing the second contract [Ch 2]\n- Devika repeats the information to Mara [Ch 2]\n- Mara realizes there are two debts instead of one [Ch 2]\n- Mara concludes that Devika has only been paying off one debt [Ch 2]\n- Sant Okoro spent eleven days in the Bureau's public ledger room [Ch 3]\n- Sant discovered a second contract co-signed by Devika's late sister's registration number [Ch 3]\n- The registration number was used two years after it should have gone dormant [Ch 3]\n- Sant suggested either Devika's sister is not as gone as the Bureau claimed or someone forged the registration [Ch 3]\n- Devika recalled the letters that had stopped [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 13,
+          "cited_bullets": 13
+        },
+        "world_rules": {
+          "text": "- The existence of a second contract under Devika's name is acknowledged within the Bureau's records, indicating that Devika may have unknowingly signed a second agreement. [Ch 2]\n- Devika has been paying off only one of the two debts, as revealed when Mara deduces this from the information shared by Teodor Vance. [Ch 2]\n- Sant Okoro's research in the Bureau's public ledger room uncovered a second contract signed by Devika's late sister's registration number, which had been dormant for two years. This suggests either Devika's sister is not as gone as the Bureau claimed or someone forged the registration. [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 3,
+          "cited_bullets": 3
+        },
+        "themes": {
+          "text": "THEMES & MOTIFS\n\n* **Primary Theme:** Memory and Deception\n  - \"Devika questions whether she signed a second contract, showing uncertainty about her situation.\" [Ch 1]\n  - \"Devika has only been paying off one of the two debts.\" [Ch 2]\n  - \"Sant uncovered a second contract signed by Devika's late sister's registration number, which had been dormant for two years.\" [Ch 3]\n\n* **Secondary Themes:**\n  - **Uncertainty and Doubt:** \n    - \"Devika meets Mara on the archive steps, and Mara suggests Devika should focus on living rather than counting down the remaining years of her memory work.\" [Ch 1]\n    - \"Devika feels increasingly uncertain and afraid.\" [Ch 3]\n  - **Trust and Betrayal:**\n    - \"Mara realizes there are two debts instead of one.\" [Ch 2]\n    - \"Sant suggested either Devika's sister is not as gone as the Bureau claimed or someone forged the registration.\" [Ch 3]\n\n* **Recurring Motifs:**\n  - **Contracts and Debt:**\n    - \"Mara mentions Sant's discovery of a second contract under Devika's name.\" [Ch 1]\n    - \"Teodor Vance reveals the existence of a second contract to Devika.\" [Ch 2]\n    - \"Sant discovered a second contract co-signed by Devika's late sister's registration number.\" [Ch 3]\n  - **Letters Stopping:**\n    - \"Devika recalled the letters that had stopped.\" [Ch 3]\n\n* **Symbols:**\n  - **Second Contract:** Represents the hidden truth and the deception surrounding Devika's past and present obligations. [Ch 1, Ch 2, Ch 3]\n  - **Letters Stopping:** Symbolizes the end of communication and the beginning of Devika's uncertainty and fear. [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 21,
+          "cited_bullets": 13
+        }
+      }
+    },
+    {
+      "run": 8,
+      "sections": {
+        "characters": {
+          "text": "---\n- **Name:** Devika Rao [Ch 1]\n- **Role:** Protagonist [Ch 1]\n- **Physical description:** Not established in the manuscript [Ch 1]\n- **Personality:** Doubtful and cautious [Ch 1]\n- **Goals:** Question the validity of a second contract [Ch 1]\n- **Backstory summary:** Devika is involved in memory work for the Bureau and has been paying off a debt. She discovers a second contract under her name, which she does not remember signing. [Ch 1, Ch 2, Ch 3]\n- **Arc status:** Questions the validity of a second contract, showing uncertainty about her situation [Ch 1, Ch 2, Ch 3]\n\n---\n- **Name:** Mara Coste [Ch 1]\n- **Role:** Supporting character [Ch 1]\n- **Physical description:** Not established in the manuscript [Ch 1]\n- **Personality:** Encouraging and observant [Ch 1]\n- **Goals:** Suggests Devika should focus on living rather than counting down the remaining years of her memory work [Ch 1]\n- **Backstory summary:** Mara is aware of Devika's situation and tries to support her. She notices the second contract and deduces that Devika has only been paying off one of the two debts. [Ch 1, Ch 2]\n- **Arc status:** Realizes there are two debts instead of one and concludes that Devika has only been paying off one debt [Ch 1, Ch 2]\n\n---\n- **Name:** Teodor Vance [Ch 2]\n- **Role:** Supporting character [Ch 2]\n- **Physical description:** Not established in the manuscript [Ch 2]\n- **Personality:** Informative and possibly secretive [Ch 2]\n- **Goals:** Reveals the existence of a second contract to Devika [Ch 2]\n- **Backstory summary:** Teodor Vance is aware of the second contract and reveals its existence to Devika, who does not remember it. [Ch 2]\n- **Arc status:** Reveals the existence of a second contract to Devika [Ch 2]\n\n---\n- **Name:** Sant Okoro [Ch 3]\n- **Role:** Supporting character [Ch 3]\n- **Physical description:** Not established in the manuscript [Ch 3]\n- **Personality:** Investigative and cautious [Ch 3]\n- **Goals:** Uncover evidence suggesting Devika's sister might not be dead and raise questions about the Bureau's integrity [Ch 3]\n- **Backstory summary:** Sant Okoro spends eleven days researching and uncovers a second contract signed by Devika's late sister's registration number, which had been dormant for two years. [Ch 3]\n- **Arc status:** Discovered evidence suggesting Devika's sister might not be dead and raised questions about the Bureau's integrity [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 32,
+          "cited_bullets": 28
+        },
+        "locations": {
+          "text": "#### Archive steps\n  - **Description:** The steps leading up to the entrance of the archive where Devika meets Mara for their regular settlement day meeting. [Ch 1]\n  - **Significance:** It marks the beginning of Devika's awareness about the second contract and her growing uncertainty about her situation. [Ch 1]\n  - **First appearance:** [Ch 1]\n\n---\n\n#### Coopers Row\n  - **Description:** An unspecified location where Teodor Vance reveals the existence of a second contract to Devika. [Ch 2]\n  - **Significance:** This revelation leads to further investigation and understanding of Devika's debt situation. [Ch 2]\n  - **First appearance:** [Ch 2]\n\n---\n\n#### Tea house\n  - **Description:** A place where Devika and Mara meet to discuss the implications of the second contract. [Ch 2]\n  - **Significance:** Mara deduces that Devika has only been paying off one of the two debts, highlighting the complexity of Devika's situation. [Ch 2]\n  - **First appearance:** [Ch 2]\n\n---\n\n#### Bureau's public ledger room\n  - **Description:** A room within the Bureau where Sant Okoro conducted his research and discovered a second contract signed by Devika's late sister's registration number. [Ch 3]\n  - **Significance:** This discovery raises questions about the Bureau's integrity and Devika's sister's possible survival. [Ch 3]\n  - **First appearance:** [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 15,
+          "cited_bullets": 12
+        },
+        "timeline": {
+          "text": "- Devika meets Mara on the archive steps [Ch 1]\n- Mara mentions Sant's discovery of a second contract [Ch 1]\n- Teodor Vance reveals the existence of a second contract to Devika [Ch 2]\n- Devika repeats the information to Mara [Ch 2]\n- Mara realizes there are two debts instead of one [Ch 2]\n- Mara concludes that Devika has only been paying off one debt [Ch 2]\n- Sant Okoro spent eleven days in the Bureau's public ledger room [Ch 3]\n- Sant discovered a second contract co-signed by Devika's late sister's registration number [Ch 3]\n- The registration number was used two years after it should have gone dormant [Ch 3]\n- Sant suggested either Devika's sister is not as gone as the Bureau claimed or someone forged the registration [Ch 3]\n- Devika recalled the letters that had stopped [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 11,
+          "cited_bullets": 11
+        },
+        "world_rules": {
+          "text": "- The existence of a second contract under Devika's name is acknowledged within the Bureau's records, indicating that Devika may have unknowingly signed a second agreement. [Ch 2]\n- Devika has been paying off only one of the two debts, as revealed when Mara deduces this from the information shared by Teodor Vance. [Ch 2]\n- Sant Okoro's research in the Bureau's public ledger room uncovered a second contract signed by Devika's late sister's registration number, which had been dormant for two years. This suggests either Devika's sister is not as gone as the Bureau claimed or someone forged the dormant registration. [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 3,
+          "cited_bullets": 3
+        },
+        "themes": {
+          "text": "THEMES & MOTIFS\n\n* **Primary Theme:** Memory and Deception\n  - \"Devika questions whether she signed a second contract, showing uncertainty about her situation.\" [Ch 1]\n  - \"Devika has only been paying off one of the two debts.\" [Ch 2]\n  - \"Sant uncovered a second contract signed by Devika's late sister's registration number, which had been dormant for two years.\" [Ch 3]\n\n* **Secondary Themes:**\n  - **Uncertainty and Doubt:** Devika's growing doubt about the nature of her contracts and the Bureau's truthfulness.\n    - \"Devika questions whether she signed a second contract, showing uncertainty about her situation.\" [Ch 1]\n    - \"Devika feels increasingly uncertain and afraid.\" [Ch 3]\n  - **Memory Loss and Identity:** The impact of memory loss on personal identity and the struggle to maintain one’s sense of self.\n    - \"Devika's sister's registration number was used two years after it should have gone dormant, raising questions about Devika's sister's status and the Bureau's actions.\" [Ch 3]\n\n* **Recurring Motifs:**\n  - **Contracts and Debt:** The central motif of contracts and debt runs through the narrative, representing both literal financial obligations and metaphorical burdens.\n    - \"Mara mentions Sant's discovery of a second contract under Devika's name.\" [Ch 1]\n    - \"Teodor Vance reveals the existence of a second contract to Devika.\" [Ch 2]\n    - \"Sant discovered a second contract co-signed by Devika's late sister's registration number.\" [Ch 3]\n  - **Letters and Communication:** Letters serve as a motif, symbolizing lost connections and the fading of relationships.\n    - \"Devika recalled the letters that had stopped.\" [Ch 3]\n\n* **Symbols:**\n  - **Second Contract:** Represents a hidden burden or deception, symbolizing the unknown aspects of Devika's past and present.\n    - \"Mara mentions Sant's discovery of a second contract under Devika's name.\" [Ch 1]\n    - \"Teodor Vance reveals the existence of a second contract to Devika.\" [Ch 2]\n    - \"Sant discovered a second contract co-signed by Devika's late sister's registration number.\" [Ch 3]\n  - **Letters:** Symbolize lost communication and the fading of relationships, highlighting the emotional toll of memory loss.\n    - \"Devika recalled the letters that had stopped.\" [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 24,
+          "cited_bullets": 14
+        }
+      }
+    },
+    {
+      "run": 9,
+      "sections": {
+        "characters": {
+          "text": "---\n\n**Name:** Devika Rao [Ch 1]\n\n**Role:** Protagonist [Ch 1]\n\n**Physical description:** Not established in the manuscript [Ch 1]\n\n**Personality:** Doubtful, cautious, uncertain [Ch 1]\n\n**Goals:** Question the validity of a second contract, seek clarity about her situation [Ch 1]\n\n**Backstory summary:** Devika is a memory worker whose memory is being taken as partial payment for a debt. She is unaware of a second contract under her name and feels uncertain about her situation. [Ch 1, Ch 2, Ch 3]\n\n**Arc status:** Questions the validity of a second contract, showing uncertainty about her situation [Ch 1, Ch 2, Ch 3]\n\n---\n\n---",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 10,
+          "cited_bullets": 7
+        },
+        "locations": {
+          "text": "#### Archive steps\n  - **Description:** The steps leading up to the entrance of the archive where Devika meets Mara for their regular settlement day meeting. [Ch 1]\n  - **Significance:** It marks the beginning of Devika's journey into questioning the validity of a second contract and her current situation. [Ch 1]\n  - **First appearance:** [Ch 1]\n\n---\n\n#### Coopers Row\n  - **Description:** A location where Teodor Vance reveals the existence of a second contract to Devika. [Ch 2]\n  - **Significance:** This revelation leads to further complications in Devika's understanding of her debt and her interactions with Mara. [Ch 2]\n  - **First appearance:** [Ch 2]\n\n---\n\n#### Tea house\n  - **Description:** A place where Devika shares the information about the second contract with Mara. [Ch 2]\n  - **Significance:** It is here that Mara deduces the existence of two debts instead of one, highlighting the complexity of Devika's situation. [Ch 2]\n  - **First appearance:** [Ch 2]\n\n---\n\n#### Bureau's public ledger room\n  - **Description:** A room within the Bureau where Sant Okoro conducted his research and discovered a second contract signed by Devika's late sister's registration number. [Ch 3]\n  - **Significance:** This discovery raises questions about the Bureau's integrity and Devika's sister's possible survival, adding layers of uncertainty to Devika's life. [Ch 3]\n  - **First appearance:** [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 15,
+          "cited_bullets": 12
+        },
+        "timeline": {
+          "text": "- Devika meets Mara on the archive steps [Ch 1]\n- Mara mentions Sant's discovery of a second contract [Ch 1]\n- Devika questions whether she signed a second contract [Ch 1]\n- Teodor Vance reveals the existence of a second contract to Devika [Ch 2]\n- Vance mentions witnessing the second contract [Ch 2]\n- Devika repeats the information to Mara [Ch 2]\n- Mara realizes there are two debts instead of one [Ch 2]\n- Mara concludes that Devika has only been paying off one debt [Ch 2]\n- Sant Okoro spent eleven days in the Bureau's public ledger room [Ch 3]\n- Sant discovered a second contract co-signed by Devika's late sister's registration number [Ch 3]\n- The registration number was used two years after it should have gone dormant [Ch 3]\n- Sant suggested either Devika's sister is not as gone as the Bureau claimed or someone forged the registration [Ch 3]\n- Devika recalled the letters that had stopped [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 13,
+          "cited_bullets": 13
+        },
+        "world_rules": {
+          "text": "- The existence of a second contract under Devika's name is acknowledged within the Bureau's records, indicating that Devika may have unknowingly signed additional agreements. [Ch 2]\n- Devika has been paying off one of the two debts, while the other remains unpaid, according to Mara's deduction. [Ch 2]\n- Sant Okoro's research in the Bureau's public ledger room revealed a second contract signed by Devika's late sister's registration number, which had been dormant for two years. [Ch 3]\n- The Bureau takes memories as partial payment for contracts, as evidenced by Devika's lack of recollection of signing the second contract. [Ch 1]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 4,
+          "cited_bullets": 4
+        },
+        "themes": {
+          "text": "THEMES & MOTIFS\n\n* **Primary Theme:** Memory and Deception\n  - \"Devika questions whether she signed a second contract, showing uncertainty about her situation.\" [Ch 1]\n  - \"Devika has only been paying off one of the two debts.\" [Ch 2]\n  - \"Sant uncovered a second contract signed by Devika's late sister's registration number.\" [Ch 3]\n\n* **Secondary Themes:**\n  - **Uncertainty and Doubt:** Devika's doubt about the authenticity of the second contract and her fear regarding her sister's status.\n    - \"Devika questions whether she signed a second contract, showing uncertainty about her situation.\" [Ch 1]\n    - \"Devika, remembering the letters that had stopped, feels increasingly uncertain and afraid.\" [Ch 3]\n  - **Trust and Betrayal:** The trust between Devika and the Bureau is questioned, and there is a sense of betrayal.\n    - \"Sant suggested either Devika's sister is not as gone as the Bureau claimed or someone forged the registration.\" [Ch 3]\n\n* **Recurring Motifs:**\n  - **Letters:** The letters that stopped play a significant role in Devika's uncertainty.\n    - \"Devika recalled the letters that had stopped and felt fear and uncertainty.\" [Ch 3]\n  - **Contracts and Debts:** The presence of multiple contracts and the confusion over which debt Devika is paying off.\n    - \"Mara mentions Sant's discovery of a second contract under Devika's name, which she claims Devika never signed.\" [Ch 1]\n    - \"Teodor Vance reveals the existence of a second contract to Devika.\" [Ch 2]\n    - \"Sant discovered a second contract co-signed by Devika's late sister's registration number.\" [Ch 3]\n\n* **Symbols:**\n  - **Letters:** The letters that stopped symbolize a connection or communication that ceased, contributing to Devika's uncertainty.\n    - \"Devika recalled the letters that had stopped and felt fear and uncertainty.\" [Ch 3]\n  - **Contracts:** The contracts represent the debt and the manipulation of Devika's memory by the Bureau.\n    - \"Sant uncovered a second contract signed by Devika's late sister's registration number.\" [Ch 3]",
+          "example_leaks": [],
+          "placeholder_leaks": [],
+          "bullets": 22,
+          "cited_bullets": 12
+        }
+      }
+    }
+  ]
+}

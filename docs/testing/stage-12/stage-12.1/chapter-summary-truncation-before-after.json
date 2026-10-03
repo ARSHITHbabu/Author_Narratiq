@@ -1,0 +1,116 @@
+{
+  "chapter_words": 4034,
+  "chapter_chars": 23262,
+  "before": [
+    {
+      "jory_wake_betrayal": false,
+      "harbour_seal_in_flour_bin": false,
+      "key_events": [
+        "Wren enters Thorne's cottage",
+        "Thorne recovers from illness",
+        "Wren discusses the night the Marisol was lost",
+        "Wren describes the captain's behavior and a mysterious man",
+        "Wren mentions a woman near the lighthouse",
+        "Thorne agrees to investigate further",
+        "Wren reflects on Edric Thorne's death",
+        "Wren discovers Liesel Marr poisoned Thorne",
+        "Wren visits the Thorne house",
+        "Wren thinks about Edric's last meeting",
+        "Wren writes in her ledger about Edric"
+      ],
+      "raw_summary": "Wren visits Thorne's cottage to discuss the night the Marisol was lost, sharing her observations about the captain's behavior and a mysterious man. Thorne agrees to investigate further. Wren also reflects on Edric Thorne's recent death and discovers that Liesel Marr poisoned him. She visits the Thorne house and writes in her ledger about Edric."
+    },
+    {
+      "jory_wake_betrayal": false,
+      "harbour_seal_in_flour_bin": false,
+      "key_events": [
+        "Wren enters Thorne's cottage",
+        "Thorne recovers from illness",
+        "Wren discusses the night the Marisol was lost",
+        "Wren describes the man who approached the captain's cabin",
+        "Wren mentions seeing a woman near the lighthouse",
+        "Thorne agrees to investigate the captain's background",
+        "Wren reflects on Edric Thorne's death",
+        "Wren discovers Liesel Marr poisoned Thorne",
+        "Wren sees men huddled in the town square",
+        "Wren writes in the ledger about Edric"
+      ],
+      "raw_summary": "Wren visits Thorne's cottage to discuss the night the Marisol was lost, sharing her observations about the crew's behavior and a mysterious man who approached the captain. Thorne agrees to investigate further. Later, Wren reflects on Edric Thorne's death and discovers that Liesel Marr was responsible. She also contemplates the impact of Thorne's passing on the town and her ongoing investigation."
+    },
+    {
+      "jory_wake_betrayal": false,
+      "harbour_seal_in_flour_bin": false,
+      "key_events": [
+        "Wren enters Thorne's cottage",
+        "Thorne recovers from illness",
+        "Wren discusses the night the Marisol was lost",
+        "Wren describes the captain's behavior and a mysterious man",
+        "Wren mentions a woman near the lighthouse",
+        "Thorne agrees to investigate further",
+        "Wren reflects on Edric Thorne's death",
+        "Wren discovers Liesel Marr poisoned Thorne",
+        "Wren visits the Thorne house",
+        "Wren thinks about Edric's last meeting",
+        "Wren writes in her ledger about Edric"
+      ],
+      "raw_summary": "Wren visits Thorne's cottage to discuss the night the Marisol was lost, sharing her observations about the captain's behavior and a mysterious man. Thorne agrees to investigate further. Wren also reflects on Edric Thorne's recent death and discovers that Liesel Marr poisoned him. She visits the Thorne house and writes in her ledger about Edric."
+    }
+  ],
+  "after": [
+    {
+      "jory_wake_betrayal": false,
+      "harbour_seal_in_flour_bin": true,
+      "key_events": [
+        "Wren visits Thorne's cottage",
+        "Wren discusses the night the Marisol was lost",
+        "Wren describes the man who approached the captain's cabin",
+        "Wren sees a mysterious woman near the lighthouse",
+        "Wren writes about Edric Thorne's death and their partnership",
+        "Wren and Ada decipher a Vigenère cipher in the old lighthouse",
+        "Liesel Marr brings bread to Wren and offers condolences",
+        "Liesel Marr speculates about the fire and the new lighthouse",
+        "Wren and Liesel discuss the possibility of arson",
+        "Wren meets with Crane at the customs house",
+        "Crane accuses Wren's father of irregularities in the salt trade",
+        "Wren agrees to help reconcile the ledger with customs records",
+        "Ada finds the harbour seal of Greymouth in Liesel Marr's flour bin"
+      ],
+      "raw_summary": "Wren visits Thorne's cottage to discuss the night the Marisol was lost, revealing suspicious activities and a mysterious man. She writes about Edric Thorne's death and their partnership, then deciphers a Vigenère cipher in the old lighthouse. Liesel Marr brings bread and speculates about arson and the new lighthouse. Wren meets with Crane at the customs house, where he accuses her father of irregularities in the salt trade. Wren agrees to help reconcile the ledger with customs records, and Ada finds the harbour seal in Liesel Marr's flour bin."
+    },
+    {
+      "jory_wake_betrayal": false,
+      "harbour_seal_in_flour_bin": true,
+      "key_events": [
+        "Wren visits Thorne's cottage",
+        "Wren discusses the night the Marisol was lost",
+        "Wren and Thorne discuss the captain's behavior and a mysterious man",
+        "Wren writes in her ledger about Edric Thorne",
+        "Wren and Ada decipher a Vigenère cipher in the old lighthouse",
+        "Liesel Marr brings Wren bread and offers condolences",
+        "Liesel Marr speculates about the fire at Wren's chandlery",
+        "Wren meets with the town's customs officer, Crane",
+        "Crane accuses Wren's father of irregularities in the salt trade",
+        "Ada finds the harbour seal of Greymouth in Liesel Marr's flour bin"
+      ],
+      "raw_summary": "Wren visits Thorne's cottage to discuss the night the Marisol was lost, finding that the captain seemed nervous and secretive. Wren writes in her ledger about Edric Thorne, and she and Ada decipher a Vigenère cipher in the old lighthouse. Wren receives a visit from Liesel Marr, who offers condolences and speculates about the fire at Wren's chandlery. Wren meets with the customs officer, Crane, who accuses her father of irregularities in the salt trade. Ada finds the harbour seal of Greymouth in Liesel Marr's flour bin."
+    },
+    {
+      "jory_wake_betrayal": false,
+      "harbour_seal_in_flour_bin": true,
+      "key_events": [
+        "Wren visits Thorne's cottage",
+        "Wren discusses the night the Marisol was lost",
+        "Wren describes the man who approached the captain's cabin",
+        "Wren sees a mysterious woman near the lighthouse",
+        "Wren writes about Edric Thorne in her ledger",
+        "Wren and Ada decipher a Vigenère cipher in the old lighthouse",
+        "Liesel Marr brings Wren bread and offers condolences",
+        "Liesel Marr speculates about the fire at Wren's chandlery",
+        "Wren meets with the town's customs officer, Crane",
+        "Crane accuses Wren's father of irregularities in the salt trade",
+        "Ada finds the harbour seal of Greymouth in Liesel Marr's flour bin"
+      ],
+      "raw_summary": "Wren visits Thorne's cottage to discuss the night the Marisol was lost, sharing her observations about the captain and a mysterious woman. She writes about Edric Thorne in her ledger, reflecting on his kindness and impact on the town. Wren and Ada decipher a Vigenère cipher in the old lighthouse, finding a record of charitable contributions. Meanwhile, Liesel Marr brings Wren bread and speculates about the fire at her chandlery. Wren meets with the customs officer, Crane, who accuses her father of irregularities in the salt trade. Ada finds the harbour seal of Greymouth in Liesel Marr's flour bin."
+    }
+  ]
+}

@@ -82,6 +82,8 @@ export interface RetrievalMeta {
   chunks_retrieved: number
   chapters_covered: number[]
   scope_limited: boolean
+  /** Chapters whose summaries grounded the suggestions (creative / mixed). */
+  summary_chapters?: number[]
 }
 
 export interface PlotAssistantResponse {
@@ -161,9 +163,25 @@ export interface ManuscriptReport {
   // saved-report metadata (D2). Optional so older responses still type-check.
   relationship_arcs?: RelationshipArcEntry[]
   narrative_signals?: NarrativeSignalEntry[]
+  // Stage 5 task 5.14 fields the backend always returned but the panel never
+  // showed (found in Stage 12.1's issue reconciliation: AUDIT-H8/H9/H10, M12).
+  stakes?:                     StakesAssessment | null
+  themes?:                     ThemeEntry[]
+  chapter_plot_importance?:    Record<string, number>
+  deterministic_open_threads?: string[]
   generated_at?:      string | null
   is_stale?:          boolean
   degraded?:          boolean
+}
+
+export interface StakesAssessment {
+  summary:    string
+  escalation: { chapter: number; note: string }[]
+}
+
+export interface ThemeEntry {
+  theme:    string
+  chapters: number[]
 }
 
 export interface RelationshipArcEntry {

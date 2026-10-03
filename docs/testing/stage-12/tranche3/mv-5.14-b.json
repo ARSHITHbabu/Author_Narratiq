@@ -1,0 +1,226 @@
+{
+  "run_metadata": {
+    "recorded_at": "2026-10-03T06:18:49+00:00",
+    "commit": "f7a7a2ef5df96dfb27ff90223a6c5b70736e0319",
+    "working_tree_dirty": true,
+    "prompt_version": "v4",
+    "prompt_version_fallback": "v2",
+    "prompt_injection_guard": true,
+    "obeyed_min_span": 8,
+    "obeyed_max_story_share": 0.15,
+    "vllm_model": [
+      "Qwen/Qwen2.5-7B-Instruct"
+    ],
+    "qwen_revision": "a09a35458c702b33eeacc393d103063234e8bc28"
+  },
+  "indexed": true,
+  "summaries": [
+    {
+      "chapter": 1,
+      "timeline_markers": [],
+      "characters_present": [
+        "Elena Marsh",
+        "Tobias Wren"
+      ],
+      "relationship_changes": []
+    },
+    {
+      "chapter": 2,
+      "timeline_markers": [],
+      "characters_present": [
+        "Tobias Wren",
+        "Elena"
+      ],
+      "relationship_changes": []
+    },
+    {
+      "chapter": 3,
+      "timeline_markers": [],
+      "characters_present": [
+        "Elena"
+      ],
+      "relationship_changes": []
+    },
+    {
+      "chapter": 4,
+      "timeline_markers": [],
+      "characters_present": [
+        "Ines Calder",
+        "Elena"
+      ],
+      "relationship_changes": []
+    },
+    {
+      "chapter": 5,
+      "timeline_markers": [
+        "a clear night"
+      ],
+      "characters_present": [
+        "Elena",
+        "Ines"
+      ],
+      "relationship_changes": []
+    },
+    {
+      "chapter": 6,
+      "timeline_markers": [],
+      "characters_present": [
+        "Ines",
+        "Elena"
+      ],
+      "relationship_changes": []
+    },
+    {
+      "chapter": 7,
+      "timeline_markers": [],
+      "characters_present": [
+        "Elena",
+        "Ines"
+      ],
+      "relationship_changes": []
+    },
+    {
+      "chapter": 8,
+      "timeline_markers": [],
+      "characters_present": [
+        "Elena",
+        "Ines"
+      ],
+      "relationship_changes": []
+    }
+  ],
+  "scan": {
+    "scan_id": "161cd214-d696-4349-b7e1-37fd7a8ac6aa",
+    "status": "completed",
+    "threads_written": 6,
+    "chapters_scanned": 8,
+    "batches_degraded": 0,
+    "error_code": null,
+    "started_at": "2026-10-03T06:16:56.223462",
+    "finished_at": "2026-10-03T06:17:11.744976"
+  },
+  "report_status": 200,
+  "narrative_signals": [
+    {
+      "kind": "setup_without_payoff",
+      "subject": "Cracked lens mystery",
+      "chapters": [
+        1,
+        2
+      ],
+      "detail": "Introduced in chapter 1 and last seen in chapter 2, with no resolution after that.",
+      "source": "narrative_threads"
+    },
+    {
+      "kind": "setup_without_payoff",
+      "subject": "Missing page",
+      "chapters": [
+        3
+      ],
+      "detail": "Introduced in chapter 3 and last seen in chapter 3, with no resolution after that.",
+      "source": "narrative_threads"
+    },
+    {
+      "kind": "setup_without_payoff",
+      "subject": "The torn page mystery",
+      "chapters": [
+        4
+      ],
+      "detail": "Introduced in chapter 4 and last seen in chapter 4, with no resolution after that.",
+      "source": "narrative_threads"
+    },
+    {
+      "kind": "setup_without_payoff",
+      "subject": "Unusual celestial event",
+      "chapters": [
+        5
+      ],
+      "detail": "Introduced in chapter 5 and last seen in chapter 5, with no resolution after that.",
+      "source": "narrative_threads"
+    },
+    {
+      "kind": "character_disappearance",
+      "subject": "Tobias Wren",
+      "chapters": [
+        1,
+        2
+      ],
+      "detail": "Appears in 2 chapters up to chapter 2, then not in the remaining 6 chapters.",
+      "source": "chapter_summaries"
+    }
+  ],
+  "continuity_status": 200,
+  "continuity": {
+    "story_id": "15224f16-1763-4f27-8041-18ff84a5aa81",
+    "issues_found": 4,
+    "issues": [
+      {
+        "type": "motivation",
+        "description": "Tobias Wren’s motivation to protect the person who broke the lens is not addressed or resolved after chapter 2.",
+        "chapter_refs": [
+          1,
+          2
+        ],
+        "severity": "high",
+        "resolution_hint": "Clarify Tobias’s actions or reveal the person he was protecting in later chapters, such as chapter 7 or 8.",
+        "citation_verified": true
+      },
+      {
+        "type": "timeline",
+        "description": "Tobias Wren is not present in chapters 3 through 8, which contradicts his presence in chapter 1 and 2.",
+        "chapter_refs": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "severity": "high",
+        "resolution_hint": "Either have Tobias reappear in chapters 3 through 8 or remove his presence in chapters 1 and 2.",
+        "citation_verified": true
+      },
+      {
+        "type": "setup_without_payoff",
+        "description": "The mystery of the torn page is introduced in chapter 3 but never resolved.",
+        "chapter_refs": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "severity": "medium",
+        "resolution_hint": "Resolve the torn page mystery by having Elena find out who tore the page or why in chapter 5 or 6.",
+        "citation_verified": false
+      },
+      {
+        "type": "setup_without_payoff",
+        "description": "The unusual celestial event is introduced in chapter 5 but never resolved.",
+        "chapter_refs": [
+          5,
+          6,
+          7,
+          8
+        ],
+        "severity": "medium",
+        "resolution_hint": "Have Elena investigate the unusual celestial event further in chapter 6 or 7.",
+        "citation_verified": false
+      }
+    ],
+    "chapters_scanned": 8,
+    "note": "These are potential inconsistencies for author review — verify each before revising.",
+    "degraded": false,
+    "degraded_reason": null
+  },
+  "checks": {
+    "disappearance_listed_citing_1_2": true,
+    "continuity_findings_cite_real_chapters": true,
+    "signals_without_chapters": 0
+  },
+  "pass": true,
+  "story_id": "15224f16-1763-4f27-8041-18ff84a5aa81"
+}

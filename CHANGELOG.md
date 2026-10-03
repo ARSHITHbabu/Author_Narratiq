@@ -4,6 +4,103 @@ All production changes are documented here in reverse chronological order.
 
 ---
 
+## Unreleased — Stage 12.1 release-candidate verification (not a release)
+
+### Fixed
+- **Long chapters were summarised from their first 8,000 characters only.** `generate_chapter_summary` cut the
+  chapter text at 8,000 characters (about 1,400 words), so anything later in a long chapter never reached the
+  stored summary, the Story Bible or the Manuscript Report. The chapter is now read whole: in one call when it
+  fits the model's context, otherwise in sentence-aligned windows sized from `max_model_len` whose results are
+  merged (lists de-duplicated in order, one short merge call for the prose summary, falling back to the joined
+  parts). Live: on a 4,034-word chapter the old code read 34 % of the text; a late revelation reached the summary
+  0/3 times before and 3/3 after. Tests: `backend/tests/test_chapter_summary_windows.py`.
+- **BGE-M3 embedding on CPU was throttled ~13x.** torch sized its CPU thread pool from the host (48 threads on the
+  A40 pod) while the container's CPU quota is 7.65 CPUs; the two BGE workers ran ~96 threads. Indexing 40 chapters
+  took 44 minutes. The thread count now follows the cgroup quota divided by the BGE workers (`cpu_quota()`,
+  `bge_cpu_threads()` in `services/ai_service.py`); 12 chunks: 32.5 s → 2.4 s. Takes effect at the next backend
+  start. Tests: `backend/tests/test_bge_cpu_threads.py`.
+- **Plot Assistant ideas reported "0 passages, no chapters" while using three chapters.** Creative suggestions
+  are grounded on chapter summaries, which the structured retrieval metadata (task 4.4) did not report, so a
+  whole-story question classified as creative looked like it had searched nothing. `retrieval.summary_chapters` now
+  names the summarised chapters the ideas were based on, and the panel shows them. Found by the live task 4.1 check.
+  Tests: `backend/tests/test_plot_assistant_retrieval_meta.py` (fails without the fix),
+  `frontend/tests/studio/plot-assistant-scope.spec.ts`, live `frontend/tests/browser/plot-assistant-scope.spec.ts`.
+- **The Plot Assistant scope toggle exposed its state only by colour.** "This chapter" / "Full manuscript" are now a
+  labelled group with `aria-pressed`, covered by the new studio test.
+- **Story Bible copied the prompt's own examples into real bibles** (e.g. invented world rules from the example
+  text) and could print a literal "[Ch N]". The prompts now use placeholders, and output lines that repeat a prompt
+  example or carry the placeholder tag are dropped. Live: 9/10 and 10/10 leaking runs before, 0 in 10 × 5 sections
+  after. Tests: `backend/tests/test_story_bible_prompt_examples.py`.
+- **Search could show results for an older query** when responses arrived out of order (SEARCH-1/2/3). Only the
+  newest request may update the panel. Studio test fails on the old code, passes on the fix.
+- **The Manuscript Report did not show stakes, plot weight, themes or open tracker threads** that the backend
+  already returned (AUDIT-H8/H9/H10).
+
+### Added
+- Long-manuscript Plot Assistant measurement: a 40-chapter, 32k-word fixture with planted critical and decoy
+  passages (`backend/tests/fixtures/long_manuscript_*`), and `measure_long_manuscript_ranking.py` /
+  `measure_long_manuscript_coverage.py`. Results: `docs/testing/stage-12/stage-12.1/pa-long-manuscript-measurement.md`.
+
+---
+
+## Unreleased — Stage 12 remediation, Tranche 3 (release candidate work, not a release)
+
+### Fixed
+- **Audio dictation could lose the author's words.** The transcript clean-up (Qwen) dropped a whole dictated
+  sentence such as "Audio note for chapter 3." or "Note to self for the next draft." in 19 of 20 live runs,
+  although its instructions forbid removing content. The cleaned text is what "Append to Note" saves. Code
+  now enforces the rule: if the clean-up loses more than 10 % of the transcript's non-filler words, the raw
+  Whisper transcript is kept. This also covers dictations longer than the 3,000 characters sent to the model,
+  which used to lose their end. Measured after the fix: 40 of 40 outputs keep every word, and filler removal
+  and dialogue punctuation still apply.
+- **Continuity Check reported a marked flashback as a timeline error.** Indexing keeps a chapter's date
+  ("April 20, 2010") but drops the cue ("In a flashback to …"), so a flashback that the text marks was
+  reported in 3 of 3 runs. A chapter whose own text has a flashback or flash-forward cue in the same sentence
+  as a date or year is now treated as one. An unrelated "years ago" elsewhere in a chapter still cannot hide
+  a real reversal. MV-5.14-A now passes: the planted reversal is reported 3/3, and the marked flashback 0/3.
+- **`start-narratiq.sh` only worked from `/workspace/narratiq-ai`.** It now finds its own checkout, so the
+  repository can live at any path. No symlink is needed.
+- **A pod that was only ever empty could not restart** (the Stage 10 empty-database guard false positive).
+  The guard treated any valid backup as proof that author data had existed, including the hourly backups of an
+  empty database. It now reads each set's checksummed manifest (`scripts/backup_evidence.py`). A set counts
+  as evidence unless its manifest proves the snapshot held no author rows. Missing, unverifiable or unknown
+  manifests still count, and an older data backup is never hidden by newer empty ones. An empty database
+  whose backups hold author data still stops startup, deleted on purpose or not: the database cannot show
+  why its rows are gone (`scripts/tests/test_startup_backup_guard.py`, 12 tests).
+- **Restore runbook hazard.** With the connection variables from the verification step still exported,
+  `su postgres -c "dropdb …"` dropped the database as its owner and `createdb` then failed.
+  `backup-and-restore.md` §4 now says to clear them first.
+
+### Added
+- **The live audio-transcription browser test runs** (it had been skipped since Stage 6). A synthetic speech
+  fixture (espeak-ng, regenerable, byte-identical, see `frontend/tests/browser/fixtures/audio/README.md`)
+  goes through upload → real transcript (at least 6 of 9 known words) → append to a note → reload. A silent
+  file fails the test.
+- **Security regression tests:** a replay of the output checks over every committed real model output
+  (`test_output_checks_replay.py`), and a guard that every model call goes through the prompt-injection
+  fence (`test_vllm_call_sites.py`). Every security probe output now records the commit, prompt version and
+  guard setting that produced it.
+- **Injection probe coverage:** emotion, age-adapt, style and translate. Current code: 0 obeyed in 17
+  features, 0 false refusals in 84 legitimate rewrites and 60 clean-prose calls.
+
+### Documentation
+- Current facts in `CLAUDE.md`, `README.md`, the product specification and the operations guides:
+  - OCR works (Stage 12 A2);
+  - Next.js 15.5;
+  - migration head `0027`;
+  - vLLM listens on 127.0.0.1;
+  - streaming routes are off by default;
+  - prompt v4;
+  - three settings were missing from the environment-variable reference.
+
+  Dated records are kept and given addenda instead of being rewritten.
+- Rollback runbook: an isolated rehearsal of the previous release (`0032a81`, Next.js 14, `0026`) took
+  369 s, with data intact apart from the documented presence labels. The model revision rollback took 26 s to
+  download. The `PROMPT_VERSION` configuration rollback is now documented.
+- Capacity: Tier-2 measured. At 50 % strict consistency, up to 15 active authors meet the rewrite and Q&A
+  targets but search exceeds its p95 target. At 10 %, 60 authors meet every target.
+- Backup/restore: the first end-to-end fresh-pod recovery time, about 21 minutes (target ≤ 2 h).
+
 ## Unreleased — Stage 12 remediation, Tranche 2b + voice D-1 (release candidate work, not a release)
 
 ### Fixed

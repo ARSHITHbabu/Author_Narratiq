@@ -76,6 +76,12 @@ class BackupPipelineTests(unittest.TestCase):
         r = su(f"createdb -O narratiq -T {TEMPLATE_DB} {SOURCE_DB}")
         if r.returncode != 0:
             raise unittest.SkipTest(f"could not clone the template: {r.stderr.strip()}")
+        # createdb -T copies the template's ROWS too. Only its schema is wanted:
+        # rows other suites left in narratiq_test (e.g. an audio upload from the
+        # live audio spec) reference files this test's uploads dir does not hold.
+        tables = psql("SELECT string_agg(format('%I', tablename), ',') FROM pg_tables "
+                      "WHERE schemaname='public' AND tablename <> 'alembic_version'")
+        psql(f"TRUNCATE {tables} CASCADE")
         cls._seed()
         cls.env_file = cls.tmp / ".env"
         cls.env_file.write_text(f"DATABASE_URL=postgresql+psycopg2://narratiq:narratiq@localhost:5432/{SOURCE_DB}\n")

@@ -3,6 +3,7 @@
 Status: **Design specification — approved for implementation planning**
 Author: Engineering (Product Architecture / AI Systems / Backend / Database / UX)
 Scope: NarratIQ AI (FastAPI backend + Next.js 14 frontend + vLLM/Qwen2.5-7B-Instruct + BGE-M3 + PostgreSQL 16/pgvector)
+> *2026-10-03 note:* the scope line records the stack when this was designed. The frontend has since moved to Next.js 15.5 (Stage 12 remediation A5); nothing in this design depends on the Next.js major version.
 Baseline: `docs/phases/phase-1-completed/phase-1-status-update.docx` (Phase 1) and `docs/phases/phase-2-completed/phase-2-intelligence-expansion-roadmap.docx` (Phase 2)
 Companion design doc style reference: `docs/specifications/author-style-and-copyright-risk-features.md`
 

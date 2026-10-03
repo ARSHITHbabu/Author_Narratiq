@@ -63,7 +63,7 @@ implemented** (Stage 7).
 ## Open issues
 
 - [Phase 1 identified issues](./issues-and-bugs/open/phase-1-ai-writing-tools-qa-issues.docx) — per-issue Stage 9 status in [`testing/stage-09-qa-rerun-results.md`](./testing/stage-09-qa-rerun-results.md)
-- [OCR image-to-text failure](./issues-and-bugs/ocr-extraction-got-ocr2-dynamiccache-failure.md) — High
+- [OCR image-to-text failure](./issues-and-bugs/ocr-extraction-got-ocr2-dynamiccache-failure.md) — High; **fixed 2026-10-02** (Stage 12 A2), awaiting the product owner's review
 - [Triage register](./issues-and-bugs/triage-register.md) — every reported issue with severity and release-blocking status (decision D-6)
 - [Stage 9 security findings](./testing/stage-09-security-findings.md) — open dependency advisories and the prompt-injection finding
 
@@ -83,6 +83,10 @@ Also see the **Known Issues** summary in the [root README](../README.md#known-is
   - Phase 2 acceptance and 200-chapter scale probes
   - prompt-injection probes before and after the fix, the defence-design experiments, and legitimate-rewrite comparisons with the guard on and off
   - the verified vLLM launch arguments
+- Stage 12 remediation evidence ([`testing/stage-12/`](./testing/stage-12/)):
+  - Tranche 2: prompt-injection, clean-prose and legitimate-rewrite probes, plus the A18 output-check baselines
+  - Tranche 3 ([`testing/stage-12/tranche3/`](./testing/stage-12/tranche3/)): security re-measurement (A19), the MV-5.14 live audit (A20), the Gate 1/2/7 revalidation (A24)
+  - Stage 12.1 release gate verification ([`testing/stage-12/stage-12.1/gate-results.md`](./testing/stage-12/stage-12.1/gate-results.md)): per-gate results, the 114-issue matrix, security audits, the Gate 3b human review package, draft waivers
 - [Performance baselines](./testing/performance-baselines.md) — latency targets and measurements (raw data in [`testing/performance/`](./testing/performance/))
 
 ## Incidents

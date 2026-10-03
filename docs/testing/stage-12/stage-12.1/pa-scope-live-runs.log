@@ -1,0 +1,23 @@
+# Stage 12.1 live task 4.1 check (isolated stack, narratiq_test, seed_fixture story, 3 chapters), 2026-10-03
+## Before the fix (first run)
+chapter scope covered {"chunks_retrieved":1,"chapters_covered":[1],"scope_limited":true}
+    Error: expect(received).toBe(expected) // Object.is equality
+      57 |   expect(full.sent.scope).toBe('full')
+      58 |   expect(full.body.scope_used).toBe('full')
+    > 59 |   expect(full.body.retrieval.chapters_covered.some((n: number) => n > 1)).toBe(true)
+      60 |   await expect(page.getByText('full manuscript', { exact: true })).toBeVisible()
+      61 |   await expect(page.getByText(/Based on \d+ passage\(s\) from chapter\(s\)/)).toBeVisible()
+      62 |   console.log('full scope covered', JSON.stringify(full.body.retrieval))
+  1 failed
+## After the fix, run 1
+chapter scope mixed {"chunks_retrieved":1,"chapters_covered":[1],"scope_limited":true,"summary_chapters":[1]}
+full scope creative {"chunks_retrieved":0,"chapters_covered":[],"scope_limited":false,"summary_chapters":[1,2,3]}
+  1 passed (21.3s)
+## After the fix, run 2
+chapter scope mixed {"chunks_retrieved":1,"chapters_covered":[1],"scope_limited":true,"summary_chapters":[1]}
+full scope mixed {"chunks_retrieved":3,"chapters_covered":[1,2,3],"scope_limited":false,"summary_chapters":[1,2,3]}
+  1 passed (20.9s)
+## After the fix, run 3
+chapter scope mixed {"chunks_retrieved":1,"chapters_covered":[1],"scope_limited":true,"summary_chapters":[1]}
+full scope mixed {"chunks_retrieved":3,"chapters_covered":[1,2,3],"scope_limited":false,"summary_chapters":[1,2,3]}
+  1 passed (22.3s)

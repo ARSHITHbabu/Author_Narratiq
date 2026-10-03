@@ -10,12 +10,12 @@
     {
       "source": "docs/phases/phase-3-planned/phase-3-author-centric-ai-workflow.md",
       "output": "docs/phases/phase-3-planned/phase-3-author-centric-ai-workflow.docx",
-      "source_sha256": "d4915212b68bd6c2b72ae44f4a0688a4dc9f7887c0de96048c7b3ad61dc2beec"
+      "source_sha256": "223d9a729fef831009518479c3ab573f8a1e357a0595d86b85a2fe3287b2457a"
     },
     {
       "source": "docs/specifications/narratiq-ai-product-and-technical-documentation.md",
       "output": "docs/specifications/narratiq-ai-product-and-technical-documentation.docx",
-      "source_sha256": "6b559987cc5d7c6de1324e60eca09b39ca1e975d6029ca6ffcd6ef702c3167a3"
+      "source_sha256": "6345297738e927a3b88814bc8422a606b58efd339731befeaa14c1972f85e194"
     }
   ]
 }

@@ -11,10 +11,8 @@ A full-stack web application for novelists, fiction authors, and serious storyte
 ### On RunPod (recommended)
 
 ```bash
-# start-narratiq.sh expects the repository at /workspace/narratiq-ai.
-# If you cloned it elsewhere (e.g. /workspace/Author_Narratiq), symlink it first:
-ln -s /workspace/Author_Narratiq /workspace/narratiq-ai
-cd /workspace/narratiq-ai
+# start-narratiq.sh finds its own checkout: run it from wherever you cloned the repository
+cd /workspace/narratiq-ai        # or /workspace/Author_Narratiq, or any other path
 bash start-narratiq.sh
 ```
 
@@ -35,7 +33,7 @@ Requires PostgreSQL 16 + pgvector, ~17 GB of model weights, and a CUDA GPU with 
 python3 -m vllm.entrypoints.openai.api_server \
   --model /workspace/models/Qwen2.5-7B-Instruct \
   --served-model-name "Qwen/Qwen2.5-7B-Instruct" \
-  --host 0.0.0.0 --port 9001 --max-model-len 8192
+  --host 127.0.0.1 --port 9001 --max-model-len 8192   # loopback only: vLLM has no API key
 
 # 2 — Backend (port 8000). MUST run from backend/ so config.py finds ./.env,
 #     with exactly one worker (the startup guard refuses more; decision D-3).
@@ -73,7 +71,7 @@ OpenAI-compatible API. There are no stubs or placeholders anywhere in the codeba
 **Embeddings.** BGE-M3 (1024-dim) runs in-process via `sentence-transformers`. Vectors are stored in
 `vector(1024)` columns and retrieved with pgvector HNSW indexes using the `<=>` cosine operator.
 
-**Database.** PostgreSQL 16 + pgvector, 57 tables, 22 Alembic migrations (`0001` → `0026`; numbers
+**Database.** PostgreSQL 16 + pgvector, 57 tables, 23 Alembic migrations (`0001` → `0027`; numbers
 `0003`–`0006` were never used, the chain itself is unbroken). **SQLite is not supported** — a
 pgvector self-check at startup fails hard without it.
 
@@ -97,7 +95,7 @@ narratiq-ai/
 │   ├── config.py                 # pydantic-settings; ~100 env-configurable fields
 │   ├── database.py               # SQLAlchemy engine (pool_size=10, max_overflow=20)
 │   ├── models.py                 # 57 ORM tables
-│   ├── migrations/               # Alembic 0001 → 0026
+│   ├── migrations/               # Alembic 0001 → 0027
 │   ├── middleware/               # rate_limit, upload_guard, concurrency, body_limit,
 │   │                             # csrf, origins, request_context
 │   ├── startup/                  # worker_guard, orphan_recovery
@@ -116,7 +114,7 @@ narratiq-ai/
 │       └── voice/                # Real-time voice agent (20 modules)
 │
 ├── scripts/                      # backups, restore checks, watchdog, rollback, docs tooling
-└── frontend/                     # Next.js 14
+└── frontend/                     # Next.js 15
     ├── app/(dashboard)/projects/[id]/
     │   ├── write · plan · characters · world
     │   └── analyze · assistant · publish        # 7 author workspaces
@@ -181,7 +179,7 @@ Full interactive documentation at `/docs`.
 
 ## Tech Stack
 
-**Frontend** Next.js 14, TypeScript, TailwindCSS, TipTap, Radix UI, TanStack Query, Zustand, Lucide
+**Frontend** Next.js 15, TypeScript, TailwindCSS, TipTap, Radix UI, TanStack Query, Zustand, Lucide
 **Backend** FastAPI, SQLAlchemy 2, Pydantic v2, Alembic, python-jose (session JWT in an HttpOnly cookie), slowapi
 **Database** PostgreSQL 16 + pgvector (HNSW)
 **AI** Qwen2.5-7B-Instruct, BAAI/bge-m3, GOT-OCR2.0, faster-whisper
@@ -201,9 +199,9 @@ Full interactive documentation at `/docs`.
 - [x] AI transforms — refine, tone (9), emotion (6), audience, style, translation
 - [x] Author-inspired style rewrite (public-domain authors only)
 - [x] AI Plot Assistant with RAG over chapter chunks
-- [ ] Handwritten notes OCR (GOT-OCR2.0): upload and review UI exist, but **extraction currently fails** (see Known Issues)
+- [x] Handwritten notes OCR (GOT-OCR2.0) — extraction fixed in Stage 12 (A2); needs a GPU, handwriting quality not yet measured
 - [x] Writing analytics — word count, readability, dialogue ratio
-- [ ] Full manuscript upload: background ingestion works via the API (`POST /api/manuscript/upload/{id}`), but **there is no upload control in the UI yet**
+- [x] Full manuscript import (.txt / .docx) from the Write binder ("Import manuscript…", Stage 12 A8); chapters are saved before success is reported
 - [x] Export to DOCX / PDF
 - [x] Global search (semantic + exact)
 
@@ -262,14 +260,13 @@ The full register of every reported issue, with severity and release-blocking st
 [`docs/issues-and-bugs/triage-register.md`](docs/issues-and-bugs/triage-register.md). Source reports:
 [Phase 1 QA issues](docs/issues-and-bugs/open/phase-1-ai-writing-tools-qa-issues.docx) and
 [Phase 2 production testing issues](docs/issues-and-bugs/resolved/phase-2-production-testing-issues.docx)
-(all 14 Phase 2 issues resolved and re-verified 2026-09-27). Open items at the time of writing (2026-10-01):
+(all 14 Phase 2 issues resolved and re-verified 2026-09-27). Open items at the time of writing (2026-10-03):
 
-1. **OCR extraction fails** (High). Every handwritten-note extraction returns "OCR processing failed",
-   because GOT-OCR2.0's remote code is incompatible with the installed `transformers`
-   (`'DynamicCache' object has no attribute 'seen_tokens'`). See
-   [`docs/issues-and-bugs/ocr-extraction-got-ocr2-dynamiccache-failure.md`](docs/issues-and-bugs/ocr-extraction-got-ocr2-dynamiccache-failure.md).
-2. **No manuscript-upload control in the UI.** The backend ingestion endpoint works; the frontend has
-   no button for it (found by Stage 6, task 6.4; the browser test is written to fail until it exists).
+1. **OCR handwriting quality is not measured.** Extraction works since Stage 12 A2 (it had failed with
+   `'DynamicCache' object has no attribute 'seen_tokens'`; history in
+   [`docs/issues-and-bugs/ocr-extraction-got-ocr2-dynamiccache-failure.md`](docs/issues-and-bugs/ocr-extraction-got-ocr2-dynamiccache-failure.md)).
+   GOT-OCR2.0 needs a GPU.
+2. **Audio transcription runs on the CPU** (faster-whisper, int8), so a long recording takes a while.
 3. **Plot hole detection and the manuscript report cap at 60 chapters** (`_PLOT_HOLE_MAX_CHAPTERS`,
    `_MANUSCRIPT_MAX_CHAPTERS` in `backend/services/ai_service.py`). The cap is accepted for launch
    (decision D-8). The batched and hierarchical strategies that would lift it are **not written**:
@@ -281,18 +278,22 @@ The full register of every reported issue, with severity and release-blocking st
    and otherwise refused, with the author's text left unchanged. This lowers the risk a great deal but
    cannot make it impossible. Only the author's own results are affected, since there is no sharing.
    Measurements: [`docs/testing/stage-09-security-findings.md`](docs/testing/stage-09-security-findings.md).
-5. **Dependency advisories** (D1, D3): vLLM 0.9.2 and Next.js 14 carry published advisories whose
-   fixes need major upgrades. They await a decision (same file).
+5. **Dependency advisories** (D1, D3). Next.js was upgraded to 15.5 (Stage 12 A5). vLLM 0.9.2 keeps its
+   advisories and now listens on 127.0.0.1 only (A4); that is an accepted limitation for this release
+   candidate (owner decision 2026-10-02). The remaining Python and npm Highs are recorded as not reachable
+   in [`docs/testing/stage-09-security-findings.md`](docs/testing/stage-09-security-findings.md).
 6. **Phase 1 QA backlog awaiting author acceptance.** Fixes for the Plot Assistant, writing tools,
    suggestions, cast and Story Audit issues landed in Stages 4, 5 and 8 (for example, the Plot Assistant
    now searches up to the current chapter by default, with a full-manuscript option). Formal closure
    needs real-author UAT ([`docs/testing/stage-09-uat-guide.md`](docs/testing/stage-09-uat-guide.md)).
-   Duplicate-character **detection** (task 4.8) is not built; manual merge exists.
+   Possible duplicate characters are now detected and listed for an author-confirmed merge (Stage 12 A7);
+   nothing merges automatically.
 7. **No off-pod backup copy and no person-delivered alerts.** Backups stay on the pod volume, and alerts
    go to `/workspace/logs/alerts.jsonl`. Both are deferred until an external service is approved
    (Stage 10 decisions S10-B, S10-D). A pod/volume reset therefore loses the database.
 
-Resolved since earlier revisions of this list: the vLLM port contradiction (9001 everywhere; `start.sh`
+Resolved since earlier revisions of this list: OCR extraction (Stage 12 A2), the missing manuscript-upload
+control (A8), duplicate-character detection (A7), the Next.js 14 advisories (A5), the vLLM port contradiction (9001 everywhere; `start.sh`
 retired), Story Bible placeholders stored as content (per-section `completed`/`partial`/`failed`
 status since Stage 3), and the outline / continuation / continuity / plot-hole failures. Those had
 **two** causes, not one: a retrieval call-signature bug (task 3.1) and schema handling of model output

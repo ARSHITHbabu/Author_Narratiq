@@ -10,14 +10,9 @@ For pod creation and troubleshooting, see [`docs/operations/runpod-deployment.md
 
 ## Before you start
 
-### Repository path is fixed
+### Repository path
 
-`start-narratiq.sh:14-15` hardcodes `/workspace/narratiq-ai`. Clone there, or symlink:
-
-```bash
-ln -s /workspace/Author_Narratiq /workspace/narratiq-ai
-ls /workspace/narratiq-ai/start-narratiq.sh   # must exist
-```
+Since Stage 12 Tranche 3 (2026-10-03) `start-narratiq.sh` finds its own checkout, so the repository can be at any path (for example `/workspace/narratiq-ai` or `/workspace/Author_Narratiq`); no symlink is needed. The commands in this document use `/workspace/narratiq-ai`. Substitute your path.
 
 ### Environment variables
 
@@ -87,14 +82,14 @@ python3 -m vllm.entrypoints.openai.api_server \
   --max-num-seqs 256 \
   --enable-chunked-prefill \
   --enable-prefix-caching \
-  --host 0.0.0.0 \
+  --host 127.0.0.1 \
   --port 9001 \
   --disable-log-requests
 ```
 
 Wait for:
 ```
-INFO:     Uvicorn running on http://0.0.0.0:9001
+INFO:     Uvicorn running on http://127.0.0.1:9001
 ```
 
 Loading takes 2–4 minutes. Adjust for your GPU count — Qwen2.5-7B has 4 KV heads, so

@@ -23,9 +23,8 @@ bash /workspace/narratiq-ai/start-narratiq.sh
 ```
 
 One command handles installs, model downloads, PostgreSQL + pgvector, migrations, all three services,
-the backup loop and the watchdog. It is idempotent and safe to rerun. The repository must be at
-`/workspace/narratiq-ai`; if it was cloned elsewhere, symlink it first (see
-[`how-to-run.md`](./how-to-run.md)).
+the backup loop and the watchdog. It is idempotent and safe to rerun. The script finds its own
+checkout, so the repository can be at any path (since Stage 12 Tranche 3); see [`how-to-run.md`](./how-to-run.md).
 
 You need **no** environment variables to start — the script generates every mandatory value. Only
 `SECRET_KEY` and `HF_TOKEN` are worth setting by hand. A stale `VLLM_BASE_URL` pointing at port 8001

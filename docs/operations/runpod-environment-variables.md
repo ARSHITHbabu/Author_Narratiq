@@ -351,6 +351,10 @@ Most likely to be worth overriding:
 | `MAX_AUDIO_UPLOAD_MB` / `MAX_OCR_UPLOAD_MB` / `MAX_MANUSCRIPT_UPLOAD_MB` | `100` / `50` / `25` | Adjust upload caps |
 | `RATE_LIMIT_*` | see `config.py:87-92` | Six independent limits |
 | `VOICE_ADMIN_EMAILS` | `[]` | JSON list; grants access to `/api/voice/analytics/*` |
+| `PROMPT_VERSION` | `v4` | Prompt set (Stage 12 A15). `v3` restores the previous prompts exactly: a config-level rollback. An unknown value falls back to `PROMPT_VERSION_FALLBACK` (`v2`) and logs an error |
+| `PROMPT_INJECTION_GUARD` | `true` | Prompt-injection fence (Stage 11). `false` is for measurement only |
+| `AI_STREAM_ROUTES_ENABLED` | `false` | `/api/ai/<tool>/stream` answer 404 unless `true` (Stage 12 A3). They skip sentence locks, strength limits and the output checks; no screen uses them. Diagnostics only |
+| `CHILDREN_SUITABILITY_OVERRIDE` | `true` | Children's adaptation: a passage that mentions a death or violence always gets the normal reviewable rewrite, never "already suitable" (Stage 12 A14) |
 
 Full field-by-field listing: `backend/config.py:30-238`.
 
@@ -607,17 +611,7 @@ git clone https://github.com/ARSHITHbabu/Author_Narratiq.git narratiq-ai
 ```
 
 ### 7. Confirm the repository path
-**This matters.** `start-narratiq.sh:14-15` hardcodes `/workspace/narratiq-ai`. Cloning to any other
-directory makes the script fail immediately.
-
-```bash
-ls /workspace/narratiq-ai/start-narratiq.sh   # must exist
-```
-
-If the directory is named differently, symlink rather than editing the script:
-```bash
-ln -s /workspace/Author_Narratiq /workspace/narratiq-ai
-```
+Since Stage 12 Tranche 3 (2026-10-03) `start-narratiq.sh` finds its own checkout, so the repository can be at any path (for example `/workspace/narratiq-ai` or `/workspace/Author_Narratiq`); no symlink is needed. The commands in this document use `/workspace/narratiq-ai`. Substitute your path. Earlier revisions of this step required the path `/workspace/narratiq-ai`, or a symlink to it.
 
 ### 8. Run the startup script
 ```bash

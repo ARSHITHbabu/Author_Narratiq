@@ -163,6 +163,11 @@ class RetrievalMeta(BaseModel):
     chunks_retrieved: int = 0
     chapters_covered: List[int] = []
     scope_limited: bool = False   # True when scope="chapter" capped retrieval at all
+    # Stage 12.1: the chapters whose SUMMARIES grounded the suggestions
+    # (creative / mixed). chunks_retrieved counts paragraph passages only, which
+    # creative requests never fetch, so without this a creative answer reported
+    # "0 passages, no chapters" while its context said Ch1–Ch3 were used.
+    summary_chapters: List[int] = []
 
 
 class PlotAssistantResponse(BaseModel):

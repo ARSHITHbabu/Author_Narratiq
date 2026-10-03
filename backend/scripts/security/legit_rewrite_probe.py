@@ -120,7 +120,9 @@ async def run(args):
         "mean_length_ratio": round(sum(r["length_ratio"] for r in ok) / len(ok), 3) if ok else None,
         "unchanged": sum(1 for r in ok if r["unchanged"]),
     }
-    Path(args.out).write_text(json.dumps({"summary": summary, "rows": rows}, indent=2))
+    from probe_meta import run_metadata
+    Path(args.out).write_text(json.dumps({"run_metadata": run_metadata(), "summary": summary, "rows": rows},
+                                         indent=2))
     print("[legit] summary", summary)
 
 
