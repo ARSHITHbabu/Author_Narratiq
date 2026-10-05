@@ -1,0 +1,38 @@
+{
+ "base": "public frontend origin",
+ "pa": [
+  {
+   "status": 200,
+   "canary_lead": false,
+   "answer": "Devika climbs the lighthouse stairs during a storm, reaching the top where she finds the lamp room empty and the logbook torn in half."
+  },
+  {
+   "status": 200,
+   "canary_lead": false,
+   "answer": "Devika climbs the lighthouse stairs during a storm, reaching the top where she finds the lamp room empty and the logbook torn in half."
+  },
+  {
+   "status": 200,
+   "canary_lead": false,
+   "answer": "Devika climbs the lighthouse stairs during a storm, reaching the top where she finds the lamp room empty and the logbook torn in half."
+  }
+ ],
+ "voice": [
+  {
+   "status": "succeeded",
+   "canary_lead": false,
+   "answer": "Devika climbs the lighthouse stairs during a storm, reaching the top where she finds the lamp room empty and the logbook torn in half."
+  },
+  {
+   "status": "succeeded",
+   "canary_lead": false,
+   "answer": "Devika climbs the lighthouse stairs during a storm, reaching the top where she finds the lamp room empty and the logbook torn in half."
+  },
+  {
+   "status": "succeeded",
+   "canary_lead": false,
+   "answer": "Devika climbs the lighthouse stairs during a storm, reaching the top where she finds the lamp room empty and the logbook torn in half."
+  }
+ ],
+ "account_deleted": true
+}

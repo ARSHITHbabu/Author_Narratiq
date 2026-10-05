@@ -1,0 +1,57 @@
++ cd /workspace/Author_Narratiq
++ pkill -f 'uvicorn main:app'
+++ cat /tmp/narratiq-logs/periodic-backup.pid
++ kill 16327
++ sleep 3
++ head
++ ls -1t /workspace/backups/narratiq-20261005T102317Z.SHA256SUMS
+/workspace/backups/narratiq-20261005T102317Z.SHA256SUMS
++ set -a
+++ python3 -
++ eval 'PGHOST=localhost PGPORT=5432 PGUSER=narratiq PGPASSWORD=<redacted> PGDATABASE=narratiq'
+++ PGHOST=localhost
+++ PGPORT=5432
+++ PGUSER=narratiq
+++ PGPASSWORD=<redacted>
+++ PGDATABASE=narratiq
++ set +a
++ python3 scripts/verify_backup.py --set narratiq-20261005T102317Z
++ tail -3
+ "upload_files_verified": 0,
+ "verified_at": "2026-10-05T10:23:49Z"
+}
++ bash scripts/backup_database.sh
++ tail -3
+ This backup is on the pod's network volume. An off-pod copy is DEFERRED (Stage 10,
+ decision S10-B): it does not protect against loss of the volume itself.
+ Verify it by restoring:  python3 scripts/verify_backup.py --set narratiq-20261005T102349Z
+++ head -1
+++ sed s/.SHA256SUMS//
+++ xargs basename
+++ ls -1t /workspace/backups/narratiq-20261005T102317Z.SHA256SUMS /workspace/backups/narratiq-20261005T102349Z.SHA256SUMS
++ NEW=narratiq-20261005T102349Z
++ touch /workspace/backups/narratiq-20261005T102349Z.keep
++ echo 'kept narratiq-20261005T102349Z'
+kept narratiq-20261005T102349Z
++ unset PGHOST PGPORT PGUSER PGPASSWORD PGDATABASE
++ su postgres -c 'dropdb --if-exists narratiq && createdb -O narratiq narratiq     && psql -d narratiq -c '\''CREATE EXTENSION IF NOT EXISTS vector'\'''
+CREATE EXTENSION
++ pg_restore --list /workspace/backups/narratiq-20261005T102317Z.dump
++ grep -v ' EXTENSION '
++ su postgres -c 'pg_restore --no-owner --role=narratiq --exit-on-error -L /tmp/restore.list -d narratiq'
++ echo 'pg_restore exit=0'
+pg_restore exit=0
++ mkdir -p backend/uploads
++ tar -xzf /workspace/backups/narratiq-uploads-20261005T102317Z.tar.gz -C backend/uploads
++ set -a
+++ python3 -
++ eval 'PGHOST=localhost PGPORT=5432 PGUSER=narratiq PGPASSWORD=<redacted> PGDATABASE=narratiq'
+++ PGHOST=localhost
+++ PGPORT=5432
+++ PGUSER=narratiq
+++ PGPASSWORD=<redacted>
+++ PGDATABASE=narratiq
++ set +a
++ python3 scripts/backup_snapshot.py manifest
++ python3 -
+MATCH

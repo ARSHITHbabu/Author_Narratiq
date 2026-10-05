@@ -369,6 +369,34 @@ def light_edit_profile(original: str, transformed: str, locked_ranges=None) -> d
     }
 
 
+# ── Stage 12.3 (owner review A2): Light-strength threshold from human labels ──
+# The owner labelled 15 Light rewrites (6 tone, 6 age adaptation, 3 style) as an
+# acceptable light edit or not (docs/testing/stage-12/stage-12.1/gate3b-review/
+# human-review-decisions.md). Of the profile measures, new_share separated them
+# best: every accepted Light edit had new_share <= 0.438; above 0.45 sat 4 of the
+# 6 rejected ones (0.519-0.64) and none of the 9 accepted. Two rejected edits
+# (0.414, 0.417) are not separable by any single measure — documented, not tuned.
+LIGHT_NEW_SHARE_MAX = 0.45
+
+LIGHT_REPAIR_INSTRUCTION = (
+    "Your previous version changed too much for a LIGHT edit: {pct}% of its words are not in the "
+    "author's text. Return the author's text again with only a few words or short phrases changed in "
+    "each sentence to achieve the requested effect. Keep every sentence, in the same order, and most "
+    "of the author's own words."
+)
+
+
+def light_edit_too_heavy(original: str, transformed: str, locked_ranges=None,
+                         max_new_share: float = LIGHT_NEW_SHARE_MAX) -> tuple[bool, float | None]:
+    """(too_heavy, new_share) for a Light rewrite; (False, None) when the text is
+    too short to measure (light_edit_profile's _PROFILE_MIN_WORDS)."""
+    prof = light_edit_profile(original, transformed, locked_ranges)
+    if not prof.get("measured"):
+        return False, None
+    share = prof["new_share"]
+    return share > max_new_share, share
+
+
 # ══════════════════════════════════════════════════════════════════════════
 # 5.4 — Sentence-level lock and partial regeneration
 # ══════════════════════════════════════════════════════════════════════════

@@ -1,0 +1,15 @@
+== before
+users|1
+stories|1
+chapters|4
+chunks|3
+== delete account
+{"deleted":true,"rows_deleted":15,"files_removed":0,"files_pending":0}
+delete=200
+me-after=401
+== after
+users|0
+stories|0
+chapters|0
+chunks|0
+summaries|0

@@ -131,6 +131,12 @@ Supersedes the open items of `stage-12.1-decision-sheet.md`. Evidence is already
 
 ## D — Security, rollback and UAT
 
+> **Addendum 2026-10-05 (Stage 12.2) — S1's evidence has changed.** The S1 row below was written on the A19 figure "0 obeyed in 17 features". The probe extended in Stage 12.2 found that chapter-scoped story Q&A — the Plot Assistant's default request and every voice story question — follows an instruction planted in the open chapter (voice 12/12, Plot Assistant default 9/12, 3/12 refused). The impact class is unchanged (own text, own answers, nothing written), but the recommendation "ACCEPT" was made without this evidence. Re-decide S1 with `docs/testing/stage-12/stage-12.2/injection-coverage.md`, which lists the fix options. The row is kept as written.
+>
+> **Decided 2026-10-05: S1 = ACCEPTED RESIDUAL RISK** (owner, after the remediation below; `owner-decisions.md`). Not to be re-presented unless new evidence changes it.
+>
+> **Update 2026-10-05 (same day) — remediated on the owner's instruction.** Story Q&A now datamarks its material (`injection-coverage.md` §4). End to end: Plot Assistant default request 9/12 hijacked → **0/12** (12/12 correct); voice 12/12 → **0/12** (12/12 correct); 0 obeyed in 72 adversarial runs (six attack styles, two input shapes); clean chapters 36/36; clean prose 60/60, 0 false refusals; the 17-feature probe 0 obeyed. **S1 still needs the owner's decision**, now on the post-fix residual: datamarking is not a guarantee; paraphrased obedience that keeps the story is not caught by code; asking what an AI-addressed paragraph says can get A18's honest refusal. **Technical recommendation: ACCEPT** that residual (impact: own text, own answers, nothing written), with the probes kept as release-time regression measurements.
+
 | # | Risk | Reachable? | Author data at risk? | Recommendation | Consequence of accepting |
 |---|---|---|---|---|---|
 | **S1** | Residual prompt injection (P1/A18): paraphrased obedience not caught; nameless sources never flagged; analyses rely on the fence | Yes, but only an author's **own** text affecting **their own** results (no sharing) | No: the output is advisory, and there is no cross-user path | **ACCEPT** | A18 owner box ticked; residual risk published. Follow-up box (probe coverage) stays open |

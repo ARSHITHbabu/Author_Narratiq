@@ -1,6 +1,14 @@
-# Stage 12.1 — DRAFT waiver register (none accepted)
+# Stage 12.1 — waiver register
 
-> **Status: DRAFTS ONLY.** No waiver below is accepted, recorded or in force. Each takes effect only if the product
+> **Decided 2026-10-05 by the product owner** (`owner-decisions.md`): **W-1 waived with condition** (the full
+> regression recorded against the exact release commit, every release, until CI exists —
+> `docs/operations/release-regression.md`); **W-2 waived** while RunPod is the only supported deployment target;
+> **W-4 waived with a required daily manual check** (`scripts/daily_check.sh`, `monitoring-and-alerting.md` §3a);
+> **W-3 NOT waived** — no real author data until an approved off-pod copy exists and one off-pod restore is verified;
+> **W-5 open** until the owner confirms the `SECRET_KEY` copy. The drafts below are kept as written.
+
+
+> *Status as drafted on 2026-10-03 (superseded by the decisions above):* **DRAFTS ONLY.** No waiver below is accepted, recorded or in force. Each takes effect only if the product
 > owner explicitly approves it, with a dated decision. Until then, the gates that depend on these items stay open.
 > Master Execution Plan §13: "No gate may be waived without a recorded product-owner decision."
 

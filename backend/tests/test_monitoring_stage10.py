@@ -338,3 +338,12 @@ def test_uvicorn_proxy_headers_warning():
     assert worker_guard.warn_if_uvicorn_proxy_headers(
         own=["python3", "-m", "uvicorn", "main:app", "--no-proxy-headers"], parent=[]) is False
     assert worker_guard.warn_if_uvicorn_proxy_headers(own=["pytest"], parent=["bash"]) is False
+    # Stage 12.2: a launching shell carries the whole command as one argument; that is
+    # not a uvicorn launch, and the real uvicorn argv decides.
+    shell = ["bash", "-c", "nohup python3 -m uvicorn main:app --workers 1 --no-proxy-headers &"]
+    assert worker_guard.warn_if_uvicorn_proxy_headers(
+        own=["python3", "-m", "uvicorn", "main:app", "--no-proxy-headers"], parent=shell) is False
+    assert worker_guard.warn_if_uvicorn_proxy_headers(
+        own=["python3", "-m", "uvicorn", "main:app"], parent=shell) is True
+    assert worker_guard.warn_if_uvicorn_proxy_headers(
+        own=["/usr/local/bin/uvicorn", "main:app"], parent=[]) is True

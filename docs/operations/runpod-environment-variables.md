@@ -241,7 +241,7 @@ Jupyter/web-terminal scrollback, in a log, or in any chat or AI transcript.
 | Effect of changing | None on data. Only affects future downloads |
 
 All three primary models (Qwen2.5-7B-Instruct, BGE-M3, GOT-OCR2.0) are **public** — the token is a
-convenience, not a requirement. It matters most on first boot, when ~17 GB is pulled.
+convenience, not a requirement. It matters most on first boot, when ~22 GB is pulled.
 
 ### 3.5 `MODEL_BASE_DIR`
 
@@ -353,6 +353,8 @@ Most likely to be worth overriding:
 | `VOICE_ADMIN_EMAILS` | `[]` | JSON list; grants access to `/api/voice/analytics/*` |
 | `PROMPT_VERSION` | `v4` | Prompt set (Stage 12 A15). `v3` restores the previous prompts exactly: a config-level rollback. An unknown value falls back to `PROMPT_VERSION_FALLBACK` (`v2`) and logs an error |
 | `PROMPT_INJECTION_GUARD` | `true` | Prompt-injection fence (Stage 11). `false` is for measurement only |
+| `LIGHT_STRENGTH_REPAIR` | `true` | Light strength: a rewrite adding more than `LIGHT_NEW_SHARE_MAX` (`0.45`, set from owner labels) new words is retried once; still too heavy → the "changed more than expected" note (Stage 12.3). `false` restores the previous behaviour |
+| `PROMPT_INJECTION_DATAMARK_QA` | `true` | Story Q&A (Plot Assistant, voice questions): marks the fenced material so an instruction planted in a chapter reads as story text (Stage 12.2). `false` restores the Stage 11 Q&A prompt; has no effect while the guard is off |
 | `AI_STREAM_ROUTES_ENABLED` | `false` | `/api/ai/<tool>/stream` answer 404 unless `true` (Stage 12 A3). They skip sentence locks, strength limits and the output checks; no screen uses them. Diagnostics only |
 | `CHILDREN_SUITABILITY_OVERRIDE` | `true` | Children's adaptation: a passage that mentions a death or violence always gets the normal reviewable rewrite, never "already suitable" (Stage 12 A14) |
 
@@ -406,7 +408,7 @@ skips completed work on later runs.
 | 1g transformers | 154-161 | Pins `<5.0` | — | — | — | Yes |
 | 1f Backend deps | 165-201 | ~25 pip packages + HF tooling | — | — | — | Yes |
 | 1g npm | 205-215 | Only when `node_modules` absent | — | `node_modules` | — | Yes |
-| 2 Models | 227-288 | `config.json` presence for Qwen / BGE-M3 / GOT-OCR2.0; `model.bin` for Whisper; HF cache for partial STT | `STT_PARTIAL_MODEL` (default `base`), `HF_TOKEN` (via `download_models.sh`) | `$MODEL_DIR/*`, HF cache | Downloads (~17 GB, 10–20 min) | Yes — skips existing files |
+| 2 Models | 227-288 | `config.json` presence for Qwen / BGE-M3 / GOT-OCR2.0; `model.bin` for Whisper; HF cache for partial STT | `STT_PARTIAL_MODEL` (default `base`), `HF_TOKEN` (via `download_models.sh`) | `$MODEL_DIR/*`, HF cache | Downloads (~22 GB, 10–20 min) | Yes — skips existing files |
 | 3 vLLM launch | 296-336 | Kills old process, clears torch compile cache, autodetects GPU count | — | `$LOG_DIR/vllm.log` | TP/len/util derived from GPU count | Yes |
 | 4 vLLM health | 342-355 | Polls `/health` for 6 min | — | — | **Exits 1** | Yes |
 | **4b `SECRET_KEY`** | 358-367 | `grep -q "^SECRET_KEY=" backend/.env` | the **file**, not the env | `backend/.env` (append) | **Generates a 64-hex key** | Yes — stable once written |
@@ -572,7 +574,7 @@ Template: a PyTorch/CUDA image on Ubuntu 22.04. The script installs everything e
 - **GPU:** one card with ≥24 GB VRAM runs Qwen2.5-7B at `TP=1`, `max-model-len 8192`.
   Two or four cards raise this automatically (`start-narratiq.sh:311-315`; `TP` must divide the
   model's 4 KV heads, so 1, 2 or 4 — never 3).
-- **Disk:** ≥60 GB. Models alone are ~17 GB; `verify_runpod_setup.sh:158` requires 30 GB free.
+- **Disk:** ≥60 GB. Models alone are ~22 GB; `verify_runpod_setup.sh:158` requires 30 GB free.
 - **Exposed HTTP ports:** `8000` (backend) and `3000` (frontend). Port `9001` (vLLM) is internal.
 - **Network Volume:** optional — read the §3.5 caveat first.
 
@@ -618,7 +620,7 @@ Since Stage 12 Tranche 3 (2026-10-03) `start-narratiq.sh` finds its own checkout
 cd /workspace/narratiq-ai
 bash start-narratiq.sh
 ```
-First run: 20–40 minutes (dependency installs plus ~17 GB of model downloads).
+First run: 15–40 minutes (dependency installs plus ~22 GB of model downloads).
 Later runs: 3–5 minutes. Rerunning is safe.
 
 ### 9. Monitor the logs

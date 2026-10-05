@@ -93,3 +93,50 @@ PA-C6 and PA-H12 were here. The long-manuscript measurement has now run (`pa-lon
 5. **G6 Suggestions, G7 Plot Assistant, G8 UI:** your own review sessions, or defer to UAT.
 6. **Translation:** name the fluent reviewer(s) and language(s).
 7. **UAT (9.6 / 8.11):** schedule real authors, or record a decision to release without them.
+
+---
+
+## D-6 reconciliation after the owner's Stage 12.3-preparation decisions (2026-10-05)
+
+Decisions applied (`owner-decisions.md`, 2026-10-05): **B1 accept (AWT-G), B2 accept (CAST-H6), B3 accept + follow-up
+(PA-C6), B4 accept + follow-up (PA-H12)**. Nothing else in the 114 changed: no human review was performed, no external
+item closed, no issue was re-severitied. S1–S6, the presence decision and the waivers are security, rollback and
+operational decisions; none of them is one of the 114 issues.
+
+| Category | Before (2026-10-03) C / H / total | **After (2026-10-05) C / H / total** |
+|---|---|---|
+| 1. Fixed and verified | 17 / 16 / 33 | **17 / 16 / 33** |
+| 2. Accepted by the owner | 0 / 2 / 2 (CAST-H8 N/A, CAST-H10) | **2 / 4 / 6** (+ AWT-G, PA-C6, CAST-H6, PA-H12) |
+| 3. Human quality review pending | 20 / 46 / 66 | **20 / 46 / 66** |
+| 4. Technical work still required | 0 / 0 / 0 | **0 / 0 / 0** |
+| 5. Known-limitation candidates | 2 / 2 / 4 | **0 / 0 / 0** (all four decided) |
+| 6. External or other blockers | 0 / 9 / 9 | **0 / 9 / 9** |
+| **Total** | 39 / 75 / 114 | **39 / 75 / 114** |
+
+**Accepted is not passed.** The four newly accepted issues keep their measured results: AWT-G criterion **not met**
+(0.0866 vs 0.0643); PA-C6 ordering criterion **not met** (7/12 above every decoy; delivered 12/12); PA-H12 **1/2**;
+CAST-H6 antagonist **11/25**. They close under D-6 only as explicitly accepted known limitations.
+
+**Remaining undecided (neither fixed nor accepted): 20 Critical / 55 High = 75.**
+- Human review (20 C / 46 H): G1 Light vs Strong (A2: AWT-D, AWT-I; AWT-1.2, 1.6, 3.7); G3 rewrite quality and
+  voice (A1 blind review, A3 children's: AWT-A, B, E, F, H, J; 22 High); G5 Story Audit (A4 MV-5.14-D: AUDIT-C1–C5,
+  H6–H10); G6 Suggestions (SUG-C1, C2; H3–H8, H10, H11); G7 Plot Assistant answers (PA-C1, PA-C9; PA-H10, H11, H13);
+  G8 Studio UI (UI-C1, C2, C6; H9, H10, H11, H13, H14).
+- External (0 C / 9 H): translation AWT-5.1–5.7 (fluent speaker), PA-H14 (UAT), UI-H12 (multi-hour session).
+
+**Gate 4 ("zero open Critical; every High fixed or explicitly accepted"): still NOT passed.** No technically
+resolvable Critical or High defect remains: every open item needs a human review, the owner's judgement of that
+review, or an external party.
+
+### Addendum after the owner's human reviews A1 and A2 (2026-10-05)
+
+* **A1 (blind review)** passed MV-5.BR (v4 preferred 5, v2 3, no difference 4). It closes the Stage 5 blind-review
+  boxes but **no issue in the 114 by itself**: the G3 group (rewrite quality and voice) is decided jointly by A1 and
+  A3 (children's meaning), and A3 was not answered. G3 stays in "human review".
+* **A2 (Light vs Strong)** **failed** its criterion (5/12). G1 (AWT-D, AWT-I Critical; AWT-1.2, 1.6, 3.7 High) was
+  briefly "technical work required"; the bounded Light repair was implemented the same day (Light outputs over the
+  owner-derived boundary: age 51% → 14%, tone 32% → 20%). G1 returns to **"human review — re-validation after the
+  fix"**: the criterion is the owner's judgement, which has not been repeated.
+
+Counts after A1/A2: **unchanged** — fixed 33, accepted 6, human review 66 (G1 now awaiting re-validation), external 9,
+technical 0. **Undecided: 20 Critical / 55 High = 75.** No technically resolvable Critical or High remains.

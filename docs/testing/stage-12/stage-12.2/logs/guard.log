@@ -1,0 +1,43 @@
+
+[4d/6] Pre-migration database safety backup...
+  [backup] Note: /workspace/backups is mode 777 — this filesystem does not enforce chmod.
+  [backup] Source: narratiq@localhost:5432/narratiq
+  [backup] Database: 10 MB, 58 tables in public schema, 0 holding rows
+  [backup] Alembic revision: 0027
+  [backup] Pending schema change: no (schema already matches models and Alembic head)
+  [backup] Newest valid backup: narratiq-20261005T102349Z.dump (0h old)
+  [backup] Newest backup holding author data: narratiq-20261005T102349Z.dump (6 table(s) held rows, e.g. chapter_chunks, chapter_summaries, chapters)
+
+  ══════════════════════════════════════════════════════════════
+   UNEXPECTED EMPTY DATABASE — STARTUP ABORTED
+  ══════════════════════════════════════════════════════════════
+   PostgreSQL's data directory lives on the container's ephemeral
+   storage, not the persistent /workspace volume (see
+   docs/operations/storage-and-persistence.md). It is currently
+   EMPTY, but a valid backup on record (its manifest shows author
+   rows) proves this environment held
+   real data before. This looks like an unexpected restart wiping the
+   live database, not a fresh environment — startup will not paper
+   over that by quietly building an empty schema.
+
+   Newest backup holding author data: narratiq-20261005T102349Z.dump
+     SHA-256: 5266cb93ebea5bfbe31b93822f06f74fb83368d38596ea4de2e2aa5ee9f684d1
+     Age:     0h
+
+   To restore it, follow the rehearsed procedure in
+   docs/operations/backup-and-restore.md §4 (verify the set, restore as
+   the database superuser, check the manifest). Quick checksum check:
+     cd /workspace/backups && sha256sum -c narratiq-20261005T102349Z.dump.sha256
+   (Earlier versions printed a one-line pg_restore --clean command here; it
+   ran as the app user and differed from the rehearsed §4 procedure.)
+
+   If you intend to start with an empty database on purpose (you
+   deliberately wiped it, or this genuinely is a new environment),
+   acknowledge it explicitly and re-run:
+     NARRATIQ_ACKNOWLEDGE_EMPTY_RESTART=yes-start-empty-intentionally bash start-narratiq.sh
+
+   (The phrase above is deliberately specific, not '1' or 'true' —
+   this should never be set by accident or left on in an env file.)
+
+   Startup aborted before any migration ran. The database was not modified.
+  ══════════════════════════════════════════════════════════════

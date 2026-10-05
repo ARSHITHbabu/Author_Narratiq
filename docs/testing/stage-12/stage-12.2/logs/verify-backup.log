@@ -1,0 +1,17 @@
+{
+ "backup_set": "narratiq-20261005T102317Z",
+ "chapters": 4,
+ "embeddings": 6,
+ "excluded_table_data": [
+  "ai_generation_pins"
+ ],
+ "problems": [],
+ "restore_seconds": 0.5,
+ "result": "PASS",
+ "rows_checked": 17,
+ "snapshot_taken_at": "2026-10-05T10:23:17Z",
+ "tables_checked": 57,
+ "total_seconds": 0.7,
+ "upload_files_verified": 0,
+ "verified_at": "2026-10-05T10:23:24Z"
+}

@@ -1,4 +1,4 @@
-# NarratIQ AI v3.0 — How to Run
+# NarratIQ AI — How to Run
 
 **Short version:** one command, `bash start-narratiq.sh`. Everything below is detail.
 
@@ -50,11 +50,13 @@ bash start-narratiq.sh
 
 | | |
 |---|---|
-| First run | 20–40 min (dependencies + ~17 GB of models) |
+| First run | 15–40 min (dependencies + ~22 GB of models) |
 | Later runs | 3–5 min |
 
 Safe to rerun — every step is idempotent. It installs dependencies, downloads missing models,
-configures PostgreSQL + pgvector, runs migrations, and starts all three services.
+configures PostgreSQL + pgvector, takes a pre-migration backup, runs migrations, and starts all three
+services plus the hourly backup loop and the watchdog. The backup step can stop the start on purpose
+(see `backup-and-restore.md` §4, "Empty-database guard").
 
 When it finishes it prints your frontend URL. Skip to
 [Verify everything is working](#verify-everything-is-working).
@@ -139,10 +141,11 @@ python3 -m uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1 --no-access-l
 > migration-architecture problem to redesign** — it is the correct, intended
 > division of responsibility (ORM owns the base schema, Alembic owns changes to
 > it) — the manual instructions here were just incomplete. Fixed above.
-> Verified separately: the full `alembic upgrade head → downgrade base →
-> upgrade head` round-trip is clean once the base schema exists, confirming
-> all 14 migrations in the current chain (0001→0002→0007…→0018) are genuinely
-> reversible.
+> Verified separately (2026-09-22, when the head was `0018`): the full `alembic
+> upgrade head → downgrade base → upgrade head` round-trip is clean once the base
+> schema exists. The chain now has 23 migrations, head `0027`; every one has a real
+> `downgrade()` except `0026`, whose downgrade is deliberately a no-op (its columns
+> predate it and hold author data). See `rollback.md` §3.
 
 Wait for:
 ```
@@ -168,6 +171,9 @@ probed. Two of those are hard failures:
 ```bash
 cd /workspace/narratiq-ai/frontend
 
+# HTTP: the browser calls /api/* on this server, and Next.js forwards it to
+# BACKEND_INTERNAL_URL (default http://127.0.0.1:8000 — correct on the pod).
+# NEXT_PUBLIC_API_URL is used only by the voice WebSocket.
 # On RunPod (substitute your pod ID):
 echo 'NEXT_PUBLIC_API_URL=https://abc123xyz-8000.proxy.runpod.net' > .env.local
 # Locally:
@@ -178,16 +184,17 @@ npm run dev
 
 Wait for:
 ```
-▲ Next.js 14.2.3
+▲ Next.js 15.5.27
 - Local:   http://localhost:3000
 Ready in Xs
 ```
 
 Then open `https://{POD_ID}-3000.proxy.runpod.net`.
 
-> `NEXT_PUBLIC_API_URL` is inlined into the JS bundle at **build** time. After changing it, run
-> `npm run build` again — a restart alone will not pick it up. If the variable is also set in the
-> RunPod UI it overrides `.env.local` entirely; delete it there.
+> `NEXT_PUBLIC_API_URL` (voice WebSocket only) and `BACKEND_INTERNAL_URL` (where `/api/*` is
+> forwarded) are read at **build** time. After changing either, run `npm run build` again — a restart
+> alone will not pick it up. If `NEXT_PUBLIC_API_URL` is also set in the RunPod UI it overrides
+> `.env.local` for a manual build; delete it there.
 
 ---
 
@@ -196,11 +203,14 @@ Then open `https://{POD_ID}-3000.proxy.runpod.net`.
 ```bash
 cd path/to/narratiq-ai/frontend
 echo 'NEXT_PUBLIC_API_URL=https://{POD_ID}-8000.proxy.runpod.net' > .env.local
-npm run dev
+BACKEND_INTERNAL_URL=https://{POD_ID}-8000.proxy.runpod.net npm run dev
 ```
 
-Open `http://localhost:3000`. CORS already permits any `https://*.proxy.runpod.net` origin, and
-`http://localhost:3000` is in the default allow-list.
+Open `http://localhost:3000`. HTTP goes to `/api/*` on `localhost:3000` and the Next.js server forwards
+it to `BACKEND_INTERNAL_URL` — without that variable it would forward to `http://127.0.0.1:8000` on your
+own machine, not to the pod. The voice WebSocket connects straight to `NEXT_PUBLIC_API_URL`; the backend
+accepts that origin only if it is in `CORS_ORIGINS` (`http://localhost:3000` is in the default
+allow-list) or is this pod's own `https://<POD_ID>-<port>.proxy.runpod.net` host.
 
 ---
 
@@ -210,15 +220,22 @@ Open `http://localhost:3000`. CORS already permits any `https://*.proxy.runpod.n
 curl -s http://localhost:8000/api/health | python3 -m json.tool
 ```
 
-Expected:
+Expected (HTTP 200):
 ```json
 {
   "status": "ok",
+  "version": "3.0.0",
+  "platform": "NarratIQ AI",
+  "backend": "ready",
   "vllm": "ready",
   "bge_m3": "ready",
   "got_ocr": "lazy"
 }
 ```
+
+While vLLM or BGE-M3 is not ready the same body says `"status": "degraded"` and the response is
+**HTTP 503**; `"backend": "ready"` alone means the API is serving. (`version` is the application's
+reported version string; aligning it with the release version is a release-sign-off step.)
 
 - `"vllm": "unavailable"` — vLLM is still loading, or the backend is pointed at the wrong port.
   Check `curl http://localhost:9001/health`, then confirm what the backend resolved:
@@ -239,10 +256,13 @@ Chapters you write are indexed automatically 1.5 s after you stop typing (summar
 If Plot Assistant reports "no prior context" for chapters that predate indexing, backfill once:
 
 ```bash
-TOKEN=$(curl -s -X POST http://localhost:8000/api/auth/login \
+# Since Stage 10 sign-in returns the session as an HttpOnly cookie, not in the JSON body.
+# Save the cookie, then send its value as a Bearer token (tooling may use Bearer;
+# a Bearer request needs no CSRF header).
+curl -s -c /tmp/nq.jar -X POST http://localhost:8000/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"your@email.com","password":"yourpassword"}' \
-  | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
+  -d '{"email":"your@email.com","password":"yourpassword"}' > /dev/null
+TOKEN=$(awk '$6=="narratiq_session"{print $7}' /tmp/nq.jar); rm -f /tmp/nq.jar
 
 curl -s -X POST "http://localhost:8000/api/stories/YOUR_STORY_ID/chapters/sync-summaries" \
   -H "Authorization: Bearer $TOKEN"
@@ -304,7 +324,9 @@ runuser -u postgres -- psql -d narratiq -c "CREATE EXTENSION IF NOT EXISTS vecto
 ```
 
 **Frontend cannot reach the backend**
-Rebuild after any `NEXT_PUBLIC_API_URL` change, and make sure it is not also set in the RunPod UI:
+HTTP goes through Next.js to `BACKEND_INTERNAL_URL` (default `http://127.0.0.1:8000`): check that the
+backend is up on :8000 first. For the voice agent, rebuild after any `NEXT_PUBLIC_API_URL` change, and
+make sure it is not also set in the RunPod UI:
 ```bash
 cd /workspace/narratiq-ai/frontend
 echo "NEXT_PUBLIC_API_URL=https://${RUNPOD_POD_ID}-8000.proxy.runpod.net" > .env.local

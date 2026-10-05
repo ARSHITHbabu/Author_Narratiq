@@ -1,0 +1,77 @@
+======================================================
+ NarratIQ AI — RunPod Setup Verification
+ Mode: --expect-running (a service that is down is a FAILURE)
+======================================================
+
+── Python
+  [OK]  Python found: Python 3.11.10
+  [OK]  Python >= 3.10
+
+── Node.js
+  [OK]  Node found: v20.20.2
+
+── PostgreSQL / pgvector
+  [OK]  psql client found
+  [OK]  PostgreSQL is accepting connections on localhost:5432
+  [OK]  Can connect to the 'narratiq' database as the 'narratiq' role
+  [OK]  pgvector extension enabled (version 0.8.6)
+
+── GPU / CUDA
+  [OK]  GPU visible: NVIDIA A40, 46068 MiB
+  [OK]  PyTorch CUDA available — CUDA 12.8
+
+── Model Directories (MODEL_BASE_DIR=/workspace/models)
+  [OK]  LLM (Qwen2.5-7B-Instruct): /workspace/models/Qwen2.5-7B-Instruct  (15G)
+  [OK]  BGE-M3 (embeddings): /workspace/models/bge-m3  (4.3G)
+  [OK]  GOT-OCR2.0 (OCR, required): /workspace/models/GOT-OCR2_0  (1.4G)
+  [OK]  faster-whisper-large-v3-turbo (audio, required): /workspace/models/faster-whisper-large-v3-turbo  (1.6G)
+
+── Key Model Files
+  [OK]  Qwen config.json present
+  [OK]  Qwen model weights (.safetensors or .bin) present
+
+── Python Packages
+  [OK]  fastapi installed (0.141.0)
+  [OK]  uvicorn installed (0.54.0)
+  [OK]  sqlalchemy installed (2.0.30)
+  [OK]  pydantic-settings installed (2.15.0)
+  [OK]  openai installed (1.90.0)
+  [OK]  sentence-transformers installed (5.7.0)
+  [OK]  transformers installed (4.57.6)
+  [OK]  torch installed (2.7.0+cu128)
+  [OK]  Pillow installed (12.3.0)
+  [OK]  httpx installed (0.27.2)
+  [OK]  vllm installed (0.9.2)
+
+── Service Health
+  [OK]  vLLM is listening on 9001 and reports healthy
+  [OK]  Backend is listening on 8000 and /api/health reports ok
+  [OK]  Backend reports vLLM as ready (not degraded)
+  [OK]  Backend reports BGE-M3 as ready
+  [OK]  Frontend is listening on 3000 and returns HTTP 200
+
+── External Proxy Reachability
+  [OK]  Frontend proxy (3000) reachable — HTTP 200
+  [OK]  Backend proxy (8000) reachable — HTTP 200
+
+── RunPod Port Exposure
+  [OK]  Port 3000 is exposed as an HTTP port on pod 55zfw2ol0sx1gi
+  [OK]  Port 8000 is exposed as an HTTP port on pod 55zfw2ol0sx1gi
+
+── Frontend API URL
+  [OK]  No OS-level NEXT_PUBLIC_API_URL override (frontend/.env.local governs builds)
+
+── Smoke Tests
+  [OK]  vLLM generation smoke test passed (real completion returned)
+  [OK]  pgvector query smoke test passed (self-distance = 0, using a literal test vector — no application data read)
+
+── Disk Space (/workspace)
+  [OK]  Available disk: 217701 GB (>= 30 GB required)
+
+======================================================
+ Verification Summary
+   PASSED : 39
+   FAILED : 0
+======================================================
+
+ All checks passed and the stack is already up and healthy.

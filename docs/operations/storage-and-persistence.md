@@ -72,13 +72,14 @@ Produced with `df --output=source,fstype <path>` for each path.
 | `/workspace/models` | **network volume** | Model weights (Qwen2.5-7B-Instruct, BGE-M3, GOT-OCR2_0) | 22 G |
 | `/workspace/backups` | **network volume** | Database backups (`pg_dump` archives, checksums, role definitions) | 2.0 M |
 | `/workspace/narratiq-ai/backend/uploads` | **network volume** | Author uploads — `audio/`, `ocr/` | — |
+| `/workspace/logs` | **network volume** | Persistent operations logs since Stage 10: `periodic-backup.log`, `watchdog.log`, `alerts.jsonl` | — |
 | `/var/lib/postgresql/16/main` | **container layer** | **PostgreSQL data directory — every manuscript** | — |
 | `/tmp/narratiq-logs` | **container layer** | Service logs (`vllm.log`, `backend.log`, `frontend.log`) | — |
 | `/root` | **container layer** | Root home directory | — |
 
 `/workspace/models` and `/workspace/narratiq-ai` are **real directories on the volume**, not symlinks (`ls -ld` shows `drwxrwxrwx`, no link target).
 
-Upload paths are configured relative to the backend working directory (`.env.example:164-165`: `UPLOAD_DIR_AUDIO=uploads/audio`, `UPLOAD_DIR_OCR=uploads/ocr`) and therefore resolve under `/workspace/narratiq-ai/backend/` — on the network volume — provided the backend is started from `backend/` as `CLAUDE.md` requires.
+Upload paths are configured relative to the backend working directory (`backend/config.py:105-106` defaults `upload_dir_audio=uploads/audio`, `upload_dir_ocr=uploads/ocr`; documented, commented out, at `.env.example:226-227`) and therefore resolve under `/workspace/narratiq-ai/backend/` — on the network volume — provided the backend is started from `backend/` as `CLAUDE.md` requires.
 
 ### 4.1 The database is on the container layer
 
@@ -95,7 +96,7 @@ PostgreSQL's data directory is on the **container layer**, not the network volum
 
 This is the single most consequential fact in this document. The durability of the manuscripts is governed by the container layer, not by the network volume — the opposite of what the `/workspace`-centric layout suggests at a glance. The backup procedure (`scripts/backup_database.sh`) writes to `/workspace/backups`, which is a *different* filesystem from the data it protects; that separation is deliberate and should be preserved.
 
-**The consequences for a pod stop are deliberately not analysed here** — that is checklist task 1.1, subtask 6.
+**The consequences for a pod stop are analysed in §8** (verified 2026-09-21; originally deferred to checklist task 1.1, subtask 6).
 
 ## 5. Filesystem characteristics
 
@@ -123,7 +124,7 @@ Only a full revocation (`000`) is honoured. Any file with permissions on the vol
 
 The mount carries `user_id=0,group_id=0`. All paths report `uid=0 gid=0` regardless of the creating process. `nosuid` and `nodev` are set.
 
-### 5.3 Persistence — *Expected, not Verified*
+### 5.3 Persistence — *Expected, not Verified* (superseded: verified by a real pod stop in §8, 2026-09-21)
 
 `/workspace` is a RunPod network volume, and network volumes are designed to persist independently of the pod's container lifecycle. That is the **expected** behaviour and is why models and the repository are stored there.
 
@@ -131,7 +132,11 @@ The mount carries `user_id=0,group_id=0`. All paths report `uid=0 gid=0` regardl
 
 Task 1.1 subtask 6 records the per-path expectation; task 1.5 supplies the observation that can upgrade these labels from Expected to Verified.
 
-## 6. Discrepancy with `runpod-deployment.md` — recorded, not resolved
+> **2026-10-05 (Stage 12.2) — a pod replacement is not a pod stop.** This project's pod has been replaced three times (2026-09-21, 2026-10-03, 2026-10-05). On 2026-10-05 the new pod `55zfw2ol0sx1gi` started with a `/workspace` holding only a fresh clone of the repository: **no `/workspace/backups`, `/workspace/models`, `/workspace/logs` or `backend/.env` from the previous pod**. The survival table in §8 describes a stop/start of the *same* pod with the *same* volume; it does not hold when the pod (and its volume) is replaced. In that case the database **and every on-pod backup** are gone together — the risk an off-pod copy (`backup-and-restore.md` §7, waiver W-3) exists to cover.
+
+## 6. Discrepancy with `runpod-deployment.md` — resolved
+
+> **Resolved (confirmed 2026-10-05, Stage 12.2).** `runpod-deployment.md` "Storage options" now says `/workspace` is itself the network volume on this project's pods, that no symlink is needed or possible, that `/runpod-volume` does not exist on them, and gives ~22 GB. The original record follows, unchanged.
 
 `docs/operations/runpod-deployment.md:45-55` describes a different arrangement from the one measured here:
 
@@ -190,8 +195,8 @@ Applied to §4: **paths under `/workspace` are predicted to survive; everything 
 | `/workspace/models` (22 G) | network volume | **Survives** | **Verified 2026-09-21** — all 4 model dirs present, correct sizes, no re-download triggered | 22 G re-download |
 | `/workspace/backups` | network volume | **Survives** | **Verified 2026-09-21** — both pre-restart dumps present, SHA-256 unchanged | **The only database backup** |
 | `/workspace/narratiq-ai/backend/uploads` | network volume | **Survives** | Predicted (unobserved) — not exercised this pass, no upload fixture existed | Author audio and OCR uploads |
-| `/workspace/narratiq-ai/frontend/node_modules` (2.9 G) | network volume | **Survives** | **Verified 2026-09-21** — `npm install` step skipped (`node_modules — OK`) | `npm install` re-run |
-| `/workspace/narratiq-ai/frontend/.next` (195 M) | network volume | **Survives** | **Verified 2026-09-21** (directory present pre-rebuild; the startup script unconditionally wipes and rebuilds it regardless of survival, so this is not evidence of use, only of presence) | `npm run build` re-run |
+| `/workspace/narratiq-ai/frontend/node_modules` (2.9 G) | network volume | **Survives** | **Verified 2026-09-21** — install step skipped (`node_modules — OK`) | `npm ci` re-run (the script has used `npm ci` since Stage 10) |
+| `/workspace/narratiq-ai/frontend/.next` (195 M) | network volume | **Survives** | **Verified 2026-09-21** (directory present pre-rebuild; the startup script rebuilds on every run regardless of survival — since Stage 10 it moves the old build to `.next.prev` as the rollback copy instead of wiping it — so this is not evidence of use, only of presence) | `npm run build` re-run |
 | `/workspace/narratiq-ai/backend/.env` | network volume | **Survives** | **Verified 2026-09-21** — `SECRET_KEY` confirmed byte-identical pre/post-restart via SHA-256 of the file line (safe comparison, plaintext never displayed) | `SECRET_KEY` — all sessions invalidated |
 | **`/var/lib/postgresql/16/main`** | **container layer** | **LOST** | **Verified 2026-09-21** — `psql` absent post-restart, fresh empty cluster on re-install, 0 tables/0 rows, `alembic none` | **Every manuscript, chapter, character, note and embedding** |
 | `/usr/local/lib/python3.11/dist-packages` | container layer | **LOST** | **Verified 2026-09-21** — vLLM, PyTorch cu128, transformers, numpy, backend packages all reported "not found"/reinstalled by the script | vLLM, PyTorch, FastAPI, sentence-transformers, faster-whisper, Alembic — all re-installed |
@@ -219,15 +224,15 @@ That asymmetry is why the checklist requires the backup to be copied off-pod bef
 
 | Step | Guard | Behaviour after a stop |
 |---|---|---|
-| Node.js | `command -v node` (`:53`) | Absent → re-installs |
-| PostgreSQL 16 + pgvector | `command -v psql` (`:63`) | Absent → re-installs |
-| vLLM | `pip show vllm` version compare (`:97`) | Absent → re-installs |
-| PyTorch cu128 | version check (`:112`) | Re-installs as needed |
-| `ovis.py` patch | `grep AutoConfig.register` (`:124-126`) | Re-applies; the `sed` skips lines already carrying `exist_ok` |
-| `npm install` | `[ ! -d node_modules ]` (`:205`) | `node_modules` is on the volume → **skipped**, correctly |
+| Node.js | `command -v node` (`:58`) | Absent → re-installs |
+| PostgreSQL 16 + pgvector | `command -v psql` (`:68`) | Absent → re-installs |
+| vLLM | `pip show vllm` version compare (`:92`, `:102`) | Absent → re-installs |
+| PyTorch cu128 | version check (`:114`) | Re-installs as needed |
+| `ovis.py` patch | `grep AutoConfig.register` (`:129-130`) | Re-applies; the `sed` skips lines already carrying `exist_ok` |
+| `npm ci` | `[ ! -d node_modules ]` (`:182`) | `node_modules` is on the volume → **skipped**, correctly |
 | `/tmp/narratiq-logs` | `mkdir -p` (`:21`) | Re-created unconditionally |
 
-**Not handled by the startup script — the database.** Re-installing `postgresql-16` produces a **fresh, empty cluster**. `start-narratiq.sh` then runs `Base.metadata.create_all()` and `alembic upgrade head`, which build the *schema* — and leave every table empty. **Restoring the data from `/workspace/backups` is a manual step that nothing automates.** A stack that comes up "healthy" with zero manuscripts is the expected appearance of this failure.
+**Not handled by the startup script — the database.** Re-installing `postgresql-16` produces a **fresh, empty cluster**. *As of 2026-09-21* `start-narratiq.sh` then ran `Base.metadata.create_all()` and `alembic upgrade head`, which built the *schema* and left every table empty, so a stack came up "healthy" with zero manuscripts. **Since then the empty-database guard (`scripts/startup_backup.sh`, §8.6; `backup-and-restore.md` §4a) aborts the start before `create_all` when a backup holding author data exists.** Restoring the data from `/workspace/backups` is still a deliberate manual step that nothing automates.
 
 One secondary risk: if Node.js re-installs at a different major version, the surviving `node_modules` on the volume may not match it. The guard skips `npm install` because the directory exists. If the frontend misbehaves after a restart, remove `frontend/node_modules` and re-run the startup script.
 
@@ -275,4 +280,4 @@ The author manually restarted the RunPod pod (pod `ckqiafptcbpcuq`, same network
 
 **One cosmetic false alarm, not a real defect:** `start-narratiq.sh`'s own sanity check reported "Active next-server processes: 5 (expected: 1)" immediately after the frontend came up. Investigation found this is `pgrep -fc "next-server"` matching its own invocation's command-line text when the literal string `"next-server"` appears as a quoted argument in nearby shell invocations — a pre-existing artifact of the pattern-match approach, not a real duplicate-process condition. Steady-state process inspection confirmed exactly one `next-server` process, one listener on port 3000, and a healthy `HTTP 200` response throughout. Not fixed as part of this verification pass (out of scope — noted here for anyone chasing the same false alarm).
 
-**Full post-recovery service verification, all confirmed live:** PostgreSQL 16.15 + pgvector 0.8.6; Alembic at head `0016`; vLLM 0.9.2 serving `Qwen/Qwen2.5-7B-Instruct` on 1× NVIDIA A40 (44.4 GB, `tensor_parallel=1`, `max_model_len=8192`) with a real completion returned; BGE-M3 loaded and producing correct 1024-dim normalized embeddings; backend `/api/health` reporting `ok`/`ready`/`ready` locally and via the external proxy; frontend reachable locally and externally (`HTTP 200`); pgvector self-distance query returning `0`; exactly one periodic-backup-loop process running (4 h interval, 12-backup retention).
+**Full post-recovery service verification, all confirmed live:** PostgreSQL 16.15 + pgvector 0.8.6; Alembic at head `0016`; vLLM 0.9.2 serving `Qwen/Qwen2.5-7B-Instruct` on 1× NVIDIA A40 (44.4 GB, `tensor_parallel=1`, `max_model_len=8192`) with a real completion returned; BGE-M3 loaded and producing correct 1024-dim normalized embeddings; backend `/api/health` reporting `ok`/`ready`/`ready` locally and via the external proxy; frontend reachable locally and externally (`HTTP 200`); pgvector self-distance query returning `0`; exactly one periodic-backup-loop process running (4 h interval, 12-backup retention, *at the time* — today's defaults are 1 h and 24 recent + 7 daily sets, `backup-and-restore.md` §2).

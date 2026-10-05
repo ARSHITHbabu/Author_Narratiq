@@ -96,6 +96,14 @@ def enforce_single_worker(allow_flag: str, **detect_kwargs) -> int:
         "state to shared storage (see docs/operations/runpod-deployment.md).")
 
 
+def _is_uvicorn_launch(argv: list[str]) -> bool:
+    """True when argv runs uvicorn itself (`python -m uvicorn …`, `…/bin/uvicorn …`).
+    A substring test is not enough: a launching shell (`bash -c "… uvicorn … --no-proxy-headers"`)
+    carries the whole command as ONE argument, which contains "uvicorn" but is never equal to
+    "--no-proxy-headers" — a false alarm found in the Stage 12.2 walkthrough."""
+    return any(os.path.basename(a) == "uvicorn" for a in argv)
+
+
 def warn_if_uvicorn_proxy_headers(own: list[str] | None = None, parent: list[str] | None = None) -> bool:
     """Stage 10 live finding: uvicorn's default --proxy-headers rewrites the
     client address from X-Forwarded-For for requests from 127.0.0.1 — i.e. every
@@ -107,7 +115,7 @@ def warn_if_uvicorn_proxy_headers(own: list[str] | None = None, parent: list[str
     own = _cmdline("self") if own is None else own
     parent = _cmdline(os.getppid()) if parent is None else parent
     for argv in (own, parent):
-        if any("uvicorn" in a for a in argv) and "--no-proxy-headers" not in argv:
+        if _is_uvicorn_launch(argv) and "--no-proxy-headers" not in argv:
             logger.error("[startup] uvicorn is running WITHOUT --no-proxy-headers: per-IP rate limits "
                          "(sign-in brute-force protection) will not work behind the proxy. Restart with "
                          "--no-proxy-headers (start-narratiq.sh does).")

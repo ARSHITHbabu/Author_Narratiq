@@ -1,0 +1,22 @@
+== dry-run
+Current build : ULcn1nJZTIpQARk_vpD6P
+Previous build: CelVcizvLPtNymRMsAtAq
+(dry run — nothing changed)
+== swap
+Current build : ULcn1nJZTIpQARk_vpD6P
+Previous build: CelVcizvLPtNymRMsAtAq
+Stopping the server on :3000 (PID 20726)
+Rolled back. Serving build CelVcizvLPtNymRMsAtAq on :3000 (the replaced build is now .next.prev).
+exit=0 seconds=4
+CelVcizvLPtNymRMsAtAq
+pub-login=200
+pub-api-me=200
+== swap back
+Current build : CelVcizvLPtNymRMsAtAq
+Previous build: ULcn1nJZTIpQARk_vpD6P
+Stopping the server on :3000 (PID 21864)
+Rolled back. Serving build ULcn1nJZTIpQARk_vpD6P on :3000 (the replaced build is now .next.prev).
+exit=0 seconds=5
+ULcn1nJZTIpQARk_vpD6P
+pub-login=200
+pid=21960

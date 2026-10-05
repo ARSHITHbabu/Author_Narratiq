@@ -1,0 +1,100 @@
+
+╔══════════════════════════════════════════════════════════╗
+║         NarratIQ AI v3.0 — Self-Bootstrapping           ║
+╠══════════════════════════════════════════════════════════╣
+║  Backend  : https://55zfw2ol0sx1gi-8000.proxy.runpod.net
+║  Frontend : https://55zfw2ol0sx1gi-3000.proxy.runpod.net
+╚══════════════════════════════════════════════════════════╝
+
+[1/6] Checking and installing dependencies...
+  Node.js: v20.20.2 — OK
+  PostgreSQL: 16.15 — OK
+  vllm 0.9.2 — OK
+  PyTorch 2.7.0+cu128 (cu128) — OK
+  NumPy 2.2.0 — OK
+  transformers 4.57.6 — OK
+  Installing backend Python packages (backend/requirements.txt)...
+  Backend packages — OK
+  node_modules — OK
+  All dependencies ready.
+
+[2/6] Checking model files...
+  faster-whisper-large-v3-turbo — OK
+  partial STT model (faster-whisper-base) — OK
+  Models: OK (Qwen2.5-7B + BGE-M3 + GOT-OCR2.0)
+
+[3/6] Starting vLLM (Qwen2.5-7B-Instruct)...
+  GPUs: 1x 44GB
+  vLLM PID: 17672  (loading 15 GB model — takes 2-4 min)
+
+[4/6] Waiting for vLLM to load model into GPU VRAM...
+  vLLM ready after ~130s
+  SECRET_KEY: OK
+
+[4c/6] Setting up PostgreSQL database...
+Cluster is already running.
+ * Starting PostgreSQL 16 database server
+   ...done.
+  Waiting for PostgreSQL to be ready...
+  PostgreSQL ready after 1s
+ALTER ROLE
+GRANT
+GRANT
+CREATE EXTENSION
+  Database 'narratiq' ready, pgvector extension enabled
+  DATABASE_URL set in backend/.env
+  vLLM + CORS settings written to backend/.env
+  Verifying DB connection (narratiq@localhost)...
+  DB credentials verified OK
+
+[4d/6] Pre-migration database safety backup...
+  [backup] Note: /workspace/backups is mode 777 — this filesystem does not enforce chmod.
+  [backup] Source: narratiq@localhost:5432/narratiq
+  [backup] Database: 10 MB, 58 tables in public schema, 6 holding rows
+  [backup] Alembic revision: 0027
+  [backup] Pending schema change: no (schema already matches models and Alembic head)
+  [backup] Newest valid backup: narratiq-20261005T102349Z.dump (0h old)
+  [backup] Decision: skip — a backup 0h old already exists (limit 24h) and no schema change is pending
+  Pre-migration backup check complete.
+[setup] Tables created/verified
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+  Alembic migrations applied
+
+[5/6] Starting FastAPI backend...
+  Backend PID: 18926
+  Backend ready after 32s
+
+[6/6] Building & starting Next.js frontend...
+  Stopping any existing Next.js frontend process(es)...
+  Port 3000 is free
+  Remaining next-server processes before rebuild: 0
+  NEXT_PUBLIC_API_URL=https://55zfw2ol0sx1gi-8000.proxy.runpod.net
+  Moving the previous build to .next.prev (rollback copy) and clearing caches...
+  Building cleanly (~30-60s)...
+  Frontend ready after 3s
+  Active next-server processes: 1 (expected: 1)
+  Frontend PID: 20710  (BUILD_ID: ULcn1nJZTIpQARk_vpD6P)
+
+[7/8] Periodic backup loop...
+  Started (PID 20748, every 1h; keeps 24 recent + 7 daily; restore-verified every 24h)
+  Log: /workspace/logs/periodic-backup.log
+
+[8/8] Watchdog...
+  Already running (PID 16328)
+
+╔══════════════════════════════════════════════════════════╗
+║                 NarratIQ AI is READY                    ║
+╠══════════════════════════════════════════════════════════╣
+║  Open in browser:                                        ║
+║  https://55zfw2ol0sx1gi-3000.proxy.runpod.net
+╠══════════════════════════════════════════════════════════╣
+║  Logs (if anything seems wrong):                         ║
+║    vLLM    : tail -f /tmp/narratiq-logs/vllm.log
+║    Backend : tail -f /tmp/narratiq-logs/backend.log
+║    Frontend: tail -f /tmp/narratiq-logs/frontend.log
+╚══════════════════════════════════════════════════════════╝
+
+PIDs: vLLM=17672  Backend=18926  Frontend=20710
+
+EXIT=0 seconds=240

@@ -57,8 +57,8 @@ RunPod pod templates differ in where the persistent Network Volume is mounted:
   follow the symlink instructions below on a pod with this layout, they will create a broken path.
 - **A separate Network Volume is mounted at `/runpod-volume`**, with `/workspace` on the ephemeral
   container overlay. This is a different, older RunPod template convention. On *that* layout only:
-  > **Caveat.** `start-narratiq.sh:16` hardcodes `MODEL_DIR="/workspace/models"` and re-exports
-  > `MODEL_BASE_DIR` at `:501`, so setting `MODEL_BASE_DIR=/runpod-volume/models` in the RunPod UI has
+  > **Caveat.** `start-narratiq.sh:21` hardcodes `MODEL_DIR="/workspace/models"` and re-exports
+  > `MODEL_BASE_DIR` at `:530`, so setting `MODEL_BASE_DIR=/runpod-volume/models` in the RunPod UI has
   > **no effect** on the scripted path. Symlink instead:
   > ```bash
   > mkdir -p /runpod-volume/models
@@ -187,23 +187,28 @@ idempotent.
 
 | | |
 |---|---|
-| First run | 20–40 min (dependencies + ~17 GB of model downloads) |
+| First run | 15–40 min (dependencies + ~22 GB of model downloads; 14 min 35 s measured 2026-10-03) |
 | Later runs | 3–5 min |
 
 What it does, in order:
 
 1. Installs Node 20, PostgreSQL 16 + pgvector, vLLM 0.9.2, PyTorch cu128; pins NumPy ≤2.2 and
    transformers <5.0; patches `ovis.py` and `prometheus_fastapi_instrumentator`; installs backend pip
-   packages and runs `npm install`.
+   packages, and runs `npm ci` (exact `package-lock.json`) only when `frontend/node_modules` is absent.
 2. Downloads any missing models (skips files already present).
 3. Starts vLLM on port 9001 and waits up to 6 minutes for `/health`.
-4. Generates `SECRET_KEY` into `backend/.env` **if absent**.
+4. Generates `SECRET_KEY` into `backend/.env` **if absent**, plus `OPS_TOKEN` (ops endpoints) and `LOG_FORMAT=json`.
 5. Starts PostgreSQL, creates the `narratiq` role and database, enables `pgvector`, force-writes
    `DATABASE_URL` / `VLLM_BASE_URL` / `VLLM_MODEL_NAME` / `CORS_ORIGINS` into `backend/.env`, creates
-   tables, runs `alembic upgrade head`.
+   takes a **pre-migration backup** (`scripts/startup_backup.sh`), creates tables and runs
+   `alembic upgrade head`. The backup step **aborts startup** if a required backup cannot be made, or
+   if the database is empty while a backup still holds author data (the empty-database guard — see
+   `backup-and-restore.md` §4 and `incident-response.md`). Nothing is migrated in either case.
 6. Starts the FastAPI backend on port 8000.
-7. Writes `frontend/.env.local`, wipes `.next`, rebuilds, and starts Next.js on port 3000.
-8. Prints the public URLs, log paths and PIDs.
+7. Writes `frontend/.env.local`, moves the previous build to `.next.prev` (the frontend rollback copy,
+   `rollback.md` §4), rebuilds, and starts Next.js on port 3000.
+8. Starts the hourly backup loop and the watchdog (logs in `/workspace/logs`).
+9. Prints the public URLs, log paths and PIDs.
 
 ### 5. Monitor
 
@@ -235,8 +240,10 @@ echo "Frontend: https://${RUNPOD_POD_ID}-3000.proxy.runpod.net"
 echo "Backend : https://${RUNPOD_POD_ID}-8000.proxy.runpod.net"
 ```
 
-The script prints both on completion. `backend/main.py` already allows any
-`https://*.proxy.runpod.net` origin via regex, so CORS works without manual configuration.
+The script prints both on completion. The backend's CORS check (`backend/middleware/origins.py`) trusts
+only **this pod's own** proxy origins, `https://<RUNPOD_POD_ID>-<port>.proxy.runpod.net` (Stage 9 S2; other
+RunPod pods are not trusted), and none when `RUNPOD_POD_ID` is unset or `local`. Since Stage 10 the browser
+calls `/api/*` on the frontend's own origin anyway, so ordinary HTTP needs no CORS at all.
 
 ---
 
@@ -248,10 +255,10 @@ retire, not repair — it was fully superseded by `start-narratiq.sh`'s self-boo
 
 | Source | Port | Status |
 |---|---|---|
-| `start-narratiq.sh:17` | **9001** | **Authoritative** — the path in use |
+| `start-narratiq.sh:22` | **9001** | **Authoritative** — the path in use |
 | `backend/config.py:59` | **9001** | Consistent |
 | `start.sh:25` | 8001 | **Deleted 2026-09-21** — was legacy, superseded, predated the Postgres migration |
-| `scripts/verify_runpod_setup.sh:14` | **9001** | **Fixed 2026-09-21** — previously 8001, reported a false failure against a working 9001 stack |
+| `scripts/verify_runpod_setup.sh:59` | **9001** | **Fixed 2026-09-21** — previously 8001, reported a false failure against a working 9001 stack |
 
 The default moved from 8001 to 9001 in commit `b0f64be`. No override is needed to run the verifier now:
 
@@ -364,19 +371,25 @@ Lower the vLLM context or utilisation. On a single 24 GB card use
 `WHISPER_DEVICE=cpu` unless there is clear VRAM headroom.
 
 ### Frontend calls the wrong backend URL
-`NEXT_PUBLIC_API_URL` is inlined into the JS bundle at **build** time. A restart is not enough —
-the bundle must be rebuilt. If the value is also set in the RunPod UI it overrides
-`frontend/.env.local` entirely; delete it there and rerun the script.
+Since Stage 10 (10.7) the browser sends HTTP to `/api/*` on the frontend's own origin, and Next.js
+forwards it to `BACKEND_INTERNAL_URL` (default `http://127.0.0.1:8000`, read at **build** time by
+`frontend/next.config.js`). `NEXT_PUBLIC_API_URL` is used **only by the voice WebSocket**; it is also
+inlined at build time. A restart is not enough for either — the bundle must be rebuilt. If
+`NEXT_PUBLIC_API_URL` is also set in the RunPod UI, the script's explicit value still wins for its own
+build (`runpod-environment-variables.md` §1.2), but a manual `npm run build` would use the stale one;
+delete it there and rerun the script.
 
 ### Port already in use
 ```bash
 pkill -f "vllm.entrypoints.openai.api_server"
 pkill -f "uvicorn main:app"
-fuser -k 3000/tcp
+kill $(ss -ltnpH 'sport = :3000' | grep -o 'pid=[0-9]*' | cut -d= -f2)   # fuser is not installed on the pod image
 ```
 
 ### Models re-downloading every pod restart
-Use a Network Volume and symlink it — see [Storage options](#storage-options).
+Check that `/workspace` is on a Network Volume (`df -h /workspace`). On the layout this project
+uses, `/workspace` *is* the volume and no symlink is needed; symlink only on the older
+`/runpod-volume` layout — see [Storage options](#storage-options).
 
 ---
 
@@ -407,6 +420,7 @@ curl -X POST http://localhost:8000/api/stories/{id}/chapters/sync-summaries \
 
 ---
 
-*This guide describes the repository at commit `9827587`. It has not been validated against a running
-pod; see the uncertainties section of
-[`docs/operations/runpod-environment-variables.md`](runpod-environment-variables.md).*
+*Reviewed against the scripts and code for the v3.3.0 release candidate on 2026-10-05 (Stage 12.2), and
+followed literally for a from-scratch deployment on pod `55zfw2ol0sx1gi` the same day
+(`docs/testing/stage-12/stage-12.2/operator-walkthrough.md`). Earlier footer: "describes the
+repository at commit `9827587`; not validated against a running pod" — superseded.*

@@ -1,0 +1,14 @@
+## Step 6 verify 2026-10-05T10:21:51Z
+ vllm-health=200
+            "id": "Qwen/Qwen2.5-7B-Instruct",
+                    "id": "modelperm-d65b66ba8260428092c108d2cad10a48",
+{"status":"ok","version":"3.0.0","platform":"NarratIQ AI","backend":"ready","vllm":"ready","bge_m3":"ready","got_ocr":"lazy"}
+http=200
+frontend=200
+public:
+pub-frontend=200
+{"status":"ok","version":"3.0.0","platform":"NarratIQ AI","backend":"ready","vllm":"ready","bge_m3":"ready","got_ocr":"lazy"}
+pub-backend-health=200
+LISTEN 0      2048       127.0.0.1:9001       0.0.0.0:*          
+LISTEN 0      2048         0.0.0.0:8000       0.0.0.0:*          
+LISTEN 0      511                *:3000             *:*          

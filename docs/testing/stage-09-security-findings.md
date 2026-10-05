@@ -246,6 +246,33 @@ goes through the fence), but there is no live adversarial measurement for them.
 Paraphrased or short obedience is not caught. Sources without names are never flagged. Analyses rely on
 the structural layer only. Impact is limited to the author's own results.
 
+### Addendum 2026-10-05 (Stage 12.2): the six unprobed features, and chapter-scoped Q&A
+
+Full write-up: `docs/testing/stage-12/stage-12.2/injection-coverage.md`; raw outputs
+`docs/testing/stage-12/stage-12.2/injection-coverage-probe.json` and `qa-injection-matrix.json`.
+
+* **Coverage completed.** Chapter summaries, cast generation, Story Intelligence (full analysis), transcript
+  clean-up, OCR clean-up and suggestions, and a dictated voice command: **0 obeyed** in every one. Transcript
+  clean-up dropped most of the dictation in 3/3 runs; the Tranche 3 word-retention guard kept the raw transcript.
+* **New finding (High; owner to rate under S1).** Story Q&A obeys an instruction planted in the chapter when the
+  request is chapter-scoped and carries the open chapter's text — the app's default for the Plot Assistant (D-1)
+  and the only mode of the voice story question. Voice: 12/12 hijacked (the answer is the canary plus a restatement
+  of the system prompt). Plot Assistant default request: 9/12 hijacked, 3/12 refused honestly by A18, 0/12
+  answered. A19's "Plot Assistant 0/3" was measured with `scope: "full"` and no chapter text, a configuration the
+  app does not send by default; that cell still resists (3/3). A18 does not catch these answers because they obey by
+  paraphrase (the documented residual class). Impact unchanged in kind: the author's own text, the author's own
+  answers, nothing written. **The "0 obeyed in 17 features" figure does not describe the default Q&A path.**
+* **Remediated the same day** (owner instruction: one targeted fix in the existing architecture). Story Q&A now
+  datamarks its fenced material in the prompt copy (a marker between words: every 4th gap, every gap in the open
+  chapter's excerpt) — `prompt_safety` Layer 1b, `PROMPT_INJECTION_DATAMARK_QA`. End to end on the same injected
+  story: Plot Assistant default request 9 obeyed / 3 refused / 0 correct → **0 / 0 / 12**; voice 12 / 0 / 0 →
+  **0 / 0 / 12**; six attack styles in two input shapes 0 obeyed in 72; clean natural-fiction chapters 36/36; the
+  17-feature probe 0 obeyed; clean prose 60/60 with 0 false refusals. Details and the root cause: the write-up §4.
+* **Residual risk after the fix — ACCEPTED by the owner as residual risk (S1, 2026-10-05):** datamarking lowers obedience sharply but is not a
+  guarantee; it was measured on one fixture story and six attack styles. Paraphrased obedience that keeps the story
+  is still not caught by a code check. Asking what an AI-addressed paragraph says can still get A18's honest 422
+  (pre-existing). Impact unchanged: the author's own text, the author's own answers, nothing written.
+
 ## What passes and what does not
 
 * **9.5 (isolation): passes.** Every cross-user attempt returns 404 (or a validation error before any lookup), never data — after the I1–I7 fixes. The "add to CI" item stays open with task 6.1 (CI deferred).

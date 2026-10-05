@@ -9,9 +9,10 @@ Everything needed to run, deploy, configure, back up, monitor and recover Narrat
 | [`runpod-environment-variables.md`](./runpod-environment-variables.md) | Deciding which variables to set in the RunPod UI, and why a stale one may be breaking the app |
 | [`storage-and-persistence.md`](./storage-and-persistence.md) | What survives a pod restart or reset, and what does not |
 | [`backup-and-restore.md`](./backup-and-restore.md) | Hourly backups, verification, retention, restoring a database |
-| [`monitoring-and-alerting.md`](./monitoring-and-alerting.md) | Health, ops endpoints, error tracking, watchdog alerts |
+| [`monitoring-and-alerting.md`](./monitoring-and-alerting.md) | Health, ops endpoints, error tracking, watchdog alerts, the required daily manual check (`scripts/daily_check.sh`, W-4) |
 | [`incident-response.md`](./incident-response.md) | Severity levels, who does what, postmortems |
-| [`rollback.md`](./rollback.md) | Rolling back code, schema, frontend build or models |
+| [`rollback.md`](./rollback.md) | Rolling back code, schema, frontend build, models or prompt/config switches; removing newer config keys first |
+| [`release-regression.md`](./release-regression.md) | The full regression every release must record against its exact commit (CI waiver W-1) |
 | [`model-versions.md`](./model-versions.md) | Pinned model revisions and how to change them |
 | [`capacity-planning.md`](./capacity-planning.md) | Measured capacity and onboarding limits |
 | [`containers.md`](./containers.md) | Development containers (RunPod remains the production host) |

@@ -26,11 +26,12 @@ from sentence_transformers import SentenceTransformer
 from config import settings
 from exceptions import AIResponseTruncatedError, AIServiceUnavailableError
 from services.prompt_registry import resolve_prompt_version
-from services.prompt_safety import REWRITE_TASK, TRANSLATE_TASK, harden, question_task, strip_echoed_markers
+from services.prompt_safety import REWRITE_TASK, TRANSLATE_TASK, harden, question_task, strip_datamarks, strip_echoed_markers
 from services.transform_preservation import (
     build_preservation_clause, build_strength_clause,
     mark_locked_segments, reconstruct_with_locks, verify_lock_byte_identity,
-    check_character_name_preservation, check_strength_violation,
+    check_character_name_preservation, check_strength_violation, light_edit_too_heavy,
+    LIGHT_REPAIR_INSTRUCTION,
     ensure_translation_glossary, build_translation_glossary_clause,
     check_translation_name_consistency,
 )
@@ -148,6 +149,7 @@ async def _complete(
     max_tokens: int = 512,
     response_format: Optional[dict] = None,
     task: Optional[str] = None,
+    datamark: bool = False,
 ) -> str:
     """
     Non-streaming completion. Use for structured JSON outputs.
@@ -161,9 +163,14 @@ async def _complete(
     fenced material by the prompt-injection guard (services/prompt_safety.py):
     e.g. prompt_safety.REWRITE_TASK, or question_task(question) for Q&A.
 
+    datamark — mark the fenced material as data (story Q&A only; Stage 12.2,
+    prompt_safety Layer 1b).
+
     Raises AIServiceUnavailableError on connection errors or vLLM 5xx responses.
     """
     extra = {"task": task} if task else {}
+    if datamark:
+        extra["datamark"] = True
     text, _finish_reason = await _complete_ex(
         system, user, temperature=temperature, max_tokens=max_tokens,
         response_format=response_format, **extra,
@@ -178,6 +185,7 @@ async def _complete_ex(
     max_tokens: int = 512,
     response_format: Optional[dict] = None,
     task: Optional[str] = None,
+    datamark: bool = False,
 ) -> tuple[str, Optional[str]]:
     """
     Same as _complete(), but also returns vLLM's ``finish_reason``.
@@ -196,7 +204,7 @@ async def _complete_ex(
     if settings.prompt_injection_guard:
         # P1: fence the author's material as data and restate the task after it
         # (services/prompt_safety.py).
-        system, user = harden(system, user, task)
+        system, user = harden(system, user, task, mark=datamark and settings.prompt_injection_datamark_qa)
     try:
         resp = await get_vllm_client().chat.completions.create(
             model=settings.vllm_model_name,
@@ -212,6 +220,8 @@ async def _complete_ex(
         content = resp.choices[0].message.content.strip()
         if settings.prompt_injection_guard:
             content = strip_echoed_markers(content)   # Stage 12: never hand a fence marker to the author
+            if datamark:
+                content = strip_datamarks(content)    # Stage 12.2: nor a data marker
         return content, resp.choices[0].finish_reason
     except APIConnectionError as exc:
         logger.warning("[ai_service] vLLM connection error: %s", exc)
@@ -1115,6 +1125,44 @@ async def _run_constrained_transform_once(
             return reconstruct_with_locks(raw_out, segments)
         return raw_out, True
 
+    # A request for something new (a derivation, combined pins, an avoid-set
+    # "take a different direction") legitimately changes many words, so the
+    # Light new-word limit does not apply — the same reasoning that skips the
+    # "already suitable" check above.
+    _light_limit_applies = (
+        strength == "light" and settings.light_strength_repair
+        and not (p3 is not None and (p3.derivation or p3.context_pin_ids or p3.avoid_texts)))
+
+    async def _light_repair(current: str) -> str:
+        """Stage 12.3 (owner review A2): one bounded retry when a Light rewrite
+        adds more new words than LIGHT_NEW_SHARE_MAX. The retry is kept only if
+        it is lighter AND loses no more character names; locks stay protected
+        by _rebuild. Never retried twice."""
+        if not _light_limit_applies:
+            return current
+        heavy, share = light_edit_too_heavy(text, current, locked_ranges, settings.light_new_share_max)
+        if not heavy:
+            return current
+        raw_l = await _attempt(LIGHT_REPAIR_INSTRUCTION.format(pct=round(share * 100)),
+                               temp=max(0.0, temperature - 0.1))
+        rebuilt, ok = _rebuild(raw_l)
+        if not ok or not rebuilt:
+            return current
+        _heavy2, share2 = light_edit_too_heavy(text, rebuilt, locked_ranges, settings.light_new_share_max)
+        names_now = len(check_character_name_preservation(text, current, story_id, db, rules=rules))
+        names_new = len(check_character_name_preservation(text, rebuilt, story_id, db, rules=rules))
+        if share2 is not None and share2 < share and names_new <= names_now:
+            logger.info("[strength] light repair: new_share %.2f -> %.2f", share, share2)
+            return rebuilt
+        logger.info("[strength] light repair kept the first version (new_share %.2f; retry %s)", share, share2)
+        return current
+
+    def _strength_flag(final: str) -> bool:
+        flag = check_strength_violation(text, final, strength)
+        if _light_limit_applies:
+            flag = flag or light_edit_too_heavy(text, final, locked_ranges, settings.light_new_share_max)[0]
+        return flag
+
     raw = await _attempt()
 
     if locked_ranges:
@@ -1161,7 +1209,11 @@ async def _run_constrained_transform_once(
             # else: keep the first attempt's result and reported violations —
             # the retry's own shape failure is reported via violations staying
             # non-empty, never retried a second time (bounded).
-        strength_violation = check_strength_violation(text, reconstructed, strength)
+        repaired = await _light_repair(reconstructed)
+        if repaired is not reconstructed:
+            reconstructed = repaired
+            violations = check_character_name_preservation(text, reconstructed, story_id, db)
+        strength_violation = _strength_flag(reconstructed)
         return {
             "transformed": reconstructed, "no_change": False, "reason": None,
             "strength_violation": strength_violation, "preservation_violations": violations,
@@ -1178,6 +1230,11 @@ async def _run_constrained_transform_once(
         return [w for w in ws if w.get("severity") == "hard"]
 
     checks = verify_preservation(text, reconstructed, rules, tool=tool)
+    repaired = await _light_repair(reconstructed)
+    if repaired is not reconstructed:
+        reconstructed = repaired
+        violations = check_character_name_preservation(text, reconstructed, story_id, db, rules=rules)
+        checks = verify_preservation(text, reconstructed, rules, tool=tool)
     hard_names = violations if enforce_names else []
     if (hard_names or _hard(checks)) and settings.preservation_auto_repair:
         problems = []
@@ -1243,7 +1300,7 @@ async def _run_constrained_transform_once(
             if w["kind"] == "name_changed":
                 w["autofix"] = [f for f in autofix if f["with"] == w["entity"]["name"].split()[0]] or None
 
-    strength_violation = check_strength_violation(text, reconstructed, strength)
+    strength_violation = _strength_flag(reconstructed)
     return {
         "transformed": reconstructed, "no_change": False, "reason": None,
         "strength_violation": strength_violation, "preservation_violations": violations,
@@ -2431,7 +2488,8 @@ def _qa_prompt_tokens(system: str, user: str, question: str) -> int:
     prompt-injection fence and restated task when the guard is on)."""
     if settings.prompt_injection_guard:
         from services.prompt_safety import harden
-        system, user = harden(system, user, question_task(question))
+        system, user = harden(system, user, question_task(question),
+                              mark=settings.prompt_injection_datamark_qa)
     else:
         user = f"Question: {question}\n\n{user}"
     return count_tokens(system) + count_tokens(user)
@@ -2516,7 +2574,15 @@ async def answer_story_question(
     char_block = ("Relevant character profiles:\n\n" + "\n\n".join(character_context)) if character_context else ""
     note_block = ("Author's notes (story notes and research cards):\n\n" + "\n\n".join(note_context)) if note_context else ""
     chunks = list(text_chunks or [])
-    tail = f"Current chapter (last 600 chars):\n{current_chapter[-600:]}" if current_chapter else ""
+    # Stage 12.2: when the Q&A material is datamarked, the open chapter's excerpt
+    # (the last material before the task) is marked at every gap — see
+    # prompt_safety.dense_span. Without marking it is passed exactly as before.
+    _marking = settings.prompt_injection_guard and settings.prompt_injection_datamark_qa
+    excerpt = current_chapter[-600:] if current_chapter else ""
+    if excerpt and _marking:
+        from services.prompt_safety import dense_span
+        excerpt = dense_span(excerpt)
+    tail = f"Current chapter (last 600 chars):\n{excerpt}" if excerpt else ""
 
     def assemble() -> str:
         parts = list(head)
@@ -2569,8 +2635,10 @@ async def answer_story_question(
 
     if not settings.prompt_injection_guard:
         user_prompt = f"Question: {question}\n\n{user_prompt}"   # pre-Stage-11 layout
+    # Stage 12.2: datamark=True — chapter-scoped Q&A obeyed planted instructions
+    # without it (voice 12/12, Plot Assistant 9/12); see prompt_safety Layer 1b.
     answer = await _complete(system, user_prompt, temperature=0.0, max_tokens=900,
-                             task=question_task(question))
+                             task=question_task(question), datamark=True)
     # Stage 12 A18: an answer that copies an instruction out of the material and
     # has dropped the story followed that instruction. One silent retry (with a
     # little temperature — the first call was greedy), then an honest refusal.
@@ -2579,7 +2647,7 @@ async def answer_story_question(
     if output_obeyed_material(material, answer):
         logger.warning("[qa_answer] answer followed instruction-like material — retrying once")
         answer = await _complete(system, user_prompt, temperature=0.3, max_tokens=900,
-                                 task=question_task(question))
+                                 task=question_task(question), datamark=True)
         if output_obeyed_material(material, answer):
             from exceptions import ApiError
             raise ApiError(422, INSTRUCTION_LIKE_ANSWER, code="instruction_like_text")

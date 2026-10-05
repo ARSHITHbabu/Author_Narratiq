@@ -1,0 +1,40 @@
+======================================================
+ NarratIQ AI — Database Backup
+======================================================
+  Source:      narratiq@localhost:5432/narratiq
+  Destination: /workspace/backups
+  Database:    10 MB, 58 tables in public schema
+  [WARN] /workspace/backups is mode 777, not 700 — this filesystem does not enforce chmod.
+         Backups contain full manuscript text. Treat this directory as readable
+         by anything with access to the volume, and rely on off-pod storage for
+         confidentiality. (backend/.env on this same volume is already mode 666.)
+
+── Dumping database, integrity manifest and uploads (one snapshot)
+  Snapshot dump + manifest: 58 tables, 17 rows, 0 upload files (0.27s)
+  Wrote narratiq-20261005T102317Z.dump (187K), narratiq-20261005T102317Z.manifest.json, narratiq-uploads-20261005T102317Z.tar.gz (512)
+
+── Dumping role definitions
+  Wrote narratiq-globals-20261005T102317Z.sql
+
+── Verifying archive
+  Archive readable — 373 catalogue entries, 57 table-data entries
+  SHA-256 (dump): 6f575a8f12f0f8a5699c22e9e9b53dccdbd8722d9e283abf2fff44b46c4f020a — all set checksums verified
+
+======================================================
+ Backup complete
+======================================================
+  /workspace/backups/narratiq-20261005T102317Z.dump
+  /workspace/backups/narratiq-20261005T102317Z.manifest.json
+  /workspace/backups/narratiq-uploads-20261005T102317Z.tar.gz
+  /workspace/backups/narratiq-globals-20261005T102317Z.sql
+  /workspace/backups/narratiq-20261005T102317Z.SHA256SUMS
+
+ NOTE: file permissions are not enforced on this volume — see the warning above.
+
+ This backup is on the pod's network volume. An off-pod copy is DEFERRED (Stage 10,
+ decision S10-B): it does not protect against loss of the volume itself.
+ Verify it by restoring:  python3 scripts/verify_backup.py --set narratiq-20261005T102317Z
+
+real	0m0.870s
+user	0m0.380s
+sys	0m0.182s

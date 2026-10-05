@@ -14,6 +14,7 @@ Each backup is one **set** of files in `/workspace/backups` (the RunPod network 
 | `narratiq-<stamp>.manifest.json` | Integrity manifest of the **same snapshot** (see §3) |
 | `narratiq-uploads-<stamp>.tar.gz` | Every file under `backend/uploads/` (OCR page images, audio uploads) |
 | `narratiq-globals-<stamp>.sql` | Role definitions, without password hashes |
+| `narratiq-globals-<stamp>.sql.sha256` | SHA-256 of the globals file |
 | `narratiq-<stamp>.SHA256SUMS` | SHA-256 of the four files above |
 | `narratiq-<stamp>.dump.sha256` | SHA-256 of the dump (kept for older tooling) |
 
@@ -25,8 +26,8 @@ Each backup is one **set** of files in `/workspace/backups` (the RunPod network 
 
 | When | What | Where configured |
 |---|---|---|
-| Every start of `start-narratiq.sh` | Pre-migration backup (required before any schema change; aborts the start if it cannot be made) | `scripts/startup_backup.sh` |
-| Every hour | Backup set | `NARRATIQ_PERIODIC_BACKUP_INTERVAL_HOURS=1` |
+| Every start of `start-narratiq.sh` | Pre-migration backup: **required** before any schema change (aborts the start if it cannot be made); otherwise taken only when the newest backup is older than 24 h (`NARRATIQ_BACKUP_MAX_AGE_HOURS`). Also runs the empty-database guard (§4a) | `scripts/startup_backup.sh` |
+| Every hour | Backup set. The loop waits one interval first, so the first hourly set lands about an hour after start | `NARRATIQ_PERIODIC_BACKUP_INTERVAL_HOURS=1` |
 | After every hourly backup | Rotation: keep the newest **24** sets + the newest set of each of the last **7** days; never a set with a `narratiq-<stamp>.keep` marker, never the newest set that passed verification | `scripts/backup_retention.py`, `NARRATIQ_BACKUP_KEEP_RECENT`, `NARRATIQ_BACKUP_KEEP_DAILY_DAYS` |
 | First cycle, then every 24 h | Restore verification of the newest set (§3) | `NARRATIQ_BACKUP_VERIFY_EVERY_HOURS=24` |
 
@@ -111,6 +112,19 @@ Tests: `scripts/tests/test_backup_pipeline.py` proves a real set verifies PASS a
    ```
    Then spot-check by hand: open one manuscript in the app and read its last chapter.
 9. **Start the stack:** `bash start-narratiq.sh`. It takes a fresh pre-migration backup, applies any newer migrations, and restarts the backup loop and the watchdog.
+
+### 4a. The empty-database guard (startup refuses to run)
+
+`start-narratiq.sh` stops before any migration, printing **"UNEXPECTED EMPTY DATABASE — STARTUP ABORTED"**, when the live database holds no author rows **and** a valid backup set whose own manifest shows author data exists (`scripts/startup_backup.sh`, `scripts/backup_evidence.py`). The database lives on the container layer (`storage-and-persistence.md` §4.1), so this is what a pod restart that wiped it looks like. Backups of an empty database never trigger it, and an older data backup is never hidden by newer empty ones.
+
+* **Data was lost:** do not override. Restore with §4 above (step 9's `start-narratiq.sh` then finds data and continues). The guard's own message prints a checksum check and points here.
+* **Restoring a set that is itself empty, or an intentional fresh start** (the data was deleted on purpose, e.g. a disposable account removed through `DELETE /api/auth/account`): the guard cannot tell deliberate deletion from loss (an open owner decision). Start once with the exact phrase — `1`/`true` are refused:
+
+  ```bash
+  NARRATIQ_ACKNOWLEDGE_EMPTY_RESTART=yes-start-empty-intentionally bash start-narratiq.sh
+  ```
+  Set it on the command line only, **never** in `backend/.env` or the RunPod UI, where it would silently disable the guard for every later restart. Every later start blocks again while backup sets holding the old data remain in `/workspace/backups`. Retiring those sets is a deliberate operator decision, never automatic; the open owner decision on telling deletion from loss would remove the need.
+* **A brand-new pod with no `/workspace/backups`** passes the guard: there is no evidence of earlier data.
 
 ## 5. Monitoring of the backups
 

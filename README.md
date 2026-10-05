@@ -26,7 +26,7 @@ A fresh pod takes roughly 15–30 minutes, most of it model downloads.
 
 ### Manual
 
-Requires PostgreSQL 16 + pgvector, ~17 GB of model weights, and a CUDA GPU with ≥24 GB VRAM.
+Requires PostgreSQL 16 + pgvector, ~22 GB of model weights, and a CUDA GPU with ≥24 GB VRAM.
 
 ```bash
 # 1 — vLLM (port 9001)
@@ -142,7 +142,7 @@ single row — no routing or navigation edits.
 | Audio transcription | faster-whisper-large-v3-turbo (CTranslate2) |
 | Live voice partials | faster-whisper-base |
 
-All are local weights under `MODEL_BASE_DIR` (default `/workspace/models`, ~17 GB total).
+All are local weights under `MODEL_BASE_DIR` (default `/workspace/models`, ~22 GB total, measured 2026-10-05).
 No external AI API is called.
 
 ---
@@ -256,41 +256,27 @@ Full interactive documentation at `/docs`.
 
 ## Known Issues
 
-The full register of every reported issue, with severity and release-blocking status, is
-[`docs/issues-and-bugs/triage-register.md`](docs/issues-and-bugs/triage-register.md). Source reports:
-[Phase 1 QA issues](docs/issues-and-bugs/open/phase-1-ai-writing-tools-qa-issues.docx) and
-[Phase 2 production testing issues](docs/issues-and-bugs/resolved/phase-2-production-testing-issues.docx)
-(all 14 Phase 2 issues resolved and re-verified 2026-09-27). Open items at the time of writing (2026-10-03):
+**The single, current list of known limitations is in the release-candidate notes:
+[`docs/releases/v3.3.0-rc-release-notes.md` → Known limitations](docs/releases/v3.3.0-rc-release-notes.md#known-limitations).**
+It separates release-blocking operational risks, measured criteria that were not met, pending owner decisions and
+human reviews, external requirements, and accepted limitations. The full issue register, with severity and
+release-blocking status, is [`docs/issues-and-bugs/triage-register.md`](docs/issues-and-bugs/triage-register.md).
 
-1. **OCR handwriting quality is not measured.** Extraction works since Stage 12 A2 (it had failed with
-   `'DynamicCache' object has no attribute 'seen_tokens'`; history in
-   [`docs/issues-and-bugs/ocr-extraction-got-ocr2-dynamiccache-failure.md`](docs/issues-and-bugs/ocr-extraction-got-ocr2-dynamiccache-failure.md)).
-   GOT-OCR2.0 needs a GPU.
-2. **Audio transcription runs on the CPU** (faster-whisper, int8), so a long recording takes a while.
-3. **Plot hole detection and the manuscript report cap at 60 chapters** (`_PLOT_HOLE_MAX_CHAPTERS`,
-   `_MANUSCRIPT_MAX_CHAPTERS` in `backend/services/ai_service.py`). The cap is accepted for launch
-   (decision D-8). The batched and hierarchical strategies that would lift it are **not written**:
-   the strategy registry holds only `single_pass`, and the other entries are commented-out names of
-   functions that do not exist. Lifting the cap is new development work, not a configuration switch.
-4. **Prompt injection through manuscript text: mitigated (Stage 11), residual risk remains.** Text in a
-   manuscript can try to give the AI instructions. Every model call now fences the author's material as
-   data and restates the real task after it. Rewrite outputs that lose the selected passage are retried
-   and otherwise refused, with the author's text left unchanged. This lowers the risk a great deal but
-   cannot make it impossible. Only the author's own results are affected, since there is no sharing.
-   Measurements: [`docs/testing/stage-09-security-findings.md`](docs/testing/stage-09-security-findings.md).
-5. **Dependency advisories** (D1, D3). Next.js was upgraded to 15.5 (Stage 12 A5). vLLM 0.9.2 keeps its
-   advisories and now listens on 127.0.0.1 only (A4); that is an accepted limitation for this release
-   candidate (owner decision 2026-10-02). The remaining Python and npm Highs are recorded as not reachable
-   in [`docs/testing/stage-09-security-findings.md`](docs/testing/stage-09-security-findings.md).
-6. **Phase 1 QA backlog awaiting author acceptance.** Fixes for the Plot Assistant, writing tools,
-   suggestions, cast and Story Audit issues landed in Stages 4, 5 and 8 (for example, the Plot Assistant
-   now searches up to the current chapter by default, with a full-manuscript option). Formal closure
-   needs real-author UAT ([`docs/testing/stage-09-uat-guide.md`](docs/testing/stage-09-uat-guide.md)).
-   Possible duplicate characters are now detected and listed for an author-confirmed merge (Stage 12 A7);
-   nothing merges automatically.
-7. **No off-pod backup copy and no person-delivered alerts.** Backups stay on the pod volume, and alerts
-   go to `/workspace/logs/alerts.jsonl`. Both are deferred until an external service is approved
-   (Stage 10 decisions S10-B, S10-D). A pod/volume reset therefore loses the database.
+The most important items (2026-10-05):
+
+1. **⚠ No off-pod backup copy.** Backups stay on the RunPod network volume. Losing the pod and its volume — this
+   project's pod has been replaced three times — loses the database and every backup together. **No real author data
+   may be stored until an approved off-pod copy exists and a restore from it is verified** (W-3, not waived).
+2. **No person-delivered alerts** (W-4, waived with a required daily manual check: `scripts/daily_check.sh`).
+3. **Measured criteria not met:** rewrite run-to-run consistency (AWT-G), Plot Assistant context ordering (PA-C6,
+   PA-H12) and AI role suggestions (CAST-H6) are accepted as known limitations for this release (2026-10-05) — the
+   criteria stay recorded as not met; Light vs Strong for tone and age adaptation awaits human labels.
+   (The chapter-scoped story Q&A prompt-injection finding of 2026-10-05 was fixed the same day; its residual risk
+   awaits the owner's S1 decision.)
+4. **Human reviews pending:** blind rewrite review, children's rewrites, Story Bible reading, translation by a fluent
+   speaker, real-author UAT, legal review of the copyright-risk disclaimer.
+5. **Accepted for launch:** plot-hole detection and the manuscript report read at most 60 chapters (decision D-8);
+   the batched and hierarchical strategies that would lift the cap are not written.
 
 Resolved since earlier revisions of this list: OCR extraction (Stage 12 A2), the missing manuscript-upload
 control (A8), duplicate-character detection (A7), the Next.js 14 advisories (A5), the vLLM port contradiction (9001 everywhere; `start.sh`

@@ -76,6 +76,27 @@ Owner of every stage and the only on-call person: the author/product owner (task
 1. check `alerts.jsonl` at the start and end of every working session, and after any report from an author;
 2. act by severity per `docs/operations/incident-response.md`.
 
+### 3a. Daily manual check (required — owner decision W-4, 2026-10-05)
+
+Alert delivery is waived for this release **only with** a documented daily manual check. Once every day the service
+runs, the operator runs on the pod:
+
+```bash
+cd /workspace/narratiq-ai                 # your checkout
+bash scripts/daily_check.sh --record      # read-only; appends the verdict to /workspace/logs/daily-check.log
+```
+
+It checks, without changing anything: `/api/health`; alerts still firing in the last 24 h; the newest backup's age
+(limit `NARRATIQ_ALERT_BACKUP_MAX_AGE_HOURS`, 3 h) and the last restore verification; the off-pod copy status
+(**W-3**: real author data must not be stored until an approved off-pod copy is verified, so `not_configured` is
+always reported as ATTENTION); that the watchdog and backup loop are running and the heartbeat is fresh; disk use on
+`/workspace` and the container layer; and the last 60 minutes of server errors, AI-unavailable responses, error
+records and failed background jobs from `/api/ops/metrics` (the ops token is read from `backend/.env` and never
+printed). Exit 0 = all OK. Exit 1 = act on each `ATTENTION` line per `incident-response.md`, then record what was
+done. A day with no `daily-check.log` line is a missed check.
+
+First run 2026-10-05, pod `55zfw2ol0sx1gi`: everything OK except the off-pod copy (`not_configured`, W-3).
+
 ## 4. Deferred (needs an external service — decision S10-D)
 
 * Delivering alerts to a phone or mailbox (attach through `NARRATIQ_ALERT_COMMAND`).

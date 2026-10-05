@@ -152,6 +152,17 @@ class Settings(BaseSettings):
     # (services/prompt_safety.py). On by default; "false" restores the previous
     # prompts exactly, for measurement or rollback only.
     prompt_injection_guard: bool = True
+    # Stage 12.2: datamark the fenced material of story Q&A (Plot Assistant,
+    # voice story/character questions) — services/prompt_safety.py Layer 1b.
+    # Applies only while prompt_injection_guard is on; "false" restores the
+    # Stage 11 Q&A prompt exactly (rollback).
+    prompt_injection_datamark_qa: bool = True
+    # Stage 12.3 (owner review A2): at Light strength, a rewrite whose new-word
+    # share exceeds light_new_share_max (0.45, set from the owner's labels) is
+    # retried once with explicit feedback; if it is still too heavy it is
+    # flagged strength_violation. "false" restores the previous behaviour.
+    light_strength_repair: bool = True
+    light_new_share_max: float = 0.45
     # Stage 12 remediation A3: the /api/ai/<tool>/stream routes return raw model
     # tokens and skip sentence locks, strength limits, the no-change check, the
     # preservation checks and the prompt-injection output check. No frontend

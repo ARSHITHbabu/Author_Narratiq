@@ -63,6 +63,7 @@ Hard failures (`RuntimeError`) are the worker guard, an invalid Phase 3 pin back
 - The concrete task is restated **after** the fence. Measured on Qwen-7B, what the model reads last decides whether it obeys an injected line.
 - Call sites pass `task=`: `prompt_safety.REWRITE_TASK` for rewrites, `TRANSLATE_TASK`, or `question_task(question)` for Q&A, so the author's question comes last.
 - Output check: rewrite endpoints run `rewrite_lost_source()` on the output, retry once, then refuse with 422 `instruction_like_text` instead of returning a hijacked "rewrite". A copyright `note` that merely echoes the input is dropped (`echoes_source()`).
+- Story Q&A (`answer_story_question`: Plot Assistant, voice story/character questions) also **datamarks** the fenced material (Stage 12.2, `prompt_safety` Layer 1b): in the prompt copy a `ˆ` replaces every 4th gap between words, and every gap in the open chapter's excerpt. Without it, chapter-scoped Q&A followed instructions planted in the open chapter (voice 12/12, Plot Assistant 9/12). Pass `datamark=True` to `_complete` only for Q&A-shaped calls; the token fit (`_qa_prompt_tokens`) must measure the marked prompt. `PROMPT_INJECTION_DATAMARK_QA=false` restores the Stage 11 Q&A prompt.
 - `PROMPT_INJECTION_GUARD=false` restores the old prompts exactly; use it for measurement only.
 - Residual risk is documented in `docs/testing/stage-09-security-findings.md`.
 
