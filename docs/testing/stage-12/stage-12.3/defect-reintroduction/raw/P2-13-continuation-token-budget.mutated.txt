@@ -1,0 +1,42 @@
+$ (cwd /workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/backend) python3 -m pytest tests/test_generation_limits.py -q -p no:cacheprovider -rfE --no-header -W ignore
+
+[conftest] DB safety guard: running against allow-listed test database 'narratiq_ci_verify'
+FF......................                                                                                                                                                                                                                                        [100%]
+============================================================================================================================== FAILURES ===============================================================================================================================
+___________________________________________________________________________________________________________ test_max_tokens_scales_with_continuation_length ___________________________________________________________________________________________________________
+
+    def test_max_tokens_scales_with_continuation_length():
+        short, _ = _captured_max_tokens(CONT_LENGTHS["short"], raw=THREE_VALID)
+        medium, _ = _captured_max_tokens(CONT_LENGTHS["medium"], raw=THREE_VALID)
+        long_, _ = _captured_max_tokens(CONT_LENGTHS["long"], raw=THREE_VALID)
+    
+>       assert long_ > medium >= short, (short, medium, long_)
+E       AssertionError: (1600, 1600, 1600)
+E       assert 1600 > 1600
+
+tests/test_generation_limits.py:108: AssertionError
+________________________________________________________________________________________________________ test_long_budget_clears_the_measured_truncation_point ________________________________________________________________________________________________________
+
+    def test_long_budget_clears_the_measured_truncation_point():
+        """Long must exceed the 1600 that was actually hit, with real headroom.
+    
+        The observed worst case consumed the entire 1600-token cap; anything at or
+        barely above that reintroduces the intermittent failure.
+        """
+        long_, _ = _captured_max_tokens(CONT_LENGTHS["long"], raw=THREE_VALID)
+    
+>       assert long_ >= 2300, f"long budget {long_} leaves too little headroom over the measured 1600"
+E       AssertionError: long budget 1600 leaves too little headroom over the measured 1600
+E       assert 1600 >= 2300
+
+tests/test_generation_limits.py:119: AssertionError
+======================================================================================================================= short test summary info =======================================================================================================================
+FAILED tests/test_generation_limits.py::test_max_tokens_scales_with_continuation_length - AssertionError: (1600, 1600, 1600)
+FAILED tests/test_generation_limits.py::test_long_budget_clears_the_measured_truncation_point - AssertionError: long budget 1600 leaves too little headroom over the measured 1600
+2 failed, 22 passed in 5.27s
+/workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/backend/database.py:38: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+  Base = declarative_base()
+/usr/local/lib/python3.11/dist-packages/pytest_asyncio/plugin.py:208: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))

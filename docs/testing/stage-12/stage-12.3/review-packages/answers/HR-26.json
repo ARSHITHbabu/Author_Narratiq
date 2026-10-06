@@ -1,0 +1,20 @@
+{
+ "hr": "HR-26",
+ "reviewer": "AI Agent — Owner-authorised independent review",
+ "label": "AGENT REVIEW — AUTHORISED BY OWNER",
+ "method": "Computed from the recorded inputs only (package §17 rule: PASS needs every input PASS or owner-accepted; FAIL if any input failed and is not accepted; INCOMPLETE if any input is not done). No owner acceptance of a failed input is recorded.",
+ "date": "2026-10-06",
+ "status": "FAIL",
+ "answers": {
+  "HR-26.Q1": {
+   "value": "FAIL"
+  },
+  "HR-26.Q2": {
+   "value": "Failed: HR-18 (7.12 style match). Outside: real day-8 cleanup (post-release); §46/§47 UAT items."
+  }
+ },
+ "result_reasoning": "7.15 / L2577: FAIL — HR-18 failed.",
+ "per_issue": {},
+ "failures": [],
+ "evidence": []
+}

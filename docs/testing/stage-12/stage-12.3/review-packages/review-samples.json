@@ -1,0 +1,2288 @@
+{
+  "seed": 20261006,
+  "status": "PENDING HUMAN REVIEW",
+  "answers": [
+    "HR-01",
+    "HR-02",
+    "HR-03",
+    "HR-04",
+    "HR-05",
+    "HR-06",
+    "HR-07",
+    "HR-08",
+    "HR-09",
+    "HR-10",
+    "HR-11",
+    "HR-12",
+    "HR-13",
+    "HR-14",
+    "HR-15",
+    "HR-16",
+    "HR-17",
+    "HR-18",
+    "HR-19",
+    "HR-20",
+    "HR-21",
+    "HR-22",
+    "HR-23",
+    "HR-24",
+    "HR-25",
+    "HR-26"
+  ],
+  "sources": {
+    "strength_post_fix": {
+      "path": "backend/tests/fixtures/strength_t2b_after_v4_light_repair.json",
+      "sha256_16": "72f16b71dd210c1a"
+    },
+    "emotion_stage9": {
+      "path": "backend/tests/fixtures/emotion_measurement_stage9_20260927.json",
+      "sha256_16": "ebdb7a7cf1374ade"
+    },
+    "children_v4": {
+      "path": "backend/tests/fixtures/children_suitability_t2b_after_v4.json",
+      "sha256_16": "ad9fd37980ca2b10"
+    },
+    "suggestions_t2b": {
+      "path": "backend/tests/fixtures/suggestions_quality_t2b.json",
+      "sha256_16": "0d05976b22899583"
+    },
+    "long_manuscript": {
+      "path": "backend/tests/fixtures/long_manuscript_pa.json",
+      "sha256_16": "ce675a8e58f0c879"
+    },
+    "long_manuscript_spec": {
+      "path": "backend/tests/fixtures/long_manuscript_spec.py",
+      "sha256_16": "0f360e540bc46a65"
+    },
+    "golden_passages": {
+      "path": "backend/tests/fixtures/transform_golden_set.py",
+      "sha256_16": "840e15bc89318aed"
+    },
+    "golden_v4_n10": {
+      "path": "backend/tests/fixtures/transform_golden_stage12_1_v4_n10.json",
+      "sha256_16": "65f90c545cac79cc"
+    },
+    "suggestions_passages": {
+      "path": "backend/tests/fixtures/suggestions_golden_set.py",
+      "sha256_16": "9ec66eab86f359e7"
+    },
+    "suggestions_strong": {
+      "path": "backend/tests/measure_suggestions_t2b.py",
+      "sha256_16": "f105dedc324eb792"
+    },
+    "children_passages": {
+      "path": "backend/tests/measure_children_suitability_t2b.py",
+      "sha256_16": "5a9c85ca2b7063c0"
+    },
+    "injection_probe": {
+      "path": "docs/testing/stage-12/tranche3/injection-probe-tranche3.json",
+      "sha256_16": "c03c5883734b31a3"
+    },
+    "mv514a": {
+      "path": "docs/testing/stage-12/tranche3/mv-5.14-a.json",
+      "sha256_16": "7312d33a018d2c59"
+    },
+    "mv514a_before": {
+      "path": "docs/testing/stage-12/tranche3/mv-5.14-a-before-fix.json",
+      "sha256_16": "8202805f088e3757"
+    },
+    "mv514b": {
+      "path": "docs/testing/stage-12/tranche3/mv-5.14-b.json",
+      "sha256_16": "9ca5447074590383"
+    },
+    "mv514c": {
+      "path": "docs/testing/stage-12/tranche3/mv-5.14-c.json",
+      "sha256_16": "37c13183cadec49c"
+    },
+    "mv514b_png": {
+      "path": "docs/testing/stage-12/tranche3/mv-5.14-b-section.png",
+      "sha256_16": "6f6c394d04e2f192"
+    },
+    "mv514c_png": {
+      "path": "docs/testing/stage-12/tranche3/mv-5.14-c-section.png",
+      "sha256_16": "ac51eb4cdb0f2bd3"
+    },
+    "mv514_script": {
+      "path": "backend/scripts/quality/mv514_live.py",
+      "sha256_16": "1b79a2ce7bd78013"
+    },
+    "checklist": {
+      "path": "docs/NarratIQ_Master_Implementation_Checklist.md",
+      "sha256_16": "f23eb88583b1dceb"
+    }
+  },
+  "samples": {
+    "HR-06": [
+      {
+        "transform": "tone",
+        "target": "suspenseful",
+        "passage": "tech-1",
+        "run": 3,
+        "original": "The sensor array logged a spike at 03:14, four minutes early relative to the established cycle. Priya flagged the anomaly and ran the calibration a second time. The result did not change.",
+        "light": "The sensor array recorded an unexpected spike at 03:14, four minutes ahead of schedule. Priya noted the irregularity and reran the calibration. The outcome remained unchanged.",
+        "strong": "The sensor array recorded a spike at 03:14, four minutes ahead of schedule. Priya marked the anomaly and reran the calibration. The results remained unchanged.",
+        "light_profile": {
+          "measured": true,
+          "words": 33,
+          "kept_share": 0.455,
+          "new_share": 0.444,
+          "word_order": 0.467,
+          "min_sentence_kept": 0.2,
+          "sentence_delta": 0
+        },
+        "strong_profile": {
+          "measured": true,
+          "words": 33,
+          "kept_share": 0.515,
+          "new_share": 0.346,
+          "word_order": 0.576,
+          "min_sentence_kept": 0.2,
+          "sentence_delta": 0
+        },
+        "light_strength_violation": false,
+        "strong_no_change": false,
+        "id": "R1"
+      },
+      {
+        "transform": "tone",
+        "target": "suspenseful",
+        "passage": "gothic-1",
+        "run": 2,
+        "original": "The house had not been opened in eleven years, and the air inside kept the shape of that absence — still, cold, faintly sweet with dust. Mira did not call out. There was no one left to answer.",
+        "light": "The house, untouched for eleven years, held the silence of that long absence—still, cold, faintly sweet with dust. Mira moved quietly, her voice a whisper in the empty air, knowing there was no one left to hear.",
+        "strong": "The house, untouched for eleven years, held its breath—a stale, cold silence, faintly sweet with the scent of dust. Mira moved quietly, her footsteps barely breaking the oppressive stillness. There was no one left to hear her.",
+        "light_profile": {
+          "measured": true,
+          "words": 37,
+          "kept_share": 0.649,
+          "new_share": 0.368,
+          "word_order": 0.56,
+          "min_sentence_kept": 0.2,
+          "sentence_delta": -1
+        },
+        "strong_profile": {
+          "measured": true,
+          "words": 37,
+          "kept_share": 0.514,
+          "new_share": 0.5,
+          "word_order": 0.427,
+          "min_sentence_kept": 0.2,
+          "sentence_delta": 0
+        },
+        "light_strength_violation": false,
+        "strong_no_change": false,
+        "id": "R2"
+      },
+      {
+        "transform": "tone",
+        "target": "suspenseful",
+        "passage": "tech-3",
+        "run": 3,
+        "original": "The report was three pages, all of it technically accurate and none of it honest about what the numbers actually implied.",
+        "light": "The report spanned three pages, each filled with figures that were technically precise yet utterly devoid of truth regarding what those numbers truly signified.",
+        "strong": "The report, three pages long, dripped with cold, hard facts—each one meticulously crafted yet devoid of any genuine truth, hiding the shadows behind the figures.",
+        "light_profile": {
+          "measured": true,
+          "words": 21,
+          "kept_share": 0.381,
+          "new_share": 0.667,
+          "word_order": 0.311,
+          "min_sentence_kept": 0.381,
+          "sentence_delta": 0
+        },
+        "strong_profile": {
+          "measured": true,
+          "words": 21,
+          "kept_share": 0.286,
+          "new_share": 0.769,
+          "word_order": 0.255,
+          "min_sentence_kept": 0.286,
+          "sentence_delta": 0
+        },
+        "light_strength_violation": true,
+        "strong_no_change": false,
+        "id": "R3"
+      },
+      {
+        "transform": "tone",
+        "target": "suspenseful",
+        "passage": "gothic-2",
+        "run": 0,
+        "original": "She had learned, over the years, to say nothing when she was most afraid. The habit had outlived its reason. Even now, alone in the hall, she found herself arranging her face into something calm.",
+        "light": "She had learned, over the years, to say nothing when she was most afraid. The habit lingered, a shadow from the past. Even now, alone in the hall, she forced her expression into something semblance of calm.",
+        "strong": "She had learned, over the years, to say nothing when she was most afraid. The habit lingered like a shadow, long after its usefulness faded. Even now, alone in the dimly lit hall, she forced her features into an unyielding mask of composure.",
+        "light_profile": {
+          "measured": true,
+          "words": 35,
+          "kept_share": 0.771,
+          "new_share": 0.27,
+          "word_order": 0.75,
+          "min_sentence_kept": 0.5,
+          "sentence_delta": 0
+        },
+        "strong_profile": {
+          "measured": true,
+          "words": 35,
+          "kept_share": 0.743,
+          "new_share": 0.395,
+          "word_order": 0.667,
+          "min_sentence_kept": 0.6,
+          "sentence_delta": 0
+        },
+        "light_strength_violation": false,
+        "strong_no_change": false,
+        "id": "R4"
+      },
+      {
+        "transform": "tone",
+        "target": "suspenseful",
+        "passage": "adventure-3",
+        "run": 1,
+        "original": "The children's version of the story left out the part where nobody survived the first crossing. This was, Mira thought, probably for the best.",
+        "light": "The children's version of the story skipped over the harrowing detail where no one emerged alive from the first crossing. Mira thought this omission might have been wise.",
+        "strong": "The children's version of the tale conveniently omitted the grim detail of everyone perishing during the initial voyage. Mira pondered that perhaps it was for the better.",
+        "light_profile": {
+          "measured": true,
+          "words": 24,
+          "kept_share": 0.583,
+          "new_share": 0.5,
+          "word_order": 0.5,
+          "min_sentence_kept": 0.5,
+          "sentence_delta": 0
+        },
+        "strong_profile": {
+          "measured": true,
+          "words": 24,
+          "kept_share": 0.458,
+          "new_share": 0.593,
+          "word_order": 0.392,
+          "min_sentence_kept": 0.438,
+          "sentence_delta": 0
+        },
+        "light_strength_violation": true,
+        "strong_no_change": false,
+        "id": "R5"
+      },
+      {
+        "transform": "tone",
+        "target": "suspenseful",
+        "passage": "gothic-4",
+        "run": 1,
+        "original": "He kept the key on a chain he never removed, not because he expected to need it again, but because a man who has once locked a door does not easily trust himself to leave it unlocked.",
+        "light": "He kept the key on a chain he never took off, not anticipating another use, but knowing that a man who had once locked a door could not easily trust himself to leave it unlocked.",
+        "strong": "He kept the key on a chain he never took off, not because he anticipated needing it again, but because a man who had once locked a door found it hard to let it remain unlocked, even when there was no clear threat.",
+        "light_profile": {
+          "measured": true,
+          "words": 37,
+          "kept_share": 0.703,
+          "new_share": 0.257,
+          "word_order": 0.722,
+          "min_sentence_kept": 0.703,
+          "sentence_delta": 0
+        },
+        "strong_profile": {
+          "measured": true,
+          "words": 37,
+          "kept_share": 0.703,
+          "new_share": 0.395,
+          "word_order": 0.65,
+          "min_sentence_kept": 0.703,
+          "sentence_delta": 0
+        },
+        "light_strength_violation": false,
+        "strong_no_change": false,
+        "id": "R6"
+      },
+      {
+        "transform": "age_adapt",
+        "target": "children",
+        "passage": "adventure-2",
+        "run": 1,
+        "original": "Three arrows, three misses, and the fourth still in her quiver — Aanya was not going to get a fifth chance, and she knew it.",
+        "light": "Three arrows, and three misses. Aanya had one arrow left in her quiver. She knew she couldn't miss this time.",
+        "strong": "Three arrows, and Aanya missed with each one. She had one arrow left in her quiver. Aanya knew she couldn't miss again.",
+        "light_profile": {
+          "measured": true,
+          "words": 24,
+          "kept_share": 0.458,
+          "new_share": 0.45,
+          "word_order": 0.409,
+          "min_sentence_kept": 0.458,
+          "sentence_delta": 2
+        },
+        "strong_profile": {
+          "measured": true,
+          "words": 24,
+          "kept_share": 0.375,
+          "new_share": 0.591,
+          "word_order": 0.348,
+          "min_sentence_kept": 0.375,
+          "sentence_delta": 2
+        },
+        "light_strength_violation": true,
+        "strong_no_change": false,
+        "id": "R7"
+      },
+      {
+        "transform": "age_adapt",
+        "target": "children",
+        "passage": "adventure-1",
+        "run": 0,
+        "original": "The bridge gave way behind them with a sound like a held breath finally let go. Kael did not look back. There was nothing behind them worth the half-second it would cost.",
+        "light": "The bridge broke behind them with a sound like a held breath finally let out. Kael did not turn around. There was nothing behind them worth the half-second it would take to look.",
+        "strong": "The bridge broke behind them with a quiet sound. Kael didn't turn around. There was nothing behind them that needed looking at.",
+        "light_profile": {
+          "measured": true,
+          "words": 33,
+          "kept_share": 0.848,
+          "new_share": 0.176,
+          "word_order": 0.806,
+          "min_sentence_kept": 0.8,
+          "sentence_delta": 0
+        },
+        "strong_profile": {
+          "measured": true,
+          "words": 33,
+          "kept_share": 0.394,
+          "new_share": 0.409,
+          "word_order": 0.473,
+          "min_sentence_kept": 0.2,
+          "sentence_delta": 0
+        },
+        "light_strength_violation": false,
+        "strong_no_change": false,
+        "id": "R8"
+      },
+      {
+        "transform": "age_adapt",
+        "target": "children",
+        "passage": "tech-2",
+        "run": 3,
+        "original": "Access to the lab required two separate badge scans and a supervisor override after 22:00. Priya had never used the override before tonight.",
+        "light": "The lab needed two badge scans and a supervisor's permission after 10:00 PM. Priya had never used the permission before tonight.",
+        "strong": "Priya needed two special cards to get into the lab. After 10:00 PM, she also had to ask a grown-up to help her. Priya had never done this before tonight.",
+        "light_profile": {
+          "measured": true,
+          "words": 24,
+          "kept_share": 0.667,
+          "new_share": 0.273,
+          "word_order": 0.696,
+          "min_sentence_kept": 0.562,
+          "sentence_delta": 0
+        },
+        "strong_profile": {
+          "measured": true,
+          "words": 24,
+          "kept_share": 0.5,
+          "new_share": 0.625,
+          "word_order": 0.321,
+          "min_sentence_kept": 0.438,
+          "sentence_delta": 1
+        },
+        "light_strength_violation": false,
+        "strong_no_change": false,
+        "id": "R9"
+      },
+      {
+        "transform": "age_adapt",
+        "target": "children",
+        "passage": "tech-3",
+        "run": 0,
+        "original": "The report was three pages, all of it technically accurate and none of it honest about what the numbers actually implied.",
+        "light": "The report was three pages long, all the information was correct, but it didn't tell the truth about what the numbers meant.",
+        "strong": "The report had three pages. All the information was correct, but it didn't tell the whole truth about what the numbers meant.",
+        "light_profile": {
+          "measured": true,
+          "words": 21,
+          "kept_share": 0.524,
+          "new_share": 0.5,
+          "word_order": 0.512,
+          "min_sentence_kept": 0.524,
+          "sentence_delta": 0
+        },
+        "strong_profile": {
+          "measured": true,
+          "words": 21,
+          "kept_share": 0.524,
+          "new_share": 0.5,
+          "word_order": 0.465,
+          "min_sentence_kept": 0.524,
+          "sentence_delta": 1
+        },
+        "light_strength_violation": true,
+        "strong_no_change": false,
+        "id": "R10"
+      },
+      {
+        "transform": "age_adapt",
+        "target": "children",
+        "passage": "adventure-3",
+        "run": 3,
+        "original": "The children's version of the story left out the part where nobody survived the first crossing. This was, Mira thought, probably for the best.",
+        "light": "The story for kids didn't include the part where nobody survived the first crossing. Mira thought this was probably better.",
+        "strong": "Mira thought it was better to leave out the part where nobody survived the first crossing.",
+        "light_profile": {
+          "measured": true,
+          "words": 24,
+          "kept_share": 0.667,
+          "new_share": 0.2,
+          "word_order": 0.591,
+          "min_sentence_kept": 0.625,
+          "sentence_delta": 0
+        },
+        "strong_profile": {
+          "measured": true,
+          "words": 24,
+          "kept_share": 0.5,
+          "new_share": 0.25,
+          "word_order": 0.45,
+          "min_sentence_kept": 0.5,
+          "sentence_delta": -1
+        },
+        "light_strength_violation": false,
+        "strong_no_change": false,
+        "id": "R11"
+      },
+      {
+        "transform": "age_adapt",
+        "target": "children",
+        "passage": "gothic-4",
+        "run": 2,
+        "original": "He kept the key on a chain he never removed, not because he expected to need it again, but because a man who has once locked a door does not easily trust himself to leave it unlocked.",
+        "light": "He kept the key on a chain he never took off, not because he thought he would need it again, but because a man who has locked a door before does not easily trust leaving it unlocked.",
+        "strong": "He kept the key on a chain he never removed, not because he expected to need it again, but because a man who has once locked a door does not easily trust himself to leave it unlocked.",
+        "light_profile": {
+          "measured": true,
+          "words": 37,
+          "kept_share": 0.811,
+          "new_share": 0.189,
+          "word_order": 0.811,
+          "min_sentence_kept": 0.811,
+          "sentence_delta": 0
+        },
+        "strong_profile": {
+          "measured": true,
+          "words": 37,
+          "kept_share": 1.0,
+          "new_share": 0.0,
+          "word_order": 1.0,
+          "min_sentence_kept": 1.0,
+          "sentence_delta": 0
+        },
+        "light_strength_violation": false,
+        "strong_no_change": true,
+        "id": "R12"
+      },
+      {
+        "transform": "style",
+        "target": "cinematic",
+        "passage": "gothic-1",
+        "run": 2,
+        "original": "The house had not been opened in eleven years, and the air inside kept the shape of that absence — still, cold, faintly sweet with dust. Mira did not call out. There was no one left to answer.",
+        "light": "The house hadn't seen a key in eleven years, and the air inside clung to that absence—still, cold, faintly sweet with dust. Mira didn't call out. There was no one left to answer.",
+        "strong": "The house, untouched for eleven years, held the silence like a shroud—still, cold, faintly sweet with dust. Mira moved quietly inside, her voice a whisper against the echo of emptiness. There was no one left to answer.",
+        "light_profile": {
+          "measured": true,
+          "words": 37,
+          "kept_share": 0.73,
+          "new_share": 0.206,
+          "word_order": 0.761,
+          "min_sentence_kept": 0.6,
+          "sentence_delta": 0
+        },
+        "strong_profile": {
+          "measured": true,
+          "words": 37,
+          "kept_share": 0.595,
+          "new_share": 0.421,
+          "word_order": 0.507,
+          "min_sentence_kept": 0.2,
+          "sentence_delta": 0
+        },
+        "light_strength_violation": false,
+        "strong_no_change": false,
+        "id": "R13"
+      },
+      {
+        "transform": "style",
+        "target": "cinematic",
+        "passage": "gothic-4",
+        "run": 3,
+        "original": "He kept the key on a chain he never removed, not because he expected to need it again, but because a man who has once locked a door does not easily trust himself to leave it unlocked.",
+        "light": "He kept the key on a chain he never took off, not because he anticipated needing it again, but because a man who had once locked a door did not quickly trust himself to leave it unlocked.",
+        "strong": "He wore the key around his neck on a chain that never left his person, not out of anticipation for its next use, but because a man who had once locked a door found it hard to ever let another pass without guard.",
+        "light_profile": {
+          "measured": true,
+          "words": 37,
+          "kept_share": 0.811,
+          "new_share": 0.189,
+          "word_order": 0.811,
+          "min_sentence_kept": 0.811,
+          "sentence_delta": 0
+        },
+        "strong_profile": {
+          "measured": true,
+          "words": 37,
+          "kept_share": 0.514,
+          "new_share": 0.558,
+          "word_order": 0.45,
+          "min_sentence_kept": 0.514,
+          "sentence_delta": 0
+        },
+        "light_strength_violation": false,
+        "strong_no_change": false,
+        "id": "R14"
+      },
+      {
+        "transform": "style",
+        "target": "cinematic",
+        "passage": "tech-2",
+        "run": 1,
+        "original": "Access to the lab required two separate badge scans and a supervisor override after 22:00. Priya had never used the override before tonight.",
+        "light": "Access to the lab demanded two badge scans and a supervisor override past 10 pm. Priya had never activated the override until tonight.",
+        "strong": "Access to the lab demanded two distinct badge scans and a supervisor override past 22:00. For Priya, the override was a mystery, a riddle to be solved tonight alone.",
+        "light_profile": {
+          "measured": true,
+          "words": 24,
+          "kept_share": 0.708,
+          "new_share": 0.261,
+          "word_order": 0.723,
+          "min_sentence_kept": 0.688,
+          "sentence_delta": 0
+        },
+        "strong_profile": {
+          "measured": true,
+          "words": 24,
+          "kept_share": 0.708,
+          "new_share": 0.433,
+          "word_order": 0.63,
+          "min_sentence_kept": 0.5,
+          "sentence_delta": 0
+        },
+        "light_strength_violation": false,
+        "strong_no_change": false,
+        "id": "R15"
+      }
+    ],
+    "HR-07": [
+      {
+        "transform": "tone",
+        "target": "suspenseful",
+        "passage": "adventure-4",
+        "run": 3,
+        "original": "The old guide had warned them about the pass, the weather, and the wolves, in that order, as if the order mattered.",
+        "light": "The old guide had warned them about the pass, the weather, and the wolves, in that order, as if the sequence held any real significance.",
+        "profile": {
+          "measured": true,
+          "words": 22,
+          "kept_share": 0.909,
+          "new_share": 0.2,
+          "word_order": 0.851,
+          "min_sentence_kept": 0.909,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L1"
+      },
+      {
+        "transform": "tone",
+        "target": "suspenseful",
+        "passage": "tech-3",
+        "run": 1,
+        "original": "The report was three pages, all of it technically accurate and none of it honest about what the numbers actually implied.",
+        "light": "The report spanned three pages, each filled with figures that were technically accurate yet utterly devoid of truth regarding what those numbers truly signified.",
+        "profile": {
+          "measured": true,
+          "words": 21,
+          "kept_share": 0.429,
+          "new_share": 0.625,
+          "word_order": 0.4,
+          "min_sentence_kept": 0.429,
+          "sentence_delta": 0
+        },
+        "strength_violation": true,
+        "id": "L2"
+      },
+      {
+        "transform": "tone",
+        "target": "suspenseful",
+        "passage": "gothic-2",
+        "run": 3,
+        "original": "She had learned, over the years, to say nothing when she was most afraid. The habit had outlived its reason. Even now, alone in the hall, she found herself arranging her face into something calm.",
+        "light": "She had learned, over the years, to say nothing when she was most afraid. The habit lingered, a shadow from the past. Even now, alone in the hall, she forced her features into an appearance of calm.",
+        "profile": {
+          "measured": true,
+          "words": 35,
+          "kept_share": 0.743,
+          "new_share": 0.297,
+          "word_order": 0.722,
+          "min_sentence_kept": 0.5,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L3"
+      },
+      {
+        "transform": "tone",
+        "target": "suspenseful",
+        "passage": "gothic-1",
+        "run": 3,
+        "original": "The house had not been opened in eleven years, and the air inside kept the shape of that absence — still, cold, faintly sweet with dust. Mira did not call out. There was no one left to answer.",
+        "light": "The house, untouched for eleven years, held the silence of its neglect—still, cold, faintly sweet with dust. Mira moved quietly, her voice a whisper of the past, knowing there was no one left to hear.",
+        "profile": {
+          "measured": true,
+          "words": 37,
+          "kept_share": 0.541,
+          "new_share": 0.444,
+          "word_order": 0.521,
+          "min_sentence_kept": 0.2,
+          "sentence_delta": -1
+        },
+        "strength_violation": false,
+        "id": "L4"
+      },
+      {
+        "transform": "tone",
+        "target": "suspenseful",
+        "passage": "gothic-4",
+        "run": 2,
+        "original": "He kept the key on a chain he never removed, not because he expected to need it again, but because a man who has once locked a door does not easily trust himself to leave it unlocked.",
+        "light": "He kept the key on a chain he never took off, not anticipating another use, but knowing that a man who had once locked a door struggled to trust leaving it unlocked.",
+        "profile": {
+          "measured": true,
+          "words": 37,
+          "kept_share": 0.595,
+          "new_share": 0.312,
+          "word_order": 0.609,
+          "min_sentence_kept": 0.595,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L5"
+      },
+      {
+        "transform": "tone",
+        "target": "suspenseful",
+        "passage": "tech-1",
+        "run": 0,
+        "original": "The sensor array logged a spike at 03:14, four minutes early relative to the established cycle. Priya flagged the anomaly and ran the calibration a second time. The result did not change.",
+        "light": "The sensor array registered an unexpected spike at 03:14, four minutes ahead of schedule. Priya noted the anomaly and reran the calibration. The results remained unchanged.",
+        "profile": {
+          "measured": true,
+          "words": 33,
+          "kept_share": 0.485,
+          "new_share": 0.407,
+          "word_order": 0.533,
+          "min_sentence_kept": 0.2,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L6"
+      },
+      {
+        "transform": "tone",
+        "target": "suspenseful",
+        "passage": "tech-1",
+        "run": 1,
+        "original": "The sensor array logged a spike at 03:14, four minutes early relative to the established cycle. Priya flagged the anomaly and ran the calibration a second time. The result did not change.",
+        "light": "The sensor array recorded an unexpected spike at 03:14, four minutes ahead of schedule. Priya marked the irregularity and reran the calibration. The outcome remained unchanged.",
+        "profile": {
+          "measured": true,
+          "words": 33,
+          "kept_share": 0.455,
+          "new_share": 0.444,
+          "word_order": 0.467,
+          "min_sentence_kept": 0.2,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L7"
+      },
+      {
+        "transform": "tone",
+        "target": "suspenseful",
+        "passage": "adventure-4",
+        "run": 0,
+        "original": "The old guide had warned them about the pass, the weather, and the wolves, in that order, as if the order mattered.",
+        "light": "The old guide had cautioned them about the pass, the weather, and the wolves, in that order, as if the sequence held some ominous significance.",
+        "profile": {
+          "measured": true,
+          "words": 22,
+          "kept_share": 0.864,
+          "new_share": 0.24,
+          "word_order": 0.809,
+          "min_sentence_kept": 0.864,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L8"
+      },
+      {
+        "transform": "tone",
+        "target": "suspenseful",
+        "passage": "tech-1",
+        "run": 2,
+        "original": "The sensor array logged a spike at 03:14, four minutes early relative to the established cycle. Priya flagged the anomaly and ran the calibration a second time. The result did not change.",
+        "light": "The sensor array recorded a spike at 03:14, four minutes ahead of schedule. Priya marked the anomaly and reran the calibration. The result remained unchanged.",
+        "profile": {
+          "measured": true,
+          "words": 33,
+          "kept_share": 0.545,
+          "new_share": 0.308,
+          "word_order": 0.61,
+          "min_sentence_kept": 0.4,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L9"
+      },
+      {
+        "transform": "tone",
+        "target": "suspenseful",
+        "passage": "gothic-4",
+        "run": 0,
+        "original": "He kept the key on a chain he never removed, not because he expected to need it again, but because a man who has once locked a door does not easily trust himself to leave it unlocked.",
+        "light": "He kept the key on a chain he never took off, not because he anticipated needing it again, but because a man who had once locked a door did not quickly trust himself to leave it unlocked.",
+        "profile": {
+          "measured": true,
+          "words": 37,
+          "kept_share": 0.811,
+          "new_share": 0.189,
+          "word_order": 0.811,
+          "min_sentence_kept": 0.811,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L10"
+      },
+      {
+        "transform": "tone",
+        "target": "suspenseful",
+        "passage": "gothic-1",
+        "run": 1,
+        "original": "The house had not been opened in eleven years, and the air inside kept the shape of that absence — still, cold, faintly sweet with dust. Mira did not call out. There was no one left to answer.",
+        "light": "The house, untouched for eleven years, held the silence of its abandonment—still, cold, faintly sweet with dust. Mira moved quietly, her breath condensing in the chill air. There was no one left to answer.",
+        "profile": {
+          "measured": true,
+          "words": 37,
+          "kept_share": 0.622,
+          "new_share": 0.343,
+          "word_order": 0.556,
+          "min_sentence_kept": 0.2,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L11"
+      },
+      {
+        "transform": "tone",
+        "target": "suspenseful",
+        "passage": "adventure-4",
+        "run": 1,
+        "original": "The old guide had warned them about the pass, the weather, and the wolves, in that order, as if the order mattered.",
+        "light": "The old guide had warned them about the pass, about the weather, and about the wolves, each in that specific order, as if the sequence held some crucial significance.",
+        "profile": {
+          "measured": true,
+          "words": 22,
+          "kept_share": 0.909,
+          "new_share": 0.31,
+          "word_order": 0.784,
+          "min_sentence_kept": 0.909,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L12"
+      },
+      {
+        "transform": "tone",
+        "target": "suspenseful",
+        "passage": "adventure-4",
+        "run": 4,
+        "original": "The old guide had warned them about the pass, the weather, and the wolves, in that order, as if the order mattered.",
+        "light": "The old guide had cautioned them about the pass, the weather, and the wolves, in that order, as if the sequence held some ominous significance.",
+        "profile": {
+          "measured": true,
+          "words": 22,
+          "kept_share": 0.864,
+          "new_share": 0.24,
+          "word_order": 0.809,
+          "min_sentence_kept": 0.864,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L13"
+      },
+      {
+        "transform": "tone",
+        "target": "suspenseful",
+        "passage": "adventure-3",
+        "run": 4,
+        "original": "The children's version of the story left out the part where nobody survived the first crossing. This was, Mira thought, probably for the best.",
+        "light": "The children's version of the story skipped over the grim detail where everyone perished during the initial crossing. Mira supposed this omission was for the better.",
+        "profile": {
+          "measured": true,
+          "words": 24,
+          "kept_share": 0.625,
+          "new_share": 0.423,
+          "word_order": 0.56,
+          "min_sentence_kept": 0.625,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L14"
+      },
+      {
+        "transform": "tone",
+        "target": "suspenseful",
+        "passage": "adventure-3",
+        "run": 3,
+        "original": "The children's version of the story left out the part where nobody survived the first crossing. This was, Mira thought, probably for the best.",
+        "light": "The children's version of the story skipped over the grim detail where everyone perished during the first crossing. Mira supposed this omission was for the better.",
+        "profile": {
+          "measured": true,
+          "words": 24,
+          "kept_share": 0.667,
+          "new_share": 0.385,
+          "word_order": 0.6,
+          "min_sentence_kept": 0.625,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L15"
+      },
+      {
+        "transform": "tone",
+        "target": "suspenseful",
+        "passage": "tech-4",
+        "run": 0,
+        "original": "By morning the anomaly had a name, a case number, and a team of four people who had not been told what they were actually looking for.",
+        "light": "By morning, the anomaly bore a name, a case number, and a quartet of investigators, none of whom knew what they were truly seeking.",
+        "profile": {
+          "measured": true,
+          "words": 27,
+          "kept_share": 0.556,
+          "new_share": 0.375,
+          "word_order": 0.588,
+          "min_sentence_kept": 0.556,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L16"
+      },
+      {
+        "transform": "tone",
+        "target": "suspenseful",
+        "passage": "tech-1",
+        "run": 4,
+        "original": "The sensor array logged a spike at 03:14, four minutes early relative to the established cycle. Priya flagged the anomaly and ran the calibration a second time. The result did not change.",
+        "light": "The sensor array registered a spike at 03:14, four minutes ahead of schedule. Priya marked the anomaly and reran the calibration. The outcome remained unchanged.",
+        "profile": {
+          "measured": true,
+          "words": 33,
+          "kept_share": 0.515,
+          "new_share": 0.346,
+          "word_order": 0.576,
+          "min_sentence_kept": 0.2,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L17"
+      },
+      {
+        "transform": "tone",
+        "target": "suspenseful",
+        "passage": "gothic-4",
+        "run": 3,
+        "original": "He kept the key on a chain he never removed, not because he expected to need it again, but because a man who has once locked a door does not easily trust himself to leave it unlocked.",
+        "light": "He wore the key on a chain he never took off, not because he anticipated needing it again, but because a man who had once locked a door found it hard to let another pass without guard.",
+        "profile": {
+          "measured": true,
+          "words": 37,
+          "kept_share": 0.649,
+          "new_share": 0.351,
+          "word_order": 0.622,
+          "min_sentence_kept": 0.649,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L18"
+      },
+      {
+        "transform": "tone",
+        "target": "suspenseful",
+        "passage": "tech-4",
+        "run": 2,
+        "original": "By morning the anomaly had a name, a case number, and a team of four people who had not been told what they were actually looking for.",
+        "light": "By morning, the anomaly bore a name, a case number, and a quartet of individuals who knew naught of what they sought.",
+        "profile": {
+          "measured": true,
+          "words": 27,
+          "kept_share": 0.556,
+          "new_share": 0.318,
+          "word_order": 0.612,
+          "min_sentence_kept": 0.556,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L19"
+      },
+      {
+        "transform": "tone",
+        "target": "suspenseful",
+        "passage": "adventure-3",
+        "run": 0,
+        "original": "The children's version of the story left out the part where nobody survived the first crossing. This was, Mira thought, probably for the best.",
+        "light": "The children's version of the story omitted the grim detail of no survivors from the initial voyage. Mira supposed this was for the better.",
+        "profile": {
+          "measured": true,
+          "words": 24,
+          "kept_share": 0.542,
+          "new_share": 0.458,
+          "word_order": 0.5,
+          "min_sentence_kept": 0.5,
+          "sentence_delta": 0
+        },
+        "strength_violation": true,
+        "id": "L20"
+      },
+      {
+        "transform": "age_adapt",
+        "target": "children",
+        "passage": "gothic-4",
+        "run": 3,
+        "original": "He kept the key on a chain he never removed, not because he expected to need it again, but because a man who has once locked a door does not easily trust himself to leave it unlocked.",
+        "light": "He wore a key on a chain all the time, not because he thought he would need it again, but because someone who had locked a door before found it hard to keep things unlocked.",
+        "profile": {
+          "measured": true,
+          "words": 37,
+          "kept_share": 0.622,
+          "new_share": 0.343,
+          "word_order": 0.528,
+          "min_sentence_kept": 0.622,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L21"
+      },
+      {
+        "transform": "age_adapt",
+        "target": "children",
+        "passage": "tech-1",
+        "run": 3,
+        "original": "The sensor array logged a spike at 03:14, four minutes early relative to the established cycle. Priya flagged the anomaly and ran the calibration a second time. The result did not change.",
+        "light": "The sensor logged a spike at 3:14, four minutes early. Priya noticed the anomaly and ran the check again. The result was the same.",
+        "profile": {
+          "measured": true,
+          "words": 33,
+          "kept_share": 0.576,
+          "new_share": 0.24,
+          "word_order": 0.621,
+          "min_sentence_kept": 0.4,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L22"
+      },
+      {
+        "transform": "age_adapt",
+        "target": "children",
+        "passage": "gothic-4",
+        "run": 0,
+        "original": "He kept the key on a chain he never removed, not because he expected to need it again, but because a man who has once locked a door does not easily trust himself to leave it unlocked.",
+        "light": "He wore the key on a chain all the time, not because he thought he would use it again, but because someone who had locked a door before found it hard to leave it open.",
+        "profile": {
+          "measured": true,
+          "words": 37,
+          "kept_share": 0.568,
+          "new_share": 0.4,
+          "word_order": 0.556,
+          "min_sentence_kept": 0.568,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L23"
+      },
+      {
+        "transform": "age_adapt",
+        "target": "children",
+        "passage": "gothic-1",
+        "run": 0,
+        "original": "The house had not been opened in eleven years, and the air inside kept the shape of that absence — still, cold, faintly sweet with dust. Mira did not call out. There was no one left to answer.",
+        "light": "The house hadn't been opened in eleven years, and the air felt cold and dusty. Mira didn't shout. There was no one there to hear her.",
+        "profile": {
+          "measured": true,
+          "words": 37,
+          "kept_share": 0.459,
+          "new_share": 0.346,
+          "word_order": 0.54,
+          "min_sentence_kept": 0.2,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L24"
+      },
+      {
+        "transform": "age_adapt",
+        "target": "children",
+        "passage": "adventure-2",
+        "run": 2,
+        "original": "Three arrows, three misses, and the fourth still in her quiver — Aanya was not going to get a fifth chance, and she knew it.",
+        "light": "Three arrows, three misses, and Aanya had one arrow left in her quiver. She knew she didn't have another chance.",
+        "profile": {
+          "measured": true,
+          "words": 24,
+          "kept_share": 0.5,
+          "new_share": 0.4,
+          "word_order": 0.455,
+          "min_sentence_kept": 0.5,
+          "sentence_delta": 1
+        },
+        "strength_violation": false,
+        "id": "L25"
+      },
+      {
+        "transform": "age_adapt",
+        "target": "children",
+        "passage": "gothic-3",
+        "run": 2,
+        "original": "The letter had said everything and nothing. Devika read it twice, then folded it back along its old creases, as if that alone could undo the reading.",
+        "light": "The letter said everything and nothing. Devika read it twice, then folded it back along its old creases, as if that alone could undo the reading.",
+        "profile": {
+          "measured": true,
+          "words": 27,
+          "kept_share": 0.963,
+          "new_share": 0.0,
+          "word_order": 0.981,
+          "min_sentence_kept": 0.857,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L26"
+      },
+      {
+        "transform": "age_adapt",
+        "target": "children",
+        "passage": "gothic-3",
+        "run": 4,
+        "original": "The letter had said everything and nothing. Devika read it twice, then folded it back along its old creases, as if that alone could undo the reading.",
+        "light": "The letter said everything and nothing. Devika read it twice, then folded it back along its old creases, as if that alone could undo the reading.",
+        "profile": {
+          "measured": true,
+          "words": 27,
+          "kept_share": 0.963,
+          "new_share": 0.0,
+          "word_order": 0.981,
+          "min_sentence_kept": 0.857,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L27"
+      },
+      {
+        "transform": "age_adapt",
+        "target": "children",
+        "passage": "gothic-2",
+        "run": 2,
+        "original": "She had learned, over the years, to say nothing when she was most afraid. The habit had outlived its reason. Even now, alone in the hall, she found herself arranging her face into something calm.",
+        "light": "She learned, over time, to keep quiet when she was very scared. This habit stayed even though it wasn't needed anymore. Now, all alone in the hall, she tried to look peaceful.",
+        "profile": {
+          "measured": true,
+          "words": 35,
+          "kept_share": 0.429,
+          "new_share": 0.531,
+          "word_order": 0.448,
+          "min_sentence_kept": 0.333,
+          "sentence_delta": 0
+        },
+        "strength_violation": true,
+        "id": "L28"
+      },
+      {
+        "transform": "age_adapt",
+        "target": "children",
+        "passage": "tech-3",
+        "run": 2,
+        "original": "The report was three pages, all of it technically accurate and none of it honest about what the numbers actually implied.",
+        "light": "The report was three pages long. All the information was correct, but it didn't tell the whole truth about what the numbers meant.",
+        "profile": {
+          "measured": true,
+          "words": 21,
+          "kept_share": 0.524,
+          "new_share": 0.522,
+          "word_order": 0.5,
+          "min_sentence_kept": 0.524,
+          "sentence_delta": 1
+        },
+        "strength_violation": true,
+        "id": "L29"
+      },
+      {
+        "transform": "age_adapt",
+        "target": "children",
+        "passage": "adventure-2",
+        "run": 3,
+        "original": "Three arrows, three misses, and the fourth still in her quiver — Aanya was not going to get a fifth chance, and she knew it.",
+        "light": "Three arrows, three misses, and Aanya had one arrow left in her quiver. She knew she didn't have another chance.",
+        "profile": {
+          "measured": true,
+          "words": 24,
+          "kept_share": 0.5,
+          "new_share": 0.4,
+          "word_order": 0.455,
+          "min_sentence_kept": 0.5,
+          "sentence_delta": 1
+        },
+        "strength_violation": false,
+        "id": "L30"
+      },
+      {
+        "transform": "age_adapt",
+        "target": "children",
+        "passage": "tech-3",
+        "run": 4,
+        "original": "The report was three pages, all of it technically accurate and none of it honest about what the numbers actually implied.",
+        "light": "The report was three pages long. All the information was correct, but it didn't tell the whole truth about what the numbers meant.",
+        "profile": {
+          "measured": true,
+          "words": 21,
+          "kept_share": 0.524,
+          "new_share": 0.522,
+          "word_order": 0.5,
+          "min_sentence_kept": 0.524,
+          "sentence_delta": 1
+        },
+        "strength_violation": true,
+        "id": "L31"
+      },
+      {
+        "transform": "age_adapt",
+        "target": "children",
+        "passage": "gothic-2",
+        "run": 3,
+        "original": "She had learned, over the years, to say nothing when she was most afraid. The habit had outlived its reason. Even now, alone in the hall, she found herself arranging her face into something calm.",
+        "light": "She learned to say nothing when she was very scared. This habit stayed with her even though it wasn't needed anymore. Now, all alone in the hall, she tried to look calm.",
+        "profile": {
+          "measured": true,
+          "words": 35,
+          "kept_share": 0.514,
+          "new_share": 0.438,
+          "word_order": 0.507,
+          "min_sentence_kept": 0.333,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L32"
+      },
+      {
+        "transform": "age_adapt",
+        "target": "children",
+        "passage": "tech-3",
+        "run": 1,
+        "original": "The report was three pages, all of it technically accurate and none of it honest about what the numbers actually implied.",
+        "light": "The report was three pages long. All the information was correct, but it didn't tell the whole truth about what the numbers meant.",
+        "profile": {
+          "measured": true,
+          "words": 21,
+          "kept_share": 0.524,
+          "new_share": 0.522,
+          "word_order": 0.5,
+          "min_sentence_kept": 0.524,
+          "sentence_delta": 1
+        },
+        "strength_violation": true,
+        "id": "L33"
+      },
+      {
+        "transform": "age_adapt",
+        "target": "children",
+        "passage": "tech-1",
+        "run": 2,
+        "original": "The sensor array logged a spike at 03:14, four minutes early relative to the established cycle. Priya flagged the anomaly and ran the calibration a second time. The result did not change.",
+        "light": "The sensor logged a spike at 3:14, four minutes early. Priya noticed the anomaly and checked the calibration again. The result was the same.",
+        "profile": {
+          "measured": true,
+          "words": 33,
+          "kept_share": 0.576,
+          "new_share": 0.24,
+          "word_order": 0.621,
+          "min_sentence_kept": 0.4,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L34"
+      },
+      {
+        "transform": "age_adapt",
+        "target": "children",
+        "passage": "tech-1",
+        "run": 0,
+        "original": "The sensor array logged a spike at 03:14, four minutes early relative to the established cycle. Priya flagged the anomaly and ran the calibration a second time. The result did not change.",
+        "light": "The sensor logged a spike at 3:14, four minutes early. Priya noticed the problem and checked again. The result was the same.",
+        "profile": {
+          "measured": true,
+          "words": 33,
+          "kept_share": 0.485,
+          "new_share": 0.304,
+          "word_order": 0.5,
+          "min_sentence_kept": 0.4,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L35"
+      },
+      {
+        "transform": "age_adapt",
+        "target": "children",
+        "passage": "tech-1",
+        "run": 4,
+        "original": "The sensor array logged a spike at 03:14, four minutes early relative to the established cycle. Priya flagged the anomaly and ran the calibration a second time. The result did not change.",
+        "light": "The sensor array noted a bump at 3:14, four minutes earlier than usual. Priya marked the strange reading and tried the calibration again. The result stayed the same.",
+        "profile": {
+          "measured": true,
+          "words": 33,
+          "kept_share": 0.485,
+          "new_share": 0.448,
+          "word_order": 0.452,
+          "min_sentence_kept": 0.4,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L36"
+      },
+      {
+        "transform": "age_adapt",
+        "target": "children",
+        "passage": "gothic-1",
+        "run": 1,
+        "original": "The house had not been opened in eleven years, and the air inside kept the shape of that absence — still, cold, faintly sweet with dust. Mira did not call out. There was no one left to answer.",
+        "light": "The house hadn't been opened in eleven years, and the air inside felt empty and cold, with a sweet smell from dust. Mira didn't shout. There was no one left to hear her.",
+        "profile": {
+          "measured": true,
+          "words": 37,
+          "kept_share": 0.595,
+          "new_share": 0.333,
+          "word_order": 0.6,
+          "min_sentence_kept": 0.2,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L37"
+      },
+      {
+        "transform": "age_adapt",
+        "target": "children",
+        "passage": "gothic-1",
+        "run": 3,
+        "original": "The house had not been opened in eleven years, and the air inside kept the shape of that absence — still, cold, faintly sweet with dust. Mira did not call out. There was no one left to answer.",
+        "light": "The old house hadn't been opened for eleven years. The air felt cold and dusty. Mira didn't shout. There was no one to hear her.",
+        "profile": {
+          "measured": true,
+          "words": 37,
+          "kept_share": 0.432,
+          "new_share": 0.36,
+          "word_order": 0.484,
+          "min_sentence_kept": 0.2,
+          "sentence_delta": 1
+        },
+        "strength_violation": false,
+        "id": "L38"
+      },
+      {
+        "transform": "age_adapt",
+        "target": "children",
+        "passage": "adventure-3",
+        "run": 2,
+        "original": "The children's version of the story left out the part where nobody survived the first crossing. This was, Mira thought, probably for the best.",
+        "light": "The story for kids didn't include the part where nobody survived the first crossing. Mira thought this was probably better.",
+        "profile": {
+          "measured": true,
+          "words": 24,
+          "kept_share": 0.667,
+          "new_share": 0.2,
+          "word_order": 0.591,
+          "min_sentence_kept": 0.625,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L39"
+      },
+      {
+        "transform": "age_adapt",
+        "target": "children",
+        "passage": "gothic-1",
+        "run": 2,
+        "original": "The house had not been opened in eleven years, and the air inside kept the shape of that absence — still, cold, faintly sweet with dust. Mira did not call out. There was no one left to answer.",
+        "light": "The house hadn't been opened in eleven years, and the air inside felt empty and cold, with a sweet smell of dust. Mira didn't call out. There was no one left to answer.",
+        "profile": {
+          "measured": true,
+          "words": 37,
+          "kept_share": 0.703,
+          "new_share": 0.212,
+          "word_order": 0.657,
+          "min_sentence_kept": 0.6,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L40"
+      },
+      {
+        "transform": "style",
+        "target": "cinematic",
+        "passage": "adventure-3",
+        "run": 1,
+        "original": "The children's version of the story left out the part where nobody survived the first crossing. This was, Mira thought, probably for the best.",
+        "light": "The children's version skipped the grim detail of no survivors from the initial crossing. Mira supposed this was for the better.",
+        "profile": {
+          "measured": true,
+          "words": 24,
+          "kept_share": 0.5,
+          "new_share": 0.429,
+          "word_order": 0.444,
+          "min_sentence_kept": 0.5,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L41"
+      },
+      {
+        "transform": "style",
+        "target": "cinematic",
+        "passage": "gothic-2",
+        "run": 4,
+        "original": "She had learned, over the years, to say nothing when she was most afraid. The habit had outlived its reason. Even now, alone in the hall, she found herself arranging her face into something calm.",
+        "light": "She had learned, over the years, to say nothing when she was most afraid. The habit lingered, long past its usefulness. Even now, alone in the hall, she found herself molding her expression into something serene.",
+        "profile": {
+          "measured": true,
+          "words": 35,
+          "kept_share": 0.829,
+          "new_share": 0.194,
+          "word_order": 0.817,
+          "min_sentence_kept": 0.667,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L42"
+      },
+      {
+        "transform": "style",
+        "target": "cinematic",
+        "passage": "tech-3",
+        "run": 1,
+        "original": "The report was three pages, all of it technically accurate and none of it honest about what the numbers actually implied.",
+        "light": "The report spanned three pages, each one teeming with figures that were technically precise yet utterly devoid of truth when it came to what those numbers truly signified.",
+        "profile": {
+          "measured": true,
+          "words": 21,
+          "kept_share": 0.429,
+          "new_share": 0.679,
+          "word_order": 0.327,
+          "min_sentence_kept": 0.429,
+          "sentence_delta": 0
+        },
+        "strength_violation": true,
+        "id": "L43"
+      },
+      {
+        "transform": "style",
+        "target": "cinematic",
+        "passage": "gothic-2",
+        "run": 1,
+        "original": "She had learned, over the years, to say nothing when she was most afraid. The habit had outlived its reason. Even now, alone in the hall, she found herself arranging her face into something calm.",
+        "light": "She had learned, over the years, to say nothing when she was most afraid. The habit lingered, long past its usefulness. Even now, alone in the hall, she found herself smoothing her expression into something placid.",
+        "profile": {
+          "measured": true,
+          "words": 35,
+          "kept_share": 0.829,
+          "new_share": 0.194,
+          "word_order": 0.817,
+          "min_sentence_kept": 0.667,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L44"
+      },
+      {
+        "transform": "style",
+        "target": "cinematic",
+        "passage": "adventure-4",
+        "run": 4,
+        "original": "The old guide had warned them about the pass, the weather, and the wolves, in that order, as if the order mattered.",
+        "light": "The old guide had cautioned them about the pass, the weather, and the wolves, in that order, as if the sequence held significance.",
+        "profile": {
+          "measured": true,
+          "words": 22,
+          "kept_share": 0.864,
+          "new_share": 0.174,
+          "word_order": 0.844,
+          "min_sentence_kept": 0.864,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L45"
+      },
+      {
+        "transform": "style",
+        "target": "cinematic",
+        "passage": "gothic-2",
+        "run": 3,
+        "original": "She had learned, over the years, to say nothing when she was most afraid. The habit had outlived its reason. Even now, alone in the hall, she found herself arranging her face into something calm.",
+        "light": "She had learned, over the years, to say nothing when she was most afraid. The habit lingered despite its usefulness. Even now, alone in the hall, she found herself shaping her expression into something tranquil.",
+        "profile": {
+          "measured": true,
+          "words": 35,
+          "kept_share": 0.829,
+          "new_share": 0.171,
+          "word_order": 0.829,
+          "min_sentence_kept": 0.667,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L46"
+      },
+      {
+        "transform": "style",
+        "target": "cinematic",
+        "passage": "tech-2",
+        "run": 0,
+        "original": "Access to the lab required two separate badge scans and a supervisor override after 22:00. Priya had never used the override before tonight.",
+        "light": "Access to the lab demanded two badge scans and a supervisor override past 10 pm. Priya had never employed the override before tonight.",
+        "profile": {
+          "measured": true,
+          "words": 24,
+          "kept_share": 0.75,
+          "new_share": 0.217,
+          "word_order": 0.766,
+          "min_sentence_kept": 0.688,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L47"
+      },
+      {
+        "transform": "style",
+        "target": "cinematic",
+        "passage": "adventure-3",
+        "run": 4,
+        "original": "The children's version of the story left out the part where nobody survived the first crossing. This was, Mira thought, probably for the best.",
+        "light": "The children's adaptation skipped over the grim detail where all perished during the initial voyage. Mira surmised this omission was for the better.",
+        "profile": {
+          "measured": true,
+          "words": 24,
+          "kept_share": 0.417,
+          "new_share": 0.565,
+          "word_order": 0.34,
+          "min_sentence_kept": 0.375,
+          "sentence_delta": 0
+        },
+        "strength_violation": true,
+        "id": "L48"
+      },
+      {
+        "transform": "style",
+        "target": "cinematic",
+        "passage": "gothic-3",
+        "run": 3,
+        "original": "The letter had said everything and nothing. Devika read it twice, then folded it back along its old creases, as if that alone could undo the reading.",
+        "light": "The letter held all and no answers. Devika read it twice, then folded it back along its old creases, as if those folds alone could unravel the truth.",
+        "profile": {
+          "measured": true,
+          "words": 27,
+          "kept_share": 0.741,
+          "new_share": 0.286,
+          "word_order": 0.727,
+          "min_sentence_kept": 0.429,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L49"
+      },
+      {
+        "transform": "style",
+        "target": "cinematic",
+        "passage": "adventure-3",
+        "run": 0,
+        "original": "The children's version of the story left out the part where nobody survived the first crossing. This was, Mira thought, probably for the best.",
+        "light": "The children's version skipped the grim detail of all perishing on the initial voyage. Mira surmised this omission was for the better.",
+        "profile": {
+          "measured": true,
+          "words": 24,
+          "kept_share": 0.458,
+          "new_share": 0.5,
+          "word_order": 0.391,
+          "min_sentence_kept": 0.438,
+          "sentence_delta": 0
+        },
+        "strength_violation": true,
+        "id": "L50"
+      },
+      {
+        "transform": "style",
+        "target": "cinematic",
+        "passage": "tech-2",
+        "run": 4,
+        "original": "Access to the lab required two separate badge scans and a supervisor override after 22:00. Priya had never used the override before tonight.",
+        "light": "Access to the lab demanded two separate badge scans and a supervisor override past 10:00 PM. Priya had never invoked the override until tonight.",
+        "profile": {
+          "measured": true,
+          "words": 24,
+          "kept_share": 0.792,
+          "new_share": 0.24,
+          "word_order": 0.776,
+          "min_sentence_kept": 0.75,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L51"
+      },
+      {
+        "transform": "style",
+        "target": "cinematic",
+        "passage": "tech-4",
+        "run": 3,
+        "original": "By morning the anomaly had a name, a case number, and a team of four people who had not been told what they were actually looking for.",
+        "light": "By dawn, the anomaly was christened with a name, a case number, and a quartet of investigators who knew naught of what they truly sought.",
+        "profile": {
+          "measured": true,
+          "words": 27,
+          "kept_share": 0.519,
+          "new_share": 0.44,
+          "word_order": 0.538,
+          "min_sentence_kept": 0.519,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L52"
+      },
+      {
+        "transform": "style",
+        "target": "cinematic",
+        "passage": "gothic-2",
+        "run": 0,
+        "original": "She had learned, over the years, to say nothing when she was most afraid. The habit had outlived its reason. Even now, alone in the hall, she found herself arranging her face into something calm.",
+        "light": "She had learned, over the years, to keep quiet when she was most afraid. The habit lingered despite its usefulness fading away. Even now, alone in the hall, she found herself shaping her expression into something composed.",
+        "profile": {
+          "measured": true,
+          "words": 35,
+          "kept_share": 0.771,
+          "new_share": 0.27,
+          "word_order": 0.75,
+          "min_sentence_kept": 0.667,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L53"
+      },
+      {
+        "transform": "style",
+        "target": "cinematic",
+        "passage": "gothic-4",
+        "run": 2,
+        "original": "He kept the key on a chain he never removed, not because he expected to need it again, but because a man who has once locked a door does not easily trust himself to leave it unlocked.",
+        "light": "He wore the key on a chain he never took off, not because he anticipated needing it again, but because a man who had once locked a door did not readily trust himself to leave it unlocked.",
+        "profile": {
+          "measured": true,
+          "words": 37,
+          "kept_share": 0.784,
+          "new_share": 0.216,
+          "word_order": 0.784,
+          "min_sentence_kept": 0.784,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L54"
+      },
+      {
+        "transform": "style",
+        "target": "cinematic",
+        "passage": "adventure-4",
+        "run": 2,
+        "original": "The old guide had warned them about the pass, the weather, and the wolves, in that order, as if the order mattered.",
+        "light": "The ancient guide had cautioned them about the pass, the weather, and the wolves, in that sequence, as if the order held significance.",
+        "profile": {
+          "measured": true,
+          "words": 22,
+          "kept_share": 0.818,
+          "new_share": 0.217,
+          "word_order": 0.8,
+          "min_sentence_kept": 0.818,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L55"
+      },
+      {
+        "transform": "style",
+        "target": "cinematic",
+        "passage": "adventure-3",
+        "run": 2,
+        "original": "The children's version of the story left out the part where nobody survived the first crossing. This was, Mira thought, probably for the best.",
+        "light": "The children's adaptation skipped over the grim detail where all perished on the initial journey. Mira supposed this omission was for the better.",
+        "profile": {
+          "measured": true,
+          "words": 24,
+          "kept_share": 0.417,
+          "new_share": 0.565,
+          "word_order": 0.34,
+          "min_sentence_kept": 0.375,
+          "sentence_delta": 0
+        },
+        "strength_violation": true,
+        "id": "L56"
+      },
+      {
+        "transform": "style",
+        "target": "cinematic",
+        "passage": "tech-3",
+        "run": 3,
+        "original": "The report was three pages, all of it technically accurate and none of it honest about what the numbers actually implied.",
+        "light": "The document spanned three pages, each filled with figures and facts that were precise yet devoid of any genuine insight into the implications of those very numbers.",
+        "profile": {
+          "measured": true,
+          "words": 21,
+          "kept_share": 0.381,
+          "new_share": 0.704,
+          "word_order": 0.25,
+          "min_sentence_kept": 0.381,
+          "sentence_delta": 0
+        },
+        "strength_violation": true,
+        "id": "L57"
+      },
+      {
+        "transform": "style",
+        "target": "cinematic",
+        "passage": "tech-2",
+        "run": 2,
+        "original": "Access to the lab required two separate badge scans and a supervisor override after 22:00. Priya had never used the override before tonight.",
+        "light": "Access to the lab demanded two badge scans and a supervisor override past 10 pm. Priya had never employed the override before tonight.",
+        "profile": {
+          "measured": true,
+          "words": 24,
+          "kept_share": 0.75,
+          "new_share": 0.217,
+          "word_order": 0.766,
+          "min_sentence_kept": 0.688,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L58"
+      },
+      {
+        "transform": "style",
+        "target": "cinematic",
+        "passage": "tech-3",
+        "run": 0,
+        "original": "The report was three pages, all of it technically accurate and none of it honest about what the numbers actually implied.",
+        "light": "The report spanned three pages, each one teeming with figures that were technically precise yet utterly devoid of any truth about what those numbers truly signified.",
+        "profile": {
+          "measured": true,
+          "words": 21,
+          "kept_share": 0.429,
+          "new_share": 0.654,
+          "word_order": 0.34,
+          "min_sentence_kept": 0.429,
+          "sentence_delta": 0
+        },
+        "strength_violation": true,
+        "id": "L59"
+      },
+      {
+        "transform": "style",
+        "target": "cinematic",
+        "passage": "adventure-4",
+        "run": 0,
+        "original": "The old guide had warned them about the pass, the weather, and the wolves, in that order, as if the order mattered.",
+        "light": "The ancient guide had forewarned them about the pass, the weather, and the wolves, in that sequence, as if the order held significance.",
+        "profile": {
+          "measured": true,
+          "words": 22,
+          "kept_share": 0.818,
+          "new_share": 0.217,
+          "word_order": 0.8,
+          "min_sentence_kept": 0.818,
+          "sentence_delta": 0
+        },
+        "strength_violation": false,
+        "id": "L60"
+      }
+    ],
+    "HR-01": [
+      {
+        "source": "strength_t2b_after_v4_light_repair.json",
+        "transform": "tone",
+        "target": "suspenseful",
+        "strength": "light",
+        "passage": "gothic-2",
+        "run": 4,
+        "original": "She had learned, over the years, to say nothing when she was most afraid. The habit had outlived its reason. Even now, alone in the hall, she found herself arranging her face into something calm.",
+        "output": "She had learned, over the years, to say nothing when she was most afraid. The habit lingered, a shadow from the past. Even now, alone in the hall, she forced a semblance of calm onto her features.",
+        "strength_violation": false,
+        "qid_prefix": "HR-01.P1"
+      },
+      {
+        "source": "strength_t2b_after_v4_light_repair.json",
+        "transform": "tone",
+        "target": "suspenseful",
+        "strength": "light",
+        "passage": "tech-3",
+        "run": 4,
+        "original": "The report was three pages, all of it technically accurate and none of it honest about what the numbers actually implied.",
+        "output": "The report spanned three pages, each filled with figures that were technically precise yet utterly devoid of truth regarding what those numbers truly suggested.",
+        "strength_violation": true,
+        "qid_prefix": "HR-01.P2"
+      },
+      {
+        "source": "strength_t2b_after_v4_light_repair.json",
+        "transform": "tone",
+        "target": "suspenseful",
+        "strength": "moderate",
+        "passage": "gothic-1",
+        "run": 1,
+        "original": "The house had not been opened in eleven years, and the air inside kept the shape of that absence — still, cold, faintly sweet with dust. Mira did not call out. There was no one left to answer.",
+        "output": "The house, untouched for eleven years, held the silence of abandonment—still, cold, and faintly sweet with dust. Mira moved quietly, her footsteps echoing in the hollow space where no one remained to hear.",
+        "strength_violation": false,
+        "qid_prefix": "HR-01.P3"
+      },
+      {
+        "source": "strength_t2b_after_v4_light_repair.json",
+        "transform": "tone",
+        "target": "suspenseful",
+        "strength": "strong",
+        "passage": "tech-4",
+        "run": 0,
+        "original": "By morning the anomaly had a name, a case number, and a team of four people who had not been told what they were actually looking for.",
+        "output": "By morning, the anomaly was christened with a name and a case number, while a quartet of investigators, none of whom knew the true nature of their quest, assembled.",
+        "strength_violation": false,
+        "qid_prefix": "HR-01.P4"
+      }
+    ],
+    "HR-02": [
+      {
+        "source": "strength_t2b_after_v4_light_repair.json",
+        "transform": "emotion",
+        "target": "dread",
+        "strength": "strong",
+        "passage": "adventure-2",
+        "run": 1,
+        "original": "Three arrows, three misses, and the fourth still in her quiver — Aanya was not going to get a fifth chance, and she knew it.",
+        "output": "Three arrows, three misses, and the fourth still in her quiver—Aanya's fingers trembled around the shaft, each pulse of her heartbeat echoing in the silence. She could feel the cool metal of the bow against her palm, its weight heavy with the knowledge that this might be her last chance. The air seemed to thicken, each breath drawing in a heavier, more oppressive weight. She knew she wouldn't get a fifth chance, and the realization gnawed at her, sharp and cold.",
+        "qid_prefix": "HR-02.P1"
+      },
+      {
+        "source": "strength_t2b_after_v4_light_repair.json",
+        "transform": "emotion",
+        "target": "dread",
+        "strength": "strong",
+        "passage": "tech-2",
+        "run": 0,
+        "original": "Access to the lab required two separate badge scans and a supervisor override after 22:00. Priya had never used the override before tonight.",
+        "output": "The lab demanded two badge scans and a supervisor's override past 10:00 PM. Priya had never activated the override until now.",
+        "qid_prefix": "HR-02.P2"
+      },
+      {
+        "source": "emotion_measurement_stage9_20260927.json",
+        "transform": "emotion",
+        "target": "sadness",
+        "strength": "high intensity (Stage 9 measurement)",
+        "passage": "gothic-1",
+        "run": null,
+        "original": "The house had not been opened in eleven years, and the air inside kept the shape of that absence — still, cold, faintly sweet with dust. Mira did not call out. There was no one left to answer.",
+        "output": "The house, untouched for eleven years, exhaled a breath of absence, each molecule of air still, cold, and faintly sweet with dust. Mira moved through the silence, her footsteps barely disturbing the stillness. There was no one left to answer—no echo, no response, just the hollow ache of empty rooms whispering their secrets to the empty walls.",
+        "qid_prefix": "HR-02.P3"
+      },
+      {
+        "source": "emotion_measurement_stage9_20260927.json",
+        "transform": "emotion",
+        "target": "fear",
+        "strength": "low intensity (Stage 9 measurement)",
+        "passage": "adventure-1",
+        "run": null,
+        "original": "The bridge gave way behind them with a sound like a held breath finally let go. Kael did not look back. There was nothing behind them worth the half-second it would cost.",
+        "output": "The bridge groaned and collapsed behind them with a sound like a deep, drawn-out exhale. Kael kept his gaze fixed straight ahead, the chill of the wind biting at his neck. There was nothing to see in the darkness behind, but the thought lingered, a faint echo in his mind.",
+        "qid_prefix": "HR-02.P4"
+      }
+    ],
+    "HR-03": [
+      {
+        "source": "strength_t2b_after_v4_light_repair.json",
+        "transform": "age_adapt",
+        "target": "children",
+        "strength": "light",
+        "passage": "gothic-2",
+        "run": 4,
+        "original": "She had learned, over the years, to say nothing when she was most afraid. The habit had outlived its reason. Even now, alone in the hall, she found herself arranging her face into something calm.",
+        "output": "She learned, over time, to say nothing when she was very scared. The habit stayed even though it wasn't needed anymore. Even now, alone in the hall, she tried to look calm.",
+        "strength_violation": false,
+        "qid_prefix": "HR-03.P1"
+      },
+      {
+        "source": "strength_t2b_after_v4_light_repair.json",
+        "transform": "age_adapt",
+        "target": "children",
+        "strength": "light",
+        "passage": "adventure-3",
+        "run": 0,
+        "original": "The children's version of the story left out the part where nobody survived the first crossing. This was, Mira thought, probably for the best.",
+        "output": "The story for children didn't include the part where nobody survived the first crossing. Mira thought this was probably better.",
+        "strength_violation": false,
+        "qid_prefix": "HR-03.P2"
+      },
+      {
+        "source": "strength_t2b_after_v4_light_repair.json",
+        "transform": "age_adapt",
+        "target": "children",
+        "strength": "moderate",
+        "passage": "gothic-4",
+        "run": 3,
+        "original": "He kept the key on a chain he never removed, not because he expected to need it again, but because a man who has once locked a door does not easily trust himself to leave it unlocked.",
+        "output": "He always wore a chain with a key. He didn't think he would need the key again. But he kept it anyway because when someone locks a door, they learn to be careful about leaving it open.",
+        "strength_violation": false,
+        "qid_prefix": "HR-03.P3"
+      },
+      {
+        "source": "strength_t2b_after_v4_light_repair.json",
+        "transform": "age_adapt",
+        "target": "children",
+        "strength": "strong",
+        "passage": "tech-3",
+        "run": 2,
+        "original": "The report was three pages, all of it technically accurate and none of it honest about what the numbers actually implied.",
+        "output": "The report had three pages. All the information was correct, but it didn't tell the whole truth about what the numbers meant.",
+        "strength_violation": false,
+        "qid_prefix": "HR-03.P4"
+      }
+    ],
+    "HR-04": [
+      {
+        "source": "strength_t2b_after_v4_light_repair.json",
+        "transform": "style",
+        "target": "cinematic",
+        "strength": "light",
+        "passage": "gothic-3",
+        "run": 4,
+        "original": "The letter had said everything and nothing. Devika read it twice, then folded it back along its old creases, as if that alone could undo the reading.",
+        "output": "The letter bore all the weight of silence. Devika read it twice, then folded it back along its old creases, as if that alone could unravel the words.",
+        "strength_violation": false,
+        "qid_prefix": "HR-04.P1"
+      },
+      {
+        "source": "strength_t2b_after_v4_light_repair.json",
+        "transform": "style",
+        "target": "cinematic",
+        "strength": "light",
+        "passage": "adventure-3",
+        "run": 3,
+        "original": "The children's version of the story left out the part where nobody survived the first crossing. This was, Mira thought, probably for the best.",
+        "output": "The children's adaptation skipped the grim detail of everyone perishing on the initial voyage. Mira supposed this omission was for the better.",
+        "strength_violation": true,
+        "qid_prefix": "HR-04.P2"
+      },
+      {
+        "source": "strength_t2b_after_v4_light_repair.json",
+        "transform": "style",
+        "target": "cinematic",
+        "strength": "moderate",
+        "passage": "tech-1",
+        "run": 1,
+        "original": "The sensor array logged a spike at 03:14, four minutes early relative to the established cycle. Priya flagged the anomaly and ran the calibration a second time. The result did not change.",
+        "output": "At 03:14, the sensor array recorded a spike, four minutes ahead of schedule. Priya noted the anomaly and reran the calibration. The result remained unchanged.",
+        "strength_violation": false,
+        "qid_prefix": "HR-04.P3"
+      },
+      {
+        "source": "strength_t2b_after_v4_light_repair.json",
+        "transform": "style",
+        "target": "cinematic",
+        "strength": "strong",
+        "passage": "tech-3",
+        "run": 2,
+        "original": "The report was three pages, all of it technically accurate and none of it honest about what the numbers actually implied.",
+        "output": "The report, spanning three pages, each filled with figures and data, was a meticulously crafted tapestry of precision—yet not a shred of truth was woven into its fabric, for the numbers concealed far more than they revealed.",
+        "strength_violation": false,
+        "qid_prefix": "HR-04.P4"
+      },
+      {
+        "source": "strength_t2b_after_v4_light_repair.json",
+        "transform": "style",
+        "target": "cinematic",
+        "strength": "moderate",
+        "passage": "adventure-2",
+        "run": 0,
+        "original": "Three arrows, three misses, and the fourth still in her quiver — Aanya was not going to get a fifth chance, and she knew it.",
+        "output": "Three arrows, three misses, and the fourth still in her quiver — Aanya was not going to get a fifth chance, and she knew it.",
+        "no_change": true
+      },
+      {
+        "source": "strength_t2b_after_v4_light_repair.json",
+        "transform": "style",
+        "target": "cinematic",
+        "strength": "light",
+        "passage": "tech-4",
+        "run": 4,
+        "original": "By morning the anomaly had a name, a case number, and a team of four people who had not been told what they were actually looking for.",
+        "output": "By morning the anomaly had a name, a case number, and a team of four people who had not been told what they were actually looking for.",
+        "no_change": true
+      }
+    ],
+    "HR-19": [
+      {
+        "strength": "light",
+        "passage": "gothic-3",
+        "run": 2,
+        "original": "The letter had said everything and nothing. Devika read it twice, then folded it back along its old creases, as if that alone could undo the reading.",
+        "output": "The letter contained all and no answers. Devika read it twice, then folded it back along its familiar creases, as if that act alone could erase the knowledge.",
+        "id": "I1"
+      },
+      {
+        "strength": "strong",
+        "passage": "gothic-2",
+        "run": 4,
+        "original": "She had learned, over the years, to say nothing when she was most afraid. The habit had outlived its reason. Even now, alone in the hall, she found herself arranging her face into something calm.",
+        "output": "She had learned, over the years, to say nothing when she was most afraid. The habit lingered like a shadow long after the light of necessity had faded. Even now, alone in the hall, she found herself sculpting her expression into something composed.",
+        "id": "I2"
+      },
+      {
+        "strength": "moderate",
+        "passage": "gothic-3",
+        "run": 1,
+        "original": "The letter had said everything and nothing. Devika read it twice, then folded it back along its old creases, as if that alone could undo the reading.",
+        "output": "The letter bore all the weight of meaning and yet none at all. Devika perused it twice, then refolded it along its accustomed lines, as though the act alone might erase the words.",
+        "id": "I3"
+      },
+      {
+        "strength": "moderate",
+        "passage": "adventure-3",
+        "run": 4,
+        "original": "The children's version of the story left out the part where nobody survived the first crossing. This was, Mira thought, probably for the best.",
+        "output": "The children's adaptation skipped over the harrowing detail where all souls perished during the initial voyage. Mira mused that perhaps this omission served a greater good.",
+        "id": "I4"
+      },
+      {
+        "strength": "strong",
+        "passage": "tech-1",
+        "run": 3,
+        "original": "The sensor array logged a spike at 03:14, four minutes early relative to the established cycle. Priya flagged the anomaly and ran the calibration a second time. The result did not change.",
+        "output": "At 03:14, the sensor array registered a spike, arriving four minutes ahead of schedule. Priya noted the anomaly and reran the calibration. The outcome remained unchanged.",
+        "id": "I5"
+      },
+      {
+        "strength": "light",
+        "passage": "gothic-4",
+        "run": 0,
+        "original": "He kept the key on a chain he never removed, not because he expected to need it again, but because a man who has once locked a door does not easily trust himself to leave it unlocked.",
+        "output": "He kept the key dangled from a chain he never took off, not because he anticipated needing it again, but because a man who once locked a door didn't quickly trust leaving it unlocked.",
+        "id": "I6"
+      }
+    ],
+    "HR-08": [
+      {
+        "case": "euphemism-1",
+        "run": 0,
+        "original": "Three boats went out before the storm and only two came back. The men on the third boat didn't make it home, and Tavi's father had been one of them.",
+        "output": "Three boats went out before the storm, and only two came back. The men on the third boat didn't make it home, and Tavi's father was one of them.",
+        "no_change": false,
+        "identical": false,
+        "id": "C1"
+      },
+      {
+        "case": "euphemism-1",
+        "run": 1,
+        "original": "Three boats went out before the storm and only two came back. The men on the third boat didn't make it home, and Tavi's father had been one of them.",
+        "output": "Three boats went out before the storm, and only two came back. The men on the third boat didn't make it home, and Tavi's father was one of them.",
+        "no_change": false,
+        "identical": false,
+        "id": "C2"
+      },
+      {
+        "case": "euphemism-2",
+        "run": 0,
+        "original": "The old soldier never talked about the bridge. Of the forty men who crossed it that night, nobody survived but him, and he still could not sleep in the dark.",
+        "output": "The old soldier never spoke about the bridge. Forty men crossed it one night, but only he came back, and he still couldn't sleep when it was dark.",
+        "no_change": false,
+        "identical": false,
+        "id": "C3"
+      },
+      {
+        "case": "euphemism-2",
+        "run": 1,
+        "original": "The old soldier never talked about the bridge. Of the forty men who crossed it that night, nobody survived but him, and he still could not sleep in the dark.",
+        "output": "The old soldier never spoke about the bridge. Forty men crossed it that night, but nobody survived except him, and he still couldn't sleep in the dark.",
+        "no_change": false,
+        "identical": false,
+        "id": "C4"
+      },
+      {
+        "case": "euphemism-3",
+        "run": 0,
+        "original": "The raiders came at dawn. By the time the bells stopped ringing, the whole village had been put to the sword, and only the miller's girl was left hiding in the loft.",
+        "output": "The raiders came early in the morning. When the bells stopped ringing, the whole village was quiet because the raiders had done bad things there. Only the miller's daughter was safe, hiding in the attic.",
+        "no_change": false,
+        "identical": false,
+        "id": "C5"
+      },
+      {
+        "case": "euphemism-3",
+        "run": 1,
+        "original": "The raiders came at dawn. By the time the bells stopped ringing, the whole village had been put to the sword, and only the miller's girl was left hiding in the loft.",
+        "output": "The raiders came early in the morning. When the bells stopped ringing, the whole village was destroyed, and only the miller's daughter was hiding in the attic.",
+        "no_change": false,
+        "identical": false,
+        "id": "C6"
+      },
+      {
+        "case": "euphemism-4",
+        "run": 0,
+        "original": "Her grandmother passed away the winter Nell turned eight. Nobody told her until after the burial, and she never quite forgave them for that.",
+        "output": "Nell's grandmother died when she was eight years old. No one told her about it until after the funeral, and Nell felt very sad because she was upset that they didn't tell her sooner.",
+        "no_change": false,
+        "identical": false,
+        "id": "C7"
+      },
+      {
+        "case": "euphemism-4",
+        "run": 1,
+        "original": "Her grandmother passed away the winter Nell turned eight. Nobody told her until after the burial, and she never quite forgave them for that.",
+        "output": "Nell's grandmother died when she was eight years old. No one told her about it until after the funeral. She felt sad and angry because they didn't tell her sooner.",
+        "no_change": false,
+        "identical": false,
+        "id": "C8"
+      },
+      {
+        "case": "grief-1",
+        "run": 0,
+        "original": "Biscuit the dog died on a Tuesday. Leo buried his red ball under the apple tree so Biscuit would have something to play with, and then he sat there until it got dark.",
+        "output": "Biscuit the dog died on a Tuesday. Leo buried his red ball under the apple tree so Biscuit could have something to play with, and then he stayed there until it got dark.",
+        "no_change": false,
+        "identical": false,
+        "id": "C9"
+      },
+      {
+        "case": "grief-1",
+        "run": 1,
+        "original": "Biscuit the dog died on a Tuesday. Leo buried his red ball under the apple tree so Biscuit would have something to play with, and then he sat there until it got dark.",
+        "output": "Biscuit the dog died on a Tuesday. Leo buried his red ball under the apple tree so Biscuit could have something to play with, and then he sat there until it got dark.",
+        "no_change": false,
+        "identical": false,
+        "id": "C10"
+      },
+      {
+        "case": "grief-2",
+        "run": 0,
+        "original": "After Mum died, Dad stopped singing in the kitchen. Ellie missed the singing almost as much as she missed Mum, and some mornings she hummed the songs herself.",
+        "output": "After Mum died, Dad stopped singing in the kitchen. Ellie missed the singing almost as much as she missed Mum, and some mornings she hummed the songs herself.",
+        "no_change": false,
+        "identical": true,
+        "id": "C11"
+      },
+      {
+        "case": "grief-2",
+        "run": 1,
+        "original": "After Mum died, Dad stopped singing in the kitchen. Ellie missed the singing almost as much as she missed Mum, and some mornings she hummed the songs herself.",
+        "output": "After Mom died, Dad stopped singing in the kitchen. Ellie missed the singing almost as much as she missed Mom, and some mornings she hummed the songs herself.",
+        "no_change": false,
+        "identical": false,
+        "id": "C12"
+      },
+      {
+        "case": "grief-3",
+        "run": 0,
+        "original": "The baby bird was dead when they found it under the hedge. Priya cried, and her brother helped her make a small grave for it out of a shoebox and some moss.",
+        "output": "The baby bird was not alive when they found it under the hedge. Priya started to cry, and her brother helped her make a small grave for it using a shoebox and some moss.",
+        "no_change": false,
+        "identical": false,
+        "id": "C13"
+      },
+      {
+        "case": "grief-3",
+        "run": 1,
+        "original": "The baby bird was dead when they found it under the hedge. Priya cried, and her brother helped her make a small grave for it out of a shoebox and some moss.",
+        "output": "The little bird was not alive when Priya and her brother found it under the hedge. Priya felt very sad and cried. Her brother helped her make a small resting place for the bird using a shoebox and some moss.",
+        "no_change": false,
+        "identical": false,
+        "id": "C14"
+      },
+      {
+        "case": "grief-4",
+        "run": 0,
+        "original": "Grandpa's funeral was on a grey morning in March. Sam held Grandma's hand the whole time, because she was shaking and he was not, and he wanted her to know he was there.",
+        "output": "Grandpa's funeral was on a grey morning in March. Sam held Grandma's hand the whole time, because she was shaking and he was not, and he wanted her to know he was there.",
+        "no_change": true,
+        "identical": true,
+        "id": "C15"
+      },
+      {
+        "case": "grief-4",
+        "run": 1,
+        "original": "Grandpa's funeral was on a grey morning in March. Sam held Grandma's hand the whole time, because she was shaking and he was not, and he wanted her to know he was there.",
+        "output": "Grandpa's funeral was on a grey morning in March. Sam held Grandma's hand the whole time, because she was shaking and he was not, and he wanted her to know he was there.",
+        "no_change": true,
+        "identical": true,
+        "id": "C16"
+      }
+    ],
+    "HR-11": [
+      {
+        "case": "repetitive-structure",
+        "run": 2,
+        "passage": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out.",
+        "planted_weakness": "repetitive sentence structure / monotonous rhythm",
+        "items": [
+          {
+            "category": "Repetitive Actions",
+            "priority": "high",
+            "observation": "She walked into the room. She saw the note on the table. She picked it up. She read it twice. She put it down. She walked back out.",
+            "recommendation": "Combine the actions into one descriptive sentence: 'She entered the room, found the note on the table, picked it up, read it intently, set it down, and left.'"
+          },
+          {
+            "category": "Narrative Risk",
+            "priority": "medium",
+            "observation": "The sequence of actions feels mechanical and lacks emotional depth or stakes.",
+            "recommendation": "Enhance the emotional impact by adding internal thoughts: 'She entered the room, her pulse quickening as she spotted the note on the table. It was from him, and she picked it up, reading it intently before setting it down, her mind racing with possibilities.', thereby increasing the narrative tension."
+          }
+        ],
+        "id": "S1"
+      },
+      {
+        "case": "telling-not-showing",
+        "run": 0,
+        "passage": "Maria was furious. She was also very sad about what had happened. She felt betrayed and did not know what to do next.",
+        "planted_weakness": "telling emotion directly instead of showing it",
+        "items": [
+          {
+            "category": "Specificity",
+            "priority": "high",
+            "observation": "She felt betrayed and did not know what to do next.",
+            "recommendation": "Specify what she feels betrayed by and what options she considers, e.g., 'She felt betrayed by John’s infidelity and considered confronting him, seeking support from friends, or distancing herself completely.'"
+          },
+          {
+            "category": "Emotional Depth",
+            "priority": "medium",
+            "observation": "Maria was furious. She was also very sad about what had happened.",
+            "recommendation": "Combine the emotions into a more nuanced description, such as 'Maria's seething fury was intertwined with profound sadness, a complex mix of emotions that left her overwhelmed.'"
+          }
+        ],
+        "id": "S2"
+      },
+      {
+        "case": "generic-dialogue",
+        "run": 0,
+        "passage": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+        "planted_weakness": "flat, generic dialogue with no character voice",
+        "items": [
+          {
+            "category": "Repetitive Dialogue",
+            "priority": "high",
+            "observation": "\"Hello,\" she said. \"How are you?\" he said. \"I am fine,\" she said. \"That is good,\" he said.",
+            "recommendation": "Vary the dialogue tags and responses to avoid repetition, e.g., 'She greeted him with a smile, and he responded with a nod.', or 'He asked how she was, and she replied that she was well.'"
+          },
+          {
+            "category": "Lack of Action",
+            "priority": "medium",
+            "observation": "The excerpt consists solely of dialogue without any accompanying action or description.",
+            "recommendation": "Integrate action to enhance the scene, e.g., 'As they stood by the window, she smiled and extended her hand, shaking his as they greeted each other politely.', or 'He leaned against the wall, listening intently as she spoke.',"
+          }
+        ],
+        "id": "S3"
+      },
+      {
+        "case": "info-dump",
+        "run": 2,
+        "passage": "The kingdom of Everholt had been founded three hundred years ago by King Aldric the First, who established the Council of Nine, a body that still governed trade, taxation, and military matters according to the founding charter written in the old tongue.",
+        "planted_weakness": "exposition dumped directly rather than woven in",
+        "items": [
+          {
+            "category": "Exposition",
+            "priority": "high",
+            "observation": "The passage provides detailed historical information about the founding of Everholt and the Council of Nine.",
+            "recommendation": "Transform the exposition into a dialogue between characters discussing the history of Everholt and the Council of Nine."
+          }
+        ],
+        "id": "S4"
+      },
+      {
+        "case": "flat-description",
+        "run": 1,
+        "passage": "It was a nice, big house with a nice garden. The rooms were nice and spacious, and the view was very nice too.",
+        "planted_weakness": "vague adjectives with no sensory specificity",
+        "items": [
+          {
+            "category": "Narrative Risk",
+            "priority": "high",
+            "observation": "The setting lacks clear stakes or conflict, making it feel unengaging.",
+            "recommendation": "Add a character who notices something unusual about the setting, such as an old, creaky door or a mysterious garden."
+          },
+          {
+            "category": "Repetitive Adjectives",
+            "priority": "medium",
+            "observation": "The word 'nice' is overused, making the writing feel repetitive.",
+            "recommendation": "Substitute 'nice' with more specific descriptors like 'cozy', 'lush', or 'panoramic'."
+          }
+        ],
+        "id": "S5"
+      },
+      {
+        "case": "strong-1",
+        "run": 1,
+        "passage": "The kettle had been cold for an hour before Ada noticed. She stood at the window with the letter folded small in her fist, watching the postman's bicycle wobble down the lane, and did not open it, because opening it would make it true.",
+        "planted_weakness": "none planted — strong prose control",
+        "items": [
+          {
+            "category": "Exposition",
+            "priority": "high",
+            "observation": "The passage is purely expository, describing Ada's state of mind and her surroundings without advancing the plot or showing character development.",
+            "recommendation": "Have Ada walk to the kettle to heat water while she contemplates whether to open the letter, thereby integrating her internal conflict with external action."
+          },
+          {
+            "category": "Narrative Risk",
+            "priority": "medium",
+            "observation": "The scene focuses on Ada's internal conflict about opening the letter, but it doesn't show any external action or consequence of this decision.",
+            "recommendation": "Show Ada's reluctance by depicting her fidgeting with the letter or her tense posture, which affects her interaction with others in the room."
+          }
+        ],
+        "id": "S6"
+      },
+      {
+        "case": "strong-2",
+        "run": 1,
+        "passage": "Rain again. Tomas counted the drips from the cracked gutter — forty-one, forty-two — and thought about the boy who used to live upstairs, who had counted them too, out loud, every night of the winter his father did not come home.",
+        "planted_weakness": "none planted — strong prose control",
+        "items": [
+          {
+            "category": "Narrative Risk",
+            "priority": "high",
+            "observation": "The scene focuses on Tomas counting raindrops and reminiscing about a boy who used to count them, but there's no clear connection to the current plot or character development.",
+            "recommendation": "Connect Tomas's memories to his current situation or internal conflict to strengthen the narrative."
+          },
+          {
+            "category": "Exposition",
+            "priority": "medium",
+            "observation": "The passage is primarily expository, providing background information about a boy who counted raindrops in the past.",
+            "recommendation": "Weave this information into a scene where Tomas interacts with someone or something related to the boy, or defer it until it's relevant to the current story."
+          }
+        ],
+        "id": "S7"
+      },
+      {
+        "case": "strong-3",
+        "run": 1,
+        "passage": "'You kept it,' she said. The music box sat between them on the table, its lid chipped, its dancer missing an arm. He shrugged as if it were nothing. It played four notes before it caught, and neither of them reached to wind it again.",
+        "planted_weakness": "none planted — strong prose control",
+        "items": [
+          {
+            "category": "Subtext",
+            "priority": "high",
+            "observation": "'You kept it,' she said. The music box sat between them on the table, its lid chipped, its dancer missing an arm.",
+            "recommendation": "Show her reaction by describing her gaze lingering on the music box, hinting at past memories or unspoken emotions."
+          },
+          {
+            "category": "Stakes",
+            "priority": "medium",
+            "observation": "It played four notes before it caught, and neither of them reached to wind it again.",
+            "recommendation": "Explain that the music box plays only when they are together, suggesting a bond or unresolved tension."
+          }
+        ],
+        "id": "S8"
+      }
+    ]
+  }
+}

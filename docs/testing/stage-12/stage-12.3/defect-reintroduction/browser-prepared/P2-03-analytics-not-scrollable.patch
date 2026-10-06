@@ -1,0 +1,12 @@
+diff --git a/frontend/app/(dashboard)/projects/[id]/analytics/page.tsx b/frontend/app/(dashboard)/projects/[id]/analytics/page.tsx
+--- a/frontend/app/(dashboard)/projects/[id]/analytics/page.tsx
++++ b/frontend/app/(dashboard)/projects/[id]/analytics/page.tsx
+@@ -137,7 +137,7 @@
+ 
+       {/* The one and only scroll container on this page. Sections added below grow
+           it; no further layout work is needed for future analytics. */}
+-      <div className="flex-1 min-h-0 overflow-y-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-500/40"
++      <div className="flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-500/40"
+         tabIndex={0} role="region" aria-label="Writing statistics">
+         <div className="max-w-5xl mx-auto px-6 pt-8 pb-16">
+         <div className="mb-8">

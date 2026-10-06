@@ -1,0 +1,48 @@
+$ (cwd /workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/backend) python3 -m pytest tests/test_prompt_registry.py -q -p no:cacheprovider -rfE --no-header -W ignore
+
+[conftest] DB safety guard: running against allow-listed test database 'narratiq_ci_verify'
+.....FF..                                                                                                                                                                                                                                                       [100%]
+============================================================================================================================== FAILURES ===============================================================================================================================
+_______________________________________________________________________________________________ test_selecting_a_version_actually_changes_the_builder_not_just_a_label ________________________________________________________________________________________________
+
+    def test_selecting_a_version_actually_changes_the_builder_not_just_a_label():
+        """The core contract of this task: version selection must change WHICH
+        FUNCTION RUNS, proven here by registering a real, distinct v2 builder and
+        confirming its actual return value differs from v1's — not a relabeled
+        v1 output."""
+        if "v2-test-only" not in PROMPT_REGISTRY:
+            register_version("v2-test-only", {"tone": lambda **kw: "COMPLETELY DIFFERENT CONTENT"})
+    
+        v1_builder, v1_resolved = resolve_prompt_version("tone", "v1", "v1")
+        v2_builder, v2_resolved = resolve_prompt_version("tone", "v2-test-only", "v1")
+    
+        assert v1_resolved == "v1"
+        assert v2_resolved == "v2-test-only"
+>       assert v1_builder(tone="dark", genre_context="") != v2_builder(tone="dark", genre_context="")
+E       AssertionError: assert 'You are a literary writing coach. Rewrite the passage in a dark tone. Keep all events and characters identical — only change style, word choice, and mood. Return ONLY the rewritten passage.' != 'You are a literary writing coach. Rewrite the passage in a dark tone. Keep all events and characters identical — only change style, word choice, and mood. Return ONLY the rewritten passage.'
+E        +  where 'You are a literary writing coach. Rewrite the passage in a dark tone. Keep all events and characters identical — only change style, word choice, and mood. Return ONLY the rewritten passage.' = <function _tone_v1 at 0x7889235514e0>(tone='dark', genre_context='')
+E        +  and   'You are a literary writing coach. Rewrite the passage in a dark tone. Keep all events and characters identical — only change style, word choice, and mood. Return ONLY the rewritten passage.' = <function _tone_v1 at 0x7889235514e0>(tone='dark', genre_context='')
+
+tests/test_prompt_registry.py:93: AssertionError
+_____________________________________________________________________________________________________ test_unknown_version_fails_safe_to_the_configured_fallback ______________________________________________________________________________________________________
+
+    def test_unknown_version_fails_safe_to_the_configured_fallback():
+        builder, resolved = resolve_prompt_version("tone", "v999-does-not-exist", "v1")
+>       assert resolved == "v1", "an unknown version must resolve to the real fallback, not itself"
+E       AssertionError: an unknown version must resolve to the real fallback, not itself
+E       assert 'v999-does-not-exist' == 'v1'
+E         
+E         - v1
+E         + v999-does-not-exist
+
+tests/test_prompt_registry.py:99: AssertionError
+======================================================================================================================= short test summary info =======================================================================================================================
+FAILED tests/test_prompt_registry.py::test_selecting_a_version_actually_changes_the_builder_not_just_a_label - AssertionError: assert 'You are a literary writing coach. Rewrite the passage in a dark tone. Keep all events and characters identical — only change ...
+FAILED tests/test_prompt_registry.py::test_unknown_version_fails_safe_to_the_configured_fallback - AssertionError: an unknown version must resolve to the real fallback, not itself
+2 failed, 7 passed in 0.07s
+/workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/backend/database.py:38: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+  Base = declarative_base()
+/usr/local/lib/python3.11/dist-packages/pytest_asyncio/plugin.py:208: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))

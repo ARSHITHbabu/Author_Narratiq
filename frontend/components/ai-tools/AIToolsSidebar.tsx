@@ -4,10 +4,10 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Wand2, Palette, Heart, Users, Type, Globe, BookOpen,
   Copy, Check, Loader2, X, ArrowDownToLine,
-  Play, List, Sparkles, Lock, Unlock, Pin as PinIcon,
+  Play, List, Sparkles, Lock, Unlock, Pin as PinIcon, Lightbulb,
 } from 'lucide-react'
 import { aiApi, continuationApi, outlineApi } from '@/lib/api'
-import { TransformResponse, ContinuationSuggestion, OutlineBeat, GenreProfile } from '@/lib/types'
+import { TransformResponse, ContinuationSuggestion, OutlineBeat, GenreProfile, AISuggestion } from '@/lib/types'
 import { toast } from 'sonner'
 // Shared transform option config — single source of truth (also powers the
 // Selection Toolbar). No duplicated option lists across components.
@@ -20,6 +20,7 @@ import PinActions, { type PinSource } from '@/components/generation/PinActions'
 import PreservationRulesPopover from '@/components/generation/PreservationRulesPopover'
 import VersionsPanel from '@/components/generation/VersionsPanel'
 import { useStoryContext } from '@/components/studio/StoryContextEngine'
+import { SUGGESTION_CHARS, wholeSentences } from '@/lib/suggestionText'
 
 interface Props {
   storyId: string
@@ -39,7 +40,7 @@ interface Props {
   liveSelection?: { text: string; from?: number; to?: number } | null
 }
 
-type TabId = 'refine' | 'tone' | 'emotion' | 'age' | 'style' | 'author' | 'translate' | 'continue' | 'outline' | 'versions'
+type TabId = 'refine' | 'tone' | 'emotion' | 'age' | 'style' | 'author' | 'translate' | 'continue' | 'outline' | 'suggest' | 'versions'
 
 // Stage 5 (tasks 5.4/5.6) — tabs whose endpoint accepts strength + locked_ranges.
 // Same set as LOCKABLE_GROUPS in lib/transforms.ts, in this component's tab ids.
@@ -58,6 +59,9 @@ const TABS = [
   { id: 'translate' as TabId, label: 'Translate', icon: Globe    },
   { id: 'continue'  as TabId, label: 'Continue',  icon: Play     },
   { id: 'outline'   as TabId, label: 'Outline',   icon: List     },
+  // Stage 12.3 (owner decision OD-09): writing suggestions had no way in from the
+  // studio since the June 2026 workspace redesign; restored here, in Generate.
+  { id: 'suggest'   as TabId, label: 'Suggestions', icon: Lightbulb },
   ...(P3_ENABLED ? [{ id: 'versions' as TabId, label: 'Versions', icon: PinIcon }] : []),
 ]
 
@@ -68,7 +72,7 @@ const TABS = [
 type GroupId = 'rewrite' | 'generate' | 'versions'
 const GROUPS: { id: GroupId; label: string; tools: TabId[] }[] = [
   { id: 'rewrite', label: 'Rewrite', tools: ['refine', 'tone', 'emotion', 'age', 'style', 'author', 'translate'] },
-  { id: 'generate', label: 'Generate', tools: ['continue', 'outline'] },
+  { id: 'generate', label: 'Generate', tools: ['continue', 'outline', 'suggest'] },
   ...(P3_ENABLED ? [{ id: 'versions' as GroupId, label: 'Versions', tools: ['versions'] as TabId[] }] : []),
 ]
 const groupOf = (t: TabId): GroupId => GROUPS.find((g) => g.tools.includes(t))?.id ?? 'rewrite'
@@ -234,6 +238,33 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
   const [beats, setBeats] = useState<OutlineBeat[]>([])
   const [outlineLoading, setOutlineLoading] = useState(false)
 
+  // Suggestions tab (task 5.13 feedback; OD-09)
+  const [suggestions, setSuggestions] = useState<AISuggestion[]>([])
+  const [suggestLoading, setSuggestLoading] = useState(false)
+  const [suggestScope, setSuggestScope] = useState<'selection' | 'chapter' | null>(null)
+
+  const generateSuggestions = async () => {
+    const sel = readSelection()
+    // With no selection, send whole sentences from the start of the chapter. A cut
+    // mid-word made the model report "the excerpt ends mid-sentence" — a problem
+    // that is not in the manuscript (found in the Stage 12.3 agent review, HR-11).
+    const text = sel.trim() ? sel : wholeSentences(getFullText(), SUGGESTION_CHARS)
+    if (!text.trim()) return toast.error('Write some text in the editor first')
+    setSuggestLoading(true)
+    setSuggestions([])
+    try {
+      const res = await aiApi.suggestions(storyId, chapterId, text)
+      const items: AISuggestion[] = res.data.suggestions ?? []
+      setSuggestions(items)
+      setSuggestScope(sel.trim() ? 'selection' : 'chapter')
+      if (items.length === 0) toast.info('No suggestions came back for this passage. Try again or select a longer passage.')
+    } catch (e: any) {
+      toast.error(e?.response?.data?.detail ?? 'Writing suggestions could not be generated. Please try again.')
+    } finally {
+      setSuggestLoading(false)
+    }
+  }
+
   const generateContinuations = async () => {
     const tail = getFullText().split(/\s+/).slice(-300).join(' ')
     if (!tail.trim()) return toast.error('Write some text in the editor first')
@@ -370,6 +401,7 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
       translate: `Translate to ${selectedLang}`,
       continue:  'Generate Continuations',
       outline:   'Generate Outline',
+      suggest:   'Get Suggestions',
       versions:  '',
     }
     return actionMap[activeTab]
@@ -816,8 +848,53 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
           </div>
         )}
 
+        {/* ── Suggestions Tab (OD-09) ─────────────────────────────────────── */}
+        {activeTab === 'suggest' && (
+          <div className="space-y-3">
+            <p className="text-xs text-[#8e94bd]">
+              Developmental feedback on the selected passage, or on the start of this chapter when nothing is
+              selected: the main weaknesses, what was observed, and a concrete fix. Nothing in your text is changed.
+            </p>
+            <button
+              onClick={generateSuggestions}
+              disabled={suggestLoading}
+              className="w-full bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-black font-semibold py-2.5 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
+            >
+              {suggestLoading ? <><Loader2 className="w-4 h-4 animate-spin" />Reading…</> : <><Lightbulb className="w-4 h-4" />Get Suggestions</>}
+            </button>
+            {suggestions.length > 0 && suggestScope && (
+              <p className="text-[10px] text-[#8e94bd]" data-testid="suggestions-scope">
+                {suggestScope === 'selection' ? 'Feedback on the selected passage.' : 'Feedback on the start of this chapter (no selection).'}
+              </p>
+            )}
+            <ul className="space-y-2" aria-label="Writing suggestions">
+              {suggestions.map((s) => (
+                <li key={s.id} className="bg-[#0d0f1a] border border-[#1f2440] rounded-xl p-3">
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <span className="text-[10px] font-medium text-amber-400 truncate">{s.category}</span>
+                    {s.priority && (
+                      <span className={`text-[9px] px-1.5 py-px rounded border flex-shrink-0 ${
+                        s.priority === 'high' ? 'border-red-500/40 text-red-300'
+                        : s.priority === 'medium' ? 'border-amber-500/40 text-amber-300'
+                        : 'border-[#3d4466] text-[#9da3c8]'}`}>
+                        {s.priority} priority
+                      </span>
+                    )}
+                  </div>
+                  {s.observation
+                    ? <p className="text-xs text-[#c8cce8] leading-relaxed"><span className="text-[#8e94bd]">Observed: </span>{s.observation}</p>
+                    : <p className="text-xs text-[#c8cce8] leading-relaxed">{s.text}</p>}
+                  {s.recommendation && (
+                    <p className="text-xs text-[#9da3c8] leading-relaxed mt-1"><span className="text-[#8e94bd]">Suggestion: </span>{s.recommendation}</p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {/* Run button — only for transform tabs */}
-        {!(['continue', 'outline', 'versions'] as TabId[]).includes(activeTab) && (
+        {!(['continue', 'outline', 'suggest', 'versions'] as TabId[]).includes(activeTab) && (
           <button
             onClick={run}
             disabled={loading}

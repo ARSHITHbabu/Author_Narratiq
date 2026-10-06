@@ -1,0 +1,7504 @@
+[
+ {
+  "hr": "HR-01",
+  "qid": "HR-01.P1.Q1",
+  "item": "",
+  "text": "Did it make the requested change as an EDIT of the original (keeping its sentences where possible) rather than writing a new passage?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-A",
+   "AWT-J",
+   "AWT-1.4"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-01",
+  "qid": "HR-01.P1.Q2",
+  "item": "",
+  "text": "Does the rewrite still sound like the original writer (voice, rhythm, word choice)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-B",
+   "AWT-H",
+   "AWT-1.1"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-01",
+  "qid": "HR-01.P1.Q3",
+  "item": "",
+  "text": "Did it ADD content that is not in the original — new events, details, metaphors or imagery?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-E",
+   "AWT-1.5"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-01",
+  "qid": "HR-01.P1.Q4",
+  "item": "",
+  "text": "Was subtlety or nuance lost (meaning made blunter, more obvious or over-explained)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-F"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-01",
+  "qid": "HR-01.P1.Q5",
+  "item": "",
+  "text": "Did the genre drift (e.g. a literary passage turned into a horror or thriller cliché)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-1.3"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-01",
+  "qid": "HR-01.P1.Q6",
+  "item": "",
+  "text": "Overall: would you accept this rewrite into a manuscript?",
+  "atype": "ACC",
+  "options": [
+   "Accept",
+   "Reject"
+  ],
+  "ids": [],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-01",
+  "qid": "HR-01.P2.Q1",
+  "item": "",
+  "text": "Did it make the requested change as an EDIT of the original (keeping its sentences where possible) rather than writing a new passage?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-A",
+   "AWT-J",
+   "AWT-1.4"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-01",
+  "qid": "HR-01.P2.Q2",
+  "item": "",
+  "text": "Does the rewrite still sound like the original writer (voice, rhythm, word choice)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-B",
+   "AWT-H",
+   "AWT-1.1"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-01",
+  "qid": "HR-01.P2.Q3",
+  "item": "",
+  "text": "Did it ADD content that is not in the original — new events, details, metaphors or imagery?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-E",
+   "AWT-1.5"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-01",
+  "qid": "HR-01.P2.Q4",
+  "item": "",
+  "text": "Was subtlety or nuance lost (meaning made blunter, more obvious or over-explained)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-F"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-01",
+  "qid": "HR-01.P2.Q5",
+  "item": "",
+  "text": "Did the genre drift (e.g. a literary passage turned into a horror or thriller cliché)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-1.3"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-01",
+  "qid": "HR-01.P2.Q6",
+  "item": "",
+  "text": "Overall: would you accept this rewrite into a manuscript?",
+  "atype": "ACC",
+  "options": [
+   "Accept",
+   "Reject"
+  ],
+  "ids": [],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-01",
+  "qid": "HR-01.P3.Q1",
+  "item": "",
+  "text": "Did it make the requested change as an EDIT of the original (keeping its sentences where possible) rather than writing a new passage?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-A",
+   "AWT-J",
+   "AWT-1.4"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-01",
+  "qid": "HR-01.P3.Q2",
+  "item": "",
+  "text": "Does the rewrite still sound like the original writer (voice, rhythm, word choice)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-B",
+   "AWT-H",
+   "AWT-1.1"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-01",
+  "qid": "HR-01.P3.Q3",
+  "item": "",
+  "text": "Did it ADD content that is not in the original — new events, details, metaphors or imagery?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-E",
+   "AWT-1.5"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-01",
+  "qid": "HR-01.P3.Q4",
+  "item": "",
+  "text": "Was subtlety or nuance lost (meaning made blunter, more obvious or over-explained)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-F"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-01",
+  "qid": "HR-01.P3.Q5",
+  "item": "",
+  "text": "Did the genre drift (e.g. a literary passage turned into a horror or thriller cliché)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-1.3"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-01",
+  "qid": "HR-01.P3.Q6",
+  "item": "",
+  "text": "Overall: would you accept this rewrite into a manuscript?",
+  "atype": "ACC",
+  "options": [
+   "Accept",
+   "Reject"
+  ],
+  "ids": [],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-01",
+  "qid": "HR-01.P4.Q1",
+  "item": "",
+  "text": "Did it make the requested change as an EDIT of the original (keeping its sentences where possible) rather than writing a new passage?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-A",
+   "AWT-J",
+   "AWT-1.4"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-01",
+  "qid": "HR-01.P4.Q2",
+  "item": "",
+  "text": "Does the rewrite still sound like the original writer (voice, rhythm, word choice)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-B",
+   "AWT-H",
+   "AWT-1.1"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-01",
+  "qid": "HR-01.P4.Q3",
+  "item": "",
+  "text": "Did it ADD content that is not in the original — new events, details, metaphors or imagery?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-E",
+   "AWT-1.5"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-01",
+  "qid": "HR-01.P4.Q4",
+  "item": "",
+  "text": "Was subtlety or nuance lost (meaning made blunter, more obvious or over-explained)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-F"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-01",
+  "qid": "HR-01.P4.Q5",
+  "item": "",
+  "text": "Did the genre drift (e.g. a literary passage turned into a horror or thriller cliché)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-1.3"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-01",
+  "qid": "HR-01.P4.Q6",
+  "item": "",
+  "text": "Overall: would you accept this rewrite into a manuscript?",
+  "atype": "ACC",
+  "options": [
+   "Accept",
+   "Reject"
+  ],
+  "ids": [],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-01",
+  "qid": "HR-01.SUM.Q1",
+  "item": "",
+  "text": "Taking all the tone items together: are these rewrites acceptable for release?",
+  "atype": "ACC",
+  "options": [
+   "Accept",
+   "Reject"
+  ],
+  "ids": [
+   "AWT-A",
+   "AWT-B",
+   "AWT-E",
+   "AWT-F",
+   "AWT-H",
+   "AWT-J",
+   "AWT-1.1",
+   "AWT-1.3",
+   "AWT-1.4",
+   "AWT-1.5"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-01",
+  "qid": "HR-01.SUM.Q2",
+  "item": "",
+  "text": "Which problem, if any, did you see most often? (one sentence)",
+  "atype": "TEXT",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P1.Q1",
+  "item": "",
+  "text": "Did it make the requested change as an EDIT of the original (keeping its sentences where possible) rather than writing a new passage?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-A",
+   "AWT-J"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P1.Q2",
+  "item": "",
+  "text": "Does the rewrite still sound like the original writer (voice, rhythm, word choice)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-B",
+   "AWT-H",
+   "AWT-2.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P1.Q3",
+  "item": "",
+  "text": "Did it ADD content that is not in the original — new events, details, metaphors or imagery?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-E"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P1.Q4",
+  "item": "",
+  "text": "Was subtlety or nuance lost (meaning made blunter, more obvious or over-explained)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-F",
+   "AWT-2.3"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P1.Q5",
+  "item": "",
+  "text": "Does it over-explain the emotion (tells the reader what to feel instead of showing it)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-2.1"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P1.Q6",
+  "item": "",
+  "text": "Was subtext removed (something left unsaid in the original is now spelled out)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-2.2"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P1.Q7",
+  "item": "",
+  "text": "Does it read like a generic emotional template that could fit any story?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-2.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P1.Q8",
+  "item": "",
+  "text": "Overall: would you accept this rewrite into a manuscript?",
+  "atype": "ACC",
+  "options": [
+   "Accept",
+   "Reject"
+  ],
+  "ids": [],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P2.Q1",
+  "item": "",
+  "text": "Did it make the requested change as an EDIT of the original (keeping its sentences where possible) rather than writing a new passage?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-A",
+   "AWT-J"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P2.Q2",
+  "item": "",
+  "text": "Does the rewrite still sound like the original writer (voice, rhythm, word choice)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-B",
+   "AWT-H",
+   "AWT-2.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P2.Q3",
+  "item": "",
+  "text": "Did it ADD content that is not in the original — new events, details, metaphors or imagery?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-E"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P2.Q4",
+  "item": "",
+  "text": "Was subtlety or nuance lost (meaning made blunter, more obvious or over-explained)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-F",
+   "AWT-2.3"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P2.Q5",
+  "item": "",
+  "text": "Does it over-explain the emotion (tells the reader what to feel instead of showing it)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-2.1"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P2.Q6",
+  "item": "",
+  "text": "Was subtext removed (something left unsaid in the original is now spelled out)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-2.2"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P2.Q7",
+  "item": "",
+  "text": "Does it read like a generic emotional template that could fit any story?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-2.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P2.Q8",
+  "item": "",
+  "text": "Overall: would you accept this rewrite into a manuscript?",
+  "atype": "ACC",
+  "options": [
+   "Accept",
+   "Reject"
+  ],
+  "ids": [],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P3.Q1",
+  "item": "",
+  "text": "Did it make the requested change as an EDIT of the original (keeping its sentences where possible) rather than writing a new passage?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-A",
+   "AWT-J"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P3.Q2",
+  "item": "",
+  "text": "Does the rewrite still sound like the original writer (voice, rhythm, word choice)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-B",
+   "AWT-H",
+   "AWT-2.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P3.Q3",
+  "item": "",
+  "text": "Did it ADD content that is not in the original — new events, details, metaphors or imagery?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-E"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P3.Q4",
+  "item": "",
+  "text": "Was subtlety or nuance lost (meaning made blunter, more obvious or over-explained)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-F",
+   "AWT-2.3"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P3.Q5",
+  "item": "",
+  "text": "Does it over-explain the emotion (tells the reader what to feel instead of showing it)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-2.1"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P3.Q6",
+  "item": "",
+  "text": "Was subtext removed (something left unsaid in the original is now spelled out)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-2.2"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P3.Q7",
+  "item": "",
+  "text": "Does it read like a generic emotional template that could fit any story?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-2.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P3.Q8",
+  "item": "",
+  "text": "Overall: would you accept this rewrite into a manuscript?",
+  "atype": "ACC",
+  "options": [
+   "Accept",
+   "Reject"
+  ],
+  "ids": [],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P4.Q1",
+  "item": "",
+  "text": "Did it make the requested change as an EDIT of the original (keeping its sentences where possible) rather than writing a new passage?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-A",
+   "AWT-J"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P4.Q2",
+  "item": "",
+  "text": "Does the rewrite still sound like the original writer (voice, rhythm, word choice)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-B",
+   "AWT-H",
+   "AWT-2.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P4.Q3",
+  "item": "",
+  "text": "Did it ADD content that is not in the original — new events, details, metaphors or imagery?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-E"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P4.Q4",
+  "item": "",
+  "text": "Was subtlety or nuance lost (meaning made blunter, more obvious or over-explained)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-F",
+   "AWT-2.3"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P4.Q5",
+  "item": "",
+  "text": "Does it over-explain the emotion (tells the reader what to feel instead of showing it)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-2.1"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P4.Q6",
+  "item": "",
+  "text": "Was subtext removed (something left unsaid in the original is now spelled out)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-2.2"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P4.Q7",
+  "item": "",
+  "text": "Does it read like a generic emotional template that could fit any story?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-2.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.P4.Q8",
+  "item": "",
+  "text": "Overall: would you accept this rewrite into a manuscript?",
+  "atype": "ACC",
+  "options": [
+   "Accept",
+   "Reject"
+  ],
+  "ids": [],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.SUM.Q1",
+  "item": "",
+  "text": "Taking all the emotion items together: are these rewrites acceptable for release?",
+  "atype": "ACC",
+  "options": [
+   "Accept",
+   "Reject"
+  ],
+  "ids": [
+   "AWT-A",
+   "AWT-B",
+   "AWT-E",
+   "AWT-F",
+   "AWT-H",
+   "AWT-J",
+   "AWT-2.1",
+   "AWT-2.2",
+   "AWT-2.3",
+   "AWT-2.6",
+   "AWT-2.7"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-02",
+  "qid": "HR-02.SUM.Q2",
+  "item": "",
+  "text": "Which problem, if any, did you see most often? (one sentence)",
+  "atype": "TEXT",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P1.Q1",
+  "item": "",
+  "text": "Did it make the requested change as an EDIT of the original (keeping its sentences where possible) rather than writing a new passage?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-A",
+   "AWT-J"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P1.Q2",
+  "item": "",
+  "text": "Does the rewrite still sound like the original writer (voice, rhythm, word choice)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-B",
+   "AWT-H"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P1.Q3",
+  "item": "",
+  "text": "Did it ADD content that is not in the original — new events, details, metaphors or imagery?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-E"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P1.Q4",
+  "item": "",
+  "text": "Was subtlety or nuance lost (meaning made blunter, more obvious or over-explained)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-F"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P1.Q5",
+  "item": "",
+  "text": "Is the atmosphere of the original kept?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-3.1"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P1.Q6",
+  "item": "",
+  "text": "Is the emotional depth kept (not flattened for the audience)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-3.2"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P1.Q7",
+  "item": "",
+  "text": "Is the point of view unchanged (same narrator / same character's perspective)?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-3.3"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P1.Q8",
+  "item": "",
+  "text": "Did the literary quality drop compared with the original?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-3.5"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P1.Q9",
+  "item": "",
+  "text": "Overall: would you accept this rewrite into a manuscript?",
+  "atype": "ACC",
+  "options": [
+   "Accept",
+   "Reject"
+  ],
+  "ids": [],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P2.Q1",
+  "item": "",
+  "text": "Did it make the requested change as an EDIT of the original (keeping its sentences where possible) rather than writing a new passage?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-A",
+   "AWT-J"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P2.Q2",
+  "item": "",
+  "text": "Does the rewrite still sound like the original writer (voice, rhythm, word choice)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-B",
+   "AWT-H"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P2.Q3",
+  "item": "",
+  "text": "Did it ADD content that is not in the original — new events, details, metaphors or imagery?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-E"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P2.Q4",
+  "item": "",
+  "text": "Was subtlety or nuance lost (meaning made blunter, more obvious or over-explained)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-F"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P2.Q5",
+  "item": "",
+  "text": "Is the atmosphere of the original kept?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-3.1"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P2.Q6",
+  "item": "",
+  "text": "Is the emotional depth kept (not flattened for the audience)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-3.2"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P2.Q7",
+  "item": "",
+  "text": "Is the point of view unchanged (same narrator / same character's perspective)?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-3.3"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P2.Q8",
+  "item": "",
+  "text": "Did the literary quality drop compared with the original?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-3.5"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P2.Q9",
+  "item": "",
+  "text": "Overall: would you accept this rewrite into a manuscript?",
+  "atype": "ACC",
+  "options": [
+   "Accept",
+   "Reject"
+  ],
+  "ids": [],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P3.Q1",
+  "item": "",
+  "text": "Did it make the requested change as an EDIT of the original (keeping its sentences where possible) rather than writing a new passage?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-A",
+   "AWT-J"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P3.Q2",
+  "item": "",
+  "text": "Does the rewrite still sound like the original writer (voice, rhythm, word choice)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-B",
+   "AWT-H"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P3.Q3",
+  "item": "",
+  "text": "Did it ADD content that is not in the original — new events, details, metaphors or imagery?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-E"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P3.Q4",
+  "item": "",
+  "text": "Was subtlety or nuance lost (meaning made blunter, more obvious or over-explained)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-F"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P3.Q5",
+  "item": "",
+  "text": "Is the atmosphere of the original kept?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-3.1"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P3.Q6",
+  "item": "",
+  "text": "Is the emotional depth kept (not flattened for the audience)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-3.2"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P3.Q7",
+  "item": "",
+  "text": "Is the point of view unchanged (same narrator / same character's perspective)?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-3.3"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P3.Q8",
+  "item": "",
+  "text": "Did the literary quality drop compared with the original?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-3.5"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P3.Q9",
+  "item": "",
+  "text": "Overall: would you accept this rewrite into a manuscript?",
+  "atype": "ACC",
+  "options": [
+   "Accept",
+   "Reject"
+  ],
+  "ids": [],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P4.Q1",
+  "item": "",
+  "text": "Did it make the requested change as an EDIT of the original (keeping its sentences where possible) rather than writing a new passage?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-A",
+   "AWT-J"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P4.Q2",
+  "item": "",
+  "text": "Does the rewrite still sound like the original writer (voice, rhythm, word choice)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-B",
+   "AWT-H"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P4.Q3",
+  "item": "",
+  "text": "Did it ADD content that is not in the original — new events, details, metaphors or imagery?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-E"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P4.Q4",
+  "item": "",
+  "text": "Was subtlety or nuance lost (meaning made blunter, more obvious or over-explained)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-F"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P4.Q5",
+  "item": "",
+  "text": "Is the atmosphere of the original kept?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-3.1"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P4.Q6",
+  "item": "",
+  "text": "Is the emotional depth kept (not flattened for the audience)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-3.2"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P4.Q7",
+  "item": "",
+  "text": "Is the point of view unchanged (same narrator / same character's perspective)?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-3.3"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P4.Q8",
+  "item": "",
+  "text": "Did the literary quality drop compared with the original?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-3.5"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.P4.Q9",
+  "item": "",
+  "text": "Overall: would you accept this rewrite into a manuscript?",
+  "atype": "ACC",
+  "options": [
+   "Accept",
+   "Reject"
+  ],
+  "ids": [],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.SUM.Q1",
+  "item": "",
+  "text": "Taking all the audience (age adaptation) items together: are these rewrites acceptable for release?",
+  "atype": "ACC",
+  "options": [
+   "Accept",
+   "Reject"
+  ],
+  "ids": [
+   "AWT-A",
+   "AWT-B",
+   "AWT-E",
+   "AWT-F",
+   "AWT-H",
+   "AWT-J",
+   "AWT-3.1",
+   "AWT-3.2",
+   "AWT-3.3",
+   "AWT-3.5"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-03",
+  "qid": "HR-03.SUM.Q2",
+  "item": "",
+  "text": "Which problem, if any, did you see most often? (one sentence)",
+  "atype": "TEXT",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P1.Q1",
+  "item": "",
+  "text": "Did it make the requested change as an EDIT of the original (keeping its sentences where possible) rather than writing a new passage?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-A",
+   "AWT-J",
+   "AWT-4.1"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P1.Q2",
+  "item": "",
+  "text": "Does the rewrite still sound like the original writer (voice, rhythm, word choice)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-B",
+   "AWT-H",
+   "AWT-4.10"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P1.Q3",
+  "item": "",
+  "text": "Did it ADD content that is not in the original — new events, details, metaphors or imagery?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-E",
+   "AWT-4.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P1.Q4",
+  "item": "",
+  "text": "Was subtlety or nuance lost (meaning made blunter, more obvious or over-explained)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-F"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P1.Q5",
+  "item": "",
+  "text": "Were words or phrases replaced without need (changes that add nothing to the style)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-4.2"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P1.Q6",
+  "item": "",
+  "text": "Are genre tropes exaggerated?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-4.4"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P1.Q7",
+  "item": "",
+  "text": "Does it lean on stereotypes of the style instead of real craft?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-4.5"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P1.Q8",
+  "item": "",
+  "text": "If there is dialogue: was any character's way of speaking changed? (Answer NO if there is no dialogue.)",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-4.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P1.Q9",
+  "item": "",
+  "text": "Did the literary quality degrade?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-4.9"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P1.Q10",
+  "item": "",
+  "text": "Overall: would you accept this rewrite into a manuscript?",
+  "atype": "ACC",
+  "options": [
+   "Accept",
+   "Reject"
+  ],
+  "ids": [],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P2.Q1",
+  "item": "",
+  "text": "Did it make the requested change as an EDIT of the original (keeping its sentences where possible) rather than writing a new passage?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-A",
+   "AWT-J",
+   "AWT-4.1"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P2.Q2",
+  "item": "",
+  "text": "Does the rewrite still sound like the original writer (voice, rhythm, word choice)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-B",
+   "AWT-H",
+   "AWT-4.10"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P2.Q3",
+  "item": "",
+  "text": "Did it ADD content that is not in the original — new events, details, metaphors or imagery?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-E",
+   "AWT-4.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P2.Q4",
+  "item": "",
+  "text": "Was subtlety or nuance lost (meaning made blunter, more obvious or over-explained)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-F"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P2.Q5",
+  "item": "",
+  "text": "Were words or phrases replaced without need (changes that add nothing to the style)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-4.2"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P2.Q6",
+  "item": "",
+  "text": "Are genre tropes exaggerated?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-4.4"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P2.Q7",
+  "item": "",
+  "text": "Does it lean on stereotypes of the style instead of real craft?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-4.5"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P2.Q8",
+  "item": "",
+  "text": "If there is dialogue: was any character's way of speaking changed? (Answer NO if there is no dialogue.)",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-4.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P2.Q9",
+  "item": "",
+  "text": "Did the literary quality degrade?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-4.9"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P2.Q10",
+  "item": "",
+  "text": "Overall: would you accept this rewrite into a manuscript?",
+  "atype": "ACC",
+  "options": [
+   "Accept",
+   "Reject"
+  ],
+  "ids": [],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P3.Q1",
+  "item": "",
+  "text": "Did it make the requested change as an EDIT of the original (keeping its sentences where possible) rather than writing a new passage?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-A",
+   "AWT-J",
+   "AWT-4.1"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P3.Q2",
+  "item": "",
+  "text": "Does the rewrite still sound like the original writer (voice, rhythm, word choice)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-B",
+   "AWT-H",
+   "AWT-4.10"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P3.Q3",
+  "item": "",
+  "text": "Did it ADD content that is not in the original — new events, details, metaphors or imagery?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-E",
+   "AWT-4.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P3.Q4",
+  "item": "",
+  "text": "Was subtlety or nuance lost (meaning made blunter, more obvious or over-explained)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-F"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P3.Q5",
+  "item": "",
+  "text": "Were words or phrases replaced without need (changes that add nothing to the style)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-4.2"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P3.Q6",
+  "item": "",
+  "text": "Are genre tropes exaggerated?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-4.4"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P3.Q7",
+  "item": "",
+  "text": "Does it lean on stereotypes of the style instead of real craft?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-4.5"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P3.Q8",
+  "item": "",
+  "text": "If there is dialogue: was any character's way of speaking changed? (Answer NO if there is no dialogue.)",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-4.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P3.Q9",
+  "item": "",
+  "text": "Did the literary quality degrade?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-4.9"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P3.Q10",
+  "item": "",
+  "text": "Overall: would you accept this rewrite into a manuscript?",
+  "atype": "ACC",
+  "options": [
+   "Accept",
+   "Reject"
+  ],
+  "ids": [],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P4.Q1",
+  "item": "",
+  "text": "Did it make the requested change as an EDIT of the original (keeping its sentences where possible) rather than writing a new passage?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-A",
+   "AWT-J",
+   "AWT-4.1"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P4.Q2",
+  "item": "",
+  "text": "Does the rewrite still sound like the original writer (voice, rhythm, word choice)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-B",
+   "AWT-H",
+   "AWT-4.10"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P4.Q3",
+  "item": "",
+  "text": "Did it ADD content that is not in the original — new events, details, metaphors or imagery?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-E",
+   "AWT-4.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P4.Q4",
+  "item": "",
+  "text": "Was subtlety or nuance lost (meaning made blunter, more obvious or over-explained)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-F"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P4.Q5",
+  "item": "",
+  "text": "Were words or phrases replaced without need (changes that add nothing to the style)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-4.2"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P4.Q6",
+  "item": "",
+  "text": "Are genre tropes exaggerated?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-4.4"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P4.Q7",
+  "item": "",
+  "text": "Does it lean on stereotypes of the style instead of real craft?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-4.5"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P4.Q8",
+  "item": "",
+  "text": "If there is dialogue: was any character's way of speaking changed? (Answer NO if there is no dialogue.)",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-4.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P4.Q9",
+  "item": "",
+  "text": "Did the literary quality degrade?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AWT-4.9"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.P4.Q10",
+  "item": "",
+  "text": "Overall: would you accept this rewrite into a manuscript?",
+  "atype": "ACC",
+  "options": [
+   "Accept",
+   "Reject"
+  ],
+  "ids": [],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.N1.Q1",
+  "item": "",
+  "text": "Was it right to leave this passage unchanged for “cinematic” style?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-4.8"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.N2.Q1",
+  "item": "",
+  "text": "Was it right to leave this passage unchanged for “cinematic” style?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-4.8"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.SUM.Q1",
+  "item": "",
+  "text": "Taking all the style items together: are these rewrites acceptable for release?",
+  "atype": "ACC",
+  "options": [
+   "Accept",
+   "Reject"
+  ],
+  "ids": [
+   "AWT-A",
+   "AWT-B",
+   "AWT-E",
+   "AWT-F",
+   "AWT-H",
+   "AWT-J",
+   "AWT-4.1",
+   "AWT-4.2",
+   "AWT-4.4",
+   "AWT-4.5",
+   "AWT-4.6",
+   "AWT-4.7",
+   "AWT-4.8",
+   "AWT-4.9",
+   "AWT-4.10"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-04",
+  "qid": "HR-04.SUM.Q2",
+  "item": "",
+  "text": "Which problem, if any, did you see most often? (one sentence)",
+  "atype": "TEXT",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-05",
+  "qid": "HR-05.Q1",
+  "item": "",
+  "text": "AWT-A Rewrite-first architecture — do the tools now EDIT rather than rewrite from scratch?",
+  "atype": "ACC",
+  "options": [
+   "Accept",
+   "Reject"
+  ],
+  "ids": [
+   "AWT-A"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-05",
+  "qid": "HR-05.Q2",
+  "item": "",
+  "text": "AWT-B No author-voice preservation — is the writer's voice preserved?",
+  "atype": "ACC",
+  "options": [
+   "Accept",
+   "Reject"
+  ],
+  "ids": [
+   "AWT-B"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-05",
+  "qid": "HR-05.Q3",
+  "item": "",
+  "text": "AWT-E Content injection — are rewrites free of invented content?",
+  "atype": "ACC",
+  "options": [
+   "Accept",
+   "Reject"
+  ],
+  "ids": [
+   "AWT-E"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-05",
+  "qid": "HR-05.Q4",
+  "item": "",
+  "text": "AWT-F Loss of literary subtlety — is subtlety kept?",
+  "atype": "ACC",
+  "options": [
+   "Accept",
+   "Reject"
+  ],
+  "ids": [
+   "AWT-F"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-05",
+  "qid": "HR-05.Q5",
+  "item": "",
+  "text": "AWT-H AI voice convergence — do different passages keep different voices (not all sounding the same)?",
+  "atype": "ACC",
+  "options": [
+   "Accept",
+   "Reject"
+  ],
+  "ids": [
+   "AWT-H"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-05",
+  "qid": "HR-05.Q6",
+  "item": "",
+  "text": "AWT-J Preservation hierarchy missing — is what matters most (meaning, names, voice) kept before style?",
+  "atype": "ACC",
+  "options": [
+   "Accept",
+   "Reject"
+  ],
+  "ids": [
+   "AWT-J"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.R1.Q1",
+  "item": "",
+  "text": "(1) Is LIGHT an acceptable light edit?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.2",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.R1.Q2",
+  "item": "",
+  "text": "(2) Is LIGHT clearly lighter than STRONG?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.R2.Q1",
+  "item": "",
+  "text": "(1) Is LIGHT an acceptable light edit?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.2",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.R2.Q2",
+  "item": "",
+  "text": "(2) Is LIGHT clearly lighter than STRONG?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.R3.Q1",
+  "item": "",
+  "text": "(1) Is LIGHT an acceptable light edit?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.2",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.R3.Q2",
+  "item": "",
+  "text": "(2) Is LIGHT clearly lighter than STRONG?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.R4.Q1",
+  "item": "",
+  "text": "(1) Is LIGHT an acceptable light edit?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.2",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.R4.Q2",
+  "item": "",
+  "text": "(2) Is LIGHT clearly lighter than STRONG?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.R5.Q1",
+  "item": "",
+  "text": "(1) Is LIGHT an acceptable light edit?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.2",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.R5.Q2",
+  "item": "",
+  "text": "(2) Is LIGHT clearly lighter than STRONG?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.R6.Q1",
+  "item": "",
+  "text": "(1) Is LIGHT an acceptable light edit?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.2",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.R6.Q2",
+  "item": "",
+  "text": "(2) Is LIGHT clearly lighter than STRONG?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.R7.Q1",
+  "item": "",
+  "text": "(1) Is LIGHT an acceptable light edit?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.R7.Q2",
+  "item": "",
+  "text": "(2) Is LIGHT clearly lighter than STRONG?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.R8.Q1",
+  "item": "",
+  "text": "(1) Is LIGHT an acceptable light edit?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.R8.Q2",
+  "item": "",
+  "text": "(2) Is LIGHT clearly lighter than STRONG?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.R9.Q1",
+  "item": "",
+  "text": "(1) Is LIGHT an acceptable light edit?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.R9.Q2",
+  "item": "",
+  "text": "(2) Is LIGHT clearly lighter than STRONG?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.R10.Q1",
+  "item": "",
+  "text": "(1) Is LIGHT an acceptable light edit?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.R10.Q2",
+  "item": "",
+  "text": "(2) Is LIGHT clearly lighter than STRONG?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.R11.Q1",
+  "item": "",
+  "text": "(1) Is LIGHT an acceptable light edit?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.R11.Q2",
+  "item": "",
+  "text": "(2) Is LIGHT clearly lighter than STRONG?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.R12.Q1",
+  "item": "",
+  "text": "(1) Is LIGHT an acceptable light edit?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.R12.Q2",
+  "item": "",
+  "text": "(2) Is LIGHT clearly lighter than STRONG?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.R13.Q1",
+  "item": "",
+  "text": "(1) Is LIGHT an acceptable light edit?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.R13.Q2",
+  "item": "",
+  "text": "(2) Is LIGHT clearly lighter than STRONG?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.R14.Q1",
+  "item": "",
+  "text": "(1) Is LIGHT an acceptable light edit?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.R14.Q2",
+  "item": "",
+  "text": "(2) Is LIGHT clearly lighter than STRONG?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.R15.Q1",
+  "item": "",
+  "text": "(1) Is LIGHT an acceptable light edit?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.R15.Q2",
+  "item": "",
+  "text": "(2) Is LIGHT clearly lighter than STRONG?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.T.Q1",
+  "item": "",
+  "text": "Tone pairs (R1–R6) with BOTH answers YES: ___ / 6",
+  "atype": "NUM",
+  "options": null,
+  "ids": [
+   "AWT-1.2",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.T.Q2",
+  "item": "",
+  "text": "Age-adaptation pairs (R7–R12) with BOTH answers YES: ___ / 6",
+  "atype": "NUM",
+  "options": null,
+  "ids": [
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.T.Q3",
+  "item": "",
+  "text": "Style control pairs (R13–R15) with BOTH answers YES: ___ / 3",
+  "atype": "NUM",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-06",
+  "qid": "HR-06.T.Q4",
+  "item": "",
+  "text": "Tone + age total with BOTH YES: ___ / 12",
+  "atype": "NUM",
+  "options": null,
+  "ids": [
+   "AWT-D",
+   "AWT-I"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L1.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.2",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L2.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.2",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L3.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.2",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L4.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.2",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L5.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.2",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L6.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.2",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L7.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.2",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L8.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.2",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L9.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.2",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L10.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.2",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L11.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.2",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L12.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.2",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L13.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.2",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L14.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.2",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L15.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.2",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L16.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.2",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L17.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.2",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L18.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.2",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L19.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.2",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L20.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-1.2",
+   "AWT-1.6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L21.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L22.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L23.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L24.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L25.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L26.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L27.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L28.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L29.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L30.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L31.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L32.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L33.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L34.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L35.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L36.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L37.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L38.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L39.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L40.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I",
+   "AWT-3.7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L41.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L42.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L43.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L44.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L45.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L46.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L47.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L48.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L49.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L50.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L51.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L52.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L53.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L54.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L55.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L56.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L57.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L58.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L59.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-07",
+  "qid": "HR-07.L60.Q1",
+  "item": "",
+  "text": "Label for this Light rewrite",
+  "atype": "LBL",
+  "options": [
+   "Acceptable",
+   "Too much"
+  ],
+  "ids": [
+   "AWT-D",
+   "AWT-I"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C1.Q1",
+  "item": "",
+  "text": "(1) Meaning kept — every difficult event still there, same meaning?",
+  "atype": "KC",
+  "options": [
+   "Kept",
+   "Changed"
+  ],
+  "ids": [
+   "AWT-3.2",
+   "AWT-3.5"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C1.Q2",
+  "item": "",
+  "text": "(2) Appropriate for children?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-3.1",
+   "AWT-3.3"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C2.Q1",
+  "item": "",
+  "text": "(1) Meaning kept — every difficult event still there, same meaning?",
+  "atype": "KC",
+  "options": [
+   "Kept",
+   "Changed"
+  ],
+  "ids": [
+   "AWT-3.2",
+   "AWT-3.5"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C2.Q2",
+  "item": "",
+  "text": "(2) Appropriate for children?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-3.1",
+   "AWT-3.3"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C3.Q1",
+  "item": "",
+  "text": "(1) Meaning kept — every difficult event still there, same meaning?",
+  "atype": "KC",
+  "options": [
+   "Kept",
+   "Changed"
+  ],
+  "ids": [
+   "AWT-3.2",
+   "AWT-3.5"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C3.Q2",
+  "item": "",
+  "text": "(2) Appropriate for children?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-3.1",
+   "AWT-3.3"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C4.Q1",
+  "item": "",
+  "text": "(1) Meaning kept — every difficult event still there, same meaning?",
+  "atype": "KC",
+  "options": [
+   "Kept",
+   "Changed"
+  ],
+  "ids": [
+   "AWT-3.2",
+   "AWT-3.5"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C4.Q2",
+  "item": "",
+  "text": "(2) Appropriate for children?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-3.1",
+   "AWT-3.3"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C5.Q1",
+  "item": "",
+  "text": "(1) Meaning kept — every difficult event still there, same meaning?",
+  "atype": "KC",
+  "options": [
+   "Kept",
+   "Changed"
+  ],
+  "ids": [
+   "AWT-3.2",
+   "AWT-3.5"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C5.Q2",
+  "item": "",
+  "text": "(2) Appropriate for children?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-3.1",
+   "AWT-3.3"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C6.Q1",
+  "item": "",
+  "text": "(1) Meaning kept — every difficult event still there, same meaning?",
+  "atype": "KC",
+  "options": [
+   "Kept",
+   "Changed"
+  ],
+  "ids": [
+   "AWT-3.2",
+   "AWT-3.5"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C6.Q2",
+  "item": "",
+  "text": "(2) Appropriate for children?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-3.1",
+   "AWT-3.3"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C7.Q1",
+  "item": "",
+  "text": "(1) Meaning kept — every difficult event still there, same meaning?",
+  "atype": "KC",
+  "options": [
+   "Kept",
+   "Changed"
+  ],
+  "ids": [
+   "AWT-3.2",
+   "AWT-3.5"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C7.Q2",
+  "item": "",
+  "text": "(2) Appropriate for children?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-3.1",
+   "AWT-3.3"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C8.Q1",
+  "item": "",
+  "text": "(1) Meaning kept — every difficult event still there, same meaning?",
+  "atype": "KC",
+  "options": [
+   "Kept",
+   "Changed"
+  ],
+  "ids": [
+   "AWT-3.2",
+   "AWT-3.5"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C8.Q2",
+  "item": "",
+  "text": "(2) Appropriate for children?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-3.1",
+   "AWT-3.3"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C9.Q1",
+  "item": "",
+  "text": "(1) Meaning kept — every difficult event still there, same meaning?",
+  "atype": "KC",
+  "options": [
+   "Kept",
+   "Changed"
+  ],
+  "ids": [
+   "AWT-3.2",
+   "AWT-3.5"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C9.Q2",
+  "item": "",
+  "text": "(2) Appropriate for children?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-3.1",
+   "AWT-3.3"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C10.Q1",
+  "item": "",
+  "text": "(1) Meaning kept — every difficult event still there, same meaning?",
+  "atype": "KC",
+  "options": [
+   "Kept",
+   "Changed"
+  ],
+  "ids": [
+   "AWT-3.2",
+   "AWT-3.5"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C10.Q2",
+  "item": "",
+  "text": "(2) Appropriate for children?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-3.1",
+   "AWT-3.3"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C11.Q1",
+  "item": "",
+  "text": "(1) Meaning kept — every difficult event still there, same meaning?",
+  "atype": "KC",
+  "options": [
+   "Kept",
+   "Changed"
+  ],
+  "ids": [
+   "AWT-3.2",
+   "AWT-3.5"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C11.Q2",
+  "item": "",
+  "text": "(2) Appropriate for children?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-3.1",
+   "AWT-3.3"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C12.Q1",
+  "item": "",
+  "text": "(1) Meaning kept — every difficult event still there, same meaning?",
+  "atype": "KC",
+  "options": [
+   "Kept",
+   "Changed"
+  ],
+  "ids": [
+   "AWT-3.2",
+   "AWT-3.5"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C12.Q2",
+  "item": "",
+  "text": "(2) Appropriate for children?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-3.1",
+   "AWT-3.3"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C13.Q1",
+  "item": "",
+  "text": "(1) Meaning kept — every difficult event still there, same meaning?",
+  "atype": "KC",
+  "options": [
+   "Kept",
+   "Changed"
+  ],
+  "ids": [
+   "AWT-3.2",
+   "AWT-3.5"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C13.Q2",
+  "item": "",
+  "text": "(2) Appropriate for children?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-3.1",
+   "AWT-3.3"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C14.Q1",
+  "item": "",
+  "text": "(1) Meaning kept — every difficult event still there, same meaning?",
+  "atype": "KC",
+  "options": [
+   "Kept",
+   "Changed"
+  ],
+  "ids": [
+   "AWT-3.2",
+   "AWT-3.5"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C14.Q2",
+  "item": "",
+  "text": "(2) Appropriate for children?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-3.1",
+   "AWT-3.3"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C15.Q1",
+  "item": "",
+  "text": "(1) Meaning kept — every difficult event still there, same meaning?",
+  "atype": "KC",
+  "options": [
+   "Kept",
+   "Changed"
+  ],
+  "ids": [
+   "AWT-3.2",
+   "AWT-3.5"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C15.Q2",
+  "item": "",
+  "text": "(2) Appropriate for children?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-3.1",
+   "AWT-3.3"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C16.Q1",
+  "item": "",
+  "text": "(1) Meaning kept — every difficult event still there, same meaning?",
+  "atype": "KC",
+  "options": [
+   "Kept",
+   "Changed"
+  ],
+  "ids": [
+   "AWT-3.2",
+   "AWT-3.5"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-08",
+  "qid": "HR-08.C16.Q2",
+  "item": "",
+  "text": "(2) Appropriate for children?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-3.1",
+   "AWT-3.3"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-09",
+  "qid": "HR-09.A.Q1",
+  "item": "Part A — saved evidence",
+  "text": "Story (a): is the timeline finding correct (a real date reversal between chapters 2 and 3)?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AUDIT-C4"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-09",
+  "qid": "HR-09.A.Q2",
+  "item": "Part A — saved evidence",
+  "text": "Story (a): is the suggested fix sensible for an author?",
+  "atype": "YPN",
+  "options": [
+   "Yes",
+   "Partly",
+   "No"
+  ],
+  "ids": [
+   "AUDIT-C4",
+   "AUDIT-C3"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-09",
+  "qid": "HR-09.A.Q3",
+  "item": "Part A — saved evidence",
+  "text": "Story (b): was the marked flashback correctly left out of the timeline findings?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AUDIT-C2"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-09",
+  "qid": "HR-09.A.Q4",
+  "item": "Part A — saved evidence",
+  "text": "Story (b): were any other findings false alarms (things that are not wrong)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AUDIT-C1",
+   "AUDIT-H6"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-09",
+  "qid": "HR-09.A.Q5",
+  "item": "Part A — saved evidence",
+  "text": "MV-5.14-B: does “Things to check” list real structural issues (the vanished character, unresolved set-ups)?",
+  "atype": "YPN",
+  "options": [
+   "Yes",
+   "Partly",
+   "No"
+  ],
+  "ids": [
+   "AUDIT-C5"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-09",
+  "qid": "HR-09.A.Q6",
+  "item": "Part A — saved evidence",
+  "text": "MV-5.14-C: is the relationship change correct and clearly shown (names, chapter, no codes)?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-09",
+  "qid": "HR-09.A.Q7",
+  "item": "Part A — saved evidence",
+  "text": "Reviewer observation for the owner's MV-5.14-D: does the Part A evidence support items Critical 4 (timeline), Critical 5 (narrative) and Medium 11 (relationship arcs)? (one answer for all three; explain any difference)",
+  "atype": "SUPP",
+  "options": [
+   "Supports the item",
+   "Partly",
+   "Does not support"
+  ],
+  "ids": [
+   "AUDIT-C4",
+   "AUDIT-C5"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-09",
+  "qid": "HR-09.B.Q1",
+  "item": "Part B — live on the synthetic story",
+  "text": "Continuity: of the findings you checked, how many were real problems? (write “x of y”)",
+  "atype": "TEXT",
+  "options": null,
+  "ids": [
+   "AUDIT-C3"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-09",
+  "qid": "HR-09.B.Q2",
+  "item": "Part B — live on the synthetic story",
+  "text": "Continuity: how many were false alarms about a character (e.g. a normal change of mind reported as an inconsistency)?",
+  "atype": "NUM",
+  "options": null,
+  "ids": [
+   "AUDIT-C1"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-09",
+  "qid": "HR-09.B.Q3",
+  "item": "Part B — live on the synthetic story",
+  "text": "Continuity: how many were false continuity breaks (e.g. a flashback, a memory or a time skip reported as an error)?",
+  "atype": "NUM",
+  "options": null,
+  "ids": [
+   "AUDIT-C2"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-09",
+  "qid": "HR-09.B.Q4",
+  "item": "Part B — live on the synthetic story",
+  "text": "Do the findings show reasoning beyond surface word matching?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AUDIT-C3"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-09",
+  "qid": "HR-09.B.Q5",
+  "item": "Part B — live on the synthetic story",
+  "text": "Character arcs: are they correct and deep enough to be useful?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AUDIT-H7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-09",
+  "qid": "HR-09.B.Q6",
+  "item": "Part B — live on the synthetic story",
+  "text": "“Still open in Narrative Threads”: does it list threads that really are still open at the end?",
+  "atype": "YPN",
+  "options": [
+   "Yes",
+   "Partly",
+   "No"
+  ],
+  "ids": [
+   "AUDIT-H8"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-09",
+  "qid": "HR-09.B.Q7",
+  "item": "Part B — live on the synthetic story",
+  "text": "Stakes: are the stakes (and how they escalate) correct for this story?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AUDIT-H9"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-09",
+  "qid": "HR-09.B.Q8",
+  "item": "Part B — live on the synthetic story",
+  "text": "“Where the plot moves most”: are the chapters named really the key chapters (see Appendix D)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AUDIT-H10"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-09",
+  "qid": "HR-09.B.Q9",
+  "item": "Part B — live on the synthetic story",
+  "text": "Overall, would the report help an author revise this book?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AUDIT-C5"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-09",
+  "qid": "HR-09.C.Q1",
+  "item": "Per-issue verdict",
+  "text": "Remaining problem for AUDIT-C1 — False character-inconsistency detection",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AUDIT-C1"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-09",
+  "qid": "HR-09.C.Q2",
+  "item": "Per-issue verdict",
+  "text": "Remaining problem for AUDIT-C2 — False continuity-break detection",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AUDIT-C2"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-09",
+  "qid": "HR-09.C.Q3",
+  "item": "Per-issue verdict",
+  "text": "Remaining problem for AUDIT-C3 — Surface-level contradiction detection",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AUDIT-C3"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-09",
+  "qid": "HR-09.C.Q4",
+  "item": "Per-issue verdict",
+  "text": "Remaining problem for AUDIT-C4 — Weak timeline reasoning",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AUDIT-C4"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-09",
+  "qid": "HR-09.C.Q5",
+  "item": "Per-issue verdict",
+  "text": "Remaining problem for AUDIT-C5 — Limited narrative reasoning",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AUDIT-C5"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-09",
+  "qid": "HR-09.C.Q6",
+  "item": "Per-issue verdict",
+  "text": "Remaining problem for AUDIT-H6 — High false-positive risk",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AUDIT-H6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-09",
+  "qid": "HR-09.C.Q7",
+  "item": "Per-issue verdict",
+  "text": "Remaining problem for AUDIT-H7 — Character arc analysis too shallow",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AUDIT-H7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-09",
+  "qid": "HR-09.C.Q8",
+  "item": "Per-issue verdict",
+  "text": "Remaining problem for AUDIT-H8 — Incomplete unresolved-thread detection",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AUDIT-H8"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-09",
+  "qid": "HR-09.C.Q9",
+  "item": "Per-issue verdict",
+  "text": "Remaining problem for AUDIT-H9 — Story stakes analysis missing",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AUDIT-H9"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-09",
+  "qid": "HR-09.C.Q10",
+  "item": "Per-issue verdict",
+  "text": "Remaining problem for AUDIT-H10 — Plot importance prioritisation weak",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "AUDIT-H10"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-10",
+  "qid": "HR-10.Q1",
+  "item": "",
+  "text": "Characters: number of WRONG statements",
+  "atype": "NUM",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-10",
+  "qid": "HR-10.Q2",
+  "item": "",
+  "text": "Characters: number of UNSUPPORTED statements",
+  "atype": "NUM",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-10",
+  "qid": "HR-10.Q3",
+  "item": "",
+  "text": "Characters: number of MISSING major items",
+  "atype": "NUM",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-10",
+  "qid": "HR-10.Q4",
+  "item": "",
+  "text": "Locations: number of WRONG statements",
+  "atype": "NUM",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-10",
+  "qid": "HR-10.Q5",
+  "item": "",
+  "text": "Locations: number of UNSUPPORTED statements",
+  "atype": "NUM",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-10",
+  "qid": "HR-10.Q6",
+  "item": "",
+  "text": "Locations: number of MISSING major items",
+  "atype": "NUM",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-10",
+  "qid": "HR-10.Q7",
+  "item": "",
+  "text": "Timeline: number of WRONG statements",
+  "atype": "NUM",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-10",
+  "qid": "HR-10.Q8",
+  "item": "",
+  "text": "Timeline: number of UNSUPPORTED statements",
+  "atype": "NUM",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-10",
+  "qid": "HR-10.Q9",
+  "item": "",
+  "text": "Timeline: number of MISSING major items",
+  "atype": "NUM",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-10",
+  "qid": "HR-10.Q10",
+  "item": "",
+  "text": "World rules: number of WRONG statements",
+  "atype": "NUM",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-10",
+  "qid": "HR-10.Q11",
+  "item": "",
+  "text": "World rules: number of UNSUPPORTED statements",
+  "atype": "NUM",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-10",
+  "qid": "HR-10.Q12",
+  "item": "",
+  "text": "World rules: number of MISSING major items",
+  "atype": "NUM",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-10",
+  "qid": "HR-10.Q13",
+  "item": "",
+  "text": "Themes: number of WRONG statements",
+  "atype": "NUM",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-10",
+  "qid": "HR-10.Q14",
+  "item": "",
+  "text": "Themes: number of UNSUPPORTED statements",
+  "atype": "NUM",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-10",
+  "qid": "HR-10.Q15",
+  "item": "",
+  "text": "Themes: number of MISSING major items",
+  "atype": "NUM",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-10",
+  "qid": "HR-10.Q16",
+  "item": "",
+  "text": "Did the bible invent a character, or state a wrong fact about a main character?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-10",
+  "qid": "HR-10.Q17",
+  "item": "",
+  "text": "List each wrong or unsupported statement (section + statement)",
+  "atype": "TEXT",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S1.Q1",
+  "item": "",
+  "text": "Does at least one suggestion identify the passage's real weakness?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "SUG-H3"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S1.Q2",
+  "item": "",
+  "text": "Is the advice actionable (you would know what to change)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "SUG-C2"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S1.Q3",
+  "item": "",
+  "text": "Is any suggestion just praise, or praise disguised as advice?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "SUG-C1",
+   "SUG-H4"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S1.Q4",
+  "item": "",
+  "text": "Is the feedback generic (could apply to any text)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "SUG-H5"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S2.Q1",
+  "item": "",
+  "text": "Does at least one suggestion identify the passage's real weakness?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "SUG-H3"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S2.Q2",
+  "item": "",
+  "text": "Is the advice actionable (you would know what to change)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "SUG-C2"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S2.Q3",
+  "item": "",
+  "text": "Is any suggestion just praise, or praise disguised as advice?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "SUG-C1",
+   "SUG-H4"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S2.Q4",
+  "item": "",
+  "text": "Is the feedback generic (could apply to any text)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "SUG-H5"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S3.Q1",
+  "item": "",
+  "text": "Does at least one suggestion identify the passage's real weakness?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "SUG-H3"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S3.Q2",
+  "item": "",
+  "text": "Is the advice actionable (you would know what to change)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "SUG-C2"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S3.Q3",
+  "item": "",
+  "text": "Is any suggestion just praise, or praise disguised as advice?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "SUG-C1",
+   "SUG-H4"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S3.Q4",
+  "item": "",
+  "text": "Is the feedback generic (could apply to any text)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "SUG-H5"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S4.Q1",
+  "item": "",
+  "text": "Does at least one suggestion identify the passage's real weakness?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "SUG-H3"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S4.Q2",
+  "item": "",
+  "text": "Is the advice actionable (you would know what to change)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "SUG-C2"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S4.Q3",
+  "item": "",
+  "text": "Is any suggestion just praise, or praise disguised as advice?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "SUG-C1",
+   "SUG-H4"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S4.Q4",
+  "item": "",
+  "text": "Is the feedback generic (could apply to any text)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "SUG-H5"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S5.Q1",
+  "item": "",
+  "text": "Does at least one suggestion identify the passage's real weakness?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "SUG-H3"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S5.Q2",
+  "item": "",
+  "text": "Is the advice actionable (you would know what to change)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "SUG-C2"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S5.Q3",
+  "item": "",
+  "text": "Is any suggestion just praise, or praise disguised as advice?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "SUG-C1",
+   "SUG-H4"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S5.Q4",
+  "item": "",
+  "text": "Is the feedback generic (could apply to any text)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "SUG-H5"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S6.Q1",
+  "item": "",
+  "text": "Strong-prose control: are the suggestions about REAL issues (not invented problems)?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "SUG-H3"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S6.Q2",
+  "item": "",
+  "text": "Is the advice actionable (you would know what to change)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "SUG-C2"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S6.Q3",
+  "item": "",
+  "text": "Is any suggestion just praise, or praise disguised as advice?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "SUG-C1",
+   "SUG-H4"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S6.Q4",
+  "item": "",
+  "text": "Is the feedback generic (could apply to any text)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "SUG-H5"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S7.Q1",
+  "item": "",
+  "text": "Strong-prose control: are the suggestions about REAL issues (not invented problems)?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "SUG-H3"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S7.Q2",
+  "item": "",
+  "text": "Is the advice actionable (you would know what to change)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "SUG-C2"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S7.Q3",
+  "item": "",
+  "text": "Is any suggestion just praise, or praise disguised as advice?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "SUG-C1",
+   "SUG-H4"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S7.Q4",
+  "item": "",
+  "text": "Is the feedback generic (could apply to any text)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "SUG-H5"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S8.Q1",
+  "item": "",
+  "text": "Strong-prose control: are the suggestions about REAL issues (not invented problems)?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "SUG-H3"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S8.Q2",
+  "item": "",
+  "text": "Is the advice actionable (you would know what to change)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "SUG-C2"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S8.Q3",
+  "item": "",
+  "text": "Is any suggestion just praise, or praise disguised as advice?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "SUG-C1",
+   "SUG-H4"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.S8.Q4",
+  "item": "",
+  "text": "Is the feedback generic (could apply to any text)?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "SUG-H5"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.W.Q1",
+  "item": "",
+  "text": "Across the eight passages, do suggestions repeat each other?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "SUG-H6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.W.Q2",
+  "item": "",
+  "text": "Do the recommendations vary with the passage (not the same advice every time)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "SUG-H7"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.W.Q3",
+  "item": "",
+  "text": "Are they forced into a fixed set of categories that do not fit?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "SUG-H8"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.W.Q4",
+  "item": "",
+  "text": "Where a passage carries a narrative risk (unclear stakes, a promise not paid off), is it named?",
+  "atype": "YPN",
+  "options": [
+   "Yes",
+   "Partly",
+   "No"
+  ],
+  "ids": [
+   "SUG-H10"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.W.Q5",
+  "item": "",
+  "text": "Do they give developmental-editing depth (structure, not just sentences)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "SUG-H11"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-11",
+  "qid": "HR-11.W.Q6",
+  "item": "",
+  "text": "Checklist box 5.13: do the suggestions identify real weaknesses?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "SUG-C1",
+   "SUG-C2",
+   "SUG-H3"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-12",
+  "qid": "HR-12.Q1",
+  "item": "",
+  "text": "Ask: “Who poisoned the harbourmaster Edric Thorne?” — is the answer right?",
+  "atype": "CORR",
+  "options": [
+   "Correct",
+   "Partly correct",
+   "Incorrect",
+   "Invented / not in story"
+  ],
+  "ids": [
+   "PA-C1"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-12",
+  "qid": "HR-12.Q2",
+  "item": "",
+  "text": "Ask: “Who is Wren's real father?” — is the answer right?",
+  "atype": "CORR",
+  "options": [
+   "Correct",
+   "Partly correct",
+   "Incorrect",
+   "Invented / not in story"
+  ],
+  "ids": [
+   "PA-C1"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-12",
+  "qid": "HR-12.Q3",
+  "item": "",
+  "text": "Ask: “Where does Wren bury the ledger at the end of the story?” — is the answer right?",
+  "atype": "CORR",
+  "options": [
+   "Correct",
+   "Partly correct",
+   "Incorrect",
+   "Invented / not in story"
+  ],
+  "ids": [
+   "PA-C1",
+   "PA-H11"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-12",
+  "qid": "HR-12.Q4",
+  "item": "",
+  "text": "Ask: “What does Liesel Marr do across the whole story?” — does the answer cover her actions in later chapters (the lighthouse orders, the poisoning, the fire)?",
+  "atype": "CORR",
+  "options": [
+   "Correct",
+   "Partly correct",
+   "Incorrect",
+   "Invented / not in story"
+  ],
+  "ids": [
+   "PA-C9"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-12",
+  "qid": "HR-12.Q5",
+  "item": "",
+  "text": "Ask: “Summarise the major revelations of chapters 30 to 40.” — are the major revelations included (poisoner, betrayer, Wren's father, the fire, where the ledger is buried)?",
+  "atype": "CORR",
+  "options": [
+   "Correct",
+   "Partly correct",
+   "Incorrect",
+   "Invented / not in story"
+  ],
+  "ids": [
+   "PA-H10"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-12",
+  "qid": "HR-12.Q6",
+  "item": "",
+  "text": "Ask: “How does Wren Halloway change from the beginning to the end of the story?” — does it understand her arc?",
+  "atype": "CORR",
+  "options": [
+   "Correct",
+   "Partly correct",
+   "Incorrect",
+   "Invented / not in story"
+  ],
+  "ids": [
+   "PA-H13"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-12",
+  "qid": "HR-12.Q7",
+  "item": "",
+  "text": "Ask: “What did Wren find when she sailed to Paris?” (this does not happen) — is it answered as not in the manuscript, without inventing?",
+  "atype": "CORR",
+  "options": [
+   "Correct",
+   "Partly correct",
+   "Incorrect",
+   "Invented / not in story"
+  ],
+  "ids": [
+   "PA-C1"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-12",
+  "qid": "HR-12.Q8",
+  "item": "",
+  "text": "Ask: “Give me a summary of the whole story.” — are the later chapters (30–40) represented as well as the early ones?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "PA-H11"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-12",
+  "qid": "HR-12.Q9",
+  "item": "",
+  "text": "Remaining problem for PA-C1 — Only uses Chapter 1 context",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "PA-C1"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-12",
+  "qid": "HR-12.Q10",
+  "item": "",
+  "text": "Remaining problem for PA-C9 — Story-wide character memory failure",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "PA-C9"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-12",
+  "qid": "HR-12.Q11",
+  "item": "",
+  "text": "Remaining problem for PA-H10 — Major revelations omitted from summaries",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "PA-H10"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-12",
+  "qid": "HR-12.Q12",
+  "item": "",
+  "text": "Remaining problem for PA-H11 — Later-chapter content underrepresented",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "PA-H11"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-12",
+  "qid": "HR-12.Q13",
+  "item": "",
+  "text": "Remaining problem for PA-H13 — Character arc understanding failure",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "PA-H13"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-13",
+  "qid": "HR-13.Q1",
+  "item": "",
+  "text": "Is the manuscript clearly the main thing on screen? (yes/no + one sentence)",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "UI-C2"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-13",
+  "qid": "HR-13.Q2",
+  "item": "",
+  "text": "Do AI tools compete visually with the text?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "UI-H9"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-13",
+  "qid": "HR-13.Q3",
+  "item": "",
+  "text": "Reading mode gives a focused, read-only view?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "UI-H14"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-13",
+  "qid": "HR-13.Q4",
+  "item": "",
+  "text": "Focus mode helps you concentrate on the text?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "UI-H14"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-13",
+  "qid": "HR-13.Q5",
+  "item": "",
+  "text": "Zen mode is distraction-free?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "UI-H14"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-13",
+  "qid": "HR-13.Q6",
+  "item": "",
+  "text": "Does the screen feel congested?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "UI-C1"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-13",
+  "qid": "HR-13.Q7",
+  "item": "",
+  "text": "Does it feel like a writing studio or a tool dashboard? (UI-M17, Medium, part of the Stage 8 gate's 18)",
+  "atype": "STUDIO",
+  "options": [
+   "Writing studio",
+   "In between",
+   "Tool dashboard"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-14",
+  "qid": "HR-14.Q1",
+  "item": "",
+  "text": "Find Story Bible",
+  "atype": "FIND",
+  "options": [
+   "Found within 30 s",
+   "Found only with Ctrl/⌘K",
+   "Not found"
+  ],
+  "ids": [
+   "UI-H13"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-14",
+  "qid": "HR-14.Q2",
+  "item": "",
+  "text": "Find Notes",
+  "atype": "FIND",
+  "options": [
+   "Found within 30 s",
+   "Found only with Ctrl/⌘K",
+   "Not found"
+  ],
+  "ids": [
+   "UI-H13"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-14",
+  "qid": "HR-14.Q3",
+  "item": "",
+  "text": "Find the Idea Shelf",
+  "atype": "FIND",
+  "options": [
+   "Found within 30 s",
+   "Found only with Ctrl/⌘K",
+   "Not found"
+  ],
+  "ids": [
+   "UI-H13"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-14",
+  "qid": "HR-14.Q4",
+  "item": "",
+  "text": "Find Search & replace",
+  "atype": "FIND",
+  "options": [
+   "Found within 30 s",
+   "Found only with Ctrl/⌘K",
+   "Not found"
+  ],
+  "ids": [
+   "UI-H13"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-14",
+  "qid": "HR-14.Q5",
+  "item": "",
+  "text": "Find Pacing",
+  "atype": "FIND",
+  "options": [
+   "Found within 30 s",
+   "Found only with Ctrl/⌘K",
+   "Not found"
+  ],
+  "ids": [
+   "UI-H13"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-14",
+  "qid": "HR-14.Q6",
+  "item": "",
+  "text": "Find Continuity",
+  "atype": "FIND",
+  "options": [
+   "Found within 30 s",
+   "Found only with Ctrl/⌘K",
+   "Not found"
+  ],
+  "ids": [
+   "UI-H13"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-14",
+  "qid": "HR-14.Q7",
+  "item": "",
+  "text": "Find Compare versions",
+  "atype": "FIND",
+  "options": [
+   "Found within 30 s",
+   "Found only with Ctrl/⌘K",
+   "Not found"
+  ],
+  "ids": [
+   "UI-H13"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-14",
+  "qid": "HR-14.Q8",
+  "item": "",
+  "text": "Find the voice agent",
+  "atype": "FIND",
+  "options": [
+   "Found within 30 s",
+   "Found only with Ctrl/⌘K",
+   "Not found"
+  ],
+  "ids": [
+   "UI-H13"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-14",
+  "qid": "HR-14.Q9",
+  "item": "",
+  "text": "Can you tell the kinds of tools apart (workspace → section → tool)?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "UI-C6"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-14",
+  "qid": "HR-14.Q10",
+  "item": "",
+  "text": "Is navigation too dense?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "UI-H10"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-14",
+  "qid": "HR-14.Q11",
+  "item": "",
+  "text": "Does the way features are made discoverable create clutter?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "UI-H13",
+   "UI-C1"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-14",
+  "qid": "HR-14.Q12",
+  "item": "",
+  "text": "Do features remain discoverable? (yes/no + one sentence)",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "UI-C6",
+   "UI-H13"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-15",
+  "qid": "HR-15.Q1",
+  "item": "",
+  "text": "Drafting session completed (20+ minutes)?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "UI-H11"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-15",
+  "qid": "HR-15.Q2",
+  "item": "",
+  "text": "While drafting, did anything distract you? (yes/no + one sentence)",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "UI-H11"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-15",
+  "qid": "HR-15.Q3",
+  "item": "",
+  "text": "Editing session completed (20+ minutes)?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "UI-H11"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-15",
+  "qid": "HR-15.Q4",
+  "item": "",
+  "text": "While editing, could you use the tools without friction? (yes/no + one sentence)",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "UI-H11"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-15",
+  "qid": "HR-15.Q5",
+  "item": "",
+  "text": "Do drafting and editing feel like different activities?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "UI-H11"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-15",
+  "qid": "HR-15.Q6",
+  "item": "",
+  "text": "Over the session, did the interface feel congested or tiring?",
+  "atype": "SEV",
+  "options": [
+   "None",
+   "Minor",
+   "Major",
+   "Blocking"
+  ],
+  "ids": [
+   "UI-C1"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-16",
+  "qid": "HR-16.Q1",
+  "item": "",
+  "text": "Step 1: Tab once: “Skip to content” is announced; press Enter.",
+  "atype": "SR",
+  "options": [
+   "As expected",
+   "Problem found"
+  ],
+  "ids": [],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-16",
+  "qid": "HR-16.Q2",
+  "item": "",
+  "text": "Step 2: Move through the Workspaces navigation: each item announces its name and the current one says “current page”.",
+  "atype": "SR",
+  "options": [
+   "As expected",
+   "Problem found"
+  ],
+  "ids": [],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-16",
+  "qid": "HR-16.Q3",
+  "item": "",
+  "text": "Step 3: Write: open a chapter from the binder; the editor is announced as editable text; the formatting toolbar is a toolbar; Draft/Edit announces as a radio group.",
+  "atype": "SR",
+  "options": [
+   "As expected",
+   "Problem found"
+  ],
+  "ids": [],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-16",
+  "qid": "HR-16.Q4",
+  "item": "",
+  "text": "Step 4: Open the AI panel (button in the status bar): its heading is announced and focus moves into it; the tool groups announce as tabs; Close returns focus to the button.",
+  "atype": "SR",
+  "options": [
+   "As expected",
+   "Problem found"
+  ],
+  "ids": [],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-16",
+  "qid": "HR-16.Q5",
+  "item": "",
+  "text": "Step 5: Plan and World: the section tabs announce as tabs with selected state.",
+  "atype": "SR",
+  "options": [
+   "As expected",
+   "Problem found"
+  ],
+  "ids": [],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-16",
+  "qid": "HR-16.Q6",
+  "item": "",
+  "text": "Step 6: Analyze: open one tool; its heading is announced; Close returns focus to its card.",
+  "atype": "SR",
+  "options": [
+   "As expected",
+   "Problem found"
+  ],
+  "ids": [],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-16",
+  "qid": "HR-16.Q7",
+  "item": "",
+  "text": "Step 7: Ctrl/⌘K: the palette announces as a dialog with a search field.",
+  "atype": "SR",
+  "options": [
+   "As expected",
+   "Problem found"
+  ],
+  "ids": [],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-16",
+  "qid": "HR-16.Q8",
+  "item": "",
+  "text": "Screen reader and browser used",
+  "atype": "TEXT",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-16",
+  "qid": "HR-16.Q9",
+  "item": "",
+  "text": "List anything unlabelled or confusing (location + what was announced)",
+  "atype": "TEXT",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-17",
+  "qid": "HR-17.Q1",
+  "item": "",
+  "text": "Total words: do you understand what it means and what to do with it?",
+  "atype": "YPN",
+  "options": [
+   "Yes",
+   "Partly",
+   "No"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-17",
+  "qid": "HR-17.Q2",
+  "item": "",
+  "text": "Chapters: do you understand what it means and what to do with it?",
+  "atype": "YPN",
+  "options": [
+   "Yes",
+   "Partly",
+   "No"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-17",
+  "qid": "HR-17.Q3",
+  "item": "",
+  "text": "Average words per chapter: do you understand what it means and what to do with it?",
+  "atype": "YPN",
+  "options": [
+   "Yes",
+   "Partly",
+   "No"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-17",
+  "qid": "HR-17.Q4",
+  "item": "",
+  "text": "Readability (Flesch Reading Ease, 0–100): do you understand what it means and what to do with it?",
+  "atype": "YPN",
+  "options": [
+   "Yes",
+   "Partly",
+   "No"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-17",
+  "qid": "HR-17.Q5",
+  "item": "",
+  "text": "Dialogue ratio (with the genre range note): do you understand what it means and what to do with it?",
+  "atype": "YPN",
+  "options": [
+   "Yes",
+   "Partly",
+   "No"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-17",
+  "qid": "HR-17.Q6",
+  "item": "",
+  "text": "Average sentence length: do you understand what it means and what to do with it?",
+  "atype": "YPN",
+  "options": [
+   "Yes",
+   "Partly",
+   "No"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-17",
+  "qid": "HR-17.Q7",
+  "item": "",
+  "text": "Word-count progress (toward a typical manuscript for the genre): do you understand what it means and what to do with it?",
+  "atype": "YPN",
+  "options": [
+   "Yes",
+   "Partly",
+   "No"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-17",
+  "qid": "HR-17.Q8",
+  "item": "",
+  "text": "Story intelligence block (emotional arc shape / pacing), if shown: do you understand what it means and what to do with it?",
+  "atype": "YPN",
+  "options": [
+   "Yes",
+   "Partly",
+   "No"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-17",
+  "qid": "HR-17.Q9",
+  "item": "",
+  "text": "Overall: are the numbers interpretable? (yes/no + one sentence)",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-18",
+  "qid": "HR-18.Q1",
+  "item": "",
+  "text": "Chapter 5: how much does text A sound like the existing chapters?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-B"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-18",
+  "qid": "HR-18.Q2",
+  "item": "",
+  "text": "Chapter 5: how much does text B sound like the existing chapters?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-B"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-18",
+  "qid": "HR-18.Q3",
+  "item": "",
+  "text": "Chapter 5: which sounds more like the author?",
+  "atype": "AB",
+  "options": [
+   "A",
+   "B",
+   "No meaningful difference"
+  ],
+  "ids": [
+   "AWT-4.10"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-18",
+  "qid": "HR-18.Q4",
+  "item": "",
+  "text": "Chapter 20: how much does text A sound like the existing chapters?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-B"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-18",
+  "qid": "HR-18.Q5",
+  "item": "",
+  "text": "Chapter 20: how much does text B sound like the existing chapters?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-B"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-18",
+  "qid": "HR-18.Q6",
+  "item": "",
+  "text": "Chapter 20: which sounds more like the author?",
+  "atype": "AB",
+  "options": [
+   "A",
+   "B",
+   "No meaningful difference"
+  ],
+  "ids": [
+   "AWT-4.10"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-18",
+  "qid": "HR-18.Q7",
+  "item": "",
+  "text": "Chapter 35: how much does text A sound like the existing chapters?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-B"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-18",
+  "qid": "HR-18.Q8",
+  "item": "",
+  "text": "Chapter 35: how much does text B sound like the existing chapters?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-B"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-18",
+  "qid": "HR-18.Q9",
+  "item": "",
+  "text": "Chapter 35: which sounds more like the author?",
+  "atype": "AB",
+  "options": [
+   "A",
+   "B",
+   "No meaningful difference"
+  ],
+  "ids": [
+   "AWT-4.10"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-18",
+  "qid": "HR-18.Q10",
+  "item": "",
+  "text": "After revealing: which letter was “Match my voice closely” for chapters 5 / 20 / 35?",
+  "atype": "TEXT",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-18",
+  "qid": "HR-18.Q11",
+  "item": "",
+  "text": "Golden-set author review confirms style match (pass/fail + one sentence)",
+  "atype": "PF",
+  "options": [
+   "PASS",
+   "FAIL"
+  ],
+  "ids": [
+   "AWT-B",
+   "AWT-4.10"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-19",
+  "qid": "HR-19.I1.Q1",
+  "item": "",
+  "text": "Is the original writer's identity still recognisable underneath the style?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-4.10",
+   "AWT-B"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-19",
+  "qid": "HR-19.I2.Q1",
+  "item": "",
+  "text": "Is the original writer's identity still recognisable underneath the style?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-4.10",
+   "AWT-B"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-19",
+  "qid": "HR-19.I3.Q1",
+  "item": "",
+  "text": "Is the original writer's identity still recognisable underneath the style?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-4.10",
+   "AWT-B"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-19",
+  "qid": "HR-19.I4.Q1",
+  "item": "",
+  "text": "Is the original writer's identity still recognisable underneath the style?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-4.10",
+   "AWT-B"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-19",
+  "qid": "HR-19.I5.Q1",
+  "item": "",
+  "text": "Is the original writer's identity still recognisable underneath the style?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-4.10",
+   "AWT-B"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-19",
+  "qid": "HR-19.I6.Q1",
+  "item": "",
+  "text": "Is the original writer's identity still recognisable underneath the style?",
+  "atype": "S5",
+  "options": [
+   "1 Not at all",
+   "2 A little",
+   "3 Partly",
+   "4 Mostly",
+   "5 Completely"
+  ],
+  "ids": [
+   "AWT-4.10",
+   "AWT-B"
+  ],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-19",
+  "qid": "HR-19.SUM.Q1",
+  "item": "HR-19 — summary",
+  "text": "Overall: is author identity preserved under this blind review?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [
+   "AWT-4.10"
+  ],
+  "note_allowed": true
+ },
+ {
+  "hr": "HR-20",
+  "qid": "HR-20.O1.Q1",
+  "item": "",
+  "text": "Does this output imitate an in-copyright author?",
+  "atype": "IMIT",
+  "options": [
+   "No imitation",
+   "Possible imitation",
+   "Clear imitation"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-20",
+  "qid": "HR-20.O2.Q1",
+  "item": "",
+  "text": "Does this output imitate an in-copyright author?",
+  "atype": "IMIT",
+  "options": [
+   "No imitation",
+   "Possible imitation",
+   "Clear imitation"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-20",
+  "qid": "HR-20.O3.Q1",
+  "item": "",
+  "text": "Does this output imitate an in-copyright author?",
+  "atype": "IMIT",
+  "options": [
+   "No imitation",
+   "Possible imitation",
+   "Clear imitation"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-20",
+  "qid": "HR-20.O4.Q1",
+  "item": "",
+  "text": "Does this output imitate an in-copyright author?",
+  "atype": "IMIT",
+  "options": [
+   "No imitation",
+   "Possible imitation",
+   "Clear imitation"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-20",
+  "qid": "HR-20.O5.Q1",
+  "item": "",
+  "text": "Does this output imitate an in-copyright author?",
+  "atype": "IMIT",
+  "options": [
+   "No imitation",
+   "Possible imitation",
+   "Clear imitation"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-20",
+  "qid": "HR-20.O6.Q1",
+  "item": "",
+  "text": "Does this output imitate an in-copyright author?",
+  "atype": "IMIT",
+  "options": [
+   "No imitation",
+   "Possible imitation",
+   "Clear imitation"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-20",
+  "qid": "HR-20.O7.Q1",
+  "item": "",
+  "text": "Does this output imitate an in-copyright author?",
+  "atype": "IMIT",
+  "options": [
+   "No imitation",
+   "Possible imitation",
+   "Clear imitation"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-20",
+  "qid": "HR-20.O8.Q1",
+  "item": "",
+  "text": "Does this output imitate an in-copyright author?",
+  "atype": "IMIT",
+  "options": [
+   "No imitation",
+   "Possible imitation",
+   "Clear imitation"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-20",
+  "qid": "HR-20.O9.Q1",
+  "item": "",
+  "text": "Does this output imitate an in-copyright author?",
+  "atype": "IMIT",
+  "options": [
+   "No imitation",
+   "Possible imitation",
+   "Clear imitation"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-20",
+  "qid": "HR-20.O10.Q1",
+  "item": "",
+  "text": "Does this output imitate an in-copyright author?",
+  "atype": "IMIT",
+  "options": [
+   "No imitation",
+   "Possible imitation",
+   "Clear imitation"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-20",
+  "qid": "HR-20.O11.Q1",
+  "item": "",
+  "text": "Does this output imitate an in-copyright author?",
+  "atype": "IMIT",
+  "options": [
+   "No imitation",
+   "Possible imitation",
+   "Clear imitation"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-20",
+  "qid": "HR-20.O12.Q1",
+  "item": "",
+  "text": "Does this output imitate an in-copyright author?",
+  "atype": "IMIT",
+  "options": [
+   "No imitation",
+   "Possible imitation",
+   "Clear imitation"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-20",
+  "qid": "HR-20.O13.Q1",
+  "item": "",
+  "text": "Does this output imitate an in-copyright author?",
+  "atype": "IMIT",
+  "options": [
+   "No imitation",
+   "Possible imitation",
+   "Clear imitation"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-20",
+  "qid": "HR-20.O14.Q1",
+  "item": "",
+  "text": "Does this output imitate an in-copyright author?",
+  "atype": "IMIT",
+  "options": [
+   "No imitation",
+   "Possible imitation",
+   "Clear imitation"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-20",
+  "qid": "HR-20.O15.Q1",
+  "item": "",
+  "text": "Does this output imitate an in-copyright author?",
+  "atype": "IMIT",
+  "options": [
+   "No imitation",
+   "Possible imitation",
+   "Clear imitation"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-20",
+  "qid": "HR-20.SUM.Q1",
+  "item": "HR-20 — summary",
+  "text": "Anything else in these outputs that concerns you? (one sentence or “none”)",
+  "atype": "TEXT",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-21",
+  "qid": "HR-21.Q1",
+  "item": "",
+  "text": "(1) The severity and why",
+  "atype": "TEXT",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-21",
+  "qid": "HR-21.Q2",
+  "item": "",
+  "text": "(1) Found in the documents within the session, without improvising?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-21",
+  "qid": "HR-21.Q3",
+  "item": "",
+  "text": "(2) The first three actions",
+  "atype": "TEXT",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-21",
+  "qid": "HR-21.Q4",
+  "item": "",
+  "text": "(2) Found in the documents within the session, without improvising?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-21",
+  "qid": "HR-21.Q5",
+  "item": "",
+  "text": "(3) Which backup set you would restore and how you would check it first",
+  "atype": "TEXT",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-21",
+  "qid": "HR-21.Q6",
+  "item": "",
+  "text": "(3) Found in the documents within the session, without improvising?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-21",
+  "qid": "HR-21.Q7",
+  "item": "",
+  "text": "(4) Which commands restore the database and the uploads",
+  "atype": "TEXT",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-21",
+  "qid": "HR-21.Q8",
+  "item": "",
+  "text": "(4) Found in the documents within the session, without improvising?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-21",
+  "qid": "HR-21.Q9",
+  "item": "",
+  "text": "(5) How you confirm nothing was lost",
+  "atype": "TEXT",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-21",
+  "qid": "HR-21.Q10",
+  "item": "",
+  "text": "(5) Found in the documents within the session, without improvising?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-21",
+  "qid": "HR-21.Q11",
+  "item": "",
+  "text": "(6) Where the report is filed and what goes in §8",
+  "atype": "TEXT",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-21",
+  "qid": "HR-21.Q12",
+  "item": "",
+  "text": "(6) Found in the documents within the session, without improvising?",
+  "atype": "YN",
+  "options": [
+   "YES",
+   "NO"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-21",
+  "qid": "HR-21.Q13",
+  "item": "",
+  "text": "Gaps found (each becomes a documentation fix)",
+  "atype": "TEXT",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-22",
+  "qid": "HR-22.Q1",
+  "item": "",
+  "text": "Roll-up result",
+  "atype": "RU",
+  "options": [
+   "PASS",
+   "FAIL",
+   "INCOMPLETE"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-22",
+  "qid": "HR-22.Q2",
+  "item": "",
+  "text": "Which inputs are missing or failed? (list HR IDs / items)",
+  "atype": "TEXT",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-23",
+  "qid": "HR-23.Q1",
+  "item": "",
+  "text": "Roll-up result",
+  "atype": "RU",
+  "options": [
+   "PASS",
+   "FAIL",
+   "INCOMPLETE"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-23",
+  "qid": "HR-23.Q2",
+  "item": "",
+  "text": "Which inputs are missing or failed? (list HR IDs / items)",
+  "atype": "TEXT",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-24",
+  "qid": "HR-24.Q1",
+  "item": "",
+  "text": "Roll-up result",
+  "atype": "RU",
+  "options": [
+   "PASS",
+   "FAIL",
+   "INCOMPLETE"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-24",
+  "qid": "HR-24.Q2",
+  "item": "",
+  "text": "Which inputs are missing or failed? (list HR IDs / items)",
+  "atype": "TEXT",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-25",
+  "qid": "HR-25.Q1",
+  "item": "",
+  "text": "Roll-up result",
+  "atype": "RU",
+  "options": [
+   "PASS",
+   "FAIL",
+   "INCOMPLETE"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-25",
+  "qid": "HR-25.Q2",
+  "item": "",
+  "text": "Which inputs are missing or failed? (list HR IDs / items)",
+  "atype": "TEXT",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-26",
+  "qid": "HR-26.Q1",
+  "item": "",
+  "text": "Roll-up result",
+  "atype": "RU",
+  "options": [
+   "PASS",
+   "FAIL",
+   "INCOMPLETE"
+  ],
+  "ids": [],
+  "note_allowed": false
+ },
+ {
+  "hr": "HR-26",
+  "qid": "HR-26.Q2",
+  "item": "",
+  "text": "Which inputs are missing or failed? (list HR IDs / items)",
+  "atype": "TEXT",
+  "options": null,
+  "ids": [],
+  "note_allowed": false
+ }
+]

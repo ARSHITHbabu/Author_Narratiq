@@ -1,0 +1,38 @@
+$ (cwd /workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/backend) python3 -m pytest tests/test_extract_json_audit.py tests/test_continuity_citation_validation.py -q -p no:cacheprovider -rfE --no-header -W ignore
+
+[conftest] DB safety guard: running against allow-listed test database 'narratiq_ci_verify'
+F...................................                                                                                                                                                                                                                            [100%]
+============================================================================================================================== FAILURES ===============================================================================================================================
+_______________________________________________________________________________________________________________ test_no_new_direct_extract_json_callers _______________________________________________________________________________________________________________
+
+    def test_no_new_direct_extract_json_callers():
+        """New features must go through complete_structured(). This test is the
+        tripwire: a new direct caller fails here and has to be classified."""
+        known = set()
+        for rel, line, fn in _call_sites():
+            if rel.startswith("services/voice/"):
+                known.add(rel)
+            elif fn == "complete_structured":
+                known.add("complete_structured/attempt-1")
+                known.add("complete_structured/retry")
+            else:
+                known.add(fn)
+    
+        unregistered = known - set(REGISTER)
+>       assert not unregistered, (
+            f"unregistered _extract_json caller(s): {sorted(unregistered)} — "
+            "use complete_structured(), or add a justified row to REGISTER"
+        )
+E       AssertionError: unregistered _extract_json caller(s): ['check_continuity'] — use complete_structured(), or add a justified row to REGISTER
+E       assert not {'check_continuity'}
+
+tests/test_extract_json_audit.py:120: AssertionError
+======================================================================================================================= short test summary info =======================================================================================================================
+FAILED tests/test_extract_json_audit.py::test_no_new_direct_extract_json_callers - AssertionError: unregistered _extract_json caller(s): ['check_continuity'] — use complete_structured(), or add a justified row to REGISTER
+1 failed, 35 passed in 6.47s
+/workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/backend/database.py:38: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+  Base = declarative_base()
+/usr/local/lib/python3.11/dist-packages/pytest_asyncio/plugin.py:208: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))

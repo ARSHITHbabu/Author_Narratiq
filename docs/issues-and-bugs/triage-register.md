@@ -39,6 +39,11 @@ items are genuinely product-sensitive and were brought to the product owner rath
 
 *2026-09-27 (Stage 9 task 9.2) — summary corrected: the Cast row read 8 release-blocking / 3 post-launch, but the Cast table below lists 7 (C3, C4, H6–H10) and 4 (M11–M14). Totals corrected from 115 / 29 to 114 / 30. No issue's own classification changed.*
 
+**Owner decision OD-02 (2026-10-06):** all **30 post-launch issues** in this register are **accepted as deferred
+post-launch Medium issues**. They do not block v3.3.0, they are **not fixed**, and this register is their post-launch
+backlog (each row below keeps its "Post-launch" class; Owner Decision Package, Appendix B lists the same 30). The
+"(proposed)" labels above stay as the historical record of the triage; for these 30 the proposal is now decided.
+
 Merge note: the Search module has two sub-reports (9 + 12 = 21 raw issues) that substantially restate
 the same underlying defects. 7 issues in Report 1 are near-duplicates of Report 2 and are recorded
 below as cross-references, not counted twice.

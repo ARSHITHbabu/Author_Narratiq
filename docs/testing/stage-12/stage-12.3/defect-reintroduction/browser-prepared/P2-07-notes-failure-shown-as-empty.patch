@@ -1,0 +1,21 @@
+diff --git a/frontend/components/notes/NotesPanel.tsx b/frontend/components/notes/NotesPanel.tsx
+--- a/frontend/components/notes/NotesPanel.tsx
++++ b/frontend/components/notes/NotesPanel.tsx
+@@ -67,7 +67,7 @@
+       .then((r) => { if (seq === seqRef.current) setNotesSection({ data: r.data, status: 'ready' }) })
+       .catch((e) => {
+         if (isCancellation(e) || seq !== seqRef.current) return   // cancelled ≠ failed
+-        setNotesSection((s) => ({ ...s, status: 'error' }))
++        setNotesSection({ data: [], status: 'ready' })  // REINTRODUCED P2-7: failure rendered as 'no notes'
+       })
+   }, [storyId])
+ 
+@@ -77,7 +77,7 @@
+       .then((r) => { if (seq === seqRef.current) setCardsSection({ data: r.data, status: 'ready' }) })
+       .catch((e) => {
+         if (isCancellation(e) || seq !== seqRef.current) return
+-        setCardsSection((s) => ({ ...s, status: 'error' }))
++        setCardsSection({ data: [], status: 'ready' })  // REINTRODUCED P2-7
+       })
+   }, [storyId])
+ 

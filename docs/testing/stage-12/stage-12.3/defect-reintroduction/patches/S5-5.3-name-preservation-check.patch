@@ -1,0 +1,13 @@
+diff --git a/backend/services/transform_preservation.py b/backend/services/transform_preservation.py
+index 2ecdb31..87d79c3 100644
+--- a/backend/services/transform_preservation.py
++++ b/backend/services/transform_preservation.py
+@@ -112,7 +112,7 @@ def check_character_name_preservation(original: str, transformed: str, story_id:
+     for c in characters:
+         pattern = _make_name_pattern(c.name, c.aliases or [])
+         if pattern and pattern.search(original) and not pattern.search(transformed):
+-            violations.append(c.name)
++            pass  # REINTRODUCED 5.3: dropped names never reported
+     return violations
+ 
+ 

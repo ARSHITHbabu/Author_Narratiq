@@ -1,0 +1,13 @@
+diff --git a/backend/services/transform_preservation.py b/backend/services/transform_preservation.py
+index 2ecdb31..4708355 100644
+--- a/backend/services/transform_preservation.py
++++ b/backend/services/transform_preservation.py
+@@ -271,7 +271,7 @@ def check_strength_violation(original: str, transformed: str, strength: str) ->
+     approved design's own "do not overengineer" instruction.
+     """
+     if strength == "light":
+-        return abs(_count_sentences(original) - _count_sentences(transformed)) > 1
++        return False  # REINTRODUCED 5.6: light strength never flagged
+     if strength == "moderate":
+         return _count_paragraphs(original) != _count_paragraphs(transformed)
+     return False  # "strong" has no structural ceiling beyond preservation rules

@@ -1,0 +1,188 @@
+{
+ "hr": "HR-03",
+ "reviewer": "AI Agent — Owner-authorised independent review",
+ "label": "AGENT REVIEW — AUTHORISED BY OWNER",
+ "method": "Reading of the printed post-fix children's outputs (YA/adult had no changed outputs to show)",
+ "date": "2026-10-06",
+ "status": "FAIL",
+ "answers": {
+  "HR-03.P1.Q1": {
+   "value": "4 Mostly",
+   "note": "Same three sentences, simplified."
+  },
+  "HR-03.P1.Q2": {
+   "value": "3 Partly",
+   "note": "Simplified as requested; the cadence is plainer."
+  },
+  "HR-03.P1.Q3": {
+   "value": "None",
+   "note": ""
+  },
+  "HR-03.P1.Q4": {
+   "value": "Minor",
+   "note": "'found herself arranging her face' (involuntary) becomes 'tried to look calm' (deliberate)."
+  },
+  "HR-03.P1.Q5": {
+   "value": "3 Partly",
+   "note": ""
+  },
+  "HR-03.P1.Q6": {
+   "value": "3 Partly",
+   "note": ""
+  },
+  "HR-03.P1.Q7": {
+   "value": "YES",
+   "note": ""
+  },
+  "HR-03.P1.Q8": {
+   "value": "Minor",
+   "note": "Expected for a children's register."
+  },
+  "HR-03.P1.Q9": {
+   "value": "Accept",
+   "note": ""
+  },
+  "HR-03.P2.Q1": {
+   "value": "5 Completely",
+   "note": "Minimal edit."
+  },
+  "HR-03.P2.Q2": {
+   "value": "4 Mostly",
+   "note": ""
+  },
+  "HR-03.P2.Q3": {
+   "value": "None",
+   "note": ""
+  },
+  "HR-03.P2.Q4": {
+   "value": "Minor",
+   "note": "The wry aside 'This was, Mira thought, probably for the best' is flattened."
+  },
+  "HR-03.P2.Q5": {
+   "value": "4 Mostly",
+   "note": ""
+  },
+  "HR-03.P2.Q6": {
+   "value": "4 Mostly",
+   "note": ""
+  },
+  "HR-03.P2.Q7": {
+   "value": "YES",
+   "note": ""
+  },
+  "HR-03.P2.Q8": {
+   "value": "Minor",
+   "note": ""
+  },
+  "HR-03.P2.Q9": {
+   "value": "Accept",
+   "note": "The fact (nobody survived) is kept; nothing is invented."
+  },
+  "HR-03.P3.Q1": {
+   "value": "3 Partly",
+   "note": "Split into three sentences."
+  },
+  "HR-03.P3.Q2": {
+   "value": "2 A little",
+   "note": ""
+  },
+  "HR-03.P3.Q3": {
+   "value": "None",
+   "note": ""
+  },
+  "HR-03.P3.Q4": {
+   "value": "Major",
+   "note": "'a man who has once locked a door does not easily trust himself to leave it unlocked' (self-distrust, a dark past act) becomes 'they learn to be careful about leaving it open' — the character's motive changes."
+  },
+  "HR-03.P3.Q5": {
+   "value": "2 A little",
+   "note": "The ominous undertone is gone."
+  },
+  "HR-03.P3.Q6": {
+   "value": "2 A little",
+   "note": ""
+  },
+  "HR-03.P3.Q7": {
+   "value": "YES",
+   "note": ""
+  },
+  "HR-03.P3.Q8": {
+   "value": "Major",
+   "note": ""
+  },
+  "HR-03.P3.Q9": {
+   "value": "Reject",
+   "note": "Changes what the character is."
+  },
+  "HR-03.P4.Q1": {
+   "value": "4 Mostly",
+   "note": "Strong strength; same content."
+  },
+  "HR-03.P4.Q2": {
+   "value": "3 Partly",
+   "note": ""
+  },
+  "HR-03.P4.Q3": {
+   "value": "None",
+   "note": ""
+  },
+  "HR-03.P4.Q4": {
+   "value": "Minor",
+   "note": "'none of it honest' softens to 'didn't tell the whole truth'."
+  },
+  "HR-03.P4.Q5": {
+   "value": "4 Mostly",
+   "note": ""
+  },
+  "HR-03.P4.Q6": {
+   "value": "4 Mostly",
+   "note": ""
+  },
+  "HR-03.P4.Q7": {
+   "value": "YES",
+   "note": ""
+  },
+  "HR-03.P4.Q8": {
+   "value": "Minor",
+   "note": ""
+  },
+  "HR-03.P4.Q9": {
+   "value": "Accept",
+   "note": "Clear and faithful."
+  },
+  "HR-03.SUM.Q1": {
+   "value": "Reject",
+   "note": "3 of 4 acceptable, but 1 of 4 changes a character's motive (Major); not reliable enough to release without the author checking every children's rewrite. YA/adult outputs could not be shown (every saved one came back unchanged)."
+  },
+  "HR-03.SUM.Q2": {
+   "value": "Nuance flattening is common and acceptable for children, but one rewrite replaced the character's motive with a generic one."
+  }
+ },
+ "result_reasoning": "3 of 4 children's rewrites accepted; one (gothic-4, moderate) changes the character's motive (Major). Summary Reject. POV kept 4/4. No Blocking answer. Under OD-11 the audience High issues stay open; HR-08 tests children's meaning strictly.",
+ "per_issue": {
+  "AWT-3.1": {
+   "verdict": "open",
+   "reason": "OD-11: audience summary is Reject"
+  },
+  "AWT-3.2": {
+   "verdict": "open",
+   "reason": "OD-11: audience summary is Reject"
+  },
+  "AWT-3.3": {
+   "verdict": "open",
+   "reason": "OD-11: audience summary is Reject"
+  },
+  "AWT-3.5": {
+   "verdict": "open",
+   "reason": "OD-11: audience summary is Reject"
+  }
+ },
+ "failures": [
+  {
+   "item": "P3 (gothic-4)",
+   "problem": "Motive changed: self-distrust became generic carefulness",
+   "severity": "Major"
+  }
+ ],
+ "evidence": []
+}

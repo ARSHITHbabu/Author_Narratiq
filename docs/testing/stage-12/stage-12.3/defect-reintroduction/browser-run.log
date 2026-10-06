@@ -1,0 +1,65 @@
+== P2-03-analytics-not-scrollable -> analytics-scroll
+applied
+frontend :3200 up
+    Error: expect(locator).toBeVisible() failed
+    Error: element(s) not found
+    Error: expect(locator).toBeVisible() failed
+    Error: element(s) not found
+    Error: expect(locator).toBeVisible() failed
+    Error: element(s) not found
+    Error: expect(locator).toBeVisible() failed
+    Error: element(s) not found
+    Error: expect(locator).toBeVisible() failed
+    Error: element(s) not found
+    Error: expect(locator).toBeVisible() failed
+    Error: element(s) not found
+    Error: expect(locator).toBeVisible() failed
+    Error: element(s) not found
+    Error: expect(locator).toBeVisible() failed
+    Error: element(s) not found
+    Error: expect(locator).toBeVisible() failed
+    Error: element(s) not found
+  9 failed
+reverted
+== P2-06-ocr-upload-hidden-without-chapter -> ocr-panel
+applied
+frontend :3200 up
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Error: locator.click: Test timeout of 30000ms exceeded.
+  5 failed
+reverted
+== P2-07-notes-failure-shown-as-empty -> notes-reliability
+applied
+frontend :3200 up
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Error: locator.click: Test timeout of 30000ms exceeded.
+  7) [browser] › tests/browser/notes-reliability.spec.ts:125:5 › the Retry action recovers a failed section without reloading the page 
+    Error: locator.click: Test timeout of 30000ms exceeded.
+  8) [browser] › tests/browser/notes-reliability.spec.ts:138:5 › there is no automatic retry — a failed section stays failed until asked 
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Error Context: test-results/notes-reliability-there-is-06432-on-stays-failed-until-asked-browser/error-context.md
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Error: locator.click: Test timeout of 30000ms exceeded.
+  12 failed
+    [browser] › tests/browser/notes-reliability.spec.ts:125:5 › the Retry action recovers a failed section without reloading the page 
+    [browser] › tests/browser/notes-reliability.spec.ts:138:5 › there is no automatic retry — a failed section stays failed until asked 
+  1 passed (6.2m)
+reverted
+== restored build
+frontend :3200 up
+-- restored analytics-scroll
+  9 passed (8.5s)
+-- restored ocr-panel
+  5 passed (4.6s)
+-- restored notes-reliability
+  13 passed (31.9s)
+DONE

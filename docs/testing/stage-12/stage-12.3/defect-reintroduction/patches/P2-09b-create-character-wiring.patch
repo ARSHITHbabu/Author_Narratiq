@@ -1,0 +1,13 @@
+diff --git a/backend/routers/characters.py b/backend/routers/characters.py
+index d67bef9..907206e 100644
+--- a/backend/routers/characters.py
++++ b/backend/routers/characters.py
+@@ -700,7 +700,7 @@ async def create_character(
+     db.add(character)
+     # Same transaction as the character itself: the response can never report a
+     # registered character while the unrecognised list still names it (Issue 9).
+-    dismissed = resolve_hints_for_names(db, story_id, names_of(character))
++    dismissed = []  # REINTRODUCED P2-9 probe: create no longer reconciles hints
+     db.commit()
+     db.refresh(character)
+     if dismissed:

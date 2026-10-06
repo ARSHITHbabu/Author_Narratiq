@@ -1,0 +1,81 @@
+$ (cwd /workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/frontend) npx playwright test --project=unit --output=/tmp/claude-0/-workspace/45a7b97a-8dc8-4ac2-84e3-53bd8b62825e/scratchpad/pw-out tests/selection-ownership.spec.ts
+
+
+Running 34 tests using 34 workers
+
+  ✓   1 [unit] › tests/selection-ownership.spec.ts:48:5 › the sidebar still owns the selection when nothing is selected — it uses the full chapter (18ms)
+  ✓   2 [unit] › tests/selection-ownership.spec.ts:56:5 › nobody owns an empty selection with the sidebar hidden (187ms)
+  ✓   3 [unit] › tests/selection-ownership.spec.ts:61:5 › the two surfaces are never both owners — for every input combination (190ms)
+  ✘   4 [unit] › tests/selection-ownership.spec.ts:99:5 › Escape hides the toolbar even with a live selection (19ms)
+  ✓   5 [unit] › tests/selection-ownership.spec.ts:37:5 › any real text is a meaningful selection (20ms)
+  ✓   6 [unit] › tests/selection-ownership.spec.ts:169:5 › a non-element event target is handled without throwing (185ms)
+  ✓   7 [unit] › tests/selection-ownership.spec.ts:152:5 › the same range in the same chapter is the same selection (19ms)
+  ✓   8 [unit] › tests/selection-ownership.spec.ts:190:5 › a preview is refused when the author edited the passage under it (94ms)
+  ✓  11 [unit] › tests/selection-ownership.spec.ts:133:5 › a preview is valid only inside the chapter it was generated for (19ms)
+  ✓   9 [unit] › tests/selection-ownership.spec.ts:209:5 › no preview means nothing to refuse (94ms)
+  ✓  12 [unit] › tests/selection-ownership.spec.ts:115:5 › a preview with no active chapter is treated as invalid rather than assumed safe (94ms)
+  ✓  10 [unit] › tests/selection-ownership.spec.ts:124:5 › repeated sidebar open/close cycles are stateless — the rule is derived, never remembered (117ms)
+  ✓  13 [unit] › tests/selection-ownership.spec.ts:186:5 › a preview is refused after the chapter changes (98ms)
+  ✓  14 [unit] › tests/selection-ownership.spec.ts:87:5 › deselecting hides the toolbar (19ms)
+  ✓  16 [unit] › tests/selection-ownership.spec.ts:44:5 › the sidebar owns the selection whenever it is visible (16ms)
+  ✓  15 [unit] › tests/selection-ownership.spec.ts:31:5 › a whitespace-only drag is not a selection an author meant to transform (99ms)
+  ✓  17 [unit] › tests/selection-ownership.spec.ts:162:5 › a click inside a selection-safe surface does not read as abandoning the selection (18ms)
+  ✘  18 [unit] › tests/selection-ownership.spec.ts:215:5 › Escape dismissal applies to the dismissed selection object only (158ms)
+  ✓  19 [unit] › tests/selection-ownership.spec.ts:195:5 › a preview is refused when its range no longer exists — an empty range reads as changed (17ms)
+  ✓  20 [unit] › tests/selection-ownership.spec.ts:26:5 › a null selection is not meaningful (16ms)
+  ✓  21 [unit] › tests/selection-ownership.spec.ts:111:5 › a preview from another chapter is not shown — it is invalid, not merely outranked (17ms)
+  ✓  22 [unit] › tests/selection-ownership.spec.ts:103:5 › a valid preview stays reviewable when the sidebar opens — AI output is never destroyed by a panel (121ms)
+  ✓  23 [unit] › tests/selection-ownership.spec.ts:95:5 › opening the AI sidebar suppresses the toolbar controls (16ms)
+  ✓  24 [unit] › tests/selection-ownership.spec.ts:140:5 › the selection key changes when the chapter changes, even at identical offsets (70ms)
+  ✓  26 [unit] › tests/selection-ownership.spec.ts:158:5 › selection-safe props carry the documented attribute (15ms)
+  ✓  25 [unit] › tests/selection-ownership.spec.ts:182:5 › a preview over unchanged text in its own chapter is applicable (17ms)
+  ✓  27 [unit] › tests/selection-ownership.spec.ts:146:5 › the selection key changes on every new range, so rapid re-selection cannot reuse stale state (49ms)
+  ✓  28 [unit] › tests/selection-ownership.spec.ts:91:5 › a whitespace-only selection does not raise the toolbar (17ms)
+  ✓  29 [unit] › tests/selection-ownership.spec.ts:119:5 › closing the sidebar hands the same selection straight back to the toolbar (17ms)
+  ✓  30 [unit] › tests/selection-ownership.spec.ts:200:5 › a one-character edit is enough to refuse — no fuzzy matching, no guessing (19ms)
+  ✓  31 [unit] › tests/selection-ownership.spec.ts:205:5 › the chapter is checked before the text — the stronger boundary reports first (17ms)
+  ✓  32 [unit] › tests/selection-ownership.spec.ts:52:5 › the toolbar owns a meaningful selection only while the sidebar is hidden (15ms)
+  ✓  33 [unit] › tests/selection-ownership.spec.ts:83:5 › a live selection with the sidebar hidden shows the controls (18ms)
+  ✓  34 [unit] › tests/selection-ownership.spec.ts:107:5 › a valid preview stays reviewable after the selection is gone (14ms)
+
+
+  1) [unit] › tests/selection-ownership.spec.ts:99:5 › Escape hides the toolbar even with a live selection 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m"hidden"[39m
+    Received: [31m"controls"[39m
+
+       98 |
+       99 | test('Escape hides the toolbar even with a live selection', () => {
+    > 100 |   expect(mode({ dismissed: true })).toBe('hidden')
+          |                                     ^
+      101 | })
+      102 |
+      103 | test('a valid preview stays reviewable when the sidebar opens — AI output is never destroyed by a panel', () => {
+        at /workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/frontend/tests/selection-ownership.spec.ts:100:37
+
+    Error Context: ../../../../../../tmp/claude-0/-workspace/45a7b97a-8dc8-4ac2-84e3-53bd8b62825e/scratchpad/pw-out/selection-ownership-Escape-b9bd2--even-with-a-live-selection-unit/error-context.md
+
+  2) [unit] › tests/selection-ownership.spec.ts:215:5 › Escape dismissal applies to the dismissed selection object only 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m"hidden"[39m
+    Received: [31m"controls"[39m
+
+      222 |   // End to end through the mode resolver: re-selecting the same words shows controls.
+      223 |   const base = { preview: null, activeChapterId: 'c1', sidebarVisible: false }
+    > 224 |   expect(resolveToolbarMode({ ...base, selection: sel, dismissed: isDismissedFor(sel, sel) })).toBe('hidden')
+          |                                                                                                ^
+      225 |   expect(resolveToolbarMode({ ...base, selection: reselected, dismissed: isDismissedFor(sel, reselected) })).toBe('controls')
+      226 | })
+      227 |
+        at /workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/frontend/tests/selection-ownership.spec.ts:224:96
+
+    Error Context: ../../../../../../tmp/claude-0/-workspace/45a7b97a-8dc8-4ac2-84e3-53bd8b62825e/scratchpad/pw-out/selection-ownership-Escape-f9b9a-issed-selection-object-only-unit/error-context.md
+
+  2 failed
+    [unit] › tests/selection-ownership.spec.ts:99:5 › Escape hides the toolbar even with a live selection 
+    [unit] › tests/selection-ownership.spec.ts:215:5 › Escape dismissal applies to the dismissed selection object only 
+  32 passed (8.2s)

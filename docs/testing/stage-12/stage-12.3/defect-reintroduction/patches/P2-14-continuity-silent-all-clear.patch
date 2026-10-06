@@ -1,0 +1,21 @@
+diff --git a/backend/services/ai_service.py b/backend/services/ai_service.py
+index 47ca004..9e98c75 100644
+--- a/backend/services/ai_service.py
++++ b/backend/services/ai_service.py
+@@ -5813,13 +5813,9 @@ async def check_continuity(
+         "## Location/World Cards\n" + cards_block + "\n\n"
+         + instructions
+     )
+-    issues, meta = await complete_structured(
+-        system, user,
+-        coerce=coerce_continuity_issues,
+-        temperature=0.1,
+-        max_tokens=1200,
+-        label="continuity",
+-    )
++    raw = await _complete(system, user, temperature=0.1, max_tokens=1200)  # REINTRODUCED P2-14
++    issues = _extract_json(raw, fallback=[])
++    meta = DegradedMeta(False, None, 1, 0)
+     if issues is None:
+         # Previously this returned [] — reporting a clean manuscript because the
+         # model's output could not be read. That false all-clear is the defect

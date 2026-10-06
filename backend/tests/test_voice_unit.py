@@ -430,5 +430,11 @@ async def test_planner_drops_invalid_capability(monkeypatch):
     async def fake_complete(*a, **k):
         return '{"capability":"none","action":"","confidence":0.0}'
     monkeypatch.setattr("services.ai_service._complete", fake_complete)
+    # The fallback classify goes through complete_structured → _complete_ex since
+    # task 3.6; without this stub the test reached the live model (found by the
+    # Stage 12.3 defect-reintroduction run, 2026-10-06).
+    async def fake_complete_ex(*a, **k):
+        return '{"capability":"none","action":"","confidence":0.0}', "stop"
+    monkeypatch.setattr("services.ai_service._complete_ex", fake_complete_ex)
     g = await planner.plan("xyzzy quantum banana sprocket")
     assert g.nodes == []

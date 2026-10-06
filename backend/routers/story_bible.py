@@ -200,8 +200,10 @@ def _get_owned_story(story_id: str, user_id: str, db: Session) -> Story:
 #   3. visible degradation — when a manuscript cannot fit, the context says so
 #      instead of silently dropping the end of the book.
 
-# Must match the max_tokens used by generate_story_bible_section.
-_BIBLE_COMPLETION_TOKENS = 1500
+# Must match the LARGEST max_tokens used by generate_story_bible_section (characters,
+# locations and — since Stage 12.3 — timeline use 1900). It was 1500 while those sections
+# already asked for 1900, so a full context could overflow the model window.
+_BIBLE_COMPLETION_TOKENS = 1900
 # System prompt, per-section instruction, framing and a safety margin.
 _BIBLE_PROMPT_OVERHEAD = 900
 # A chapter summary below this is barely worth including; it is also the old

@@ -1,0 +1,13 @@
+diff --git a/frontend/lib/selectionOwnership.ts b/frontend/lib/selectionOwnership.ts
+index 8a05d91..5675d6b 100644
+--- a/frontend/lib/selectionOwnership.ts
++++ b/frontend/lib/selectionOwnership.ts
+@@ -87,7 +87,7 @@ export function resolveToolbarMode(input: {
+   dismissed: boolean
+ }): ToolbarMode {
+   if (isPreviewValid(input.preview, input.activeChapterId)) return 'preview'
+-  if (input.dismissed) return 'hidden'
++  // REINTRODUCED P2-1: Escape/dismissal no longer hides the toolbar
+   const owner = selectionOwner({ selection: input.selection, sidebarVisible: input.sidebarVisible })
+   return owner === 'toolbar' ? 'controls' : 'hidden'
+ }

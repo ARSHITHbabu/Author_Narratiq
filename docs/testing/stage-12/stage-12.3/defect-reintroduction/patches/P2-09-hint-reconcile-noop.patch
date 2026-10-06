@@ -1,0 +1,14 @@
+diff --git a/backend/services/character_names.py b/backend/services/character_names.py
+index f138ae5..5c0a51d 100644
+--- a/backend/services/character_names.py
++++ b/backend/services/character_names.py
+@@ -78,8 +78,7 @@ def resolve_hints_for_names(db, story_id: str, names: Iterable[str]) -> list[str
+     from models import CharacterHint
+ 
+     targets = {normalise_name(n) for n in names if normalise_name(n)}
+-    if not targets:
+-        return []
++    return []  # REINTRODUCED P2-9: reconciliation never dismisses anything
+ 
+     live = (
+         db.query(CharacterHint)

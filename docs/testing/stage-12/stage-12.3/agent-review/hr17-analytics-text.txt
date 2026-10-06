@@ -1,0 +1,196 @@
+Saltmarsh Ledger — review copy
+/ Analytics
+Writing Statistics
+
+Narrative analytics for Saltmarsh Ledger — review copy
+
+Novel Progress
+40.3% of 80,000 words
+32,228 written
+47,772 remaining
+Total Words
+32,228
+Total word count across all chapters.
+Chapters
+40
+Number of chapters saved for this story.
+Avg Words/Chapter
+806
+Total words divided by chapter count.
+Readability Score
+72.1/100
+Flesch Reading Ease (0-100, higher = easier to read). Easy to read (7th-8th grade level). Estimated from sentence length and syllable count — a guide, not a precise measure.
+Dialogue Ratio
+24.2%
+Percentage of manuscript text inside quoted dialogue. Within the typical 15-35% range for this genre.
+Avg Sentence Length
+12.7 words
+Average words per sentence, across sentences longer than 5 characters.
+Chapter Breakdown
+Ch.1Chapter 1
+710 words
+Readability: 70
+Dialogue: 0%
+Ch.2Chapter 2
+620 words
+Readability: 72
+Dialogue: 37%
+Ch.3Chapter 3
+995 words
+Readability: 71
+Dialogue: 21%
+Ch.4Chapter 4
+720 words
+Readability: 69
+Dialogue: 10%
+Ch.5Chapter 5
+694 words
+Readability: 73
+Dialogue: 37%
+Ch.6Chapter 6
+786 words
+Readability: 69
+Dialogue: 36%
+Ch.7Chapter 7
+805 words
+Readability: 71
+Dialogue: 20%
+Ch.8Chapter 8
+895 words
+Readability: 67
+Dialogue: 13%
+Ch.9Chapter 9
+796 words
+Readability: 70
+Dialogue: 21%
+Ch.10Chapter 10
+909 words
+Readability: 76
+Dialogue: 23%
+Ch.11Chapter 11
+832 words
+Readability: 72
+Dialogue: 23%
+Ch.12Chapter 12
+784 words
+Readability: 64
+Dialogue: 3%
+Ch.13Chapter 13
+796 words
+Readability: 64
+Dialogue: 1%
+Ch.14Chapter 14
+806 words
+Readability: 73
+Dialogue: 16%
+Ch.15Chapter 15
+823 words
+Readability: 69
+Dialogue: 0%
+Ch.16Chapter 16
+846 words
+Readability: 78
+Dialogue: 47%
+Ch.17Chapter 17
+1,039 words
+Readability: 72
+Dialogue: 28%
+Ch.18Chapter 18
+942 words
+Readability: 67
+Dialogue: 8%
+Ch.19Chapter 19
+845 words
+Readability: 72
+Dialogue: 18%
+Ch.20Chapter 20
+778 words
+Readability: 71
+Dialogue: 68%
+Ch.21Chapter 21
+755 words
+Readability: 76
+Dialogue: 14%
+Ch.22Chapter 22
+885 words
+Readability: 76
+Dialogue: 19%
+Ch.23Chapter 23
+667 words
+Readability: 79
+Dialogue: 38%
+Ch.24Chapter 24
+965 words
+Readability: 65
+Dialogue: 30%
+Ch.25Chapter 25
+584 words
+Readability: 67
+Dialogue: 0%
+Ch.26Chapter 26
+656 words
+Readability: 79
+Dialogue: 39%
+Ch.27Chapter 27
+668 words
+Readability: 69
+Dialogue: 26%
+Ch.28Chapter 28
+830 words
+Readability: 79
+Dialogue: 19%
+Ch.29Chapter 29
+955 words
+Readability: 78
+Dialogue: 42%
+Ch.30Chapter 30
+760 words
+Readability: 75
+Dialogue: 64%
+Ch.31Chapter 31
+861 words
+Readability: 67
+Dialogue: 0%
+Ch.32Chapter 32
+775 words
+Readability: 70
+Dialogue: 32%
+Ch.33Chapter 33
+770 words
+Readability: 78
+Dialogue: 52%
+Ch.34Chapter 34
+848 words
+Readability: 70
+Dialogue: 33%
+Ch.35Chapter 35
+785 words
+Readability: 69
+Dialogue: 14%
+Ch.36Chapter 36
+725 words
+Readability: 66
+Dialogue: 1%
+Ch.37Chapter 37
+905 words
+Readability: 77
+Dialogue: 16%
+Ch.38Chapter 38
+872 words
+Readability: 74
+Dialogue: 56%
+Ch.39Chapter 39
+857 words
+Readability: 69
+Dialogue: 28%
+Ch.40Chapter 40
+684 words
+Readability: 62
+Dialogue: 6%
+Phase 2 Analytics (Coming Soon)
+Emotion Flow Graph
+Visualize emotional arc chapter-by-chapter
+Pacing Analysis
+Scene rhythm and tension mapping
+Plot Hole Detection
+Cross-chapter contradiction analysis

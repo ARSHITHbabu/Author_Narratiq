@@ -1,0 +1,100 @@
+{
+ "hr": "HR-12",
+ "reviewer": "AI Agent — Owner-authorised independent review",
+ "label": "AGENT REVIEW — AUTHORISED BY OWNER",
+ "method": "Live on the synthetic 40-chapter story (isolated test stack): Plot Assistant API with scope = full manuscript and chapter 40 open, as the Plan → Plot Assistant panel sends it; answers judged against Appendix D and the manuscript text",
+ "date": "2026-10-06",
+ "status": "FAIL",
+ "answers": {
+  "HR-12.Q1": {
+   "value": "Correct",
+   "note": "Liesel Marr, quoting the ch31 passage."
+  },
+  "HR-12.Q2": {
+   "value": "Correct",
+   "note": "Captain Abel Ferris, ch38."
+  },
+  "HR-12.Q3": {
+   "value": "Correct",
+   "note": "Beneath the third post of the old rope-works pier (ch40)."
+  },
+  "HR-12.Q4": {
+   "value": "Incorrect",
+   "note": "Portrays Liesel as a benign baker and community figure; omits the lighthouse orders (ch22), the poisoning (ch31 — retrieved but not used) and the fire (ch39); adds an invented 'chandlery fire' (not in the text). A factual contradiction of her role → fail (OD-17)."
+  },
+  "HR-12.Q5": {
+   "value": "Incorrect",
+   "note": "Omits the poisoner (31), the betrayer (34), Wren's father (38), the fire (39) and the burial (40); includes the ch22 lighthouse revelation (outside 30–40) and calls Tobin 'the lighthouse keeper' (he is the assistant)."
+  },
+  "HR-12.Q6": {
+   "value": "Partly correct",
+   "note": "Answered as creative options: newcomer → determined owner/investigator; accurate but generic (incomplete-but-accurate → pass under OD-17)."
+  },
+  "HR-12.Q7": {
+   "value": "Correct",
+   "note": "'This isn't established anywhere in what I have access to.' — nothing invented."
+  },
+  "HR-12.Q8": {
+   "value": "2 A little",
+   "note": "Chapters 30–40 appear only as the chandlery reopening and the letters; none of the five major late revelations."
+  },
+  "HR-12.Q9": {
+   "value": "None",
+   "note": "Full-manuscript answers drew on ch20–40 and were right for direct questions."
+  },
+  "HR-12.Q10": {
+   "value": "Major",
+   "note": "Liesel's story-wide role is lost (Q4)."
+  },
+  "HR-12.Q11": {
+   "value": "Major",
+   "note": "Major revelations omitted from summaries (Q5, Q8)."
+  },
+  "HR-12.Q12": {
+   "value": "Major",
+   "note": "Later chapters under-represented in broad summaries (Q5, Q8)."
+  },
+  "HR-12.Q13": {
+   "value": "Minor",
+   "note": "The arc is understood correctly, if generically."
+  }
+ },
+ "result_reasoning": "Direct factual questions answered correctly (4/4 incl. the not-in-story question, nothing invented). Broad questions fail: a character's whole-story role and late-chapter revelations are missed, with one invented detail. OD-17: PA-C1 and PA-H13 close; PA-C9, PA-H10, PA-H11 stay open.",
+ "per_issue": {
+  "PA-C1": {
+   "verdict": "close",
+   "reason": "None — direct whole-story questions answered correctly from late chapters (OD-17)"
+  },
+  "PA-C9": {
+   "verdict": "open",
+   "reason": "Q4 Incorrect (contradiction + invented detail) → fail"
+  },
+  "PA-H10": {
+   "verdict": "open",
+   "reason": "Q5 Incorrect; Q8 rated 2"
+  },
+  "PA-H11": {
+   "verdict": "open",
+   "reason": "Q5/Q8: later chapters under-represented"
+  },
+  "PA-H13": {
+   "verdict": "close",
+   "reason": "Q6 Partly correct, incomplete but accurate → pass (OD-17); Minor"
+  }
+ },
+ "failures": [
+  {
+   "item": "Q4",
+   "problem": "Villain portrayed as benign; invented 'chandlery fire'",
+   "severity": "Major"
+  },
+  {
+   "item": "Q5/Q8",
+   "problem": "Late major revelations omitted from summaries",
+   "severity": "Major"
+  }
+ ],
+ "evidence": [
+  "docs/testing/stage-12/stage-12.3/agent-review/live-plot-assistant.json"
+ ]
+}

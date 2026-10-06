@@ -20,7 +20,8 @@ temporary directory. Never touches the live database or /workspace/backups.
   C3  ... a data backup whose manifest is missing / tampered      -> BLOCKED
   C4  author data deleted on purpose, its backup still on disk    -> BLOCKED
       (indistinguishable from an accidental loss with the information stored
-      today; see the Tranche 3 final addendum)
+      today; see the Tranche 3 final addendum. Since OD-05, 2026-10-06, an
+      operator may mark such a set disposable: test_disposable_marker.py)
   D   database holds data                                         -> starts (guard not involved)
   E   documented override on C: exact phrase starts, '1' does not
 

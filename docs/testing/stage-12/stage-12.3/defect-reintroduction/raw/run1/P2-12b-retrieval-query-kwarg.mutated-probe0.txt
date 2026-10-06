@@ -1,0 +1,24 @@
+$ (cwd /workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/backend) python3 -m pytest tests/test_retrieval_signatures.py -q -p no:cacheprovider -rfE --no-header -W ignore
+
+[conftest] DB safety guard: running against allow-listed test database 'narratiq_ci_verify'
+....F.............                                                                                                                                                                                                                                              [100%]
+============================================================================================================================== FAILURES ===============================================================================================================================
+___________________________________________________________________________________________________________ test_continuation_passes_question_and_story_id ____________________________________________________________________________________________________________
+
+    def test_continuation_passes_question_and_story_id():
+        captured = {}
+        _run_continuation(captured)
+    
+>       assert captured["chunks_kwargs"]["question"] == "The tide kept rising."
+E       KeyError: 'question'
+
+tests/test_retrieval_signatures.py:259: KeyError
+======================================================================================================================= short test summary info =======================================================================================================================
+FAILED tests/test_retrieval_signatures.py::test_continuation_passes_question_and_story_id - KeyError: 'question'
+1 failed, 17 passed in 5.97s
+/workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/backend/database.py:38: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+  Base = declarative_base()
+/usr/local/lib/python3.11/dist-packages/pytest_asyncio/plugin.py:208: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))

@@ -31,7 +31,7 @@ export const TOOL_HOMES: ToolHome[] = [
   { id: 'manuscript_import', label: 'Import manuscript (TXT / DOCX)', workspace: 'write' },
   { id: 'search', label: 'Search & replace', workspace: 'write', section: 'search' },
   { id: 'ai_rewrite', label: 'AI rewrite tools (refine, tone, emotion, audience, style, author voice, translate)', workspace: 'write', section: 'sidecar' },
-  { id: 'ai_generate', label: 'AI continue & outline', workspace: 'write', section: 'sidecar' },
+  { id: 'ai_generate', label: 'AI continue, outline & writing suggestions', workspace: 'write', section: 'sidecar' },
   { id: 'selection_toolbar', label: 'Selection toolbar', workspace: 'write' },
   { id: 'versions', label: 'Versions & pins', workspace: 'write', section: 'sidecar', phase3: true },
   { id: 'compare', label: 'Compare & merge', workspace: 'write', phase3: true },

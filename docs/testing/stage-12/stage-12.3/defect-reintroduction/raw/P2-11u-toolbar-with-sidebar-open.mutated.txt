@@ -1,0 +1,156 @@
+$ (cwd /workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/frontend) npx playwright test --project=unit --output=/tmp/claude-0/-workspace/45a7b97a-8dc8-4ac2-84e3-53bd8b62825e/scratchpad/pw-out tests/selection-ownership.spec.ts
+
+
+Running 34 tests using 34 workers
+
+  ✓   1 [unit] › tests/selection-ownership.spec.ts:56:5 › nobody owns an empty selection with the sidebar hidden (102ms)
+  ✓   2 [unit] › tests/selection-ownership.spec.ts:26:5 › a null selection is not meaningful (101ms)
+  ✘   3 [unit] › tests/selection-ownership.spec.ts:61:5 › the two surfaces are never both owners — for every input combination (102ms)
+  ✓   6 [unit] › tests/selection-ownership.spec.ts:83:5 › a live selection with the sidebar hidden shows the controls (15ms)
+  ✘   5 [unit] › tests/selection-ownership.spec.ts:95:5 › opening the AI sidebar suppresses the toolbar controls (19ms)
+  ✓   4 [unit] › tests/selection-ownership.spec.ts:31:5 › a whitespace-only drag is not a selection an author meant to transform (24ms)
+  ✓   8 [unit] › tests/selection-ownership.spec.ts:140:5 › the selection key changes when the chapter changes, even at identical offsets (12ms)
+  ✘   7 [unit] › tests/selection-ownership.spec.ts:44:5 › the sidebar owns the selection whenever it is visible (87ms)
+  ✓   9 [unit] › tests/selection-ownership.spec.ts:186:5 › a preview is refused after the chapter changes (13ms)
+  ✘  10 [unit] › tests/selection-ownership.spec.ts:48:5 › the sidebar still owns the selection when nothing is selected — it uses the full chapter (17ms)
+  ✓  11 [unit] › tests/selection-ownership.spec.ts:133:5 › a preview is valid only inside the chapter it was generated for (19ms)
+  ✓  12 [unit] › tests/selection-ownership.spec.ts:169:5 › a non-element event target is handled without throwing (16ms)
+  ✓  13 [unit] › tests/selection-ownership.spec.ts:152:5 › the same range in the same chapter is the same selection (17ms)
+  ✓  15 [unit] › tests/selection-ownership.spec.ts:52:5 › the toolbar owns a meaningful selection only while the sidebar is hidden (17ms)
+  ✓  14 [unit] › tests/selection-ownership.spec.ts:200:5 › a one-character edit is enough to refuse — no fuzzy matching, no guessing (19ms)
+  ✓  16 [unit] › tests/selection-ownership.spec.ts:158:5 › selection-safe props carry the documented attribute (57ms)
+  ✓  17 [unit] › tests/selection-ownership.spec.ts:162:5 › a click inside a selection-safe surface does not read as abandoning the selection (20ms)
+  ✓  19 [unit] › tests/selection-ownership.spec.ts:107:5 › a valid preview stays reviewable after the selection is gone (15ms)
+  ✓  18 [unit] › tests/selection-ownership.spec.ts:182:5 › a preview over unchanged text in its own chapter is applicable (19ms)
+  ✓  20 [unit] › tests/selection-ownership.spec.ts:205:5 › the chapter is checked before the text — the stronger boundary reports first (16ms)
+  ✓  21 [unit] › tests/selection-ownership.spec.ts:111:5 › a preview from another chapter is not shown — it is invalid, not merely outranked (16ms)
+  ✓  24 [unit] › tests/selection-ownership.spec.ts:209:5 › no preview means nothing to refuse (14ms)
+  ✓  23 [unit] › tests/selection-ownership.spec.ts:115:5 › a preview with no active chapter is treated as invalid rather than assumed safe (15ms)
+  ✓  22 [unit] › tests/selection-ownership.spec.ts:195:5 › a preview is refused when its range no longer exists — an empty range reads as changed (19ms)
+  ✓  25 [unit] › tests/selection-ownership.spec.ts:190:5 › a preview is refused when the author edited the passage under it (55ms)
+  ✘  26 [unit] › tests/selection-ownership.spec.ts:124:5 › repeated sidebar open/close cycles are stateless — the rule is derived, never remembered (19ms)
+  ✘  27 [unit] › tests/selection-ownership.spec.ts:119:5 › closing the sidebar hands the same selection straight back to the toolbar (18ms)
+  ✓  28 [unit] › tests/selection-ownership.spec.ts:99:5 › Escape hides the toolbar even with a live selection (16ms)
+  ✓  29 [unit] › tests/selection-ownership.spec.ts:215:5 › Escape dismissal applies to the dismissed selection object only (23ms)
+  ✓  30 [unit] › tests/selection-ownership.spec.ts:103:5 › a valid preview stays reviewable when the sidebar opens — AI output is never destroyed by a panel (18ms)
+  ✓  31 [unit] › tests/selection-ownership.spec.ts:146:5 › the selection key changes on every new range, so rapid re-selection cannot reuse stale state (20ms)
+  ✓  32 [unit] › tests/selection-ownership.spec.ts:91:5 › a whitespace-only selection does not raise the toolbar (18ms)
+  ✓  33 [unit] › tests/selection-ownership.spec.ts:87:5 › deselecting hides the toolbar (17ms)
+  ✓  34 [unit] › tests/selection-ownership.spec.ts:37:5 › any real text is a meaningful selection (15ms)
+
+
+  1) [unit] › tests/selection-ownership.spec.ts:44:5 › the sidebar owns the selection whenever it is visible 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m"[7mside[27mbar"[39m
+    Received: [31m"[7mtool[27mbar"[39m
+
+      43 |
+      44 | test('the sidebar owns the selection whenever it is visible', () => {
+    > 45 |   expect(selectionOwner({ selection: sel(), sidebarVisible: true })).toBe('sidebar')
+         |                                                                      ^
+      46 | })
+      47 |
+      48 | test('the sidebar still owns the selection when nothing is selected — it uses the full chapter', () => {
+        at /workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/frontend/tests/selection-ownership.spec.ts:45:70
+
+    Error Context: ../../../../../../tmp/claude-0/-workspace/45a7b97a-8dc8-4ac2-84e3-53bd8b62825e/scratchpad/pw-out/selection-ownership-the-si-4d687-tion-whenever-it-is-visible-unit/error-context.md
+
+  2) [unit] › tests/selection-ownership.spec.ts:48:5 › the sidebar still owns the selection when nothing is selected — it uses the full chapter 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m"sidebar"[39m
+    Received: [31m"none"[39m
+
+      47 |
+      48 | test('the sidebar still owns the selection when nothing is selected — it uses the full chapter', () => {
+    > 49 |   expect(selectionOwner({ selection: null, sidebarVisible: true })).toBe('sidebar')
+         |                                                                     ^
+      50 | })
+      51 |
+      52 | test('the toolbar owns a meaningful selection only while the sidebar is hidden', () => {
+        at /workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/frontend/tests/selection-ownership.spec.ts:49:69
+
+    Error Context: ../../../../../../tmp/claude-0/-workspace/45a7b97a-8dc8-4ac2-84e3-53bd8b62825e/scratchpad/pw-out/selection-ownership-the-si-f69ba--—-it-uses-the-full-chapter-unit/error-context.md
+
+  3) [unit] › tests/selection-ownership.spec.ts:61:5 › the two surfaces are never both owners — for every input combination 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mnot[2m.[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: not [32m"toolbar"[39m
+
+      64 |       const owner = selectionOwner({ selection, sidebarVisible })
+      65 |       expect(['sidebar', 'toolbar', 'none']).toContain(owner)
+    > 66 |       if (sidebarVisible) expect(owner).not.toBe('toolbar')
+         |                                             ^
+      67 |     }
+      68 |   }
+      69 | })
+        at /workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/frontend/tests/selection-ownership.spec.ts:66:45
+
+    Error Context: ../../../../../../tmp/claude-0/-workspace/45a7b97a-8dc8-4ac2-84e3-53bd8b62825e/scratchpad/pw-out/selection-ownership-the-tw-af6c0-for-every-input-combination-unit/error-context.md
+
+  4) [unit] › tests/selection-ownership.spec.ts:95:5 › opening the AI sidebar suppresses the toolbar controls 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m"hidden"[39m
+    Received: [31m"controls"[39m
+
+      94 |
+      95 | test('opening the AI sidebar suppresses the toolbar controls', () => {
+    > 96 |   expect(mode({ sidebarVisible: true })).toBe('hidden')
+         |                                          ^
+      97 | })
+      98 |
+      99 | test('Escape hides the toolbar even with a live selection', () => {
+        at /workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/frontend/tests/selection-ownership.spec.ts:96:42
+
+    Error Context: ../../../../../../tmp/claude-0/-workspace/45a7b97a-8dc8-4ac2-84e3-53bd8b62825e/scratchpad/pw-out/selection-ownership-openin-79e5e-resses-the-toolbar-controls-unit/error-context.md
+
+  5) [unit] › tests/selection-ownership.spec.ts:119:5 › closing the sidebar hands the same selection straight back to the toolbar 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m"hidden"[39m
+    Received: [31m"controls"[39m
+
+      118 |
+      119 | test('closing the sidebar hands the same selection straight back to the toolbar', () => {
+    > 120 |   expect(mode({ sidebarVisible: true })).toBe('hidden')
+          |                                          ^
+      121 |   expect(mode({ sidebarVisible: false })).toBe('controls')
+      122 | })
+      123 |
+        at /workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/frontend/tests/selection-ownership.spec.ts:120:42
+
+    Error Context: ../../../../../../tmp/claude-0/-workspace/45a7b97a-8dc8-4ac2-84e3-53bd8b62825e/scratchpad/pw-out/selection-ownership-closin-39f05-traight-back-to-the-toolbar-unit/error-context.md
+
+  6) [unit] › tests/selection-ownership.spec.ts:124:5 › repeated sidebar open/close cycles are stateless — the rule is derived, never remembered 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m"hidden"[39m
+    Received: [31m"controls"[39m
+
+      124 | test('repeated sidebar open/close cycles are stateless — the rule is derived, never remembered', () => {
+      125 |   for (let i = 0; i < 10; i++) {
+    > 126 |     expect(mode({ sidebarVisible: true })).toBe('hidden')
+          |                                            ^
+      127 |     expect(mode({ sidebarVisible: false })).toBe('controls')
+      128 |   }
+      129 | })
+        at /workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/frontend/tests/selection-ownership.spec.ts:126:44
+
+    Error Context: ../../../../../../tmp/claude-0/-workspace/45a7b97a-8dc8-4ac2-84e3-53bd8b62825e/scratchpad/pw-out/selection-ownership-repeat-17598-is-derived-never-remembered-unit/error-context.md
+
+  6 failed
+    [unit] › tests/selection-ownership.spec.ts:44:5 › the sidebar owns the selection whenever it is visible 
+    [unit] › tests/selection-ownership.spec.ts:48:5 › the sidebar still owns the selection when nothing is selected — it uses the full chapter 
+    [unit] › tests/selection-ownership.spec.ts:61:5 › the two surfaces are never both owners — for every input combination 
+    [unit] › tests/selection-ownership.spec.ts:95:5 › opening the AI sidebar suppresses the toolbar controls 
+    [unit] › tests/selection-ownership.spec.ts:119:5 › closing the sidebar hands the same selection straight back to the toolbar 
+    [unit] › tests/selection-ownership.spec.ts:124:5 › repeated sidebar open/close cycles are stateless — the rule is derived, never remembered 
+  28 passed (8.2s)

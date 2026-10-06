@@ -1,0 +1,20 @@
+{
+ "hr": "HR-22",
+ "reviewer": "AI Agent — Owner-authorised independent review",
+ "label": "AGENT REVIEW — AUTHORISED BY OWNER",
+ "method": "Computed from the recorded inputs only (package §17 rule: PASS needs every input PASS or owner-accepted; FAIL if any input failed and is not accepted; INCOMPLETE if any input is not done). No owner acceptance of a failed input is recorded.",
+ "date": "2026-10-06",
+ "status": "FAIL",
+ "answers": {
+  "HR-22.Q1": {
+   "value": "FAIL"
+  },
+  "HR-22.Q2": {
+   "value": "Failed: HR-06, HR-08, HR-10, HR-11, HR-17, HR-18, HR-19 and the G3 absolute reviews HR-01–HR-05. Not done: 5.11 translation (fluent speaker). Passed: A1 (recorded 2026-10-05), HR-07 labels."
+  }
+ },
+ "result_reasoning": "Gate 3b AI quality: FAIL — seven listed reviews failed (no owner acceptance recorded); the translation review is also outstanding.",
+ "per_issue": {},
+ "failures": [],
+ "evidence": []
+}

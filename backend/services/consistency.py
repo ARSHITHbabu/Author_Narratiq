@@ -293,15 +293,93 @@ def knowledge_violations(ctx: ConsistencyContext, source: str, output: str) -> l
     return warnings[:3]
 
 
-def _coerce_issues(parsed):
+# Stage 12.3 (task 7.10): a Tier-2 warning must say what the PASSAGE did, not
+# restate the rule. Live, the 7B model's warning was often just the world rule
+# ("The harbour lamps are lit only by the keeper.") — true, but it does not tell
+# the author which sentence is the problem. The model now returns the rule it
+# checked and the exact words of the passage that break it; code verifies the
+# quote and, when the message only echoes the rule, writes a describing
+# message from the verified quote. A warning stays a warning: nothing here
+# changes the passage.
+_KIND_LABEL = {"trait": "a recorded character trait", "world_rule": "an established world rule",
+               "fact": "an established fact"}
+_QUOTE_MAX_CHARS = 200
+
+
+def _norm(s: str) -> str:
+    s = (s or "").lower().replace("\u2019", "'").replace("\u2018", "'").replace("\u201c", '"').replace("\u201d", '"')
+    return " ".join(re.findall(r"[a-z0-9']+", s))
+
+
+def _content_words(s: str) -> set:
+    return {w for w in _norm(s).split() if len(w) > 2 and w not in _STOPWORDS}
+
+
+def verified_quote(quote: str, output: str) -> str | None:
+    """The quote, trimmed, if its words occur contiguously in `output`
+    (case, punctuation and curly quotes ignored); otherwise None."""
+    q = (quote or "").strip().strip('"\'\u201c\u201d\u2018\u2019').strip()
+    if not q or not _norm(q):
+        return None
+    if f" {_norm(q)} " not in f" {_norm(output)} ":
+        return None
+    return q if len(q) <= _QUOTE_MAX_CHARS else q[:_QUOTE_MAX_CHARS].rsplit(" ", 1)[0] + "\u2026"
+
+
+def restates_rule(message: str, rule: str, block: str = "", output: str = "") -> bool:
+    """True when `message` only echoes the story context instead of describing
+    the passage: either at least 70 % of its content words come from the rule
+    or from one single line of the context, or (when the passage is given) it
+    names nothing from the passage beyond the rule's own words. A describing
+    message says who does what in the passage, so it brings the passage's words."""
+    words = _content_words(message)
+    if not words:
+        return True
+    lines = [ln for ln in [rule] + (block or "").splitlines() if ln and ln.strip()]
+    scored = [(len(words & _content_words(ln)) / len(words), ln) for ln in lines]
+    best, best_line = max(scored, default=(0.0, ""))
+    if best >= 0.7:
+        return True
+    if output:
+        own = (words & _content_words(output)) - _content_words(rule) - _content_words(best_line)
+        if not own:
+            return True
+    return False
+
+
+def _describe(it: dict, output: str, block: str) -> dict | None:
+    kind = str(it.get("kind") or "fact")
+    rule = str(it.get("rule") or "").strip()
+    message = str(it.get("message") or "").strip()
+    quote = verified_quote(str(it.get("quote") or ""), output)
+    echo = restates_rule(message, rule, block, output)
+    if quote and (echo or not message):
+        what = _KIND_LABEL.get(kind, "the established story context")
+        message = (f"The rewrite says \u201c{quote}\u201d, which contradicts {what}"
+                   + (f": \u201c{rule}\u201d." if rule else "."))
+    elif echo:
+        return None          # only an echo of the rule, with nothing in the passage to point at
+    out = {"kind": "consistency", "severity": "soft", "message": message[:300],
+           "entity": {"type": kind}}
+    if quote:
+        out["evidence"] = quote
+    if rule:
+        out["rule"] = rule[:300]
+    return out
+
+
+def _coerce_issues(parsed, output: str = "", block: str = ""):
     if not isinstance(parsed, dict) or not isinstance(parsed.get("issues"), list):
         return None, 1
     out, dropped = [], 0
     for it in parsed["issues"][:4]:
-        if isinstance(it, dict) and str(it.get("message") or "").strip():
-            out.append({"kind": "consistency", "severity": "soft",
-                        "message": str(it["message"]).strip()[:300],
-                        "entity": {"type": str(it.get("kind") or "fact")}})
+        if isinstance(it, dict) and str(it.get("message") or it.get("quote") or "").strip():
+            described = _describe(it, output, block)
+            if described is None:
+                dropped += 1
+                logger.info("[consistency] dropped a Tier-2 issue that only restated the rule")
+            else:
+                out.append(described)
         else:
             dropped += 1
     return out, dropped
@@ -310,21 +388,26 @@ def _coerce_issues(parsed):
 async def strict_consistency_check(block: str, output: str) -> tuple[list[dict], bool]:
     """Tier 2 — one JSON-returning judgement (via complete_structured, the
     repo's structured-output contract) against the STORY CONTEXT. Returns
-    (warnings, ran_ok). Never raises; never blocks."""
+    (warnings, ran_ok). Never raises; never blocks; never edits the passage."""
     if not block.strip():
         return [], False
     from services.ai_service import complete_structured
     system = (
         "You check a rewritten passage against established story context. Report ONLY clear "
         "contradictions of the context (a character acting against a recorded trait, a broken world "
-        "rule, a contradicted fact). Do not report style issues. Return ONLY JSON: "
-        '{"issues": [{"kind": "trait|world_rule|fact", "message": "one short sentence"}]} '
+        "rule, a contradicted fact). Do not report style issues. For each contradiction give: "
+        "\"rule\" — the context line it breaks, copied; \"quote\" — the exact words of the REWRITTEN "
+        "PASSAGE that break it, copied (at most 25 words); \"message\" — one short sentence saying what "
+        "the passage does that breaks the rule (who does what). Do not just repeat the rule. "
+        "Return ONLY JSON: "
+        '{"issues": [{"kind": "trait|world_rule|fact", "rule": "...", "quote": "...", "message": "..."}]} '
         'Return {"issues": []} when there is no clear contradiction.'
     )
     try:
         value, _meta = await complete_structured(
-            system, f"{block}\n\nREWRITTEN PASSAGE:\n{output[:6000]}", coerce=_coerce_issues,
-            temperature=0.1, max_tokens=300, label="strict_consistency")
+            system, f"{block}\n\nREWRITTEN PASSAGE:\n{output[:6000]}",
+            coerce=lambda parsed: _coerce_issues(parsed, output, block),
+            temperature=0.1, max_tokens=450, label="strict_consistency")
     except Exception as exc:
         logger.warning("[consistency] strict check unavailable (%s)", type(exc).__name__)
         return [], False

@@ -1,0 +1,13 @@
+diff --git a/backend/services/ai_service.py b/backend/services/ai_service.py
+index 47ca004..715eb99 100644
+--- a/backend/services/ai_service.py
++++ b/backend/services/ai_service.py
+@@ -5622,7 +5622,7 @@ def validate_continuity_citations(issues: list[dict], chapter_summaries: list[di
+     validated = []
+     for issue in issues:
+         refs = issue.get("chapter_refs") or []
+-        if not refs or not all(r in real_chapter_numbers for r in refs):
++        if not refs:  # REINTRODUCED 5.14: fabricated chapter refs accepted
+             continue  # Tier 1 failure — suppressed, see docstring
+ 
+         description_lower = str(issue.get("description", "")).lower()

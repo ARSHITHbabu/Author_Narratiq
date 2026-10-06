@@ -1,0 +1,15 @@
+Baseline full backend suite (no DB, live model blocked): 41 failed, 880 passed, 9 skipped, 48 errors in 285.38s (0:04:45)
+
+P2-02b-extract-json-repair: 41 failed, 880 passed, 9 skipped, 48 errors in 288.06s (0:04:48)
+  NEW failures vs baseline (0):
+
+P2-09b-create-character-wiring: 41 failed, 880 passed, 9 skipped, 48 errors in 279.67s (0:04:39)
+  NEW failures vs baseline (0):
+
+P2-12b-retrieval-query-kwarg: 43 failed, 878 passed, 9 skipped, 48 errors in 279.64s (0:04:39)
+  NEW failures vs baseline (2):
+    FAILED tests/test_model_call_contract.py::test_every_ai_service_call_binds_to_the_real_signature
+    FAILED tests/test_retrieval_signatures.py::test_continuation_passes_question_and_story_id
+
+P2-14b-continuity-failure-not-flagged: 41 failed, 880 passed, 9 skipped, 48 errors in 296.04s (0:04:56)
+  NEW failures vs baseline (0):

@@ -1,0 +1,12 @@
+diff --git a/frontend/lib/selectionOwnership.ts b/frontend/lib/selectionOwnership.ts
+--- a/frontend/lib/selectionOwnership.ts
++++ b/frontend/lib/selectionOwnership.ts
+@@ -70,7 +70,7 @@
+ }): SelectionSurface {
+   // The sidebar owns the selection whenever it is on screen — including when
+   // nothing is selected, because it then explicitly works on the full chapter.
+-  if (input.sidebarVisible) return 'sidebar'
++  // REINTRODUCED P2-11: the open AI sidebar no longer takes ownership of the selection
+   return isMeaningfulSelection(input.selection) ? 'toolbar' : 'none'
+ }
+ 

@@ -1,0 +1,77 @@
+{
+ "hr": "HR-13",
+ "reviewer": "AI Agent — Owner-authorised independent review",
+ "label": "AGENT REVIEW — AUTHORISED BY OWNER",
+ "method": "Live UI walk-through on the isolated test stack (:3200) with the synthetic 40-chapter story at 1366×768; screenshots recorded",
+ "date": "2026-10-06",
+ "status": "PASS",
+ "answers": {
+  "HR-13.Q1": {
+   "value": "YES",
+   "note": "The chapter text takes the centre column at reading width; binder and AI sidecar sit at the sides and the sidecar is closed by default."
+  },
+  "HR-13.Q2": {
+   "value": "Minor",
+   "note": "With the sidecar open, its large orange action button is the strongest colour on screen; the text stays dominant."
+  },
+  "HR-13.Q3": {
+   "value": "YES",
+   "note": "Reading mode hides the binder, toolbar and rail; 'Exit reading (Esc)' is visible."
+  },
+  "HR-13.Q4": {
+   "value": "YES",
+   "note": "Focus hides the binder and rail and keeps the toolbar."
+  },
+  "HR-13.Q5": {
+   "value": "YES",
+   "note": "Zen leaves only the formatting bar and the text; 'Exit Zen (Esc)' bottom-right."
+  },
+  "HR-13.Q6": {
+   "value": "Minor",
+   "note": "Heading shows 'CHAPTER 1 — CHAPTER 1' (number repeated when the title is the default); in Edit mode the selection AI toolbar overlaps the line above."
+  },
+  "HR-13.Q7": {
+   "value": "Writing studio",
+   "note": "Left rail of workspaces, binder, centred manuscript; reads as a writing tool first."
+  }
+ },
+ "result_reasoning": "Box PASS (Q1 = YES). Per OD-18: UI-C2, UI-H9, UI-H14 close. UI-C1 stays open: its last tagged question is HR-15 Q6, which needs the real 20-minute sessions. Minor follow-ups: duplicated chapter heading; selection toolbar overlap in Edit mode.",
+ "per_issue": {
+  "UI-C1": {
+   "verdict": "open",
+   "reason": "HR-13 Q6 Minor, HR-14 Q11 None — but also tagged on HR-15 Q6 (session congestion), which needs the 20-minute sessions (HR-15 INCOMPLETE); stays open until then"
+  },
+  "UI-C2": {
+   "verdict": "close",
+   "reason": "Q1 YES (OD-18)"
+  },
+  "UI-H9": {
+   "verdict": "close",
+   "reason": "Q2 Minor (OD-18)"
+  },
+  "UI-H14": {
+   "verdict": "close",
+   "reason": "Q3–Q5 YES (OD-18)"
+  }
+ },
+ "failures": [
+  {
+   "item": "Chapter heading",
+   "problem": "'CHAPTER 1 — CHAPTER 1' when the title is the default",
+   "severity": "Minor"
+  },
+  {
+   "item": "Edit-mode selection AI toolbar",
+   "problem": "Overlaps the line above the selection",
+   "severity": "Minor"
+  }
+ ],
+ "evidence": [
+  "docs/testing/stage-12/stage-12.3/agent-review/ui/13-write-default.png",
+  "docs/testing/stage-12/stage-12.3/agent-review/ui/13-sidecar-open.png",
+  "docs/testing/stage-12/stage-12.3/agent-review/ui/13-mode-reading.png",
+  "docs/testing/stage-12/stage-12.3/agent-review/ui/13-mode-focus.png",
+  "docs/testing/stage-12/stage-12.3/agent-review/ui/13-mode-zen.png",
+  "docs/testing/stage-12/stage-12.3/agent-review/ui/13-view-menu.png"
+ ]
+}

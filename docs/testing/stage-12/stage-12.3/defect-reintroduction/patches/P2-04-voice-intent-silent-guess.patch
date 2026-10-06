@@ -1,0 +1,23 @@
+diff --git a/backend/services/voice/intent.py b/backend/services/voice/intent.py
+index 66b9584..3b46197 100644
+--- a/backend/services/voice/intent.py
++++ b/backend/services/voice/intent.py
+@@ -87,15 +87,9 @@ async def classify(command: str, context_brief: str = "",
+     # Structured-output contract (task 3.4): one bounded reprompt, then an
+     # honest failure. Metadata only in logs — never the command text, which is
+     # the author's own words about their manuscript.
+-    data, meta = await complete_structured(
+-        _SYSTEM, user, coerce=coerce_intent,
+-        temperature=0.0, max_tokens=300, label="voice_intent",
+-    )
+-    if data is None:
+-        logger.warning("[voice.intent] stage=classify outcome=unreadable candidates=%d",
+-                       len(cand_names))
+-        return DetectedIntent("none", "", 0.0, {}, cand_names,
+-                              "classification could not be read")
++    from services.ai_service import _complete, _extract_json  # REINTRODUCED P2-4
++    raw = await _complete(_SYSTEM, user, temperature=0.0, max_tokens=300)
++    data = _extract_json(raw, fallback={})
+ 
+     cap = (data.get("capability") or "").strip()
+     action = (data.get("action") or "").strip()

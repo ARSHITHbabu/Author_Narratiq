@@ -262,7 +262,10 @@ export default function StoryBiblePanel({ storyId }: Props) {
         })}
       </div>
 
-      <div className="flex-1 overflow-y-auto px-3 pb-4">
+      {/* Focusable so keyboard users can scroll a long section (axe scrollable-region-focusable,
+          seen on a 40-chapter bible in the Stage 12.3 agent review, HR-16). */}
+      <div className="flex-1 overflow-y-auto px-3 pb-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/70"
+        tabIndex={0} role="region" aria-label="Story Bible section content">
         {activeFailure
           ? <SectionFailure
               failure={activeFailure}

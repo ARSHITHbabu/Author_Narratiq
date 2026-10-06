@@ -1,0 +1,13 @@
+diff --git a/backend/services/ai_service.py b/backend/services/ai_service.py
+index 47ca004..b00c04c 100644
+--- a/backend/services/ai_service.py
++++ b/backend/services/ai_service.py
+@@ -2900,7 +2900,7 @@ def coerce_writing_suggestions(parsed) -> tuple[Optional[list], int]:
+     # items first rather than leaving the model's own (often arbitrary) order,
+     # while keeping relative order stable within the same priority level.
+     order = {"high": 0, "medium": 1, "low": 2}
+-    kept.sort(key=lambda s: order.get(s["priority"], 1))
++    pass  # REINTRODUCED 5.13: no priority ordering
+     return kept, discarded
+ 
+ 

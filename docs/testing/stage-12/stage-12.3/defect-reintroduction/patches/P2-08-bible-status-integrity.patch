@@ -1,0 +1,14 @@
+diff --git a/backend/routers/story_bible.py b/backend/routers/story_bible.py
+index 06a3f58..65e62d7 100644
+--- a/backend/routers/story_bible.py
++++ b/backend/routers/story_bible.py
+@@ -138,8 +138,7 @@ def derive_status(outcomes: list[SectionOutcome]) -> str:
+     No outcomes at all means the loop produced nothing to judge, which is a
+     failure, not a success.
+     """
+-    if not outcomes:
+-        return STATUS_FAILED
++    return STATUS_COMPLETED  # REINTRODUCED P2-8: unconditional completed
+     generated = sum(1 for o in outcomes if o.ok)
+     if generated == len(outcomes):
+         return STATUS_COMPLETED

@@ -1,0 +1,42 @@
+{
+ "note": "Chromium accessibility tree via Playwright on :3200 with the synthetic story. NOT a screen reader.",
+ "steps": {
+  "step1": {
+   "pass": true,
+   "detail": "first Tab: {\"tag\":\"A\",\"role\":null,\"name\":\"Skip to content\",\"visible\":true}; after Enter: {\"tag\":\"MAIN\",\"role\":null,\"name\":\"ChaptersImport manuscript…Chapter 1Chapter 1710 wordsChapter\",\"visible\":true}"
+  },
+  "step2": {
+   "pass": true,
+   "detail": "items [\"Write\",\"Plan\",\"Characters\",\"World\",\"Analyze\",\"Assistant\",\"Publish\",\"Manuscript library\"]; aria-current=page on [\"Write (aria-current=page)\"]"
+  },
+  "step3": {
+   "pass": true,
+   "detail": "editor role=textbox name=Chapter text multiline=true; toolbars=1; radiogroups=1 radios=[\"Draft\",\"Edit\"]"
+  },
+  "step4": {
+   "pass": true,
+   "detail": "heading=\"AI Assistant\"; focus after open={\"tag\":\"H2\",\"role\":null,\"name\":\"AI Assistant\",\"visible\":true} inside=true; tabs=[\"Rewrite\",\"Generate\",\"Versions\"]; focus after close={\"tag\":\"BUTTON\",\"role\":null,\"name\":\"AI assistant\",\"visible\":true}"
+  },
+  "step5": {
+   "pass": true,
+   "detail": "[{\"ws\":\"plan\",\"tablists\":1,\"tabs\":[\"Plot Assistant:true\",\"Pacing:false\"]},{\"ws\":\"world\",\"tablists\":1,\"tabs\":[\"Story Bible:true\",\"Notes:false\",\"Scan (OCR):false\"]}]"
+  },
+  "step6": {
+   "pass": true,
+   "detail": "card=\"Continuity\n\nCross-chapter consistency of facts, characters a\"; heading=\"Continuity\"; focus after open={\"tag\":\"H1\",\"role\":null,\"name\":\"Continuity\",\"visible\":true}; after close={\"tag\":\"BUTTON\",\"role\":null,\"name\":\"ContinuityCross-chapter consistency of facts, characters and\",\"visible\":true}"
+  },
+  "step7": {
+   "pass": true,
+   "detail": "dialogs=1 name=Command palette; input={\"role\":\"combobox\",\"label\":\"Search workspaces, chapters, characters, actions…\"}; focus={\"tag\":\"INPUT\",\"role\":\"combobox\",\"name\":\"\",\"visible\":true}"
+  }
+ },
+ "axe": {
+  "write": [],
+  "plan": [],
+  "characters": [],
+  "world": [],
+  "analyze": [],
+  "assistant": [],
+  "publish": []
+ }
+}

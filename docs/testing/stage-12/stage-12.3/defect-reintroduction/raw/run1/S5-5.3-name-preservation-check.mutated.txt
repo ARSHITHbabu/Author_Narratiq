@@ -1,0 +1,84 @@
+$ (cwd /workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/backend) python3 -m pytest tests/test_transform_preservation.py -q -p no:cacheprovider -rfE --no-header -W ignore
+
+[conftest] DB safety guard: running against allow-listed test database 'narratiq_ci_verify'
+................F.......FF.                                                                                                                                                                                                                                     [100%]
+============================================================================================================================== FAILURES ===============================================================================================================================
+____________________________________________________________________________________________________ test_check_character_name_preservation_detects_a_dropped_name ____________________________________________________________________________________________________
+
+    def test_check_character_name_preservation_detects_a_dropped_name():
+        db = _FakeDB(characters=[_FakeCharacter("Devika")])
+        violations = check_character_name_preservation(
+            "Devika walked into the hall.", "She walked into the hall.", "story-1", db,
+        )
+>       assert violations == ["Devika"]
+E       AssertionError: assert [] == ['Devika']
+E         
+E         Right contains one more item: 'Devika'
+E         Use -v to get more diff
+
+tests/test_transform_preservation.py:205: AssertionError
+___________________________________________________________________________________________ test_run_constrained_transform_repairs_a_dropped_name_and_clears_the_violation ____________________________________________________________________________________________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x77623225fa90>
+
+    @pytest.mark.asyncio
+    async def test_run_constrained_transform_repairs_a_dropped_name_and_clears_the_violation(monkeypatch):
+        db = _FakeDB(characters=[_FakeCharacter("Devika")])
+        calls = {"n": 0}
+    
+        async def fake_complete(system, user, **kw):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                return "She walked into the hall."  # drops "Devika" — a real violation
+            return "Devika walked into the hall, calmer now."  # repaired on retry
+    
+        monkeypatch.setattr(ai_service, "_complete", fake_complete)
+        result = await ai_service._run_constrained_transform(
+            transform_type="tone", text="Devika walked into the hall.",
+            temperature=0.5, max_tokens=100,
+            builder_kwargs={"tone": "suspenseful", "genre_context": ""},
+            story_id="story-1", db=db, strength="light", locked_ranges=None,
+            change_check_target="", extra_user_context="",
+        )
+>       assert calls["n"] == 2, "must retry exactly once on a detected violation, not zero or more than once"
+E       AssertionError: must retry exactly once on a detected violation, not zero or more than once
+E       assert 1 == 2
+
+tests/test_transform_preservation.py:281: AssertionError
+_______________________________________________________________________________________________ test_run_constrained_transform_reports_violation_when_retry_also_fails ________________________________________________________________________________________________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x776231ead550>
+
+    @pytest.mark.asyncio
+    async def test_run_constrained_transform_reports_violation_when_retry_also_fails(monkeypatch):
+        db = _FakeDB(characters=[_FakeCharacter("Devika")])
+        calls = {"n": 0}
+    
+        async def fake_complete(system, user, **kw):
+            calls["n"] += 1
+            return "She walked into the hall."  # drops the name every time
+    
+        monkeypatch.setattr(ai_service, "_complete", fake_complete)
+        result = await ai_service._run_constrained_transform(
+            transform_type="tone", text="Devika walked into the hall.",
+            temperature=0.5, max_tokens=100,
+            builder_kwargs={"tone": "suspenseful", "genre_context": ""},
+            story_id="story-1", db=db, strength="light", locked_ranges=None,
+            change_check_target="", extra_user_context="",
+        )
+>       assert calls["n"] == 2, "retry is bounded to exactly one attempt, never looped further"
+E       AssertionError: retry is bounded to exactly one attempt, never looped further
+E       assert 1 == 2
+
+tests/test_transform_preservation.py:304: AssertionError
+======================================================================================================================= short test summary info =======================================================================================================================
+FAILED tests/test_transform_preservation.py::test_check_character_name_preservation_detects_a_dropped_name - AssertionError: assert [] == ['Devika']
+FAILED tests/test_transform_preservation.py::test_run_constrained_transform_repairs_a_dropped_name_and_clears_the_violation - AssertionError: must retry exactly once on a detected violation, not zero or more than once
+FAILED tests/test_transform_preservation.py::test_run_constrained_transform_reports_violation_when_retry_also_fails - AssertionError: retry is bounded to exactly one attempt, never looped further
+3 failed, 24 passed in 5.58s
+/workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/backend/database.py:38: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+  Base = declarative_base()
+/usr/local/lib/python3.11/dist-packages/pytest_asyncio/plugin.py:208: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))

@@ -1,0 +1,19 @@
+diff --git a/backend/services/ai_service.py b/backend/services/ai_service.py
+index 47ca004..f39b56d 100644
+--- a/backend/services/ai_service.py
++++ b/backend/services/ai_service.py
+@@ -3056,12 +3056,10 @@ def coerce_plot_hole_result(parsed) -> tuple[Optional[dict], int]:
+     kept, discarded = [], 0
+     for position, item in enumerate(issues_raw, 1):
+         if not isinstance(item, dict):
+-            discarded += 1
+-            continue
++            return None, 0  # REINTRODUCED P2-2: one malformed finding fails the whole response
+         description = str(item.get("description") or "").strip()
+         if not description:
+-            discarded += 1
+-            continue
++            return None, 0  # REINTRODUCED P2-2
+         severity = str(item.get("severity") or "").lower()
+         kept.append({
+             "issue_id":    item["issue_id"] if isinstance(item.get("issue_id"), int) else position,

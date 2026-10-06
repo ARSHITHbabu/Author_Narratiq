@@ -1,0 +1,186 @@
+{
+ "hr": "HR-06",
+ "reviewer": "AI Agent — Owner-authorised independent review",
+ "label": "AGENT REVIEW — AUTHORISED BY OWNER",
+ "method": "Reading of the 15 seeded POST-FIX Light/Strong pairs (strength_t2b_after_v4_light_repair.json, seed 20261006)",
+ "date": "2026-10-06",
+ "status": "FAIL",
+ "answers": {
+  "HR-06.R1.Q1": {
+   "value": "NO",
+   "note": "Nearly every phrase swapped; adds 'unexpected'."
+  },
+  "HR-06.R1.Q2": {
+   "value": "NO",
+   "note": "Strong is almost identical — even lighter."
+  },
+  "HR-06.R2.Q1": {
+   "value": "NO",
+   "note": "Second half rewritten; 'her voice a whisper' contradicts 'did not call out'."
+  },
+  "HR-06.R2.Q2": {
+   "value": "NO",
+   "note": "About the same amount of change as Strong."
+  },
+  "HR-06.R3.Q1": {
+   "value": "NO",
+   "note": "Whole sentence rewritten; meaning changed ('utterly devoid of truth')."
+  },
+  "HR-06.R3.Q2": {
+   "value": "NO",
+   "note": "Both heavy; not clearly lighter."
+  },
+  "HR-06.R4.Q1": {
+   "value": "NO",
+   "note": "Two of three sentences reworded; ungrammatical 'something semblance of calm'."
+  },
+  "HR-06.R4.Q2": {
+   "value": "YES",
+   "note": "Strong adds 'dimly lit', 'unyielding mask' — Light keeps more."
+  },
+  "HR-06.R5.Q1": {
+   "value": "NO",
+   "note": "Rewritten and spelled out ('harrowing detail where no one emerged alive')."
+  },
+  "HR-06.R5.Q2": {
+   "value": "NO",
+   "note": "Both heavy; Light only marginally lighter."
+  },
+  "HR-06.R6.Q1": {
+   "value": "YES",
+   "note": "Small wording changes; meaning and rhythm kept."
+  },
+  "HR-06.R6.Q2": {
+   "value": "YES",
+   "note": "Strong adds 'even when there was no clear threat' and changes the core clause."
+  },
+  "HR-06.R7.Q1": {
+   "value": "NO",
+   "note": "Restructured into three new sentences — not a light edit."
+  },
+  "HR-06.R7.Q2": {
+   "value": "NO",
+   "note": "Light ≈ Strong."
+  },
+  "HR-06.R8.Q1": {
+   "value": "YES",
+   "note": "Word-level simplification; simile and atmosphere kept."
+  },
+  "HR-06.R8.Q2": {
+   "value": "YES",
+   "note": "Strong drops the simile and flattens the ending."
+  },
+  "HR-06.R9.Q1": {
+   "value": "YES",
+   "note": "Light simplification ('permission' slightly awkward)."
+  },
+  "HR-06.R9.Q2": {
+   "value": "YES",
+   "note": "Strong rewrites and changes meaning ('ask a grown-up to help her')."
+  },
+  "HR-06.R10.Q1": {
+   "value": "YES",
+   "note": "Faithful simplification."
+  },
+  "HR-06.R10.Q2": {
+   "value": "NO",
+   "note": "Light ≈ Strong (near-identical)."
+  },
+  "HR-06.R11.Q1": {
+   "value": "YES",
+   "note": "Minimal edit, meaning kept."
+  },
+  "HR-06.R11.Q2": {
+   "value": "YES",
+   "note": "Strong compresses and drops the 'children's version' framing."
+  },
+  "HR-06.R12.Q1": {
+   "value": "YES",
+   "note": "Small edits; dropping 'himself' slightly weakens the self-distrust."
+  },
+  "HR-06.R12.Q2": {
+   "value": "NO",
+   "note": "Strong returned the original unchanged, so Light is not lighter."
+  },
+  "HR-06.R13.Q1": {
+   "value": "YES",
+   "note": "Modest edit; 'kept the shape' became 'clung to' (small loss)."
+  },
+  "HR-06.R13.Q2": {
+   "value": "YES",
+   "note": "Strong adds a shroud simile and whispering."
+  },
+  "HR-06.R14.Q1": {
+   "value": "YES",
+   "note": "Minimal edit."
+  },
+  "HR-06.R14.Q2": {
+   "value": "YES",
+   "note": "Strong adds 'around his neck' and changes the meaning of the last clause."
+  },
+  "HR-06.R15.Q1": {
+   "value": "YES",
+   "note": "Minimal edit."
+  },
+  "HR-06.R15.Q2": {
+   "value": "YES",
+   "note": "Strong invents 'a mystery, a riddle to be solved tonight alone'."
+  },
+  "HR-06.T.Q1": {
+   "value": 1,
+   "note": "R6"
+  },
+  "HR-06.T.Q2": {
+   "value": 3,
+   "note": "R8, R9, R11"
+  },
+  "HR-06.T.Q3": {
+   "value": 3,
+   "note": "R13, R14, R15"
+  },
+  "HR-06.T.Q4": {
+   "value": 4,
+   "note": "OD-12: 7 or more needed"
+  }
+ },
+ "result_reasoning": "Tone + age-adaptation pairs with both answers YES: 4/12 (tone 1/6, age 3/6); style controls 3/3. OD-12 requires 7 or more → FAIL. Pattern: at Light, tone still rewrites most phrases (often as much as or more than Strong); for age adaptation Light and Strong are sometimes identical. The historical owner A2 result (5/12, pre-fix) is a different reviewer and sample, and is not this result. | RE-RUN after the OD-13 fix (2026-10-06; tone/style boundary 0.45 → 0.24, re-measured live over 360 generations: tone Light median new-word share 0.358 → 0.269, kept share 0.595 → 0.704, Light-not-lighter-than-Strong 0.55 → 0.195). Fresh seeded tone/style pairs (agent-review/hr06-post-od13-sample.json, seed 20261006-a2-od13) judged the same way: tone 1/6, age 3/6 (unchanged boundary), total 4/12 — still FAIL. The fix reduces how much Light changes, but at Light the model still replaces the passage's most distinctive phrase and shifts its nuance, which no word-count boundary can catch. Remaining: a model-quality limitation (G1 stays open).",
+ "per_issue": {
+  "AWT-D": {
+   "verdict": "open",
+   "reason": "HR-06 FAIL (4/12)"
+  },
+  "AWT-I": {
+   "verdict": "open",
+   "reason": "HR-06 FAIL (4/12)"
+  },
+  "AWT-1.2": {
+   "verdict": "open",
+   "reason": "HR-06 FAIL (4/12)"
+  },
+  "AWT-1.6": {
+   "verdict": "open",
+   "reason": "HR-06 FAIL (4/12)"
+  },
+  "AWT-3.7": {
+   "verdict": "open",
+   "reason": "HR-06 FAIL (4/12)"
+  }
+ },
+ "failures": [
+  {
+   "item": "Tone R1–R5",
+   "problem": "Light rewrites most phrases; not clearly lighter than Strong",
+   "severity": "Major"
+  },
+  {
+   "item": "Age R7, R10, R12",
+   "problem": "Light ≈ Strong, or Strong unchanged",
+   "severity": "Minor"
+  }
+ ],
+ "evidence": [
+  "docs/testing/stage-12/stage-12.3/agent-review/hr06-post-od13-sample.json",
+  "docs/testing/stage-12/stage-12.3/agent-review/hr06-post-od13-answers.json",
+  "backend/tests/fixtures/strength_t2b_after_v4_light_repair_od13.json"
+ ]
+}

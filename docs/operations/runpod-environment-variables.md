@@ -249,7 +249,7 @@ convenience, not a requirement. It matters most on first boot, when ~22 GB is pu
 |---|---|
 | Required | No — defaults to `/workspace/models` |
 | Why | Root directory for model weights |
-| Read by | `config.py:37` (application), `scripts/download_models.sh:14`, `scripts/verify_runpod_setup.sh:10`, `start.sh:21` |
+| Read by | `config.py:37` (application), `scripts/download_models.sh:14`, `scripts/verify_runpod_setup.sh:10`, and formerly `start.sh:21` (deleted 2026-09-21, decision D-2) |
 | Read by `start-narratiq.sh`? | **No — and this is the catch.** The script hardcodes `MODEL_DIR="/workspace/models"` at `:16` and then `export`s `MODEL_BASE_DIR="$MODEL_DIR"` at `:501`, **overwriting** whatever you set |
 | Generated / overwritten? | Overwritten in the script's own shell at `:501` |
 | Secret? | No |

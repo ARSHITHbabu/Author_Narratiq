@@ -1,0 +1,111 @@
+{
+ "hr": "HR-10",
+ "reviewer": "AI Agent — Owner-authorised independent review",
+ "label": "AGENT REVIEW — AUTHORISED BY OWNER",
+ "method": "Live: Story Bible generated on the synthetic 40-chapter story (isolated test stack :8100, narratiq_test) after the three generation fixes; final run read in full and every doubtful statement checked against the imported chapter text (grep with both straight and curly apostrophes) and backend/tests/fixtures/long_manuscript_spec.py. Note: the chapter prose was model-written from the beats and is itself inconsistent in places (e.g. Liesel is a baker in Ch 6 and a fishmonger in Ch 10; Silas calls Wren's aunt 'my aunt' in Ch 16) — statements were judged against the PROSE, not the beats. CAVEAT: chapter 40 had been emptied at 11:35 by the undo data-loss defect found in HR-15/HR-17 (fixed, chapter restored) before the final bible runs; the bible still drew Ch 40 facts from the stored chapter summaries. Ch 40 omissions are not counted against the bible.",
+ "date": "2026-10-06",
+ "status": "FAIL",
+ "answers": {
+  "HR-10.Q1": {
+   "value": 10,
+   "note": "Silas 'Businessman' (customs officer, Ch 5); Ferris 'Chandlery Owner'; Ferris arc = Wren's resolve; 'Eliza Thorne — Wren's aunt, Edric's wife' (no Thorne surname or marriage anywhere); her arc = Wren's actions; Mrs Blackwood arc = Wren's Ch 26 decision; Ada arc = Wren's feeling; Liesel 'supportive / support Wren' though she poisons Thorne (Ch 31); Sheriff O'Connor and Captain Harlow tagged Ch 21 (they appear in Ch 18)."
+  },
+  "HR-10.Q2": {
+   "value": 4,
+   "note": "Tobin 'Lighthouse Keeper' and goal 'clear his name'; Mayor 'ambitious, cautious, protective'; Edric goal 'uncover discrepancies'. Also: most card lines carry no [Ch N] tag."
+  },
+  "HR-10.Q3": {
+   "value": 4,
+   "note": "Liesel as poisoner/antagonist; Edric Thorne's death; Tobin's confession (Ch 22) and testimony (Ch 39); Mother Agathe absent."
+  },
+  "HR-10.Q4": {
+   "value": 6,
+   "note": "Harbour Wall chase [Ch 28] (chase is in the alleys); 'Thorne's Home' where Wren tends him (Ada nursed him, Ch 13); fishmonger's meeting tagged Ch 33 with Liesel hinting (a recollection in Ch 31); body 'in the salt marsh' (beach/shingle, Ch 21); 'Thorne House' [Ch 31] (she stands at the salt marsh); 'General Store — not explicitly mentioned [Ch 33]' (it is, Ch 31)."
+  },
+  "HR-10.Q5": {
+   "value": 3,
+   "note": "Lighthouse 'work together to get it operational' (nowhere); Town Square 'start of the investigation into business matters'; rope-works 'linked to smuggling and industrial activities'."
+  },
+  "HR-10.Q6": {
+   "value": 4,
+   "note": "Anchor Inn (cellar, tunnel, locked room, the truth scene); harbour chapel; customs house; the Marisol wreck site."
+  },
+  "HR-10.Q7": {
+   "value": 1,
+   "note": "'Tobin admits to buying lamp oil on credit [Ch 11]' — the storekeeper Arthur says it."
+  },
+  "HR-10.Q8": {
+   "value": 2,
+   "note": "'Wren visits the lighthouse to confront Tobin' and 'work together to get the lighthouse operational' [Ch 11] — neither is in the text."
+  },
+  "HR-10.Q9": {
+   "value": 4,
+   "note": "Thorne's poisoning/death as an event; Ferris's 'I am your father' (Ch 38); the trap (Ch 37) and the truth and arrests (Ch 39); Ada's falling-out and reconciliation (Ch 23/26). (The Ch 40 ledger burial is not counted: chapter 40 was empty in the database when these runs were generated — see caveat.)"
+  },
+  "HR-10.Q10": {
+   "value": 2,
+   "note": "'Wren's health is a concern [Ch 13]' (Thorne was ill); Liesel's poisoning cited to Ch 33 (it is Ch 31)."
+  },
+  "HR-10.Q11": {
+   "value": 4,
+   "note": "Discrepancies 'must be addressed to avoid legal consequences'; 'the community values honesty'; 'storms are common occurrences'; 'Tobin's involvement in disappearances' (he denies it)."
+  },
+  "HR-10.Q12": {
+   "value": 2,
+   "note": "Smuggling and customs law ('would hang', Ch 16); wrecking by darkening the lighthouse (Ch 22)."
+  },
+  "HR-10.Q13": {
+   "value": 0
+  },
+  "HR-10.Q14": {
+   "value": 1,
+   "note": "Rope-works 'referenced in [Ch 38]' — not in Ch 38."
+  },
+  "HR-10.Q15": {
+   "value": 2,
+   "note": "Betrayal / complicity and secret-keeping; identity and paternity."
+  },
+  "HR-10.Q16": {
+   "value": "YES",
+   "note": "Wrong facts about main characters: Liesel (the poisoner) presented as supportive; Wren's aunt given an invented surname and a marriage to Edric Thorne. No wholly invented character: every name checked occurs in the prose."
+  },
+  "HR-10.Q17": {
+   "value": "See Q1–Q14 notes. Corrections to my own first pass after checking the text: 'Sheriff O'Connor', 'Mr. and Mrs. Green', the Devil's Cleft and the pirate ARE in the prose (curly apostrophes), so they are not counted."
+  }
+ },
+ "result_reasoning": "FAIL: 30 wrong or unsupported statements across the five sections (characters 14, locations 9, timeline 3, world rules 6, themes 1), including wrong facts about main characters (UAT Q3 rule: a High finding). The criterion 'never asserts unsupported facts' is not met. Three generation defects found during the live review were fixed (timeline truncated at 1,500 tokens; characters section truncated in 6/8 samples; a looping 'Also appears' list) — after the fixes two full regenerations completed with all five sections. The content-accuracy failure is a model-quality limit and stays open.",
+ "per_issue": {},
+ "failures": [
+  {
+   "item": "Timeline section",
+   "problem": "'truncated' on a 40-chapter book at 1,500 tokens — FIXED (1,900 tokens, one short line per event; tests in test_story_bible_outcomes.py)",
+   "severity": "High (fixed)"
+  },
+  {
+   "item": "Characters section",
+   "problem": "'truncated' in 3/5 live runs and 6/8 direct samples (a card per townsperson) — FIXED (≤10 full cards + one 'Also appears' line; one fresh sample on a length stop; a looping list closed with complete cards kept; tests/test_story_bible_character_budget.py). After: 2/2 full live runs complete.",
+   "severity": "High (fixed)"
+  },
+  {
+   "item": "Content accuracy",
+   "problem": "30 wrong/unsupported statements; wrong facts about main characters",
+   "severity": "High (open — model quality)"
+  },
+  {
+   "item": "Character card citations",
+   "problem": "Most card lines carry no [Ch N] tag in the final run",
+   "severity": "Major"
+  }
+ ],
+ "evidence": [
+  "docs/testing/stage-12/stage-12.3/agent-review/live-story-bible-before-timeline-fix.json",
+  "docs/testing/stage-12/stage-12.3/agent-review/live-story-bible-after-timeline-fix-run1.json",
+  "docs/testing/stage-12/stage-12.3/agent-review/live-story-bible-characters-retries.json",
+  "docs/testing/stage-12/stage-12.3/agent-review/hr10-characters-truncation-before-fix.json",
+  "docs/testing/stage-12/stage-12.3/agent-review/hr10-characters-after-card-cap.json",
+  "docs/testing/stage-12/stage-12.3/agent-review/hr10-characters-after-card-cap-run2.json",
+  "docs/testing/stage-12/stage-12.3/agent-review/live-story-bible-final-run1.json",
+  "docs/testing/stage-12/stage-12.3/agent-review/live-story-bible-final-run2.json (judged)",
+  "backend/tests/fixtures/long_manuscript_spec.py"
+ ]
+}

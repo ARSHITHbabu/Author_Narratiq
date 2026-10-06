@@ -1,0 +1,58 @@
+$ (cwd /workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/backend) python3 -m pytest tests/test_extract_json_audit.py -q -p no:cacheprovider -rfE --no-header -W ignore
+
+[conftest] DB safety guard: running against allow-listed test database 'narratiq_ci_verify'
+.................F...                                                                                                                                                                                                                                           [100%]
+============================================================================================================================== FAILURES ===============================================================================================================================
+_______________________________________________________________________________________________________________ test_parser_metrics_record_each_outcome _______________________________________________________________________________________________________________
+
+    def test_parser_metrics_record_each_outcome():
+        ai_service._parse_metrics.clear()
+    
+        async def fake(system, user, **kwargs):
+            return fake.responses.pop(0)
+    
+        original = ai_service._complete_ex
+        ai_service._complete_ex = fake
+        try:
+            fake.responses = ['{"issues": [{"description": "d"}]}', "stop"], None
+            # clean
+            fake.responses = [('{"issues": [{"description": "d"}]}', "stop")]
+            asyncio.run(ai_service.complete_structured(
+                "s", "u", coerce=ai_service.coerce_plot_hole_result, label="metric_clean"))
+            # salvaged
+            fake.responses = [('{"issues": [{"description": "d"}, 5]}', "stop")]
+>           asyncio.run(ai_service.complete_structured(
+                "s", "u", coerce=ai_service.coerce_plot_hole_result, label="metric_salvaged"))
+
+tests/test_extract_json_audit.py:288: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/usr/lib/python3.11/asyncio/runners.py:190: in run
+    return runner.run(main)
+/usr/lib/python3.11/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+/usr/lib/python3.11/asyncio/base_events.py:654: in run_until_complete
+    return future.result()
+services/ai_service.py:378: in complete_structured
+    raw2, finish_reason2 = await _call(system + _STRICTER_JSON_RETRY)
+services/ai_service.py:348: in _call
+    return await _complete_ex(sys_prompt, user, temperature=temperature, max_tokens=max_tokens, **extra)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+system = 's\n\nIMPORTANT: your previous response could not be parsed. Return ONLY the JSON structure described above — no prose, no explanation, no markdown fences, nothing before or after the JSON.', user = 'u', kwargs = {'max_tokens': 800, 'temperature': 0.0}
+
+    async def fake(system, user, **kwargs):
+>       return fake.responses.pop(0)
+E       IndexError: pop from empty list
+
+tests/test_extract_json_audit.py:276: IndexError
+-------------------------------------------------------------------------------------------------------------------------- Captured log call --------------------------------------------------------------------------------------------------------------------------
+WARNING  services.ai_service:ai_service.py:376 [ai_service] metric_salvaged unparseable (finish_reason=stop, chars=37, shape=json_open,opener=yes), retrying once
+======================================================================================================================= short test summary info =======================================================================================================================
+FAILED tests/test_extract_json_audit.py::test_parser_metrics_record_each_outcome - IndexError: pop from empty list
+1 failed, 20 passed in 7.55s
+/workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/backend/database.py:38: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+  Base = declarative_base()
+/usr/local/lib/python3.11/dist-packages/pytest_asyncio/plugin.py:208: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))

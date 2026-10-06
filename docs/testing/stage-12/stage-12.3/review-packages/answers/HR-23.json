@@ -1,0 +1,20 @@
+{
+ "hr": "HR-23",
+ "reviewer": "AI Agent — Owner-authorised independent review",
+ "label": "AGENT REVIEW — AUTHORISED BY OWNER",
+ "method": "Computed from the recorded inputs only (package §17 rule: PASS needs every input PASS or owner-accepted; FAIL if any input failed and is not accepted; INCOMPLETE if any input is not done). No owner acceptance of a failed input is recorded.",
+ "date": "2026-10-06",
+ "status": "FAIL",
+ "answers": {
+  "HR-23.Q1": {
+   "value": "FAIL"
+  },
+  "HR-23.Q2": {
+   "value": "Failed: G1 (HR-06), G3 (HR-01–05, HR-08, HR-19), G5 (HR-09), G6 (HR-11), G7 (HR-12 — PA-C9, H10, H11 open), G8 (HR-14). Incomplete: HR-15. Outside: AWT-5.1–5.7 translation, PA-H14 (UAT), UI-H12 (multi-hour session)."
+  }
+ },
+ "result_reasoning": "Gate 4 / D-6: FAIL — open Critical and High human-review issues remain after the OD-11 / OD-15 / OD-16 / OD-17 / OD-18 per-issue rules.",
+ "per_issue": {},
+ "failures": [],
+ "evidence": []
+}

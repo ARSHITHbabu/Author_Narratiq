@@ -17,6 +17,9 @@
 #     AUTHOR DATA exists (scripts/backup_evidence.py)               unless NARRATIQ_ACKNOWLEDGE_EMPTY_RESTART is set)
 #   database empty, valid backups exist but every one -> exit 0  (their manifests prove they are backups of an
 #     of them is of an empty database                               empty database: nothing was lost)
+#   database empty, every backup holding author data  -> exit 0  (owner decision OD-05, option B: the operator
+#     carries a valid operator .disposable marker                   declared that data disposable and deleted on
+#                                                                    purpose; any UNMARKED data set still blocks)
 #   schema change pending, or FORCE set               -> backup REQUIRED; failure exits 1
 #   no schema change + fresh backup exists            -> exit 0  (no duplicate dump)
 #   no schema change + backup stale/absent            -> backup attempted; failure only warns
@@ -352,9 +355,18 @@ fi
 # shows 0 author rows (missing, unverifiable or unknown = evidence, the safe
 # direction). Every valid set is considered, newest first, so one empty dump never
 # hides an older real backup. Stage 12 Tranche 3; earlier, any valid dump counted.
+#
+# Owner decision OD-05 (2026-10-06, option B): a set that holds author data is also
+# skipped when an operator deliberately marked it as disposable test data with
+# `python3 scripts/backup_evidence.py mark-disposable` (narratiq-<stamp>.disposable,
+# bound to the dump's SHA-256). Only that one set is skipped; the scan goes on, so
+# the newest UNMARKED data set is still the evidence and a newer marked set never
+# hides an older unmarked one. A marker that does not match its set is ignored with
+# a warning and the set still counts. This script never creates a marker.
 EVIDENCE_BACKUP=""
 EVIDENCE_REASON=""
 EMPTY_SETS_IGNORED=0
+DISPOSABLE_SETS_IGNORED=0
 if [ "${HAS_DATA}" = "no" ]; then
     while IFS= read -r candidate; do
         [ -n "${candidate}" ] || continue
@@ -364,6 +376,9 @@ if [ "${HAS_DATA}" = "no" ]; then
                    || echo 'author-data evidence check failed')"
         case "${VERDICT}" in
             no-author-data*) EMPTY_SETS_IGNORED=$(( EMPTY_SETS_IGNORED + 1 )) ;;
+            disposable*)
+                DISPOSABLE_SETS_IGNORED=$(( DISPOSABLE_SETS_IGNORED + 1 ))
+                log "Not evidence: $(basename "${candidate}") — ${VERDICT#disposable }" ;;
             *) EVIDENCE_BACKUP="${candidate}"; EVIDENCE_REASON="${VERDICT#author-data }"; break ;;
         esac
     done <<< "$(find "${BACKUP_DIR}" -maxdepth 1 -type f -name 'narratiq-*.dump' \
@@ -371,8 +386,18 @@ if [ "${HAS_DATA}" = "no" ]; then
     if [ "${EMPTY_SETS_IGNORED}" -gt 0 ]; then
         log "Ignored ${EMPTY_SETS_IGNORED} backup set(s) whose manifest shows an empty database (not evidence of loss)."
     fi
+    if [ "${DISPOSABLE_SETS_IGNORED}" -gt 0 ]; then
+        log "Ignored ${DISPOSABLE_SETS_IGNORED} backup set(s) an operator marked DISPOSABLE (deliberately deleted test data, OD-05)."
+    fi
     if [ -n "${EVIDENCE_BACKUP}" ]; then
         log "Newest backup holding author data: $(basename "${EVIDENCE_BACKUP}") (${EVIDENCE_REASON})"
+        case "${EVIDENCE_REASON}" in
+            *"DISPOSABLE MARKER IGNORED"*)
+                warn "the .disposable marker next to $(basename "${EVIDENCE_BACKUP}") does NOT match that set"
+                warn "and is IGNORED; the set still counts as evidence of lost author data. A marker"
+                warn "that no longer matches its dump means the dump or the marker changed after"
+                warn "marking. Investigate before doing anything else (backup-and-restore.md §4a)." ;;
+        esac
     fi
 fi
 
@@ -430,6 +455,14 @@ if [ "${HAS_DATA}" = "no" ]; then
         echo "   (Earlier versions printed a one-line pg_restore --clean command here; it"
         echo "   ran as the app user and differed from the rehearsed §4 procedure.)"
         echo ""
+        echo "   If the data in these backups was DISPOSABLE test data that was"
+        echo "   deleted on purpose, an operator can mark each such set (owner"
+        echo "   decision OD-05; procedure: docs/operations/backup-and-restore.md §4a):"
+        echo "     python3 ${REPO_ROOT}/scripts/backup_evidence.py mark-disposable ${EVIDENCE_BACKUP} \\"
+        echo "         --operator \"<your name>\" --reason \"<why it was deleted on purpose>\""
+        echo "   NEVER mark a set that holds real author data — restore it instead."
+        echo "   Older sets holding the same data block next; each needs its own decision."
+        echo ""
         echo "   If you intend to start with an empty database on purpose (you"
         echo "   deliberately wiped it, or this genuinely is a new environment),"
         echo "   acknowledge it explicitly and re-run:"
@@ -473,6 +506,10 @@ if [ "${HAS_DATA}" = "no" ]; then
         echo "             This is not a failure. There was nothing to protect."
         echo "Note:        No dump file was written, deliberately. An empty archive named"
         echo "             like a real backup would misrepresent itself as protection."
+        if [ "${DISPOSABLE_SETS_IGNORED}" -gt 0 ]; then
+            echo "Disposable:  ${DISPOSABLE_SETS_IGNORED} backup set(s) holding author data skipped: operator-marked"
+            echo "             disposable (.disposable marker, OD-05)"
+        fi
     } >> "${RECORD_FILE}" 2>/dev/null || warn "Could not update ${RECORD_FILE}."
     chmod 600 "${RECORD_FILE}" 2>/dev/null || true
 elif [ "${FORCE}" = "1" ]; then

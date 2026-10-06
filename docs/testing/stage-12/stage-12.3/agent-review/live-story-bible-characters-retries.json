@@ -1,0 +1,38 @@
+[
+ {
+  "attempt": 1,
+  "http": 200,
+  "status": "partial",
+  "failed_sections": [
+   {
+    "section": "characters",
+    "failure": "truncated",
+    "reason": "This section was cut off before it finished."
+   }
+  ],
+  "characters_chars": 0,
+  "seconds": 60
+ },
+ {
+  "attempt": 2,
+  "http": 200,
+  "status": "completed",
+  "failed_sections": [],
+  "characters_chars": 5239,
+  "seconds": 50
+ },
+ {
+  "attempt": 3,
+  "http": 200,
+  "status": "partial",
+  "failed_sections": [
+   {
+    "section": "characters",
+    "failure": "truncated",
+    "reason": "This section was cut off before it finished."
+   }
+  ],
+  "characters_chars": 0,
+  "seconds": 60
+ }
+]

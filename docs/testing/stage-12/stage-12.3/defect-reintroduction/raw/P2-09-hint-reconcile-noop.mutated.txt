@@ -1,0 +1,101 @@
+$ (cwd /workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/backend) python3 -m pytest tests/test_character_hint_sync.py -q -p no:cacheprovider -rfE --no-header -W ignore
+
+[conftest] DB safety guard: running against allow-listed test database 'narratiq_ci_verify'
+...FFFF.....FF..F                                                                                                                                                                                                                                               [100%]
+============================================================================================================================== FAILURES ===============================================================================================================================
+______________________________________________________________________________________________________________ test_exact_name_match_dismisses_the_hint _______________________________________________________________________________________________________________
+
+    @_case
+    def test_exact_name_match_dismisses_the_hint():
+        hints = [FakeHint("Marek")]
+        _, dismissed = dismiss(hints, ["Marek"])
+>       assert len(dismissed) == 1
+E       assert 0 == 1
+E        +  where 0 = len([])
+
+tests/test_character_hint_sync.py:109: AssertionError
+___________________________________________________________________________________________________________ test_case_insensitive_match_dismisses_the_hint ____________________________________________________________________________________________________________
+
+    @_case
+    def test_case_insensitive_match_dismisses_the_hint():
+        hints = [FakeHint("MAREK")]
+        dismiss(hints, ["marek"])
+>       assert hints[0].is_dismissed is True
+E       assert False is True
+E        +  where False = <tests.test_character_hint_sync.FakeHint object at 0x7a8d851add50>.is_dismissed
+
+tests/test_character_hint_sync.py:117: AssertionError
+_________________________________________________________________________________________________________ test_whitespace_normalised_match_dismisses_the_hint _________________________________________________________________________________________________________
+
+    @_case
+    def test_whitespace_normalised_match_dismisses_the_hint():
+        hints = [FakeHint("  Marek   Halvorsen  ")]
+        dismiss(hints, ["Marek Halvorsen"])
+>       assert hints[0].is_dismissed is True
+E       assert False is True
+E        +  where False = <tests.test_character_hint_sync.FakeHint object at 0x7a8d851b6e90>.is_dismissed
+
+tests/test_character_hint_sync.py:124: AssertionError
+_________________________________________________________________________________________________________________ test_alias_match_dismisses_the_hint _________________________________________________________________________________________________________________
+
+    @_case
+    def test_alias_match_dismisses_the_hint():
+        character = FakeCharacter("Devika Rao", ["The Archivist"])
+        hints = [FakeHint("the archivist")]
+        dismiss(hints, names_of(character))
+>       assert hints[0].is_dismissed is True
+E       assert False is True
+E        +  where False = <tests.test_character_hint_sync.FakeHint object at 0x7a8d84d20310>.is_dismissed
+
+tests/test_character_hint_sync.py:132: AssertionError
+________________________________________________________________________________________________________ test_every_hint_for_the_same_name_is_resolved_at_once ________________________________________________________________________________________________________
+
+    @_case
+    def test_every_hint_for_the_same_name_is_resolved_at_once():
+        hints = [FakeHint("Marek"), FakeHint("marek"), FakeHint("Ilse")]
+        _, dismissed = dismiss(hints, ["Marek"])
+>       assert len(dismissed) == 2
+E       assert 0 == 2
+E        +  where 0 = len([])
+
+tests/test_character_hint_sync.py:192: AssertionError
+_____________________________________________________________________________________________________________ test_a_batch_of_names_resolves_all_of_them ______________________________________________________________________________________________________________
+
+    @_case
+    def test_a_batch_of_names_resolves_all_of_them():
+        hints = [FakeHint("Marek"), FakeHint("Ilse"), FakeHint("Halloran")]
+        _, dismissed = dismiss(hints, ["Marek", "Ilse"])
+>       assert len(dismissed) == 2
+E       assert 0 == 2
+E        +  where 0 = len([])
+
+tests/test_character_hint_sync.py:201: AssertionError
+______________________________________________________________________________________________________ test_creation_and_reconciliation_share_one_normalisation _______________________________________________________________________________________________________
+
+    @_case
+    def test_creation_and_reconciliation_share_one_normalisation():
+        """The rules may differ in strictness, but never in how a name is normalised."""
+        known = {normalise_name("  Devika   Rao ")}
+        assert hint_is_redundant("devika rao", known) is True
+        hints = [FakeHint("  DEVIKA   RAO  ")]
+        dismiss(hints, ["Devika Rao"])
+>       assert hints[0].is_dismissed is True
+E       assert False is True
+E        +  where False = <tests.test_character_hint_sync.FakeHint object at 0x7a8d851cf4d0>.is_dismissed
+
+tests/test_character_hint_sync.py:234: AssertionError
+======================================================================================================================= short test summary info =======================================================================================================================
+FAILED tests/test_character_hint_sync.py::test_exact_name_match_dismisses_the_hint - assert 0 == 1
+FAILED tests/test_character_hint_sync.py::test_case_insensitive_match_dismisses_the_hint - assert False is True
+FAILED tests/test_character_hint_sync.py::test_whitespace_normalised_match_dismisses_the_hint - assert False is True
+FAILED tests/test_character_hint_sync.py::test_alias_match_dismisses_the_hint - assert False is True
+FAILED tests/test_character_hint_sync.py::test_every_hint_for_the_same_name_is_resolved_at_once - assert 0 == 2
+FAILED tests/test_character_hint_sync.py::test_a_batch_of_names_resolves_all_of_them - assert 0 == 2
+FAILED tests/test_character_hint_sync.py::test_creation_and_reconciliation_share_one_normalisation - assert False is True
+7 failed, 10 passed in 0.23s
+/workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/backend/database.py:38: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+  Base = declarative_base()
+/usr/local/lib/python3.11/dist-packages/pytest_asyncio/plugin.py:208: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))

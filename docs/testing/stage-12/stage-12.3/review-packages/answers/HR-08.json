@@ -1,0 +1,185 @@
+{
+ "hr": "HR-08",
+ "reviewer": "AI Agent — Owner-authorised independent review",
+ "label": "AGENT REVIEW — AUTHORISED BY OWNER",
+ "method": "Reading of the printed children's rewrites (16 = 8 cases × 2 runs; outputs predate the Light repair, as the package states)",
+ "date": "2026-10-06",
+ "status": "FAIL",
+ "answers": {
+  "HR-08.C1.Q1": {
+   "value": "Kept",
+   "note": ""
+  },
+  "HR-08.C1.Q2": {
+   "value": "YES",
+   "note": ""
+  },
+  "HR-08.C2.Q1": {
+   "value": "Kept",
+   "note": ""
+  },
+  "HR-08.C2.Q2": {
+   "value": "YES",
+   "note": ""
+  },
+  "HR-08.C3.Q1": {
+   "value": "Changed",
+   "note": "'nobody survived but him' becomes 'only he came back' — the thirty-nine deaths are no longer stated (euphemised away)."
+  },
+  "HR-08.C3.Q2": {
+   "value": "YES",
+   "note": ""
+  },
+  "HR-08.C4.Q1": {
+   "value": "Kept",
+   "note": ""
+  },
+  "HR-08.C4.Q2": {
+   "value": "YES",
+   "note": ""
+  },
+  "HR-08.C5.Q1": {
+   "value": "Changed",
+   "note": "The massacre ('put to the sword') becomes 'the raiders had done bad things'; 'only the miller's girl was left' becomes 'was safe' — the event and its consequence are changed."
+  },
+  "HR-08.C5.Q2": {
+   "value": "YES",
+   "note": ""
+  },
+  "HR-08.C6.Q1": {
+   "value": "Changed",
+   "note": "'put to the sword … only the miller's girl was left' becomes 'the village was destroyed, and only the miller's daughter was hiding' — the killing and her being the sole survivor are lost."
+  },
+  "HR-08.C6.Q2": {
+   "value": "YES",
+   "note": ""
+  },
+  "HR-08.C7.Q1": {
+   "value": "Changed",
+   "note": "'she never quite forgave them' (lasting resentment) becomes 'felt very sad because she was upset' — the character's lasting response is changed and over-explained."
+  },
+  "HR-08.C7.Q2": {
+   "value": "YES",
+   "note": ""
+  },
+  "HR-08.C8.Q1": {
+   "value": "Changed",
+   "note": "'never quite forgave them' becomes 'felt sad and angry' — closer, but the lasting, unresolved grudge (the consequence) is lost."
+  },
+  "HR-08.C8.Q2": {
+   "value": "YES",
+   "note": ""
+  },
+  "HR-08.C9.Q1": {
+   "value": "Kept",
+   "note": ""
+  },
+  "HR-08.C9.Q2": {
+   "value": "YES",
+   "note": ""
+  },
+  "HR-08.C10.Q1": {
+   "value": "Kept",
+   "note": ""
+  },
+  "HR-08.C10.Q2": {
+   "value": "YES",
+   "note": ""
+  },
+  "HR-08.C11.Q1": {
+   "value": "Kept",
+   "note": "Identical to the original."
+  },
+  "HR-08.C11.Q2": {
+   "value": "YES",
+   "note": ""
+  },
+  "HR-08.C12.Q1": {
+   "value": "Kept",
+   "note": "'Mum' becomes 'Mom' (regional spelling change; meaning kept, but an unasked-for voice change)."
+  },
+  "HR-08.C12.Q2": {
+   "value": "YES",
+   "note": ""
+  },
+  "HR-08.C13.Q1": {
+   "value": "Kept",
+   "note": "'dead' becomes 'not alive' — same meaning."
+  },
+  "HR-08.C13.Q2": {
+   "value": "YES",
+   "note": ""
+  },
+  "HR-08.C14.Q1": {
+   "value": "Kept",
+   "note": "'grave' becomes 'resting place'; meaning kept."
+  },
+  "HR-08.C14.Q2": {
+   "value": "YES",
+   "note": ""
+  },
+  "HR-08.C15.Q1": {
+   "value": "Kept",
+   "note": "Unchanged (no-change)."
+  },
+  "HR-08.C15.Q2": {
+   "value": "YES",
+   "note": ""
+  },
+  "HR-08.C16.Q1": {
+   "value": "Kept",
+   "note": "Unchanged (no-change)."
+  },
+  "HR-08.C16.Q2": {
+   "value": "YES",
+   "note": ""
+  }
+ },
+ "result_reasoning": "Strict rule OD-14: every rewrite must be Kept. 11 of 16 kept; 5 of 16 changed meaning (C3, C5, C6, C7, C8) — deaths or a character's lasting response euphemised away. All 16 are appropriate for children. FAIL. The pattern (euphemising the difficult event) is the known A14 / 5.5 no-change-assessor family on the prompt side; see the technical-defect note in the report.",
+ "per_issue": {
+  "AWT-3.2": {
+   "verdict": "open",
+   "reason": "5 of 16 Changed (OD-14 strict)"
+  },
+  "AWT-3.5": {
+   "verdict": "open",
+   "reason": "5 of 16 Changed"
+  },
+  "AWT-3.1": {
+   "verdict": "open",
+   "reason": "Appropriateness 16/16 YES, but the audience summary (HR-03) is Reject"
+  },
+  "AWT-3.3": {
+   "verdict": "open",
+   "reason": "as AWT-3.1"
+  }
+ },
+ "failures": [
+  {
+   "item": "C3",
+   "problem": "'nobody survived but him' becomes 'only he came back' — the thirty-nine deaths are no longer stated (euphemised away).",
+   "severity": "Major"
+  },
+  {
+   "item": "C5",
+   "problem": "The massacre ('put to the sword') becomes 'the raiders had done bad things'; 'only the miller's girl was left' becomes 'was safe' — the event and its consequence are changed.",
+   "severity": "Major"
+  },
+  {
+   "item": "C6",
+   "problem": "'put to the sword … only the miller's girl was left' becomes 'the village was destroyed, and only the miller's daughter was hiding' — the killing and her being the sole survivor are lost.",
+   "severity": "Major"
+  },
+  {
+   "item": "C7",
+   "problem": "'she never quite forgave them' (lasting resentment) becomes 'felt very sad because she was upset' — the character's lasting response is changed and over-explained.",
+   "severity": "Major"
+  },
+  {
+   "item": "C8",
+   "problem": "'never quite forgave them' becomes 'felt sad and angry' — closer, but the lasting, unresolved grudge (the consequence) is lost.",
+   "severity": "Major"
+  }
+ ],
+ "evidence": []
+}

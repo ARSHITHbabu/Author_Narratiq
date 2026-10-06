@@ -246,7 +246,10 @@ export interface AISuggestion {
   id: number
   category: string
   text: string
-  reason: string
+  reason: string                 // backward-compatible combination of the two fields below
+  observation?: string | null    // task 5.13 — what was observed in the excerpt
+  recommendation?: string | null // task 5.13 — the concrete fix
+  priority?: 'high' | 'medium' | 'low' | null
 }
 
 export interface OcrSuggestion {

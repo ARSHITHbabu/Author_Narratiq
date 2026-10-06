@@ -1,0 +1,86 @@
+{
+ "5": {
+  "B": "off",
+  "A": "strong",
+  "raw": {
+   "strong": {
+    "http": 200,
+    "text": "Crane snatched the ledger from her hands, flipping through the pages with a critical eye. \"Let me see this,\" he muttered, his brow furrowing. He paused at a particular entry, his finger tracing the ink. \"This one, for instance. It looks like there was a discrepancy in the tax assessment.\"",
+    "context_used": {
+     "voice": {
+      "level": "strong",
+      "surrounding_text": true
+     },
+     "tokens_estimate": 382
+    },
+    "warnings": [
+     "voice_fingerprint_unavailable"
+    ]
+   },
+   "off": {
+    "http": 200,
+    "text": "Crane plucked the ledger from her grasp, flipping through the pages with a sharp, scrutinizing gaze. \"Let me take a look at this,\" he growled, his forehead creasing. His finger traced the ink on a particular entry, pausing. \"Take a look at this one, for instance. There seems to have been a miscalculation in the tax assessment.\"",
+    "context_used": {
+     "tokens_estimate": 0
+    },
+    "warnings": []
+   }
+  }
+ },
+ "20": {
+  "B": "off",
+  "A": "strong",
+  "raw": {
+   "strong": {
+    "http": 200,
+    "text": "“Indeed, they did. It was a tale of betrayal and revenge. One night, during a particularly fierce storm, Maris set a trap for Elara. She lured her into a part of the marsh where the waters were deep and dangerous. Elara never returned from that night, and many believed she had drowned. But some whispered that she had survived, that she had taken the goods and disappeared into the very heart of the marsh, never to be seen again.”",
+    "context_used": {
+     "voice": {
+      "level": "strong",
+      "surrounding_text": true
+     },
+     "tokens_estimate": 373
+    },
+    "warnings": [
+     "voice_fingerprint_unavailable"
+    ]
+   },
+   "off": {
+    "http": 200,
+    "text": "“Indeed, they did. It was a tale of betrayal and revenge. One night, during a particularly fierce storm, Maris set a trap for Elara. She lured her into a part of the marsh where the waters were deep and dangerous. Elara never returned from that night, and many believed she had drowned. But some whispered that she had survived, that she had taken the goods and disappeared into the very heart of the marsh, never to be seen again.”",
+    "context_used": {
+     "tokens_estimate": 0
+    },
+    "warnings": []
+   }
+  }
+ },
+ "35": {
+  "B": "off",
+  "A": "strong",
+  "raw": {
+   "strong": {
+    "http": 200,
+    "text": "The third letter was a desperate cry for aid. Eliza had heard whispers of a safe house in Greymouth, a sanctuary where Sarah might have sought refuge. “If you can find it,” she implored, “please investigate these rumors. I am too weak to travel, but I entrust you with finishing what we began.” Wren felt a surge of anger and resolve course through her veins. How could she have overlooked her mother’s warnings for so long? She had always thought her mother had simply moved for a new job or to start anew, but now she understood the truth was far more perilous and intricate.",
+    "context_used": {
+     "voice": {
+      "level": "strong",
+      "surrounding_text": true
+     },
+     "tokens_estimate": 370
+    },
+    "warnings": [
+     "voice_fingerprint_unavailable"
+    ]
+   },
+   "off": {
+    "http": 200,
+    "text": "The third letter was a desperate cry for aid. Eliza had whispered rumors of a sanctuary in Greymouth, a place where Sarah might have sought solace. \"If you can find it,\" Eliza wrote, her trembling hand barely managing the words, \"please take it upon yourself to verify these tales. I am too frail to journey, but I entrust you with our unfinished mission.\" Wren felt a storm of fury and resolve surge through her veins. How could she have overlooked her mother’s cautions for so long? She had always thought her mother merely sought a new beginning, but now she grasped the grim reality that lay hidden beneath the surface.",
+    "context_used": {
+     "tokens_estimate": 0
+    },
+    "warnings": []
+   }
+  }
+ }
+}

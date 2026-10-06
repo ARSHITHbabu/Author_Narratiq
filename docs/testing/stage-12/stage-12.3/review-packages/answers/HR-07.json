@@ -1,0 +1,219 @@
+{
+ "hr": "HR-07",
+ "reviewer": "AI Agent — Owner-authorised independent review",
+ "label": "AGENT REVIEW — AUTHORISED BY OWNER",
+ "method": "Labelled 60 seeded post-fix Light outputs from the text alone (the measured profile was read only afterwards); threshold derived per OD-13",
+ "date": "2026-10-06",
+ "status": "PASS",
+ "answers": {
+  "HR-07.L1.Q1": {
+   "value": "Acceptable"
+  },
+  "HR-07.L2.Q1": {
+   "value": "Too much"
+  },
+  "HR-07.L3.Q1": {
+   "value": "Too much"
+  },
+  "HR-07.L4.Q1": {
+   "value": "Too much"
+  },
+  "HR-07.L5.Q1": {
+   "value": "Too much"
+  },
+  "HR-07.L6.Q1": {
+   "value": "Too much"
+  },
+  "HR-07.L7.Q1": {
+   "value": "Too much"
+  },
+  "HR-07.L8.Q1": {
+   "value": "Acceptable"
+  },
+  "HR-07.L9.Q1": {
+   "value": "Too much"
+  },
+  "HR-07.L10.Q1": {
+   "value": "Acceptable"
+  },
+  "HR-07.L11.Q1": {
+   "value": "Too much"
+  },
+  "HR-07.L12.Q1": {
+   "value": "Acceptable"
+  },
+  "HR-07.L13.Q1": {
+   "value": "Acceptable"
+  },
+  "HR-07.L14.Q1": {
+   "value": "Too much"
+  },
+  "HR-07.L15.Q1": {
+   "value": "Too much"
+  },
+  "HR-07.L16.Q1": {
+   "value": "Too much"
+  },
+  "HR-07.L17.Q1": {
+   "value": "Too much"
+  },
+  "HR-07.L18.Q1": {
+   "value": "Too much"
+  },
+  "HR-07.L19.Q1": {
+   "value": "Too much"
+  },
+  "HR-07.L20.Q1": {
+   "value": "Too much"
+  },
+  "HR-07.L21.Q1": {
+   "value": "Acceptable"
+  },
+  "HR-07.L22.Q1": {
+   "value": "Acceptable"
+  },
+  "HR-07.L23.Q1": {
+   "value": "Acceptable"
+  },
+  "HR-07.L24.Q1": {
+   "value": "Acceptable"
+  },
+  "HR-07.L25.Q1": {
+   "value": "Acceptable"
+  },
+  "HR-07.L26.Q1": {
+   "value": "Acceptable"
+  },
+  "HR-07.L27.Q1": {
+   "value": "Acceptable"
+  },
+  "HR-07.L28.Q1": {
+   "value": "Acceptable"
+  },
+  "HR-07.L29.Q1": {
+   "value": "Acceptable"
+  },
+  "HR-07.L30.Q1": {
+   "value": "Acceptable"
+  },
+  "HR-07.L31.Q1": {
+   "value": "Acceptable"
+  },
+  "HR-07.L32.Q1": {
+   "value": "Acceptable"
+  },
+  "HR-07.L33.Q1": {
+   "value": "Acceptable"
+  },
+  "HR-07.L34.Q1": {
+   "value": "Acceptable"
+  },
+  "HR-07.L35.Q1": {
+   "value": "Acceptable"
+  },
+  "HR-07.L36.Q1": {
+   "value": "Acceptable"
+  },
+  "HR-07.L37.Q1": {
+   "value": "Acceptable"
+  },
+  "HR-07.L38.Q1": {
+   "value": "Too much"
+  },
+  "HR-07.L39.Q1": {
+   "value": "Acceptable"
+  },
+  "HR-07.L40.Q1": {
+   "value": "Acceptable"
+  },
+  "HR-07.L41.Q1": {
+   "value": "Too much"
+  },
+  "HR-07.L42.Q1": {
+   "value": "Too much"
+  },
+  "HR-07.L43.Q1": {
+   "value": "Too much"
+  },
+  "HR-07.L44.Q1": {
+   "value": "Too much"
+  },
+  "HR-07.L45.Q1": {
+   "value": "Acceptable"
+  },
+  "HR-07.L46.Q1": {
+   "value": "Too much"
+  },
+  "HR-07.L47.Q1": {
+   "value": "Acceptable"
+  },
+  "HR-07.L48.Q1": {
+   "value": "Too much"
+  },
+  "HR-07.L49.Q1": {
+   "value": "Too much"
+  },
+  "HR-07.L50.Q1": {
+   "value": "Too much"
+  },
+  "HR-07.L51.Q1": {
+   "value": "Acceptable"
+  },
+  "HR-07.L52.Q1": {
+   "value": "Too much"
+  },
+  "HR-07.L53.Q1": {
+   "value": "Too much"
+  },
+  "HR-07.L54.Q1": {
+   "value": "Acceptable"
+  },
+  "HR-07.L55.Q1": {
+   "value": "Acceptable"
+  },
+  "HR-07.L56.Q1": {
+   "value": "Too much"
+  },
+  "HR-07.L57.Q1": {
+   "value": "Too much"
+  },
+  "HR-07.L58.Q1": {
+   "value": "Acceptable"
+  },
+  "HR-07.L59.Q1": {
+   "value": "Too much"
+  },
+  "HR-07.L60.Q1": {
+   "value": "Acceptable"
+  }
+ },
+ "result_reasoning": "Labels: 29 Too much / 31 Acceptable (tone 15/20 Too much, style 13/20, age adaptation 1/20). Derivation (Youden's J over the measured new-word share): tone + style best boundary new_share > 0.24 (J 0.81: flags 25/28 Too much, 1/12 Acceptable); the shipped 0.45 flags only 8/28 Too much. Age adaptation: 1 Too much in 20 — no boundary is supportable; simplification legitimately adds new words; 0.45 kept. Derived threshold recorded under OD-13: 0.24 for tone and style, 0.45 for age adaptation (engineering then applies and re-measures it — see the technical-defect section).",
+ "per_issue": {
+  "AWT-D": {
+   "verdict": "open",
+   "reason": "HR-07 completed; closure follows HR-06 after the threshold change"
+  },
+  "AWT-I": {
+   "verdict": "open",
+   "reason": "HR-07 completed; closure follows HR-06 after the threshold change"
+  },
+  "AWT-1.2": {
+   "verdict": "open",
+   "reason": "HR-07 completed; closure follows HR-06 after the threshold change"
+  },
+  "AWT-1.6": {
+   "verdict": "open",
+   "reason": "HR-07 completed; closure follows HR-06 after the threshold change"
+  }
+ },
+ "failures": [
+  {
+   "item": "shipped LIGHT_NEW_SHARE_MAX 0.45",
+   "problem": "Far too permissive for tone/style: misses 20 of 28 Light outputs labelled Too much",
+   "severity": "Major (technical, fixable)"
+  }
+ ],
+ "evidence": [
+  "docs/testing/stage-12/stage-12.3/review-packages/review-samples.json (HR-07 profiles)"
+ ]
+}

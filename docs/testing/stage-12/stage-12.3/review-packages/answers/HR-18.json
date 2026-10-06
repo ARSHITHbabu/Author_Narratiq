@@ -1,0 +1,86 @@
+{
+ "hr": "HR-18",
+ "reviewer": "AI Agent — Owner-authorised independent review",
+ "label": "AGENT REVIEW — AUTHORISED BY OWNER",
+ "method": "Live, blind, on the synthetic story (isolated test stack :8100). PROCEDURE CORRECTED: the package said Generate → Continue, but voice matching (P3-10) is wired only into the rewrite tools (/api/ai/tone|emotion|age-adapt|style) — Continue never reads it. Used instead: Tone 'Suspenseful' at strength Moderate on one mid-chapter paragraph of chapters 5, 20 and 35, story preference Off vs 'Match my voice closely' (as the popover saves it), with the surrounding text the UI sends. A script assigned the letters at random and wrote the key to a separate file, opened only after the answers below were fixed. No Story DNA and no style samples exist for this story, so 'closely' = surrounding text only (the app warns 'voice_fingerprint_unavailable').",
+ "date": "2026-10-06",
+ "status": "FAIL",
+ "answers": {
+  "HR-18.Q1": {
+   "value": "5 Completely",
+   "note": "Run 3. A is the original paragraph unchanged — it IS the existing voice, but no tone rewrite happened."
+  },
+  "HR-18.Q2": {
+   "value": "3 Partly",
+   "note": "B: 'sharp, scrutinizing gaze', 'growled' — heavier and more ornate than the chapter's plain prose."
+  },
+  "HR-18.Q3": {
+   "value": "A",
+   "note": "A — but only because A is an unchanged copy; no generated text was compared."
+  },
+  "HR-18.Q4": {
+   "value": "5 Completely",
+   "note": "Both outputs are the original paragraph unchanged (a dialogue paragraph; unchanged in 6 of 6 calls across runs 1–3)."
+  },
+  "HR-18.Q5": {
+   "value": "5 Completely"
+  },
+  "HR-18.Q6": {
+   "value": "No meaningful difference"
+  },
+  "HR-18.Q7": {
+   "value": "4 Mostly",
+   "note": "A keeps the manuscript's curly quotes and much of its phrasing ('too weak to travel', 'moved for a new job')."
+  },
+  "HR-18.Q8": {
+   "value": "3 Partly",
+   "note": "B switches to straight quotes and adds melodrama ('trembling hand barely managing the words', 'grim reality')."
+  },
+  "HR-18.Q9": {
+   "value": "A"
+  },
+  "HR-18.Q10": {
+   "value": "Run 3 (judged): 'closely' = A / A / A for chapters 5 / 20 / 35. Run 2 (before the echo fix): 'closely' = B / B / B — judged better in Ch 5, no difference in Ch 20, and in Ch 35 it returned 'Before: \"<original>\" After: \"<rewrite>\"' (defect, fixed). Run 1 (default Light strength): all six outputs were verbatim copies of the originals."
+  },
+  "HR-18.Q11": {
+   "value": "FAIL",
+   "note": "Counting only real rewrites, 'closely' beat Off in 1 of 3 chapters in run 3 (Ch 35) and 1 of 3 in run 2 (Ch 5); OD-19.2 needs 2 of 3. With no Story DNA or style samples the setting adds only the surrounding text, and it is not applied to Continue at all."
+  }
+ },
+ "result_reasoning": "FAIL under OD-19.2 (counting only chapters where both texts were real rewrites, 'closely' won 1 of 3 in each measured run). One technical defect found and fixed: a 'closely' rewrite returned in a 'Before:/After:' shape that would have pasted the original paragraph and two labels into the chapter (tests/test_rewrite_before_after_echo.py, red on the old code). Findings for the owner: (1) the Voice matching control is shown above every AI tool including Generate → Continue, which ignores it — misleading (Major, UI/scope); (2) at the default Light strength the Tone rewrite returned the paragraphs unchanged in 6 of 6 calls; (3) a dialogue-only paragraph (Ch 20) was never changed at any strength. A real author judging their own voice can still satisfy 7.12 in Real-Author UAT.",
+ "per_issue": {
+  "AWT-B": {
+   "verdict": "open",
+   "reason": "Style match not shown to help (OD-19.2)"
+  },
+  "AWT-4.10": {
+   "verdict": "open",
+   "reason": "Style match not shown to help (OD-19.2)"
+  }
+ },
+ "failures": [
+  {
+   "item": "'Match my voice closely' rewrite, Ch 35 (run 2)",
+   "problem": "Output 'Before: \"<original>\" After: \"<rewrite>\"' — FIXED (ai_service._unwrap_before_after; tests/test_rewrite_before_after_echo.py)",
+   "severity": "High (fixed)"
+  },
+  {
+   "item": "Voice matching control",
+   "problem": "Shown above Generate → Continue, which ignores it",
+   "severity": "Major"
+  },
+  {
+   "item": "Tone rewrite at default Light strength",
+   "problem": "Returned the paragraph unchanged in 6/6 calls",
+   "severity": "Medium"
+  }
+ ],
+ "evidence": [
+  "docs/testing/stage-12/stage-12.3/agent-review/hr18-run1-light-strength-texts.json",
+  "docs/testing/stage-12/stage-12.3/agent-review/hr18-run1-light-strength-key.json",
+  "docs/testing/stage-12/stage-12.3/agent-review/hr18-run2-moderate-texts-before-echo-fix.json",
+  "docs/testing/stage-12/stage-12.3/agent-review/hr18-run2-moderate-key.json",
+  "docs/testing/stage-12/stage-12.3/agent-review/hr18-blind-texts.json (run 3, judged)",
+  "docs/testing/stage-12/stage-12.3/agent-review/hr18-blind-key.json (run 3)"
+ ]
+}

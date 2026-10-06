@@ -1,0 +1,13 @@
+diff --git a/backend/services/voice/lifecycle.py b/backend/services/voice/lifecycle.py
+index 9d2fa2a..18a8d86 100644
+--- a/backend/services/voice/lifecycle.py
++++ b/backend/services/voice/lifecycle.py
+@@ -144,7 +144,7 @@ def derive_command_status(node_statuses: Iterable[str]) -> str:
+     if any(s == EXECUTING for s in statuses):
+         return EXECUTING
+     if any(s in (READY, PLANNED) for s in statuses):
+-        return EXECUTING          # dispatched, outcome not yet reported
++        return SUCCEEDED          # REINTRODUCED P2-5: dispatched == done
+     if any(s == AWAITING_CONFIRMATION for s in statuses):
+         return AWAITING_CONFIRMATION
+     if any(s == NEEDS_INPUT for s in statuses):

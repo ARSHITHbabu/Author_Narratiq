@@ -1,0 +1,219 @@
+{
+  "meta": {
+    "date": "2026-10-06T09:07:55+00:00",
+    "git_head": "2b63b51",
+    "tree_dirty": true,
+    "trials": 20,
+    "injected_regression": "renamed-assessor-key",
+    "prompt_version": "v4",
+    "model": "Qwen/Qwen2.5-7B-Instruct",
+    "seconds": 995
+  },
+  "baseline_meta": {
+    "date": "2026-10-06T08:27:08+00:00",
+    "git_head": "2b63b51",
+    "tree_dirty": true,
+    "trials": 20,
+    "injected_regression": null,
+    "prompt_version": "v4",
+    "model": "Qwen/Qwen2.5-7B-Instruct",
+    "seconds": 515
+  },
+  "verdict": {
+    "alarm": true,
+    "family_alpha": 0.01,
+    "rows": [
+      {
+        "invariant": "locked_segment:adventure-2",
+        "baseline": "20/20",
+        "observed": "20/20",
+        "p_one_sided": 1.0,
+        "alpha_per_invariant": 0.000909,
+        "alarm_at_or_below": 11,
+        "ALARM": false
+      },
+      {
+        "invariant": "locked_segment:gothic-3",
+        "baseline": "20/20",
+        "observed": "20/20",
+        "p_one_sided": 1.0,
+        "alpha_per_invariant": 0.000909,
+        "alarm_at_or_below": 11,
+        "ALARM": false
+      },
+      {
+        "invariant": "locked_segment:tech-2",
+        "baseline": "20/20",
+        "observed": "20/20",
+        "p_one_sided": 1.0,
+        "alpha_per_invariant": 0.000909,
+        "alarm_at_or_below": 11,
+        "ALARM": false
+      },
+      {
+        "invariant": "no_change:adventure-3",
+        "baseline": "17/20",
+        "observed": "0/20",
+        "p_one_sided": 0.0,
+        "alpha_per_invariant": 0.000909,
+        "alarm_at_or_below": 6,
+        "ALARM": true
+      },
+      {
+        "invariant": "no_change:gothic-2",
+        "baseline": "20/20",
+        "observed": "0/20",
+        "p_one_sided": 0.0,
+        "alpha_per_invariant": 0.000909,
+        "alarm_at_or_below": 11,
+        "ALARM": true
+      },
+      {
+        "invariant": "no_change:gothic-4",
+        "baseline": "20/20",
+        "observed": "0/20",
+        "p_one_sided": 0.0,
+        "alpha_per_invariant": 0.000909,
+        "alarm_at_or_below": 11,
+        "ALARM": true
+      },
+      {
+        "invariant": "no_change:tech-3",
+        "baseline": "20/20",
+        "observed": "0/20",
+        "p_one_sided": 0.0,
+        "alpha_per_invariant": 0.000909,
+        "alarm_at_or_below": 11,
+        "ALARM": true
+      },
+      {
+        "invariant": "names_preserved:gothic-1",
+        "baseline": "20/20",
+        "observed": "20/20",
+        "p_one_sided": 1.0,
+        "alpha_per_invariant": 0.000909,
+        "alarm_at_or_below": 11,
+        "ALARM": false
+      },
+      {
+        "invariant": "names_preserved:gothic-3",
+        "baseline": "20/20",
+        "observed": "20/20",
+        "p_one_sided": 1.0,
+        "alpha_per_invariant": 0.000909,
+        "alarm_at_or_below": 11,
+        "ALARM": false
+      },
+      {
+        "invariant": "light_not_flagged:tech-1",
+        "baseline": "20/20",
+        "observed": "20/20",
+        "p_one_sided": 1.0,
+        "alpha_per_invariant": 0.000909,
+        "alarm_at_or_below": 11,
+        "ALARM": false
+      },
+      {
+        "invariant": "suggestions_valid:adventure-1",
+        "baseline": "20/20",
+        "observed": "20/20",
+        "p_one_sided": 1.0,
+        "alpha_per_invariant": 0.000909,
+        "alarm_at_or_below": 11,
+        "ALARM": false
+      }
+    ]
+  },
+  "invariants": {
+    "locked_segment:adventure-2": {
+      "passes": 20,
+      "trials": 20,
+      "sequence": "PPPPPPPPPPPPPPPPPPPP",
+      "fail_notes": []
+    },
+    "locked_segment:gothic-3": {
+      "passes": 20,
+      "trials": 20,
+      "sequence": "PPPPPPPPPPPPPPPPPPPP",
+      "fail_notes": []
+    },
+    "locked_segment:tech-2": {
+      "passes": 20,
+      "trials": 20,
+      "sequence": "PPPPPPPPPPPPPPPPPPPP",
+      "fail_notes": []
+    },
+    "no_change:adventure-3": {
+      "passes": 0,
+      "trials": 20,
+      "sequence": "ffffffffffffffffffff",
+      "fail_notes": [
+        "None",
+        "None",
+        "None",
+        "None",
+        "None"
+      ]
+    },
+    "no_change:gothic-2": {
+      "passes": 0,
+      "trials": 20,
+      "sequence": "ffffffffffffffffffff",
+      "fail_notes": [
+        "None",
+        "None",
+        "None",
+        "None",
+        "None"
+      ]
+    },
+    "no_change:gothic-4": {
+      "passes": 0,
+      "trials": 20,
+      "sequence": "ffffffffffffffffffff",
+      "fail_notes": [
+        "None",
+        "None",
+        "None",
+        "None",
+        "None"
+      ]
+    },
+    "no_change:tech-3": {
+      "passes": 0,
+      "trials": 20,
+      "sequence": "ffffffffffffffffffff",
+      "fail_notes": [
+        "None",
+        "None",
+        "None",
+        "None",
+        "None"
+      ]
+    },
+    "names_preserved:gothic-1": {
+      "passes": 20,
+      "trials": 20,
+      "sequence": "PPPPPPPPPPPPPPPPPPPP",
+      "fail_notes": []
+    },
+    "names_preserved:gothic-3": {
+      "passes": 20,
+      "trials": 20,
+      "sequence": "PPPPPPPPPPPPPPPPPPPP",
+      "fail_notes": []
+    },
+    "light_not_flagged:tech-1": {
+      "passes": 20,
+      "trials": 20,
+      "sequence": "PPPPPPPPPPPPPPPPPPPP",
+      "fail_notes": []
+    },
+    "suggestions_valid:adventure-1": {
+      "passes": 20,
+      "trials": 20,
+      "sequence": "PPPPPPPPPPPPPPPPPPPP",
+      "fail_notes": []
+    }
+  }
+}

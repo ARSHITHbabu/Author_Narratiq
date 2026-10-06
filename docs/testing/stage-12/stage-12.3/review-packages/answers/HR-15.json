@@ -1,0 +1,53 @@
+{
+ "hr": "HR-15",
+ "reviewer": "AI Agent — Owner-authorised independent review",
+ "label": "AGENT REVIEW — AUTHORISED BY OWNER",
+ "method": "Short mechanical check only on :3200 (typed one sentence in Draft, selected text in Draft and Edit, undo). The 20-minute drafting and editing sessions were NOT performed: an agent cannot honestly report how a sustained writing session feels.",
+ "date": "2026-10-06",
+ "status": "INCOMPLETE",
+ "answers": {
+  "HR-15.Q1": {
+   "value": "NO",
+   "note": "Not performed — needs a real 20+ minute drafting session."
+  },
+  "HR-15.Q3": {
+   "value": "NO",
+   "note": "Not performed — needs a real 20+ minute editing session."
+  },
+  "HR-15.Q5": {
+   "value": "YES",
+   "note": "Mechanically: Draft shows no AI toolbar on selection; Edit shows the AI toolbar on selection (it overlaps the line above). Whether they FEEL different over a session is not judged here."
+  }
+ },
+ "result_reasoning": "INCOMPLETE — REAL AUTHOR SESSION REQUIRED. Q2, Q4, Q6 unanswered (they need the sessions). Box cannot be decided (needs Q1 and Q3 = YES). UI-H11 and UI-C1 stay open. Observation for the session: the Edit-mode selection toolbar covers the line above the selection. A Critical data-loss defect was found during the mechanical check (undo emptied a chapter and autosave saved it) and fixed with regression tests.",
+ "per_issue": {
+  "UI-H11": {
+   "verdict": "open",
+   "reason": "Sessions not performed"
+  },
+  "UI-C1": {
+   "verdict": "open",
+   "reason": "Q6 needs the sessions"
+  }
+ },
+ "failures": [
+  {
+   "item": "Undo after opening a chapter (DATA LOSS)",
+   "problem": "Typing one sentence into chapter 40 and pressing Ctrl+Z three times emptied the whole chapter; autosave saved '<p></p>' over 684 words (11:35:07). Root cause: loading a chapter (setContent) was an undoable step. FIXED: StoryEditor.loadIntoEditor() loads without an undo step; tests/studio/undo-safety.spec.ts (both tests red on the old code). Chapter restored in the test database.",
+   "severity": "Critical (fixed)"
+  },
+  {
+   "item": "Edit-mode selection toolbar",
+   "problem": "Overlaps the line above the selection",
+   "severity": "Minor"
+  }
+ ],
+ "evidence": [
+  "docs/testing/stage-12/stage-12.3/agent-review/ui/15-draft-mode.png",
+  "docs/testing/stage-12/stage-12.3/agent-review/ui/15-draft-selection.png",
+  "docs/testing/stage-12/stage-12.3/agent-review/ui/15-edit-selection.png",
+  "docs/testing/stage-12/stage-12.3/agent-review/ui/15-after-undo.png",
+  "docs/testing/stage-12/stage-12.3/agent-review/hr15-chapter40-emptied-by-undo-db-row.json",
+  "docs/testing/stage-12/stage-12.3/agent-review/ui/15-after-undo.png (before the fix: chapter empty)"
+ ]
+}

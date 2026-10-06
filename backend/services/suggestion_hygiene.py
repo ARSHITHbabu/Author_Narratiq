@@ -76,3 +76,35 @@ def clean_suggestions(items: list[dict]) -> tuple[list[dict], list[dict]]:
             continue
         kept.append(item)
     return kept, dropped
+
+
+# Stage 12.3 (agent review HR-11, 2026-10-06): live, on a 40-chapter synthetic
+# manuscript, an item said "The phrase 'Wren pushed her way through the throng'
+# is repeated verbatim" — the phrase occurs once. A repetition claim about a
+# quoted phrase is the one kind of observation that can be checked mechanically,
+# so it is: the claim survives only if some quoted phrase it names really occurs
+# at least twice in the excerpt. An item that quotes nothing is left alone.
+_REPEAT_CLAIM = re.compile(
+    r"\b(repeat(?:s|ed|ing)?|repetition|verbatim|appears (?:twice|again|more than once)|"
+    r"used (?:twice|again|more than once)|recurs|duplicated)\b", re.I)
+_QUOTE_SPANS = re.compile(
+    r"[\"“]([^\"“”]{3,}?)[\"”]|(?:(?<=^)|(?<=[\s(]))[‘']([^‘’]{3,}?)[’'](?=[\s.,;:!?)]|$)")
+
+
+def _norm(s: str) -> str:
+    s = s.replace("’", "'").replace("‘", "'").replace("“", '"').replace("”", '"')
+    return re.sub(r"\s+", " ", s).strip().lower()
+
+
+def false_repetition_claim(item: dict, excerpt: str) -> bool:
+    """True when the item claims a quoted phrase repeats but no quoted phrase does."""
+    said = " ".join(str(item.get(k) or "") for k in ("observation", "reason", "category"))
+    if not _REPEAT_CLAIM.search(said):
+        return False
+    quotes = [q.strip(" .,;:!?") for m in _QUOTE_SPANS.finditer(str(item.get("observation") or item.get("reason") or ""))
+              for q in m.groups() if q]
+    quotes = [q for q in quotes if len(q.split()) >= 2]
+    if not quotes:
+        return False                       # nothing quoted: cannot check, keep it
+    text = _norm(excerpt)
+    return all(text.count(_norm(q)) < 2 for q in quotes)

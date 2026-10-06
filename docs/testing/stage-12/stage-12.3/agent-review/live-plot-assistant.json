@@ -1,0 +1,256 @@
+[
+ {
+  "question": "Who poisoned the harbourmaster Edric Thorne?",
+  "status": 200,
+  "response": {
+   "session_id": "c00bb6f4-7064-440d-892d-6724f4af7e55",
+   "mode": "qa",
+   "answer": "Based on the information provided in the passages, Liesel Marr is the one who poisoned Edric Thorne. The text states, \"Liesel Marr who tipped the blue-glass vial of foxglove into Edric Thorne's tea while he signed the harbour book, and Marr who had sent the boy for the doctor too late.\"",
+   "suggestions": [],
+   "context_used": "story context (Ch3, Ch20, Ch21, Ch25, Ch30, Ch31 retrieved via BGE-M3) [scope: full manuscript]",
+   "tokens_used": 24,
+   "scope_used": "full",
+   "retrieval": {
+    "chunks_retrieved": 10,
+    "chapters_covered": [
+     3,
+     17,
+     20,
+     25,
+     30,
+     31,
+     36
+    ],
+    "scope_limited": false,
+    "summary_chapters": []
+   }
+  }
+ },
+ {
+  "question": "Who is Wren's real father?",
+  "status": 200,
+  "response": {
+   "session_id": "ab4118b8-a322-4d00-a3ca-be8fd0b5e4a1",
+   "mode": "qa",
+   "answer": "Wren's real father is Captain Abel Ferris, as revealed in Chapter 38 when Wren approaches him and he admits to being her father.",
+   "suggestions": [],
+   "context_used": "story context (Ch7, Ch16, Ch20, Ch34, Ch35, Ch38 retrieved via BGE-M3) [scope: full manuscript]",
+   "tokens_used": 20,
+   "scope_used": "full",
+   "retrieval": {
+    "chunks_retrieved": 10,
+    "chapters_covered": [
+     7,
+     20,
+     26,
+     34,
+     35,
+     36,
+     38
+    ],
+    "scope_limited": false,
+    "summary_chapters": []
+   }
+  }
+ },
+ {
+  "question": "Where does Wren bury the ledger at the end of the story?",
+  "status": 200,
+  "response": {
+   "session_id": "7fb179d6-9488-468f-bed8-7dabf9dafb2f",
+   "mode": "qa",
+   "answer": "At the end of the story, Wren buries the ledger beneath the third post of the old rope-works pier. She does this on the first warm morning, intending for the next storm to decide what Greymouth is allowed to remember.",
+   "suggestions": [],
+   "context_used": "story context (Ch1, Ch3, Ch9, Ch13, Ch19, Ch40 retrieved via BGE-M3) [scope: full manuscript]",
+   "tokens_used": 48,
+   "scope_used": "full",
+   "retrieval": {
+    "chunks_retrieved": 10,
+    "chapters_covered": [
+     1,
+     5,
+     13,
+     19,
+     31,
+     40
+    ],
+    "scope_limited": false,
+    "summary_chapters": []
+   }
+  }
+ },
+ {
+  "question": "What does Liesel Marr do across the whole story?",
+  "status": 200,
+  "response": {
+   "session_id": "272b7dad-4da9-4b94-9359-ec4636d7d96d",
+   "mode": "qa",
+   "answer": "Liesel Marr is a central figure in the story, operating as a bakery owner and a key social influencer in Greymouth. She is known for her baking skills and her role in organizing community events like the Herring Festival. Liesel is also a source of both comfort and scandal in the town, having been a fixture there since before Wren can remember. Throughout the story, she is deeply involved in the community, often seen at important gatherings and events. Liesel shows concern for Wren, particularly after the chandlery fire, and she is aware of the tensions and rumors surrounding the new lighthouse project. She plays a significant role in discussions about the wrecks along the coast and seems to have a knack for gathering information and understanding the dynamics of the community.",
+   "suggestions": [],
+   "context_used": "story context (Ch6, Ch12, Ch30, Ch31, Ch33, Ch39 retrieved via BGE-M3) [scope: full manuscript]",
+   "tokens_used": 36,
+   "scope_used": "full",
+   "retrieval": {
+    "chunks_retrieved": 10,
+    "chapters_covered": [
+     6,
+     10,
+     18,
+     33
+    ],
+    "scope_limited": false,
+    "summary_chapters": []
+   }
+  }
+ },
+ {
+  "question": "Summarise the major revelations of chapters 30 to 40.",
+  "status": 200,
+  "response": {
+   "session_id": "edb8a38c-c78f-4089-bb9b-ebd2dee27526",
+   "mode": "qa",
+   "answer": "In chapters 30 to 40, several key revelations come to light:\n\n1. **Wren's Aunt's Legacy**: Wren finds a ledger left by her aunt, which contains cryptic entries and hidden messages. Her aunt's final message in the ledger warns Wren to be careful with the truth and to use it wisely.\n\n2. **Reopening the Chandlery**: Wren decides to reopen the chandlery, not just as a shop but as a symbol of hope and resilience. This decision is driven by her desire to honor her aunt's memory and to take control of her life.\n\n3. **Secrets and Deceptions**: Through her investigation, Wren uncovers that Tobin Gale, the lighthouse keeper, has been hiding secrets. He reveals that eleven years ago, his father cut the lamp's oil line on Liesel Marr's orders, causing the Marisol to run aground and lose its cargo.\n\n4. **Illicit Activities**: Wren discovers that the disappearances in Greymouth are linked to a system of payments or bribes involving the boats and ships. This suggests that someone is using these vessels for illegal activities.\n\n5. **Mr. Aldridge's Involvement**: Mr. Aldridge, the dockside café owner, helps Wren analyze the coded lists found in the chandlery. These lists match the times and amounts of several disappearances, indicating a connection between the chandlery's records and the missing persons.\n\n6. **Silas' Insights**: Silas, a local historian, provides insight into the depth of her aunt's influence and the potential dangers of uncovering the truth. He warns Wren about the consequences of her actions and the possible retaliation from those who benefited from her aunt's power.\n\n7. **Personal Growth**: Throughout her journey, Wren grows stronger, wiser, and more resilient. She faces numerous challenges and emerges more determined to uncover the truth and honor her aunt's legacy.",
+   "suggestions": [],
+   "context_used": "story context (Ch4, Ch7, Ch16, Ch24, Ch26, Ch32 retrieved via BGE-M3) [scope: full manuscript]",
+   "tokens_used": 36,
+   "scope_used": "full",
+   "retrieval": {
+    "chunks_retrieved": 10,
+    "chapters_covered": [
+     3,
+     8,
+     11,
+     16,
+     17,
+     22,
+     37,
+     40
+    ],
+    "scope_limited": false,
+    "summary_chapters": []
+   }
+  }
+ },
+ {
+  "question": "How does Wren Halloway change from the beginning to the end of the story?",
+  "status": 200,
+  "response": {
+   "session_id": "61bed39f-e5ae-4af7-a66a-2ecb177a89f6",
+   "mode": "creative",
+   "answer": null,
+   "suggestions": [
+    {
+     "id": 1,
+     "text": "Wren Halloway transitions from a hesitant and uncertain newcomer to Greymouth to a confident and determined business owner. Initially, she struggles with the weight of her aunt's legacy and the challenges of running the chandlery. However, as she uncovers the truth about her family and the community, Wren becomes more resolute and proactive, eventually reopening the chandlery as a symbol of hope and resilience.",
+     "rationale": "This development reflects Wren's journey from a passive observer to an active investigator and business leader."
+    },
+    {
+     "id": 2,
+     "text": "Wren evolves from someone who fears losing connections, such as her friendship with Ada, to a person who embraces collaboration and support. This is evident when she shares the mysterious ledger with Ada and plans to investigate together, showing her willingness to seek help and work towards uncovering the truth.",
+     "rationale": "This change highlights Wren's growth in trust and reliance on others, which is crucial for her investigative efforts."
+    },
+    {
+     "id": 3,
+     "text": "From a character who initially feels weighed down by her past and the mysteries surrounding her family, Wren transforms into someone who is driven by a sense of purpose and determination. This is exemplified by her decision to reopen the chandlery and her commitment to continuing her aunt's legacy.",
+     "rationale": "This development showcases Wren's shift from being burdened by her past to being motivated by her future goals and responsibilities."
+    },
+    {
+     "id": 4,
+     "text": "Wren changes from a person who is cautious and reflective to one who is proactive and decisive. This is demonstrated by her actions, such as investigating discrepancies in the ledger, meeting with Captain Abel Ferris, and ultimately deciding to reopen the chandlery despite the risks involved.",
+     "rationale": "These actions illustrate Wren's transformation from a contemplative individual to a bold and action-oriented protagonist."
+    }
+   ],
+   "context_used": "story context (Ch1, Ch3, Ch7, Ch25, Ch26, Ch40 retrieved via BGE-M3) [scope: full manuscript]",
+   "tokens_used": 56,
+   "scope_used": "full",
+   "retrieval": {
+    "chunks_retrieved": 0,
+    "chapters_covered": [],
+    "scope_limited": false,
+    "summary_chapters": [
+     1,
+     3,
+     7,
+     25,
+     26,
+     40
+    ]
+   }
+  }
+ },
+ {
+  "question": "What did Wren find when she sailed to Paris?",
+  "status": 200,
+  "response": {
+   "session_id": "cd9b8f3f-a4a8-42ff-8783-4a86dcad50b9",
+   "mode": "qa",
+   "answer": "This isn't established anywhere in what I have access to.",
+   "suggestions": [],
+   "context_used": "story context (Ch6, Ch10, Ch24, Ch26, Ch35, Ch38 retrieved via BGE-M3) [scope: full manuscript]",
+   "tokens_used": 36,
+   "scope_used": "full",
+   "retrieval": {
+    "chunks_retrieved": 10,
+    "chapters_covered": [
+     2,
+     6,
+     10,
+     12,
+     20,
+     24,
+     27,
+     35
+    ],
+    "scope_limited": false,
+    "summary_chapters": []
+   }
+  }
+ },
+ {
+  "question": "Give me a summary of the whole story.",
+  "status": 200,
+  "response": {
+   "session_id": "9caf492c-2ebc-43a5-ad0d-3d36fdb88575",
+   "mode": "creative",
+   "answer": null,
+   "suggestions": [
+    {
+     "id": 1,
+     "text": "Wren Halloway, a young woman living in Greymouth, has been keeping Thorne's ledger while he recovers from a sudden illness. During this time, she uncovers various mysteries, including the disappearance of the Marisol, irregularities in the salt trade, and a dangerous situation involving Tobin Gale. Wren also receives letters from her mother's friend Eliza, hinting at a mysterious man involved in illegal activities. Despite facing accusations and investigations, Wren remains determined to uncover the truth and reopen the chandlery as a symbol of hope and resilience.",
+     "rationale": "This summary encapsulates the main plot points and character arcs from the provided chapters, including Wren's journey, the mysteries she investigates, and her personal growth."
+    },
+    {
+     "id": 2,
+     "text": "Wren's efforts to solve the mystery of the Marisol involve examining old shipwreck entries and newspaper clippings, while her investigation into the salt trade leads her to visit the customs house and speak with Crane. She also gathers information from Thomas, an eyewitness to a rope-works fire, and Tobin Gale, who reveals crucial details about the Marisol's fate.",
+     "rationale": "This summary highlights the key investigative elements of the story, focusing on Wren's methods and the significant clues she discovers along the way."
+    },
+    {
+     "id": 3,
+     "text": "Throughout her journey, Wren faces challenges such as being accused of her father's involvement in the salt trade and receiving threatening letters. However, she remains steadfast in her pursuit of the truth, driven by a desire to clear her name and uncover the full story behind the Marisol's disappearance and other local mysteries.",
+     "rationale": "This summary emphasizes Wren's determination and the obstacles she encounters, providing insight into her character development and the stakes of her quest."
+    },
+    {
+     "id": 4,
+     "text": "As Wren works to restore the chandlery, she reflects on the guidance provided by the ledger and the lessons learned during her investigations. She sees the reopening of the chandlery as a symbol of hope and resilience, indicating that her journey is far from over and that she will continue to seek the truth and make a positive impact in her community.",
+     "rationale": "This summary captures Wren's emotional state and her vision for the future, tying together her personal growth and the broader themes of the story."
+    }
+   ],
+   "context_used": "story context (Ch12, Ch13, Ch22, Ch29, Ch34, Ch35 retrieved via BGE-M3) [scope: full manuscript]",
+   "tokens_used": 32,
+   "scope_used": "full",
+   "retrieval": {
+    "chunks_retrieved": 0,
+    "chapters_covered": [],
+    "scope_limited": false,
+    "summary_chapters": [
+     12,
+     13,
+     22,
+     29,
+     34,
+     35
+    ]
+   }
+  }
+ }
+]

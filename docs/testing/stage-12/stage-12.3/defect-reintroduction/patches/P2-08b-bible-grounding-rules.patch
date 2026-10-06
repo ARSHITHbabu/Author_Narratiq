@@ -1,0 +1,21 @@
+diff --git a/backend/services/ai_service.py b/backend/services/ai_service.py
+index 47ca004..b04f291 100644
+--- a/backend/services/ai_service.py
++++ b/backend/services/ai_service.py
+@@ -6077,15 +6077,7 @@ async def generate_story_bible_section(
+         # Grounding is enforced by giving the model a way to cite and a way to
+         # decline. Telling it not to invent, with no alternative to inventing,
+         # is what produced a confident and partly fictional story bible.
+-        "Every entry in the context is tagged with its source, like [Ch 7] or "
+-        "[Character: Devika Rao].\n"
+-        "RULES:\n"
+-        "1. Cite the source tag for every factual statement, in this shape (a placeholder, not "
+-        "content to copy): \"<a statement from the story> [Ch N]\".\n"
+-        f"2. If the manuscript does not establish something, write exactly "
+-        f"\"{BIBLE_NOT_ESTABLISHED}\" instead of guessing or filling the gap.\n"
+-        "3. Never state anything you cannot attribute to a tag shown in the context.\n"
+-        "4. If the context says material is missing, do not describe that material."
++        ""  # REINTRODUCED P2-8: grounding RULES block removed
+     )
+     user = f"{instruction}\n\nManuscript context:\n{context}"
+     # Per-line citations add roughly 6-10 tokens per entry. The character card is

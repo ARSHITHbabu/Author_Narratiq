@@ -1098,7 +1098,7 @@ def test_context_budget_scales_with_the_model_window():
 
     assert large > small, "budget must follow the serving window, not a constant"
     assert small < 8192, "budget must leave room for the completion and prompt"
-    assert large == 16384 - 1500 - 900
+    assert large == 16384 - story_bible._BIBLE_COMPLETION_TOKENS - 900
 
 
 def test_fair_share_gives_small_entries_all_they_need():
@@ -1292,3 +1292,14 @@ if __name__ == "__main__":
 
     print(f"\n{len(tests) - len(failures)}/{len(tests)} passed")
     sys.exit(1 if failures else 0)
+
+
+def test_the_context_budget_leaves_room_for_the_largest_section_completion():
+    """Stage 12.3: the budget assumed 1500 completion tokens while characters and
+    locations (and now timeline) ask for 1900 — a full context could overflow the
+    model window. The budget must reserve the largest completion actually used."""
+    import inspect
+    from routers import story_bible
+    from services import ai_service
+    src = inspect.getsource(ai_service.generate_story_bible_section)
+    assert "1900" in src and story_bible._BIBLE_COMPLETION_TOKENS >= 1900

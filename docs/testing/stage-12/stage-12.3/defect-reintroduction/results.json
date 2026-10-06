@@ -1,0 +1,806 @@
+{
+  "P2-02-plot-hole-coercion": {
+    "id": "P2-02-plot-hole-coercion",
+    "issue": "P2-2",
+    "file": "backend/services/ai_service.py",
+    "desc": "coerce_plot_hole_result made all-or-nothing again: one malformed finding (non-object or no description) discards the whole response instead of salvaging the usable findings (pre-3.4 hard-fail on invalid AI output)",
+    "tests": [
+      "tests/test_extract_json_audit.py"
+    ],
+    "kind": "primary",
+    "pytest_args": [],
+    "baseline": {
+      "exit": 0,
+      "summary": "21 passed in 7.29s",
+      "failures": []
+    },
+    "mutated": {
+      "exit": 1,
+      "summary": "1 failed, 20 passed in 7.55s",
+      "failures": [
+        "FAILED tests/test_extract_json_audit.py::test_parser_metrics_record_each_outcome - IndexError: pop from empty list"
+      ]
+    },
+    "restored": {
+      "exit": 0,
+      "summary": "21 passed in 6.96s",
+      "failures": []
+    },
+    "verdict": "RED AS EXPECTED"
+  },
+  "P2-02b-extract-json-repair": {
+    "id": "P2-02b-extract-json-repair",
+    "issue": "P2-2",
+    "file": "backend/services/ai_service.py",
+    "desc": "_extract_json JSON-repair step broken: the balanced-brace span extraction (JSON embedded in prose / after a preamble) is removed, so only bare or fenced JSON parses",
+    "tests": [
+      "tests/test_extract_json_audit.py"
+    ],
+    "kind": "probe",
+    "pytest_args": [],
+    "baseline": {
+      "exit": 0,
+      "summary": "21 passed in 6.82s",
+      "failures": []
+    },
+    "mutated": {
+      "exit": 0,
+      "summary": "21 passed in 6.78s",
+      "failures": []
+    },
+    "probe_results": [
+      {
+        "tests": [
+          "tests/test_degraded_output.py",
+          "tests/test_generation_limits.py"
+        ],
+        "exit": 0,
+        "summary": "49 passed in 5.32s",
+        "failures": []
+      }
+    ],
+    "restored": {
+      "exit": 0,
+      "summary": "21 passed in 6.63s",
+      "failures": []
+    },
+    "verdict": "GUARD GAP (mapped tests stayed green)"
+  },
+  "P2-04-voice-intent-silent-guess": {
+    "id": "P2-04-voice-intent-silent-guess",
+    "issue": "P2-4",
+    "file": "backend/services/voice/intent.py",
+    "desc": "voice intent.classify reverted to the pre-3.6 silent fallback: raw _complete + _extract_json(raw, fallback={}) so an unreadable classification becomes a repaired guess at confidence 0.4 instead of an honest failure",
+    "tests": [
+      "tests/test_voice_execution.py"
+    ],
+    "kind": "primary",
+    "pytest_args": [],
+    "baseline": {
+      "exit": 0,
+      "summary": "45 passed in 0.70s",
+      "failures": []
+    },
+    "mutated": {
+      "exit": 1,
+      "summary": "1 failed, 44 passed in 0.79s",
+      "failures": [
+        "FAILED tests/test_voice_execution.py::test_unreadable_classification_fails_honestly_instead_of_guessing - AssertionError: the silent-fallback is the defect"
+      ]
+    },
+    "restored": {
+      "exit": 0,
+      "summary": "45 passed in 0.75s",
+      "failures": []
+    },
+    "verdict": "RED AS EXPECTED"
+  },
+  "P2-05-voice-false-success": {
+    "id": "P2-05-voice-false-success",
+    "issue": "P2-5",
+    "file": "backend/services/voice/lifecycle.py",
+    "desc": "derive_command_status reports a dispatched-but-unexecuted plan (READY/PLANNED nodes) as SUCCEEDED \u2014 the original 'success at plan time' defect",
+    "tests": [
+      "tests/test_voice_execution.py",
+      "tests/test_voice_unit.py"
+    ],
+    "kind": "primary",
+    "pytest_args": [
+      "-k",
+      "not test_planner_drops_invalid_capability"
+    ],
+    "baseline": {
+      "exit": 0,
+      "summary": "79 passed, 1 deselected in 6.48s",
+      "failures": []
+    },
+    "mutated": {
+      "exit": 1,
+      "summary": "1 failed, 78 passed, 1 deselected in 6.20s",
+      "failures": [
+        "FAILED tests/test_voice_execution.py::test_a_plan_that_has_only_been_dispatched_is_not_success - AssertionError: assert 'succeeded' == 'executing'"
+      ]
+    },
+    "restored": {
+      "exit": 0,
+      "summary": "79 passed, 1 deselected in 6.94s",
+      "failures": []
+    },
+    "verdict": "RED AS EXPECTED"
+  },
+  "P2-08-bible-status-integrity": {
+    "id": "P2-08-bible-status-integrity",
+    "issue": "P2-8",
+    "file": "backend/routers/story_bible.py",
+    "desc": "derive_status returns STATUS_COMPLETED unconditionally (pre-3.2): a bible whose sections failed/were truncated/empty still reports 'completed'",
+    "tests": [
+      "tests/test_story_bible_outcomes.py",
+      "tests/test_story_bible_quality.py"
+    ],
+    "kind": "primary",
+    "pytest_args": [
+      "-k",
+      "not end_to_end and not manuscript_a and not manuscript_b"
+    ],
+    "baseline": {
+      "exit": 0,
+      "summary": "97 passed, 3 deselected in 11.47s",
+      "failures": []
+    },
+    "mutated": {
+      "exit": 1,
+      "summary": "14 failed, 83 passed, 3 deselected in 11.23s",
+      "failures": [
+        "ERROR    routers.story_bible:story_bible.py:671 [story_bible] section regeneration failed for s1/themes: context assembly failed",
+        "FAILED tests/test_story_bible_outcomes.py::test_status_is_failed_when_every_section_fails - AssertionError: assert 'completed' == 'failed'",
+        "FAILED tests/test_story_bible_outcomes.py::test_status_is_partial_when_some_sections_fail - AssertionError: assert 'completed' == 'partial'",
+        "FAILED tests/test_story_bible_outcomes.py::test_truncated_section_downgrades_status_to_partial - AssertionError: assert 'completed' == 'partial'",
+        "FAILED tests/test_story_bible_outcomes.py::test_empty_section_downgrades_status_to_partial - AssertionError: assert 'completed' == 'partial'",
+        "FAILED tests/test_story_bible_outcomes.py::test_every_failure_class_prevents_completed - AssertionError: AIServiceUnavailableError('AI services temporarily unavailable')",
+        "FAILED tests/test_story_bible_outcomes.py::test_derive_status_treats_no_outcomes_as_failed - AssertionError: assert 'completed' == 'failed'",
+        "FAILED tests/test_story_bible_outcomes.py::test_failed_sections_lists_all_five_when_everything_fails - AssertionError: assert 'completed' == 'failed'",
+        "FAILED tests/test_story_bible_outcomes.py::test_successful_regeneration_clears_stale_failures - AssertionError: assert 'completed' == 'partial'",
+        "FAILED tests/test_story_bible_outcomes.py::test_failed_sections_are_absent_from_content - AssertionError: assert 'completed' == 'partial'",
+        "FAILED tests/test_story_bible_outcomes.py::test_truncated_section_text_is_dropped - AssertionError: assert 'completed' == 'partial'",
+        "FAILED tests/test_story_bible_outcomes.py::test_total_failure_stores_no_content_at_all - AssertionError: assert 'completed' == 'failed'",
+        "FAILED tests/test_story_bible_outcomes.py::test_repairing_one_of_several_leaves_the_bible_partial - AssertionError: assert 'completed' == 'partial'",
+        "FAILED tests/test_story_bible_outcomes.py::test_failed_repair_keeps_the_entry_and_stores_no_content - AssertionError: assert 'completed' == 'partial'",
+        "FAILED tests/test_story_bible_outcomes.py::test_failed_section_repair_restores_status_instead_of_failing_the_bible - AssertionError: a failed repair must not fail the whole bible"
+      ]
+    },
+    "restored": {
+      "exit": 0,
+      "summary": "97 passed, 3 deselected in 9.30s",
+      "failures": []
+    },
+    "verdict": "RED AS EXPECTED"
+  },
+  "P2-08b-bible-grounding-rules": {
+    "id": "P2-08b-bible-grounding-rules",
+    "issue": "P2-8",
+    "file": "backend/services/ai_service.py",
+    "desc": "generate_story_bible_section grounding rules removed (pre-3.3): no 'cite the source tag' rule, no BIBLE_NOT_ESTABLISHED way to decline, no 'never state anything you cannot attribute' \u2014 only the bare 'do not invent' instruction that produced the hallucinated bible",
+    "tests": [
+      "tests/test_story_bible_outcomes.py",
+      "tests/test_story_bible_quality.py"
+    ],
+    "kind": "primary",
+    "pytest_args": [
+      "-k",
+      "not end_to_end and not manuscript_a and not manuscript_b"
+    ],
+    "baseline": {
+      "exit": 0,
+      "summary": "97 passed, 3 deselected in 9.65s",
+      "failures": []
+    },
+    "mutated": {
+      "exit": 1,
+      "summary": "1 failed, 96 passed, 3 deselected in 10.20s",
+      "failures": [
+        "FAILED tests/test_story_bible_outcomes.py::test_prompt_requires_citation_and_offers_a_way_to_decline - assert 'Cite the source tag for every factual statement' in 'async def generate_story_bible_section(\\n    section: st"
+      ]
+    },
+    "restored": {
+      "exit": 0,
+      "summary": "97 passed, 3 deselected in 9.24s",
+      "failures": []
+    },
+    "verdict": "RED AS EXPECTED"
+  },
+  "P2-09-hint-reconcile-noop": {
+    "id": "P2-09-hint-reconcile-noop",
+    "issue": "P2-9",
+    "file": "backend/services/character_names.py",
+    "desc": "resolve_hints_for_names made a no-op: registering/confirming a character never dismisses the matching unrecognised-name hint (the original 'nothing made that decision' defect)",
+    "tests": [
+      "tests/test_character_hint_sync.py"
+    ],
+    "kind": "primary",
+    "pytest_args": [],
+    "baseline": {
+      "exit": 0,
+      "summary": "17 passed in 0.14s",
+      "failures": []
+    },
+    "mutated": {
+      "exit": 1,
+      "summary": "7 failed, 10 passed in 0.23s",
+      "failures": [
+        "FAILED tests/test_character_hint_sync.py::test_exact_name_match_dismisses_the_hint - assert 0 == 1",
+        "FAILED tests/test_character_hint_sync.py::test_case_insensitive_match_dismisses_the_hint - assert False is True",
+        "FAILED tests/test_character_hint_sync.py::test_whitespace_normalised_match_dismisses_the_hint - assert False is True",
+        "FAILED tests/test_character_hint_sync.py::test_alias_match_dismisses_the_hint - assert False is True",
+        "FAILED tests/test_character_hint_sync.py::test_every_hint_for_the_same_name_is_resolved_at_once - assert 0 == 2",
+        "FAILED tests/test_character_hint_sync.py::test_a_batch_of_names_resolves_all_of_them - assert 0 == 2",
+        "FAILED tests/test_character_hint_sync.py::test_creation_and_reconciliation_share_one_normalisation - assert False is True"
+      ]
+    },
+    "restored": {
+      "exit": 0,
+      "summary": "17 passed in 0.16s",
+      "failures": []
+    },
+    "verdict": "RED AS EXPECTED"
+  },
+  "P2-09b-create-character-wiring": {
+    "id": "P2-09b-create-character-wiring",
+    "issue": "P2-9",
+    "file": "backend/routers/characters.py",
+    "desc": "create_character no longer calls resolve_hints_for_names (router wiring removed; service left intact) \u2014 a hand-added character stays in the unrecognised list",
+    "tests": [
+      "tests/test_character_hint_sync.py"
+    ],
+    "kind": "probe",
+    "pytest_args": [],
+    "baseline": {
+      "exit": 0,
+      "summary": "17 passed in 0.15s",
+      "failures": []
+    },
+    "mutated": {
+      "exit": 0,
+      "summary": "17 passed in 0.15s",
+      "failures": []
+    },
+    "restored": {
+      "exit": 0,
+      "summary": "17 passed in 0.15s",
+      "failures": []
+    },
+    "verdict": "GUARD GAP (mapped tests stayed green)"
+  },
+  "P2-12-outline-beats-field": {
+    "id": "P2-12-outline-beats-field",
+    "issue": "P2-12",
+    "file": "frontend/components/ai-tools/AIToolsSidebar.tsx",
+    "desc": "scene-outline UI reads res.data.beats again (backend returns `outline`) \u2014 outline renders nothing",
+    "tests": [
+      "tests/test_generation_limits.py"
+    ],
+    "kind": "primary",
+    "pytest_args": [],
+    "baseline": {
+      "exit": 0,
+      "summary": "24 passed in 5.78s",
+      "failures": []
+    },
+    "mutated": {
+      "exit": 1,
+      "summary": "1 failed, 23 passed in 5.32s",
+      "failures": [
+        "FAILED tests/test_generation_limits.py::test_frontend_reads_outline_not_beats - AssertionError: frontend no longer reads res.data.outline"
+      ]
+    },
+    "restored": {
+      "exit": 0,
+      "summary": "24 passed in 5.43s",
+      "failures": []
+    },
+    "verdict": "RED AS EXPECTED"
+  },
+  "P2-12b-retrieval-query-kwarg": {
+    "id": "P2-12b-retrieval-query-kwarg",
+    "issue": "P2-12/P2-13",
+    "file": "backend/routers/writing_tools.py",
+    "desc": "PRE-1 root cause restored: writing_tools calls retrieve_relevant_chunks(query=...) instead of question= (TypeError at runtime -> outline/continuation fail)",
+    "tests": [
+      "tests/test_generation_limits.py"
+    ],
+    "kind": "probe",
+    "pytest_args": [],
+    "baseline": {
+      "exit": 0,
+      "summary": "24 passed in 5.76s",
+      "failures": []
+    },
+    "mutated": {
+      "exit": 0,
+      "summary": "24 passed in 6.02s",
+      "failures": []
+    },
+    "probe_results": [
+      {
+        "tests": [
+          "tests/test_retrieval_signatures.py"
+        ],
+        "exit": 1,
+        "summary": "1 failed, 17 passed in 5.62s",
+        "failures": [
+          "FAILED tests/test_retrieval_signatures.py::test_continuation_passes_question_and_story_id - KeyError: 'question'"
+        ]
+      }
+    ],
+    "restored": {
+      "exit": 0,
+      "summary": "24 passed in 5.04s",
+      "failures": []
+    },
+    "verdict": "GUARD GAP (mapped tests stayed green)"
+  },
+  "P2-13-continuation-token-budget": {
+    "id": "P2-13-continuation-token-budget",
+    "issue": "P2-13",
+    "file": "backend/services/ai_service.py",
+    "desc": "continuation max_tokens fixed at 1600 regardless of requested length (pre-3.1) \u2014 Long truncates",
+    "tests": [
+      "tests/test_generation_limits.py"
+    ],
+    "kind": "primary",
+    "pytest_args": [],
+    "baseline": {
+      "exit": 0,
+      "summary": "24 passed in 5.36s",
+      "failures": []
+    },
+    "mutated": {
+      "exit": 1,
+      "summary": "2 failed, 22 passed in 5.27s",
+      "failures": [
+        "FAILED tests/test_generation_limits.py::test_max_tokens_scales_with_continuation_length - AssertionError: (1600, 1600, 1600)",
+        "FAILED tests/test_generation_limits.py::test_long_budget_clears_the_measured_truncation_point - AssertionError: long budget 1600 leaves too little headroom over the measured 1600"
+      ]
+    },
+    "restored": {
+      "exit": 0,
+      "summary": "24 passed in 5.35s",
+      "failures": []
+    },
+    "verdict": "RED AS EXPECTED"
+  },
+  "P2-14-continuity-silent-all-clear": {
+    "id": "P2-14-continuity-silent-all-clear",
+    "issue": "P2-14",
+    "file": "backend/services/ai_service.py",
+    "desc": "check_continuity reverted to raw _complete + _extract_json(raw, fallback=[]) \u2014 unreadable model output becomes an empty list, i.e. a false 'no contradictions found'",
+    "tests": [
+      "tests/test_extract_json_audit.py",
+      "tests/test_continuity_citation_validation.py"
+    ],
+    "kind": "primary",
+    "pytest_args": [],
+    "baseline": {
+      "exit": 0,
+      "summary": "36 passed in 6.41s",
+      "failures": []
+    },
+    "mutated": {
+      "exit": 1,
+      "summary": "1 failed, 35 passed in 6.47s",
+      "failures": [
+        "FAILED tests/test_extract_json_audit.py::test_no_new_direct_extract_json_callers - AssertionError: unregistered _extract_json caller(s): ['check_continuity'] \u2014 use complete_structured(), or add a justified row to REGISTE"
+      ]
+    },
+    "restored": {
+      "exit": 0,
+      "summary": "36 passed in 7.16s",
+      "failures": []
+    },
+    "verdict": "RED AS EXPECTED"
+  },
+  "P2-14b-continuity-failure-not-flagged": {
+    "id": "P2-14b-continuity-failure-not-flagged",
+    "issue": "P2-14",
+    "file": "backend/services/ai_service.py",
+    "desc": "check_continuity keeps the structured contract but reports an unreadable response as a clean, non-degraded empty result (false all-clear via the meta instead of via the parser)",
+    "tests": [
+      "tests/test_extract_json_audit.py",
+      "tests/test_continuity_citation_validation.py"
+    ],
+    "kind": "probe",
+    "pytest_args": [],
+    "baseline": {
+      "exit": 0,
+      "summary": "36 passed in 6.75s",
+      "failures": []
+    },
+    "mutated": {
+      "exit": 0,
+      "summary": "36 passed in 7.03s",
+      "failures": []
+    },
+    "probe_results": [
+      {
+        "tests": [
+          "tests/test_degraded_output.py"
+        ],
+        "exit": 0,
+        "summary": "25 passed in 6.26s",
+        "failures": []
+      }
+    ],
+    "restored": {
+      "exit": 0,
+      "summary": "36 passed in 6.96s",
+      "failures": []
+    },
+    "verdict": "GUARD GAP (mapped tests stayed green)"
+  },
+  "S5-5.1-version-label-only": {
+    "id": "S5-5.1-version-label-only",
+    "issue": "Stage 5 task 5.1",
+    "file": "backend/services/prompt_registry.py",
+    "desc": "resolve_prompt_version always runs the fallback's builder but reports the requested version \u2014 the version becomes a logged label, not actual prompt content",
+    "tests": [
+      "tests/test_prompt_registry.py"
+    ],
+    "kind": "primary",
+    "pytest_args": [],
+    "baseline": {
+      "exit": 0,
+      "summary": "9 passed in 0.03s",
+      "failures": []
+    },
+    "mutated": {
+      "exit": 1,
+      "summary": "2 failed, 7 passed in 0.07s",
+      "failures": [
+        "FAILED tests/test_prompt_registry.py::test_selecting_a_version_actually_changes_the_builder_not_just_a_label - AssertionError: assert 'You are a literary writing coach. Rewrite the passage in a dark tone. Keep all events",
+        "FAILED tests/test_prompt_registry.py::test_unknown_version_fails_safe_to_the_configured_fallback - AssertionError: an unknown version must resolve to the real fallback, not itself"
+      ]
+    },
+    "restored": {
+      "exit": 0,
+      "summary": "9 passed in 0.05s",
+      "failures": []
+    },
+    "verdict": "RED AS EXPECTED"
+  },
+  "S5-5.3-name-preservation-check": {
+    "id": "S5-5.3-name-preservation-check",
+    "issue": "Stage 5 task 5.3",
+    "file": "backend/services/transform_preservation.py",
+    "desc": "check_character_name_preservation never reports a dropped character name (the deterministic preservation check is neutralised, so the repair-retry never fires)",
+    "tests": [
+      "tests/test_transform_preservation.py"
+    ],
+    "kind": "primary",
+    "pytest_args": [],
+    "baseline": {
+      "exit": 0,
+      "summary": "27 passed in 5.41s",
+      "failures": []
+    },
+    "mutated": {
+      "exit": 1,
+      "summary": "3 failed, 24 passed in 4.90s",
+      "failures": [
+        "FAILED tests/test_transform_preservation.py::test_check_character_name_preservation_detects_a_dropped_name - AssertionError: assert [] == ['Devika']",
+        "FAILED tests/test_transform_preservation.py::test_run_constrained_transform_repairs_a_dropped_name_and_clears_the_violation - AssertionError: must retry exactly once on a detected violation, not zero or more than once",
+        "FAILED tests/test_transform_preservation.py::test_run_constrained_transform_reports_violation_when_retry_also_fails - AssertionError: retry is bounded to exactly one attempt, never looped further"
+      ]
+    },
+    "restored": {
+      "exit": 0,
+      "summary": "27 passed in 5.93s",
+      "failures": []
+    },
+    "verdict": "RED AS EXPECTED"
+  },
+  "S5-5.4-lock-byte-identity": {
+    "id": "S5-5.4-lock-byte-identity",
+    "issue": "Stage 5 task 5.4",
+    "file": "backend/services/transform_preservation.py",
+    "desc": "reconstruct_with_locks trusts the model's echo of each [KEEP] segment instead of splicing the original captured bytes \u2014 locked sentences can be silently rewritten",
+    "tests": [
+      "tests/test_transform_preservation.py"
+    ],
+    "kind": "primary",
+    "pytest_args": [],
+    "baseline": {
+      "exit": 0,
+      "summary": "27 passed in 5.68s",
+      "failures": []
+    },
+    "mutated": {
+      "exit": 1,
+      "summary": "1 failed, 26 passed in 5.23s",
+      "failures": [
+        "FAILED tests/test_transform_preservation.py::test_reconstruct_splices_original_bytes_for_locked_segments_never_model_echo - AssertionError: assert 'zzz XXX yyy' == 'zzz BBB yyy'"
+      ]
+    },
+    "restored": {
+      "exit": 0,
+      "summary": "27 passed in 5.01s",
+      "failures": []
+    },
+    "verdict": "RED AS EXPECTED"
+  },
+  "S5-5.6-strength-proxy": {
+    "id": "S5-5.6-strength-proxy",
+    "issue": "Stage 5 task 5.6",
+    "file": "backend/services/transform_preservation.py",
+    "desc": "check_strength_violation never flags a 'light' edit, whatever the sentence-count change (strength control has no deterministic ceiling)",
+    "tests": [
+      "tests/test_transform_preservation.py"
+    ],
+    "kind": "primary",
+    "pytest_args": [],
+    "baseline": {
+      "exit": 0,
+      "summary": "27 passed in 4.89s",
+      "failures": []
+    },
+    "mutated": {
+      "exit": 1,
+      "summary": "1 failed, 26 passed in 5.51s",
+      "failures": [
+        "FAILED tests/test_transform_preservation.py::test_light_strength_flags_sentence_count_change - AssertionError: assert False is True"
+      ]
+    },
+    "restored": {
+      "exit": 0,
+      "summary": "27 passed in 5.66s",
+      "failures": []
+    },
+    "verdict": "RED AS EXPECTED"
+  },
+  "S5-5.11-glossary-consistency": {
+    "id": "S5-5.11-glossary-consistency",
+    "issue": "Stage 5 task 5.11",
+    "file": "backend/services/transform_preservation.py",
+    "desc": "check_translation_name_consistency ignores the glossary: a name correctly transliterated per the approved glossary is flagged missing (byte-identity semantics wrongly applied to translation)",
+    "tests": [
+      "tests/test_transform_preservation.py"
+    ],
+    "kind": "primary",
+    "pytest_args": [],
+    "baseline": {
+      "exit": 0,
+      "summary": "27 passed in 5.18s",
+      "failures": []
+    },
+    "mutated": {
+      "exit": 1,
+      "summary": "1 failed, 26 passed in 4.97s",
+      "failures": [
+        "FAILED tests/test_transform_preservation.py::test_translation_name_transliterated_per_glossary_is_not_a_violation - AssertionError: assert ['Devika'] == []"
+      ]
+    },
+    "restored": {
+      "exit": 0,
+      "summary": "27 passed in 5.02s",
+      "failures": []
+    },
+    "verdict": "RED AS EXPECTED"
+  },
+  "S5-5.13-priority-sort": {
+    "id": "S5-5.13-priority-sort",
+    "issue": "Stage 5 task 5.13",
+    "file": "backend/services/ai_service.py",
+    "desc": "coerce_writing_suggestions no longer orders suggestions high > medium > low (model's arbitrary order returned)",
+    "tests": [
+      "tests/test_suggestions_priority.py"
+    ],
+    "kind": "primary",
+    "pytest_args": [],
+    "baseline": {
+      "exit": 0,
+      "summary": "11 passed in 5.38s",
+      "failures": []
+    },
+    "mutated": {
+      "exit": 1,
+      "summary": "1 failed, 10 passed in 5.21s",
+      "failures": [
+        "FAILED tests/test_suggestions_priority.py::test_suggestions_sorted_high_before_medium_before_low - assert [1, 2, 3] == [2, 3, 1]"
+      ]
+    },
+    "restored": {
+      "exit": 0,
+      "summary": "11 passed in 5.17s",
+      "failures": []
+    },
+    "verdict": "RED AS EXPECTED"
+  },
+  "S5-5.14-continuity-tier1": {
+    "id": "S5-5.14-continuity-tier1",
+    "issue": "Stage 5 task 5.14",
+    "file": "backend/services/ai_service.py",
+    "desc": "validate_continuity_citations Tier-1 existence check removed: findings citing fabricated / out-of-range chapters are kept",
+    "tests": [
+      "tests/test_continuity_citation_validation.py",
+      "tests/test_manuscript_report_citations.py"
+    ],
+    "kind": "primary",
+    "pytest_args": [],
+    "baseline": {
+      "exit": 0,
+      "summary": "31 passed in 5.38s",
+      "failures": []
+    },
+    "mutated": {
+      "exit": 1,
+      "summary": "2 failed, 29 passed in 5.05s",
+      "failures": [
+        "FAILED tests/test_continuity_citation_validation.py::test_fabricated_out_of_range_chapter_is_suppressed - AssertionError: assert [{'chapter_re...es at once.'}] == []",
+        "FAILED tests/test_continuity_citation_validation.py::test_partially_fabricated_ref_set_is_suppressed - AssertionError: assert [{'chapter_re...iption': 'x'}] == []"
+      ]
+    },
+    "restored": {
+      "exit": 0,
+      "summary": "31 passed in 5.25s",
+      "failures": []
+    },
+    "verdict": "RED AS EXPECTED"
+  },
+  "S5-5.14b-report-citations": {
+    "id": "S5-5.14b-report-citations",
+    "issue": "Stage 5 task 5.14",
+    "file": "backend/services/ai_service.py",
+    "desc": "validate_manuscript_report_citations._valid accepts every chapter reference, so fabricated chapters survive in arcs/pacing/threads/strengths/improvements/themes",
+    "tests": [
+      "tests/test_continuity_citation_validation.py",
+      "tests/test_manuscript_report_citations.py"
+    ],
+    "kind": "primary",
+    "pytest_args": [],
+    "baseline": {
+      "exit": 0,
+      "summary": "31 passed in 5.34s",
+      "failures": []
+    },
+    "mutated": {
+      "exit": 1,
+      "summary": "7 failed, 24 passed in 5.26s",
+      "failures": [
+        "FAILED tests/test_manuscript_report_citations.py::test_character_arc_with_partially_fabricated_chapters_keeps_only_real_ones - assert [1, 99] == [1]",
+        "FAILED tests/test_manuscript_report_citations.py::test_character_arc_with_entirely_fabricated_chapters_is_suppressed - assert 0 == 1",
+        "FAILED tests/test_manuscript_report_citations.py::test_pacing_chapters_are_filtered_to_real_ones - assert [2, 50] == [2]",
+        "FAILED tests/test_manuscript_report_citations.py::test_thread_entirely_fabricated_is_suppressed - assert 0 == 1",
+        "FAILED tests/test_manuscript_report_citations.py::test_strength_with_no_valid_chapters_is_suppressed - assert 0 == 1",
+        "FAILED tests/test_manuscript_report_citations.py::test_theme_with_fabricated_chapters_only_is_suppressed - assert 0 == 1",
+        "FAILED tests/test_manuscript_report_citations.py::test_mixed_report_false_positive_and_false_negative_count - AssertionError: assert (2 == 1)"
+      ]
+    },
+    "restored": {
+      "exit": 0,
+      "summary": "31 passed in 5.17s",
+      "failures": []
+    },
+    "verdict": "RED AS EXPECTED"
+  },
+  "S5-5.15-syllable-count": {
+    "id": "S5-5.15-syllable-count",
+    "issue": "Stage 5 task 5.15",
+    "file": "backend/services/analytics_service.py",
+    "desc": "_count_syllables back to vowel-LETTER counting (old frontend regex): 'queue' scores 4, skewing readability",
+    "tests": [
+      "tests/test_analytics_service.py"
+    ],
+    "kind": "primary",
+    "pytest_args": [],
+    "baseline": {
+      "exit": 0,
+      "summary": "22 passed in 0.05s",
+      "failures": []
+    },
+    "mutated": {
+      "exit": 1,
+      "summary": "1 failed, 21 passed in 0.07s",
+      "failures": [
+        "FAILED tests/test_analytics_service.py::test_queue_scores_one_syllable_not_four - AssertionError: assert 3 == 1"
+      ]
+    },
+    "restored": {
+      "exit": 0,
+      "summary": "22 passed in 0.06s",
+      "failures": []
+    },
+    "verdict": "RED AS EXPECTED"
+  },
+  "P2-10-notes-duplicated-in-plan": {
+    "id": "P2-10-notes-duplicated-in-plan",
+    "issue": "P2-10",
+    "file": "frontend/app/(dashboard)/projects/[id]/plan/page.tsx",
+    "desc": "Notes re-mounted as a 'Notes' section of the Plan workspace (it also lives in World) \u2014 the pre-8.8 duplicated-across-navigation state",
+    "tests": [
+      "tests/tool-homes.spec.ts"
+    ],
+    "kind": "primary",
+    "pytest_args": [],
+    "baseline": {
+      "exit": 0,
+      "summary": "8 passed (2.1s)",
+      "failures": []
+    },
+    "mutated": {
+      "exit": 1,
+      "summary": "2 failed | 6 passed (2.3s)",
+      "failures": [
+        "1) [unit] \u203a tests/tool-homes.spec.ts:17:5 \u203a Plan and World pages offer exactly the registered sections",
+        "2) [unit] \u203a tests/tool-homes.spec.ts:22:5 \u203a Notes and Narrative Threads are no longer duplicated (Phase 2 Issue 10)"
+      ]
+    },
+    "restored": {
+      "exit": 0,
+      "summary": "8 passed (2.2s)",
+      "failures": []
+    },
+    "verdict": "RED AS EXPECTED"
+  },
+  "P2-01u-toolbar-escape-dismiss": {
+    "id": "P2-01u-toolbar-escape-dismiss",
+    "issue": "P2-1",
+    "file": "frontend/lib/selectionOwnership.ts",
+    "desc": "resolveToolbarMode ignores `dismissed` \u2014 Escape no longer hides the toolbar (same mutation as browser-prepared/P2-01-toolbar-escape-dismiss.patch)",
+    "tests": [
+      "tests/selection-ownership.spec.ts"
+    ],
+    "kind": "supplementary",
+    "pytest_args": [],
+    "baseline": {
+      "exit": 0,
+      "summary": "34 passed (8.0s)",
+      "failures": []
+    },
+    "mutated": {
+      "exit": 1,
+      "summary": "2 failed | 32 passed (8.2s)",
+      "failures": [
+        "1) [unit] \u203a tests/selection-ownership.spec.ts:99:5 \u203a Escape hides the toolbar even with a live selection",
+        "2) [unit] \u203a tests/selection-ownership.spec.ts:215:5 \u203a Escape dismissal applies to the dismissed selection object only"
+      ]
+    },
+    "restored": {
+      "exit": 0,
+      "summary": "34 passed (7.6s)",
+      "failures": []
+    },
+    "verdict": "RED AS EXPECTED"
+  },
+  "P2-11u-toolbar-with-sidebar-open": {
+    "id": "P2-11u-toolbar-with-sidebar-open",
+    "issue": "P2-11",
+    "file": "frontend/lib/selectionOwnership.ts",
+    "desc": "selectionOwner no longer gives the selection to the open AI sidebar \u2014 the floating toolbar shows alongside it (same mutation as browser-prepared/P2-11-toolbar-with-sidebar-open.patch)",
+    "tests": [
+      "tests/selection-ownership.spec.ts"
+    ],
+    "kind": "supplementary",
+    "pytest_args": [],
+    "baseline": {
+      "exit": 0,
+      "summary": "34 passed (7.1s)",
+      "failures": []
+    },
+    "mutated": {
+      "exit": 1,
+      "summary": "6 failed | 28 passed (8.2s)",
+      "failures": [
+        "1) [unit] \u203a tests/selection-ownership.spec.ts:44:5 \u203a the sidebar owns the selection whenever it is visible",
+        "2) [unit] \u203a tests/selection-ownership.spec.ts:48:5 \u203a the sidebar still owns the selection when nothing is selected \u2014 it uses the full chapter",
+        "3) [unit] \u203a tests/selection-ownership.spec.ts:61:5 \u203a the two surfaces are never both owners \u2014 for every input combination",
+        "4) [unit] \u203a tests/selection-ownership.spec.ts:95:5 \u203a opening the AI sidebar suppresses the toolbar controls",
+        "5) [unit] \u203a tests/selection-ownership.spec.ts:119:5 \u203a closing the sidebar hands the same selection straight back to the toolbar",
+        "6) [unit] \u203a tests/selection-ownership.spec.ts:124:5 \u203a repeated sidebar open/close cycles are stateless \u2014 the rule is derived, never remembered"
+      ]
+    },
+    "restored": {
+      "exit": 0,
+      "summary": "34 passed (7.5s)",
+      "failures": []
+    },
+    "verdict": "RED AS EXPECTED"
+  }
+}

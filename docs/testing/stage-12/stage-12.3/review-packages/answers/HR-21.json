@@ -1,0 +1,69 @@
+{
+ "hr": "HR-21",
+ "reviewer": "AI Agent — Owner-authorised independent review",
+ "label": "AGENT REVIEW — AUTHORISED BY OWNER",
+ "method": "Tabletop performed from the documents only (incident-response.md, backup-and-restore.md, incidents/TEMPLATE.md); the running system was not touched",
+ "date": "2026-10-06",
+ "status": "PASS",
+ "answers": {
+  "HR-21.Q1": {
+   "value": "SEV1 — the database is empty after a restart and a backup holding author data exists: 'Author data lost … or at risk of loss' (incident-response.md §1; §5 'Database empty after a restart (SEV1)'); also login is down for everyone."
+  },
+  "HR-21.Q2": {
+   "value": "YES",
+   "note": ""
+  },
+  "HR-21.Q3": {
+   "value": "(1) Declare: open a report from docs/incidents/TEMPLATE.md with UTC time, SEV1 and the symptom; (2) Protect data first: do not override the guard, do not restart the pod, back up whatever exists (nothing here) — never restore over uncopied data; (3) Diagnose with evidence: alerts.jsonl, /tmp/narratiq-logs/*.log, the guard's printed message (incident-response.md §3)."
+  },
+  "HR-21.Q4": {
+   "value": "YES",
+   "note": ""
+  },
+  "HR-21.Q5": {
+   "value": "The set the guard names as 'Newest backup holding author data' (backup-and-restore.md §4a), preferring one recorded as passed in LAST-VERIFY.json; check it first with `python3 scripts/verify_backup.py --set narratiq-<stamp>` and the printed `sha256sum -c` (§4 steps 2–3)."
+  },
+  "HR-21.Q6": {
+   "value": "YES",
+   "note": "§4 step 2 said only 'prefer the newest set' — fine in this scenario, but see the gap below."
+  },
+  "HR-21.Q7": {
+   "value": "backup-and-restore.md §4: stop writes and the loop (step 1); unset PG* variables; roles on a fresh pod (step 5); step 6: `su postgres -c \"dropdb --if-exists narratiq && createdb -O narratiq narratiq && psql -d narratiq -c 'CREATE EXTENSION IF NOT EXISTS vector'\"`, `pg_restore --list … | grep -v ' EXTENSION ' > /tmp/restore.list`, `su postgres -c \"pg_restore --no-owner --role=narratiq --exit-on-error -L /tmp/restore.list -d narratiq\" < …dump`; step 7 uploads: `tar -xzf /workspace/backups/narratiq-uploads-<stamp>.tar.gz -C backend/uploads`."
+  },
+  "HR-21.Q8": {
+   "value": "YES",
+   "note": ""
+  },
+  "HR-21.Q9": {
+   "value": "§4 step 8: build a live manifest (`backup_snapshot.py manifest`) and compare it with the set's manifest — must print MATCH; spot-check one manuscript's last chapter in the app; then step 9 start-narratiq.sh (guard now passes) and confirm the watchdog alert resolves (incident-response.md §3 step 5)."
+  },
+  "HR-21.Q10": {
+   "value": "YES",
+   "note": ""
+  },
+  "HR-21.Q11": {
+   "value": "docs/incidents/YYYY-MM-DD-short-slug.md (incident-response.md §4), from docs/incidents/TEMPLATE.md; §8 'Preventive actions' is a table of Action | Owner | Tracked in — every preventive action becomes a tracked checklist item or issue with an owner (§3 step 7)."
+  },
+  "HR-21.Q12": {
+   "value": "YES",
+   "note": ""
+  },
+  "HR-21.Q13": {
+   "value": "One gap, no improvisation needed in this scenario: backup-and-restore.md §4 step 2 said 'prefer the newest set' without saying it must hold author data (a set taken after a loss is empty) — clarified in the runbook on 2026-10-06. Note: `pkill -f 'uvicorn main:app'` in §3/§4 is correct for a person's shell, but kills an automation tool's own shell (CLAUDE.md shell gotcha)."
+  }
+ },
+ "result_reasoning": "All six answers were found in the documents within the session without improvisation → PASS (MV-10.9 criterion). One robustness gap (§4 step 2) recorded and fixed in the runbook afterwards; the result above is from the original documents.",
+ "per_issue": {},
+ "failures": [
+  {
+   "item": "backup-and-restore.md §4 step 2",
+   "problem": "'Prefer the newest set' did not say the set must hold author data — fixed 2026-10-06",
+   "severity": "Minor (doc)"
+  }
+ ],
+ "evidence": [
+  "docs/operations/incident-response.md",
+  "docs/operations/backup-and-restore.md §4, §4a",
+  "docs/incidents/TEMPLATE.md"
+ ]
+}

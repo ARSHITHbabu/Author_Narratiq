@@ -1,0 +1,17 @@
+applied P2-02b-extract-json-repair
+  P2-02b-extract-json-repair: WARNING  services.ai_service:ai_service.py:605 [ai_service] failed to parse model output as JSON (chars=87)
+  P2-02b-extract-json-repair: WARNING  services.ai_service:ai_service.py:605 [ai_service] failed to parse model output as JSON (chars=32)
+  P2-02b-extract-json-repair: WARNING  services.ai_service:ai_service.py:605 [ai_service] failed to parse model output as JSON (chars=58)
+  P2-02b-extract-json-repair: FAILED tests/test_reintroduction_guard_gaps.py::test_extract_json_repairs_the_shapes_a_7b_model_actually_returns[Here is the analysis you asked for: {"issues": [{"description": "x"}]} Hope this helps!-expected0] - assert None == {'issues': [{'description': 'x'}]}
+  P2-02b-extract-json-repair: FAILED tests/test_reintroduction_guard_gaps.py::test_extract_json_repairs_the_shapes_a_7b_model_actually_returns[Sure.\n```json\n{"issues": []}\n```-expected1] - assert None == {'issues': []}
+  P2-02b-extract-json-repair: FAILED tests/test_reintroduction_guard_gaps.py::test_extract_json_repairs_the_shapes_a_7b_model_actually_returns[Result:\n[{"name": "Mira"}, {"name": "Hessa"}]\nThat is all.-expected3] - assert None == [{'name': 'Mira'}, {'name': 'Hessa'}]
+  P2-02b-extract-json-repair: 3 failed, 7 passed, 1 warning in 10.33s
+applied P2-09b-create-character-wiring
+  P2-09b-create-character-wiring: FAILED tests/test_reintroduction_guard_gaps.py::test_create_character_route_dismisses_the_matching_hint - AssertionError: create_character no longer reconciles hints (P2-9 wiring)
+  P2-09b-create-character-wiring: 1 failed, 9 passed, 1 warning in 10.80s
+applied P2-14b-continuity-failure-not-flagged
+  P2-14b-continuity-failure-not-flagged: WARNING  services.ai_service:ai_service.py:607 [ai_service] failed to parse model output as JSON (chars=63)
+  P2-14b-continuity-failure-not-flagged: WARNING  services.ai_service:ai_service.py:607 [ai_service] failed to parse model output as JSON (chars=63)
+  P2-14b-continuity-failure-not-flagged: WARNING  services.ai_service:ai_service.py:302 [ai_service] parse_metric feature=continuity outcome=failed attempts=2 discarded=0 calls=1
+  P2-14b-continuity-failure-not-flagged: FAILED tests/test_reintroduction_guard_gaps.py::test_unreadable_continuity_output_is_degraded_not_a_clean_result - AssertionError: unreadable output was reported as a clean manuscript (P2-14)
+  P2-14b-continuity-failure-not-flagged: 1 failed, 9 passed, 1 warning in 11.01s

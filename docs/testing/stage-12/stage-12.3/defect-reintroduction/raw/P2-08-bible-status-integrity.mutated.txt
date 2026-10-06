@@ -1,0 +1,354 @@
+$ (cwd /workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/backend) python3 -m pytest tests/test_story_bible_outcomes.py tests/test_story_bible_quality.py -k not end_to_end and not manuscript_a and not manuscript_b -q -p no:cacheprovider -rfE --no-header -W ignore
+
+[conftest] DB safety guard: running against allow-listed test database 'narratiq_ci_verify'
+...............FF.FFF.F......FF.....F..F.F....FF...F.............................................                                                                                                                                                               [100%]
+============================================================================================================================== FAILURES ===============================================================================================================================
+___________________________________________________________________________________________________________ test_status_is_failed_when_every_section_fails ____________________________________________________________________________________________________________
+
+    def test_status_is_failed_when_every_section_fails():
+        """SB-F09/F16/F17/F20 — five placeholders is not a completed story bible."""
+        results = {s: AIServiceUnavailableError() for s in story_bible._BIBLE_SECTIONS}
+        bible, _ = _run_pipeline(results)
+>       assert bible.status == story_bible.STATUS_FAILED
+E       AssertionError: assert 'completed' == 'failed'
+E         
+E         - failed
+E         + completed
+
+tests/test_story_bible_outcomes.py:281: AssertionError
+-------------------------------------------------------------------------------------------------------------------------- Captured log call --------------------------------------------------------------------------------------------------------------------------
+WARNING  routers.story_bible:story_bible.py:489 [story_bible] s1: source fingerprint unavailable (TypeError) — staleness unknown
+WARNING  routers.story_bible:story_bible.py:524 [story_bible] AI unavailable for section characters (story=s1): AI services temporarily unavailable
+WARNING  routers.story_bible:story_bible.py:524 [story_bible] AI unavailable for section locations (story=s1): AI services temporarily unavailable
+WARNING  routers.story_bible:story_bible.py:524 [story_bible] AI unavailable for section timeline (story=s1): AI services temporarily unavailable
+WARNING  routers.story_bible:story_bible.py:524 [story_bible] AI unavailable for section world_rules (story=s1): AI services temporarily unavailable
+WARNING  routers.story_bible:story_bible.py:524 [story_bible] AI unavailable for section themes (story=s1): AI services temporarily unavailable
+WARNING  routers.story_bible:story_bible.py:544 [story_bible] s1: 0/5 sections generated; failed — characters=unavailable, locations=unavailable, timeline=unavailable, world_rules=unavailable, themes=unavailable
+INFO     routers.story_bible:story_bible.py:571 [story_bible] completed v1 for s1 (0/5 sections)
+___________________________________________________________________________________________________________ test_status_is_partial_when_some_sections_fail ____________________________________________________________________________________________________________
+
+    def test_status_is_partial_when_some_sections_fail():
+        results = _all_good()
+        results["themes"] = ValueError("boom")
+        bible, _ = _run_pipeline(results)
+>       assert bible.status == story_bible.STATUS_PARTIAL
+E       AssertionError: assert 'completed' == 'partial'
+E         
+E         - partial
+E         + completed
+
+tests/test_story_bible_outcomes.py:288: AssertionError
+-------------------------------------------------------------------------------------------------------------------------- Captured log call --------------------------------------------------------------------------------------------------------------------------
+WARNING  routers.story_bible:story_bible.py:489 [story_bible] s1: source fingerprint unavailable (TypeError) — staleness unknown
+WARNING  routers.story_bible:story_bible.py:533 [story_bible] section themes failed (story=s1): ValueError: boom
+WARNING  routers.story_bible:story_bible.py:544 [story_bible] s1: 4/5 sections generated; failed — themes=error
+INFO     routers.story_bible:story_bible.py:571 [story_bible] completed v1 for s1 (4/5 sections)
+_________________________________________________________________________________________________________ test_truncated_section_downgrades_status_to_partial _________________________________________________________________________________________________________
+
+    def test_truncated_section_downgrades_status_to_partial():
+        """SB-F13 — the section reads like prose and raises nothing; it must still
+        stop the bible being called completed."""
+        results = _all_good()
+        results["timeline"] = ("Chapter 1: she wakes and the", "length")
+        bible, _ = _run_pipeline(results)
+>       assert bible.status == story_bible.STATUS_PARTIAL
+E       AssertionError: assert 'completed' == 'partial'
+E         
+E         - partial
+E         + completed
+
+tests/test_story_bible_outcomes.py:302: AssertionError
+-------------------------------------------------------------------------------------------------------------------------- Captured log call --------------------------------------------------------------------------------------------------------------------------
+WARNING  routers.story_bible:story_bible.py:489 [story_bible] s1: source fingerprint unavailable (TypeError) — staleness unknown
+WARNING  routers.story_bible:story_bible.py:520 [story_bible] section timeline not usable (story=s1): truncated
+WARNING  routers.story_bible:story_bible.py:544 [story_bible] s1: 4/5 sections generated; failed — timeline=truncated
+INFO     routers.story_bible:story_bible.py:571 [story_bible] completed v1 for s1 (4/5 sections)
+___________________________________________________________________________________________________________ test_empty_section_downgrades_status_to_partial ___________________________________________________________________________________________________________
+
+    def test_empty_section_downgrades_status_to_partial():
+        """SB-F12 — same, for a section that came back blank."""
+        results = _all_good()
+        results["locations"] = ("", "stop")
+        bible, _ = _run_pipeline(results)
+>       assert bible.status == story_bible.STATUS_PARTIAL
+E       AssertionError: assert 'completed' == 'partial'
+E         
+E         - partial
+E         + completed
+
+tests/test_story_bible_outcomes.py:310: AssertionError
+-------------------------------------------------------------------------------------------------------------------------- Captured log call --------------------------------------------------------------------------------------------------------------------------
+WARNING  routers.story_bible:story_bible.py:489 [story_bible] s1: source fingerprint unavailable (TypeError) — staleness unknown
+WARNING  routers.story_bible:story_bible.py:520 [story_bible] section locations not usable (story=s1): empty
+WARNING  routers.story_bible:story_bible.py:544 [story_bible] s1: 4/5 sections generated; failed — locations=empty
+INFO     routers.story_bible:story_bible.py:571 [story_bible] completed v1 for s1 (4/5 sections)
+_____________________________________________________________________________________________________________ test_every_failure_class_prevents_completed _____________________________________________________________________________________________________________
+
+    def test_every_failure_class_prevents_completed():
+        """No failure class may slip through as success."""
+        for section_result in (
+            AIServiceUnavailableError(),
+            ValueError("boom"),
+            ("", "stop"),
+            ("   \n ", "stop"),
+            ("cut off mid-sen", "length"),
+        ):
+            results = _all_good()
+            results["characters"] = section_result
+            bible, _ = _run_pipeline(results)
+>           assert bible.status != story_bible.STATUS_COMPLETED, section_result
+E           AssertionError: AIServiceUnavailableError('AI services temporarily unavailable')
+E           assert 'completed' != 'completed'
+E            +  where 'completed' = <tests.test_story_bible_outcomes._FakeBible object at 0x74f9fe261cd0>.status
+E            +  and   'completed' = story_bible.STATUS_COMPLETED
+
+tests/test_story_bible_outcomes.py:325: AssertionError
+-------------------------------------------------------------------------------------------------------------------------- Captured log call --------------------------------------------------------------------------------------------------------------------------
+WARNING  routers.story_bible:story_bible.py:489 [story_bible] s1: source fingerprint unavailable (TypeError) — staleness unknown
+WARNING  routers.story_bible:story_bible.py:524 [story_bible] AI unavailable for section characters (story=s1): AI services temporarily unavailable
+WARNING  routers.story_bible:story_bible.py:544 [story_bible] s1: 4/5 sections generated; failed — characters=unavailable
+INFO     routers.story_bible:story_bible.py:571 [story_bible] completed v1 for s1 (4/5 sections)
+___________________________________________________________________________________________________________ test_derive_status_treats_no_outcomes_as_failed ___________________________________________________________________________________________________________
+
+    def test_derive_status_treats_no_outcomes_as_failed():
+>       assert story_bible.derive_status([]) == story_bible.STATUS_FAILED
+E       AssertionError: assert 'completed' == 'failed'
+E         
+E         - failed
+E         + completed
+
+tests/test_story_bible_outcomes.py:347: AssertionError
+______________________________________________________________________________________________________ test_failed_sections_lists_all_five_when_everything_fails ______________________________________________________________________________________________________
+
+    def test_failed_sections_lists_all_five_when_everything_fails():
+        results = {s: AIServiceUnavailableError() for s in story_bible._BIBLE_SECTIONS}
+        bible, _ = _run_pipeline(results)
+        assert len(bible.failed_sections) == 5
+>       assert bible.status == story_bible.STATUS_FAILED
+E       AssertionError: assert 'completed' == 'failed'
+E         
+E         - failed
+E         + completed
+
+tests/test_story_bible_outcomes.py:464: AssertionError
+-------------------------------------------------------------------------------------------------------------------------- Captured log call --------------------------------------------------------------------------------------------------------------------------
+WARNING  routers.story_bible:story_bible.py:489 [story_bible] s1: source fingerprint unavailable (TypeError) — staleness unknown
+WARNING  routers.story_bible:story_bible.py:524 [story_bible] AI unavailable for section characters (story=s1): AI services temporarily unavailable
+WARNING  routers.story_bible:story_bible.py:524 [story_bible] AI unavailable for section locations (story=s1): AI services temporarily unavailable
+WARNING  routers.story_bible:story_bible.py:524 [story_bible] AI unavailable for section timeline (story=s1): AI services temporarily unavailable
+WARNING  routers.story_bible:story_bible.py:524 [story_bible] AI unavailable for section world_rules (story=s1): AI services temporarily unavailable
+WARNING  routers.story_bible:story_bible.py:524 [story_bible] AI unavailable for section themes (story=s1): AI services temporarily unavailable
+WARNING  routers.story_bible:story_bible.py:544 [story_bible] s1: 0/5 sections generated; failed — characters=unavailable, locations=unavailable, timeline=unavailable, world_rules=unavailable, themes=unavailable
+INFO     routers.story_bible:story_bible.py:571 [story_bible] completed v1 for s1 (0/5 sections)
+_________________________________________________________________________________________________________ test_successful_regeneration_clears_stale_failures __________________________________________________________________________________________________________
+
+    def test_successful_regeneration_clears_stale_failures():
+        """The largest correctness risk in this unit: a repaired bible must stop
+        reporting sections that are now fine."""
+        bible = _FakeBible()
+        session = _FakeSession(bible)
+        originals = (database.SessionLocal,
+                     story_bible._build_full_context,
+                     story_bible.generate_story_bible_section)
+        database.SessionLocal = lambda: session
+        story_bible._build_full_context = lambda story_id, db: "CONTEXT"
+    
+        plan = {}
+    
+        async def fake_generate(section, context):
+            result = plan[section]
+            if isinstance(result, Exception):
+                raise result
+            return result
+    
+        story_bible.generate_story_bible_section = fake_generate
+        try:
+            # Run 1 — themes fails.
+            plan.update(_all_good())
+            plan["themes"] = ValueError("boom")
+            asyncio.run(story_bible._generate_bible_pipeline("s1", "b1", False))
+            assert [f["section"] for f in bible.failed_sections] == ["themes"]
+>           assert bible.status == story_bible.STATUS_PARTIAL
+E           AssertionError: assert 'completed' == 'partial'
+E             
+E             - partial
+E             + completed
+
+tests/test_story_bible_outcomes.py:493: AssertionError
+-------------------------------------------------------------------------------------------------------------------------- Captured log call --------------------------------------------------------------------------------------------------------------------------
+WARNING  routers.story_bible:story_bible.py:489 [story_bible] s1: source fingerprint unavailable (TypeError) — staleness unknown
+WARNING  routers.story_bible:story_bible.py:533 [story_bible] section themes failed (story=s1): ValueError: boom
+WARNING  routers.story_bible:story_bible.py:544 [story_bible] s1: 4/5 sections generated; failed — themes=error
+____________________________________________________________________________________________________________ test_failed_sections_are_absent_from_content _____________________________________________________________________________________________________________
+
+    def test_failed_sections_are_absent_from_content():
+        results = _all_good()
+        results["characters"] = AIServiceUnavailableError()
+        results["themes"] = ValueError("boom")
+        bible, _ = _run_pipeline(results)
+    
+        content = json.loads(bible.content_json)
+        assert set(content) == {"locations", "timeline", "world_rules"}
+        assert "characters" not in content, "a failed section must not be stored at all"
+        assert "themes" not in content
+        assert content["locations"] == "locations content"
+>       assert bible.status == story_bible.STATUS_PARTIAL
+E       AssertionError: assert 'completed' == 'partial'
+E         
+E         - partial
+E         + completed
+
+tests/test_story_bible_outcomes.py:603: AssertionError
+-------------------------------------------------------------------------------------------------------------------------- Captured log call --------------------------------------------------------------------------------------------------------------------------
+WARNING  routers.story_bible:story_bible.py:489 [story_bible] s1: source fingerprint unavailable (TypeError) — staleness unknown
+WARNING  routers.story_bible:story_bible.py:524 [story_bible] AI unavailable for section characters (story=s1): AI services temporarily unavailable
+WARNING  routers.story_bible:story_bible.py:533 [story_bible] section themes failed (story=s1): ValueError: boom
+WARNING  routers.story_bible:story_bible.py:544 [story_bible] s1: 3/5 sections generated; failed — characters=unavailable, themes=error
+INFO     routers.story_bible:story_bible.py:571 [story_bible] completed v1 for s1 (3/5 sections)
+_______________________________________________________________________________________________________________ test_truncated_section_text_is_dropped ________________________________________________________________________________________________________________
+
+    def test_truncated_section_text_is_dropped():
+        """Option A — a fragment is real prose that stops mid-sentence. Storing it
+        would render and export as a finished section. Only the failure record is
+        kept; deliberate preservation belongs to the pinning feature."""
+        results = _all_good()
+        results["timeline"] = ("Chapter 1: she wakes and the", "length")
+        bible, _ = _run_pipeline(results)
+    
+        content = json.loads(bible.content_json)
+        assert "timeline" not in content
+        assert "she wakes" not in bible.content_json
+        entry = next(f for f in bible.failed_sections if f["section"] == "timeline")
+        assert entry == {
+            "section": "timeline",
+            "failure": FAIL_TRUNCATED,
+            "reason": "This section was cut off before it finished.",
+        }
+>       assert bible.status == story_bible.STATUS_PARTIAL
+E       AssertionError: assert 'completed' == 'partial'
+E         
+E         - partial
+E         + completed
+
+tests/test_story_bible_outcomes.py:651: AssertionError
+-------------------------------------------------------------------------------------------------------------------------- Captured log call --------------------------------------------------------------------------------------------------------------------------
+WARNING  routers.story_bible:story_bible.py:489 [story_bible] s1: source fingerprint unavailable (TypeError) — staleness unknown
+WARNING  routers.story_bible:story_bible.py:520 [story_bible] section timeline not usable (story=s1): truncated
+WARNING  routers.story_bible:story_bible.py:544 [story_bible] s1: 4/5 sections generated; failed — timeline=truncated
+INFO     routers.story_bible:story_bible.py:571 [story_bible] completed v1 for s1 (4/5 sections)
+_____________________________________________________________________________________________________________ test_total_failure_stores_no_content_at_all _____________________________________________________________________________________________________________
+
+    def test_total_failure_stores_no_content_at_all():
+        results = {s: AIServiceUnavailableError() for s in story_bible._BIBLE_SECTIONS}
+        bible, _ = _run_pipeline(results)
+        assert json.loads(bible.content_json) == {}
+>       assert bible.status == story_bible.STATUS_FAILED
+E       AssertionError: assert 'completed' == 'failed'
+E         
+E         - failed
+E         + completed
+
+tests/test_story_bible_outcomes.py:672: AssertionError
+-------------------------------------------------------------------------------------------------------------------------- Captured log call --------------------------------------------------------------------------------------------------------------------------
+WARNING  routers.story_bible:story_bible.py:489 [story_bible] s1: source fingerprint unavailable (TypeError) — staleness unknown
+WARNING  routers.story_bible:story_bible.py:524 [story_bible] AI unavailable for section characters (story=s1): AI services temporarily unavailable
+WARNING  routers.story_bible:story_bible.py:524 [story_bible] AI unavailable for section locations (story=s1): AI services temporarily unavailable
+WARNING  routers.story_bible:story_bible.py:524 [story_bible] AI unavailable for section timeline (story=s1): AI services temporarily unavailable
+WARNING  routers.story_bible:story_bible.py:524 [story_bible] AI unavailable for section world_rules (story=s1): AI services temporarily unavailable
+WARNING  routers.story_bible:story_bible.py:524 [story_bible] AI unavailable for section themes (story=s1): AI services temporarily unavailable
+WARNING  routers.story_bible:story_bible.py:544 [story_bible] s1: 0/5 sections generated; failed — characters=unavailable, locations=unavailable, timeline=unavailable, world_rules=unavailable, themes=unavailable
+INFO     routers.story_bible:story_bible.py:571 [story_bible] completed v1 for s1 (0/5 sections)
+_______________________________________________________________________________________________________ test_repairing_one_of_several_leaves_the_bible_partial ________________________________________________________________________________________________________
+
+    def test_repairing_one_of_several_leaves_the_bible_partial():
+        bible = _bible_with(
+            {"characters": "c", "locations": "l", "timeline": "t"},
+            [{"section": "themes", "failure": FAIL_ERROR, "reason": "x"},
+             {"section": "world_rules", "failure": FAIL_EMPTY, "reason": "y"}],
+            story_bible.STATUS_PARTIAL,
+        )
+        _run_section_pipeline(bible, "themes", ("themes content", "stop"))
+    
+>       assert bible.status == story_bible.STATUS_PARTIAL
+E       AssertionError: assert 'completed' == 'partial'
+E         
+E         - partial
+E         + completed
+
+tests/test_story_bible_outcomes.py:763: AssertionError
+______________________________________________________________________________________________________ test_failed_repair_keeps_the_entry_and_stores_no_content _______________________________________________________________________________________________________
+
+    def test_failed_repair_keeps_the_entry_and_stores_no_content():
+        bible = _bible_with(
+            {"characters": "c", "locations": "l", "timeline": "t", "world_rules": "w"},
+            [{"section": "themes", "failure": FAIL_ERROR, "reason": "x"}],
+            story_bible.STATUS_PARTIAL,
+        )
+        _run_section_pipeline(bible, "themes", AIServiceUnavailableError())
+    
+        assert "themes" not in json.loads(bible.content_json)
+        entry = next(f for f in bible.failed_sections if f["section"] == "themes")
+        assert entry["failure"] == FAIL_UNAVAILABLE
+>       assert bible.status == story_bible.STATUS_PARTIAL
+E       AssertionError: assert 'completed' == 'partial'
+E         
+E         - partial
+E         + completed
+
+tests/test_story_bible_outcomes.py:778: AssertionError
+-------------------------------------------------------------------------------------------------------------------------- Captured log call --------------------------------------------------------------------------------------------------------------------------
+WARNING  routers.story_bible:story_bible.py:635 [story_bible] AI unavailable regenerating themes (story=s1): AI services temporarily unavailable
+_______________________________________________________________________________________________ test_failed_section_repair_restores_status_instead_of_failing_the_bible _______________________________________________________________________________________________
+
+    def test_failed_section_repair_restores_status_instead_of_failing_the_bible():
+        """A broken repair attempt must not destroy four good sections."""
+        bible = _bible_with(
+            {"characters": "c", "locations": "l", "timeline": "t", "world_rules": "w"},
+            [{"section": "themes", "failure": FAIL_ERROR, "reason": "x"}],
+            story_bible.STATUS_PARTIAL,
+        )
+        session = _FakeSession(bible)
+        originals = (database.SessionLocal, story_bible._build_full_context)
+        database.SessionLocal = lambda: session
+    
+        def _boom(story_id, db):
+            raise RuntimeError("context assembly failed")
+    
+        story_bible._build_full_context = _boom
+        try:
+            asyncio.run(story_bible._regenerate_section_pipeline("s1", "b1", "themes"))
+        finally:
+            database.SessionLocal, story_bible._build_full_context = originals
+    
+>       assert bible.status == story_bible.STATUS_PARTIAL, "a failed repair must not fail the whole bible"
+E       AssertionError: a failed repair must not fail the whole bible
+E       assert 'completed' == 'partial'
+E         
+E         - partial
+E         + completed
+
+tests/test_story_bible_outcomes.py:836: AssertionError
+-------------------------------------------------------------------------------------------------------------------------- Captured log call --------------------------------------------------------------------------------------------------------------------------
+ERROR    routers.story_bible:story_bible.py:671 [story_bible] section regeneration failed for s1/themes: context assembly failed
+======================================================================================================================= short test summary info =======================================================================================================================
+FAILED tests/test_story_bible_outcomes.py::test_status_is_failed_when_every_section_fails - AssertionError: assert 'completed' == 'failed'
+FAILED tests/test_story_bible_outcomes.py::test_status_is_partial_when_some_sections_fail - AssertionError: assert 'completed' == 'partial'
+FAILED tests/test_story_bible_outcomes.py::test_truncated_section_downgrades_status_to_partial - AssertionError: assert 'completed' == 'partial'
+FAILED tests/test_story_bible_outcomes.py::test_empty_section_downgrades_status_to_partial - AssertionError: assert 'completed' == 'partial'
+FAILED tests/test_story_bible_outcomes.py::test_every_failure_class_prevents_completed - AssertionError: AIServiceUnavailableError('AI services temporarily unavailable')
+FAILED tests/test_story_bible_outcomes.py::test_derive_status_treats_no_outcomes_as_failed - AssertionError: assert 'completed' == 'failed'
+FAILED tests/test_story_bible_outcomes.py::test_failed_sections_lists_all_five_when_everything_fails - AssertionError: assert 'completed' == 'failed'
+FAILED tests/test_story_bible_outcomes.py::test_successful_regeneration_clears_stale_failures - AssertionError: assert 'completed' == 'partial'
+FAILED tests/test_story_bible_outcomes.py::test_failed_sections_are_absent_from_content - AssertionError: assert 'completed' == 'partial'
+FAILED tests/test_story_bible_outcomes.py::test_truncated_section_text_is_dropped - AssertionError: assert 'completed' == 'partial'
+FAILED tests/test_story_bible_outcomes.py::test_total_failure_stores_no_content_at_all - AssertionError: assert 'completed' == 'failed'
+FAILED tests/test_story_bible_outcomes.py::test_repairing_one_of_several_leaves_the_bible_partial - AssertionError: assert 'completed' == 'partial'
+FAILED tests/test_story_bible_outcomes.py::test_failed_repair_keeps_the_entry_and_stores_no_content - AssertionError: assert 'completed' == 'partial'
+FAILED tests/test_story_bible_outcomes.py::test_failed_section_repair_restores_status_instead_of_failing_the_bible - AssertionError: a failed repair must not fail the whole bible
+14 failed, 83 passed, 3 deselected in 11.23s
+/workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/backend/database.py:38: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+  Base = declarative_base()
+/usr/local/lib/python3.11/dist-packages/pytest_asyncio/plugin.py:208: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))

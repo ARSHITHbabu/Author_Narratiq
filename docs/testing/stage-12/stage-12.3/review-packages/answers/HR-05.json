@@ -1,0 +1,63 @@
+{
+ "hr": "HR-05",
+ "reviewer": "AI Agent — Owner-authorised independent review",
+ "label": "AGENT REVIEW — AUTHORISED BY OWNER",
+ "method": "Derived from the recorded answers in HR-01–HR-04 and HR-08",
+ "date": "2026-10-06",
+ "status": "FAIL",
+ "answers": {
+  "HR-05.Q1": {
+   "value": "Reject",
+   "note": "Edit-vs-rewrite scores across 16 rewrites: tone 4/2/3/3, emotion 1/2/3/2, audience 4/5/3/4, style 4/3/4/2 — emotion and strong outputs often rewrite rather than edit."
+  },
+  "HR-05.Q2": {
+   "value": "Reject",
+   "note": "Voice scores mostly 2–3; distinctive phrasing is replaced (HR-01 P1/P3, HR-04 P1/P4)."
+  },
+  "HR-05.Q3": {
+   "value": "Reject",
+   "note": "Invented content in most samples, Major in 3 of 4 emotion samples and HR-04 P4."
+  },
+  "HR-05.Q4": {
+   "value": "Reject",
+   "note": "Subtlety loss rated Major in 11 of 16 rewrites."
+  },
+  "HR-05.Q5": {
+   "value": "Reject",
+   "note": "Gothic, technical and adventure passages drift to the same ornate register ('semblance', 'tapestry', 'christened', 'hollow ache')."
+  },
+  "HR-05.Q6": {
+   "value": "Reject",
+   "note": "Names are kept, but meaning is changed in 6 samples (HR-01 P2/P4, HR-03 P3, HR-04 P1/P2/P4) and in 5 of 16 children's rewrites (HR-08) — meaning is not protected before style."
+  }
+ },
+ "result_reasoning": "All six cross-module Criticals: Reject, derived from the per-sample answers (no Blocking answer anywhere, so the only blocker is the Reject verdicts). Under OD-11 none closes.",
+ "per_issue": {
+  "AWT-A": {
+   "verdict": "open",
+   "reason": "OD-11: HR-05 verdict Reject"
+  },
+  "AWT-B": {
+   "verdict": "open",
+   "reason": "OD-11: HR-05 verdict Reject"
+  },
+  "AWT-E": {
+   "verdict": "open",
+   "reason": "OD-11: HR-05 verdict Reject"
+  },
+  "AWT-F": {
+   "verdict": "open",
+   "reason": "OD-11: HR-05 verdict Reject"
+  },
+  "AWT-H": {
+   "verdict": "open",
+   "reason": "OD-11: HR-05 verdict Reject"
+  },
+  "AWT-J": {
+   "verdict": "open",
+   "reason": "OD-11: HR-05 verdict Reject"
+  }
+ },
+ "failures": [],
+ "evidence": []
+}

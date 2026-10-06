@@ -1,0 +1,20 @@
+{
+ "hr": "HR-25",
+ "reviewer": "AI Agent — Owner-authorised independent review",
+ "label": "AGENT REVIEW — AUTHORISED BY OWNER",
+ "method": "Computed from the recorded inputs only (package §17 rule: PASS needs every input PASS or owner-accepted; FAIL if any input failed and is not accepted; INCOMPLETE if any input is not done). No owner acceptance of a failed input is recorded.",
+ "date": "2026-10-06",
+ "status": "FAIL",
+ "answers": {
+  "HR-25.Q1": {
+   "value": "FAIL"
+  },
+  "HR-25.Q2": {
+   "value": "Failed: HR-14 (UI-C6, UI-H13). Incomplete: HR-15 (sessions), HR-16 (real screen reader). Passed: HR-13. Outside: UI-H12 multi-hour session; 8.9 CI check (W-1)."
+  }
+ },
+ "result_reasoning": "Stage 8 gate: FAIL — HR-14 failed; HR-15 and HR-16 are also incomplete.",
+ "per_issue": {},
+ "failures": [],
+ "evidence": []
+}

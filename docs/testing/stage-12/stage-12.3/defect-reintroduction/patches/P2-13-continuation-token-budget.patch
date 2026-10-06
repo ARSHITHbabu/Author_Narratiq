@@ -1,0 +1,13 @@
+diff --git a/backend/services/ai_service.py b/backend/services/ai_service.py
+index 47ca004..86663ec 100644
+--- a/backend/services/ai_service.py
++++ b/backend/services/ai_service.py
+@@ -5457,7 +5457,7 @@ async def generate_continuations(
+     # to [], which was silently padded into three "please retry" cards.
+     # 1.9 tokens/word is a measured upper bound for this model on English prose.
+     # The 1600 floor keeps short and medium byte-identical to previous behaviour.
+-    max_tokens = max(1600, int(3 * continuation_length * 1.9) + 400)
++    max_tokens = 1600  # REINTRODUCED P2-13
+ 
+     raw, finish_reason = await _complete_ex(
+         system, user, temperature=0.8, max_tokens=max_tokens,

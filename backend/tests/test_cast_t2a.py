@@ -220,3 +220,86 @@ def test_saved_characters_stay_alphabetical_unless_importance_is_chosen():
         imp = [c["name"] for c in client.get(f"/api/stories/{a.sid}/characters?order=importance", headers=a.headers).json()]
         assert imp == ["Kira", "Elara", "Marn"]
         assert client.get(f"/api/stories/{a.sid}/characters?order=random", headers=a.headers).status_code == 422
+
+
+# ── Stage 12.3: CAST-H10 failure shape replayed deterministically ────────────
+# The raw model output of probe run 7 (docs/testing/stage-12/tranche3/
+# cast-variability-probe.json, the shape of every observed failure: runs 7, 8,
+# 9, 23): the living antagonist labelled `historical`/`deceased`, the
+# Cartographer omitted. CAST-H10 is accepted variability (owner, 2026-10-03);
+# what must never happen is that it turns into a lost, merged or reordered-away
+# character. These tests pin that without a model (owner-approved treatment,
+# 2026-10-06).
+
+CAST_H10_RAW_RUN7 = (
+    '[{"name": "Mira Okoye", "presence": "on_page", "role": "protagonist", "status": "active"},'
+    ' {"name": "Corvin Ashe", "presence": "on_page", "role": "supporting", "status": "active"},'
+    ' {"name": "Hessa Lin", "presence": "on_page", "role": "supporting", "status": "active"},'
+    ' {"name": "Magistrate Ondrej Vell", "presence": "historical", "role": "antagonist", "status": "deceased"}]'
+)
+
+
+def _replay_extract_cast(monkeypatch, raw):
+    import asyncio
+    from services import ai_service
+    from routers.search import _html_to_plain
+    from tests.fixtures.retrieval_fixture import CHAPTERS
+
+    async def fake_complete(*_a, **_k):
+        return raw
+
+    monkeypatch.setattr(ai_service, "_complete", fake_complete)
+    texts = [_html_to_plain(c["content"]) for c in CHAPTERS]
+    return asyncio.run(ai_service.extract_cast(texts))
+
+
+def test_cast_h10_failure_shape_keeps_every_character_identity(monkeypatch):
+    from tests._cast_identity import identity_problems
+    cast = _replay_extract_cast(monkeypatch, CAST_H10_RAW_RUN7)
+    assert identity_problems(cast) == []
+    vell = [c for c in cast if "ondrej vell" in c["name"].lower()]
+    assert len(vell) == 1 and vell[0]["presence"] == "historical"   # label kept, character kept
+    assert vell[0]["role"] == "antagonist"
+
+
+def test_identity_check_catches_lost_merged_and_invented_characters():
+    """The identity check itself must fail on the defects it exists for."""
+    from tests._cast_identity import identity_problems
+    good = [{"name": "Mira Okoye"}, {"name": "Corvin Ashe"}, {"name": "Hessa Lin"},
+            {"name": "Ondrej Vell", "presence": "historical", "role": "antagonist"},
+            {"name": "The Cartographer", "presence": "historical"}]
+    assert identity_problems(good) == []
+    assert any(p.startswith("LOST") for p in identity_problems(good[:3]))
+    merged = good[:2] + [{"name": "Hessa Lin / Ondrej Vell"}]
+    assert any(p.startswith("MERGED") for p in identity_problems(merged))
+    invented = good + [{"name": "Captain Arlo Venn"}]
+    assert any(p.startswith("INVENTED") for p in identity_problems(invented))
+    dup = good + [{"name": "Hessa Lin"}]
+    assert any(p.startswith("DUPLICATED") for p in identity_problems(dup))
+    carto_on_page = good[:4] + [{"name": "The Cartographer", "presence": "on_page"}]
+    assert any(p.startswith("CARTOGRAPHER ON PAGE") for p in identity_problems(carto_on_page))
+    flagged = good[:3] + [{"name": "Ondrej Vell", "_possible_combined_with": "Corvin Ashe"}]
+    assert any(p.startswith("MERGE FLAG") for p in identity_problems(flagged))
+
+
+def test_generate_cast_lists_a_living_character_labelled_historical(monkeypatch):
+    """Router side of CAST-H10: the mislabelled antagonist is still suggested
+    (once, ordered with the off-page figures, not pre-selected by the UI —
+    frontend/tests/studio/stage12.spec.ts), never dropped."""
+    from _phase3_helpers import two_authors
+    _stub_cast(monkeypatch, [
+        {"name": "Mira Okoye", "role": "protagonist", "presence": "on_page", "first_appearance": "Chapter 1"},
+        {"name": "Corvin Ashe", "role": "supporting", "presence": "on_page", "first_appearance": "Chapter 1"},
+        {"name": "Hessa Lin", "role": "supporting", "presence": "on_page", "first_appearance": "Chapter 2"},
+        {"name": "Magistrate Ondrej Vell", "role": "antagonist", "presence": "historical",
+         "status": "deceased", "first_appearance": "Chapter 4"},
+    ])
+    with two_authors() as (db, a, _b, client):
+        r = client.post(f"/api/stories/{a.sid}/characters/generate-cast", headers=a.headers, json={})
+        assert r.status_code == 200, r.text
+        sug = r.json()["suggestions"]
+        names = [s["name"] for s in sug]
+        assert sorted(names) == sorted(["Mira Okoye", "Corvin Ashe", "Hessa Lin", "Magistrate Ondrej Vell"])
+        assert names[0] == "Mira Okoye"                        # protagonist first
+        assert names[-1] == "Magistrate Ondrej Vell"           # off-page figures last
+        assert {s["name"]: s for s in sug}["Magistrate Ondrej Vell"]["presence"] == "historical"

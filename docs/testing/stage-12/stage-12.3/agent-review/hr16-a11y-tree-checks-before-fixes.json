@@ -1,0 +1,9 @@
+{
+ "note": "Recreated 2026-10-06 from the console output of the pre-fix runs of s16.cjs / s16probe.cjs on :3200 (the JSON file of that run was overwritten by the post-fix run). Chromium accessibility tree via Playwright — NOT a screen reader.",
+ "findings": [
+  {"step": "step1", "result": "PROBLEM", "detail": "Saved layout restored the AI assistant open: on load focus = H2 'AI Assistant'; first Tab = 'Restore AI assistant width' (skip link bypassed). With the panel closed: first Tab = 'Skip to content' (as expected)."},
+  {"step": "step3", "result": "PROBLEM", "detail": "editor role=null name=null aria-multiline=null (contenteditable div.tiptap.ProseMirror); toolbars=1; radiogroups=1 radios=[Draft, Edit]"},
+  {"step": "axe world", "result": "PROBLEM", "detail": "serious: scrollable-region-focusable (1) — div.flex-1.overflow-y-auto.px-3.pb-4 (StoryBiblePanel section content, 40-chapter bible)"},
+  {"step": "step6 (first attempt)", "result": "script error, not a product defect", "detail": "The script used the Writing Metrics card, which is not an analysis panel with a Back button; rerun with Continuity per the a11y spec."}
+ ]
+}

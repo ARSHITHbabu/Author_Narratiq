@@ -1,0 +1,72 @@
+{
+ "hr": "HR-16",
+ "reviewer": "AI Agent — Owner-authorised independent review",
+ "label": "AGENT REVIEW — AUTHORISED BY OWNER",
+ "method": "Automated accessibility-tree and keyboard checks with Playwright/Chromium on :3200 (synthetic 40-chapter story) + axe WCAG 2.1 AA on all seven workspaces. NO screen reader was used.",
+ "date": "2026-10-06",
+ "status": "INCOMPLETE",
+ "answers": {
+  "HR-16.Q1": {
+   "value": "As expected",
+   "note": "Automated: first Tab = 'Skip to content', Enter moves focus to main. Before the fix this failed when the saved layout reopened the AI panel (fixed)."
+  },
+  "HR-16.Q2": {
+   "value": "As expected",
+   "note": "Automated: nav 'Workspaces' with 8 named items; aria-current=page only on Write."
+  },
+  "HR-16.Q3": {
+   "value": "As expected",
+   "note": "Automated: editor is role=textbox 'Chapter text', aria-multiline=true (was unnamed — fixed); formatting toolbar role=toolbar; Draft/Edit is a radiogroup."
+  },
+  "HR-16.Q4": {
+   "value": "As expected",
+   "note": "Automated: heading 'AI Assistant' receives focus on open; Rewrite/Generate/Versions are tabs; Close returns focus to the 'AI assistant' button."
+  },
+  "HR-16.Q5": {
+   "value": "As expected",
+   "note": "Automated: Plan and World each expose one tablist with exactly one aria-selected tab."
+  },
+  "HR-16.Q6": {
+   "value": "As expected",
+   "note": "Automated: Continuity opens with focus on its H1; 'Back to all analyses' returns focus to the Continuity card."
+  },
+  "HR-16.Q7": {
+   "value": "As expected",
+   "note": "Automated: Ctrl+K opens one dialog named 'Command palette' with a combobox search field, focused."
+  },
+  "HR-16.Q8": {
+   "value": "None — INCOMPLETE — REAL SCREEN-READER REVIEW REQUIRED. Automated checks only: Playwright 1.x / Chromium headless accessibility tree + @axe-core/playwright."
+  },
+  "HR-16.Q9": {
+   "value": "Fixed during the review: (1) AI panel took focus on load when restored from the saved layout, bypassing the skip link; (2) manuscript editor had no role or name; (3) Story Bible scroll area not keyboard-focusable (axe serious). Remaining observation: the palette search field's name comes only from its placeholder (no aria-label). Not checked at all: speech output, verbosity, live-region announcements, reading order as spoken."
+  }
+ },
+ "result_reasoning": "INCOMPLETE — REAL SCREEN-READER REVIEW REQUIRED. Every step passes the automated accessibility-tree check after three fixes, and axe reports no violations on the seven workspaces with real data; but the MV-8.4 expected result is about what a screen reader announces, which only an NVDA/VoiceOver session can confirm.",
+ "per_issue": {},
+ "failures": [
+  {
+   "item": "Restored AI panel stole focus on load",
+   "problem": "First Tab skipped 'Skip to content' — FIXED (AISidecar.tsx; tests/studio/a11y.spec.ts, proven red on the old code)",
+   "severity": "High (fixed)"
+  },
+  {
+   "item": "Manuscript editor",
+   "problem": "No role or accessible name — FIXED (StoryEditor.tsx; a11y.spec.ts)",
+   "severity": "High (fixed)"
+  },
+  {
+   "item": "Story Bible scroll area",
+   "problem": "axe serious scrollable-region-focusable — FIXED (StoryBiblePanel.tsx; a11y.spec.ts)",
+   "severity": "High (fixed)"
+  },
+  {
+   "item": "Command palette search",
+   "problem": "Accessible name only from placeholder",
+   "severity": "Minor"
+  }
+ ],
+ "evidence": [
+  "docs/testing/stage-12/stage-12.3/agent-review/hr16-a11y-tree-checks-before-fixes.json",
+  "docs/testing/stage-12/stage-12.3/agent-review/hr16-a11y-tree-checks.json"
+ ]
+}

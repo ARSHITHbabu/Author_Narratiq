@@ -1,0 +1,13 @@
+diff --git a/backend/services/ai_service.py b/backend/services/ai_service.py
+index 47ca004..f57d69c 100644
+--- a/backend/services/ai_service.py
++++ b/backend/services/ai_service.py
+@@ -5672,7 +5672,7 @@ def validate_manuscript_report_citations(result: dict, chapter_numbers: set[int]
+     suppressed = 0
+ 
+     def _valid(refs) -> list[int]:
+-        return [r for r in (refs or []) if r in chapter_numbers]
++        return list(refs or [])  # REINTRODUCED 5.14: no existence check
+ 
+     cleaned = dict(result)
+ 

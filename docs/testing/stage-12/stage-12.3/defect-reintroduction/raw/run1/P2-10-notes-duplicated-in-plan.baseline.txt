@@ -1,0 +1,15 @@
+$ (cwd /workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/frontend) npx playwright test --project=unit --output=/tmp/claude-0/-workspace/45a7b97a-8dc8-4ac2-84e3-53bd8b62825e/scratchpad/pw-out tests/tool-homes.spec.ts
+
+
+Running 8 tests using 8 workers
+
+  ✓  1 [unit] › tests/tool-homes.spec.ts:59:5 › P3-off build drops Phase 3 homes cleanly (rollback, review L5) (15ms)
+  ✓  2 [unit] › tests/tool-homes.spec.ts:22:5 › Notes and Narrative Threads are no longer duplicated (Phase 2 Issue 10) (40ms)
+  ✓  3 [unit] › tests/tool-homes.spec.ts:50:5 › contextual second views carry a documented reason (15ms)
+  ✓  4 [unit] › tests/tool-homes.spec.ts:43:5 › sections named in Tool Homes exist in their workspace (19ms)
+  ✓  5 [unit] › tests/tool-homes.spec.ts:12:5 › tool ids are unique — one row, one home (14ms)
+  ✓  6 [unit] › tests/tool-homes.spec.ts:34:5 › every Analyze panel in the registry has a Tool Homes row in Analyze (26ms)
+  ✓  7 [unit] › tests/tool-homes.spec.ts:54:5 › Search & replace has a home and is mounted there (it was unreachable before Stage 8) (19ms)
+  ✓  8 [unit] › tests/tool-homes.spec.ts:17:5 › Plan and World pages offer exactly the registered sections (22ms)
+
+  8 passed (2.3s)

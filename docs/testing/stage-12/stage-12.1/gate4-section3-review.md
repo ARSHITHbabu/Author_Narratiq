@@ -140,3 +140,58 @@ review, or an external party.
 
 Counts after A1/A2: **unchanged** — fixed 33, accepted 6, human review 66 (G1 now awaiting re-validation), external 9,
 technical 0. **Undecided: 20 Critical / 55 High = 75.** No technically resolvable Critical or High remains.
+
+### Addendum — Stage 12.3 technical completion (2026-10-06)
+
+Re-checked individually from committed evidence on the new pod `12j8ehik2alm0j` (baseline `2b63b51`).
+
+* **Counts unchanged:** fixed 33, accepted 6, undecided **20 Critical / 55 High = 75** (human review 66, UAT 2 —
+  PA-H14, UI-H12 —, fluent-speaker translation 7 — AWT-5.1–5.7). **Technically actionable: 0.** The "55 High"
+  includes AWT-5.1–5.7, which are Medium task priority counted as High release-blocking.
+* **G3 and A1 — owner direction (2026-10-06):** A1 does **not** close G3 on its own (A1 had no emotion pairs, 4 of
+  its 12 pairs were identical texts, and it compared versions rather than judging quality absolutely). This
+  supersedes the decision guide's "your 2A result (+2C) pass → close" for G3. The absolute G3 review is HR-01–HR-05
+  of `docs/testing/stage-12/stage-12.3/review-packages/NarratIQ_Human_Review_Package.docx`.
+* **G6 — new finding:** the Writing Suggestions feature has had **no way in from the studio** since commit
+  `34dc303` (2026-06-12, "ui/ux update"); the Stage 5 overhaul was verified at the API level only. G6 (SUG-C1, C2;
+  SUG-H3–H8, H10, H11) can therefore be reviewed only on saved outputs and cannot be exercised in UAT until the owner
+  decides to restore or retire the tool (new owner box in the checklist's Stage 12.3 record). Classification of the
+  ten SUG items is unchanged (human review), but their closure now also depends on that owner decision.
+* **CAST-H10** (accepted 2026-10-03) — the live test that conflated character identity with the presence label was
+  split (owner-approved, 2026-10-06): identity is a hard test, the label is a non-blocking measured test; this is a
+  test-treatment change, not a change of the accepted limitation.
+* **Gate 4: still NOT passed.**
+
+### Addendum — owner-authorised agent human review (2026-10-06)
+
+The owner authorised the AI agent to perform HR-01 – HR-21 of the Human Review Package and to apply the owner's
+closure rules OD-11 – OD-20 (every answer is labelled **AGENT REVIEW — AUTHORISED BY OWNER**; answers in
+`docs/testing/stage-12/stage-12.3/review-packages/answers/`). Real-author UAT, the multi-hour session, fluent
+translation, legal review and a real screen-reader pass were **not** performed and are not claimed.
+
+**Closed under the owner's rules (12):** Critical **5** — AUDIT-C2, AUDIT-C4 (OD-15, Minor), SUG-C1 (OD-16, None),
+PA-C1 (OD-17, Correct), UI-C2 (OD-18, YES/None); High **7** — AUDIT-H9, SUG-H4, SUG-H6, PA-H13, UI-H9, UI-H10, UI-H14.
+
+**Still open after review (54 of the 66):** G1 all 5 (HR-06 FAIL, OD-12); G3 all 28 (HR-01 – HR-05 FAIL, HR-08 FAIL,
+OD-11 / OD-14); G5 AUDIT-C1, C3, C5, H6, H7, H8, H10 (Major); G6 SUG-C2, H3, H5, H7, H8, H10, H11 (Major); G7 PA-C9,
+PA-H10, PA-H11 (OD-17 fail); G8 UI-C1 (awaits HR-15 sessions), UI-C6, UI-H13 (HR-14 Q12 = NO), UI-H11 (HR-15 not done).
+
+| Category | Before (2026-10-06 a.m.) C / H / total | **After agent review C / H / total** |
+|---|---|---|
+| 1. Fixed and verified | 17 / 16 / 33 | **17 / 16 / 33** |
+| 2. Accepted by the owner | 2 / 4 / 6 | **2 / 4 / 6** |
+| 2b. Closed under owner rule OD-15 – OD-18 after agent review | — | **5 / 7 / 12** |
+| 3. Human quality review — reviewed, still open | 20 / 46 / 66 | **15 / 39 / 54** |
+| 6. External or other blockers | 0 / 9 / 9 | **0 / 9 / 9** |
+| **Total** | 39 / 75 / 114 | **39 / 75 / 114** |
+
+**Undecided (neither fixed, accepted nor closed): 15 Critical / 48 High = 63.** Every remaining item has a
+completed agent review with a failing or incomplete result; closing any of them now needs a fix that changes the
+model's behaviour, an explicit owner acceptance, or an external party. **Technically actionable Critical/High: 0** —
+the technical defects the review found were fixed during the review (they are new findings, not among the 114):
+undo emptied a chapter and autosave saved it (Critical); Manuscript Report over the model window; Manuscript Report plot-importance display all 0; Story Bible
+timeline and characters truncated; Suggestions mid-word excerpt and false repetition claims; a rewrite returned in
+'Before:/After:' form; three accessibility defects (restored AI panel took focus, unnamed editor, unfocusable Story
+Bible scroll area). Each has a regression test proven red on the old code.
+
+**Gate 4: still NOT passed.**

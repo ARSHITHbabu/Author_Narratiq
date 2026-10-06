@@ -1,0 +1,30 @@
+$ (cwd /workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/backend) python3 -m pytest tests/test_suggestions_priority.py -q -p no:cacheprovider -rfE --no-header -W ignore
+
+[conftest] DB safety guard: running against allow-listed test database 'narratiq_ci_verify'
+...F.......                                                                                                                                                                                                                                                     [100%]
+============================================================================================================================== FAILURES ===============================================================================================================================
+________________________________________________________________________________________________________ test_suggestions_sorted_high_before_medium_before_low ________________________________________________________________________________________________________
+
+    def test_suggestions_sorted_high_before_medium_before_low():
+        parsed = {"suggestions": [
+            {"id": 1, "category": "A", "observation": "a", "recommendation": "", "priority": "low"},
+            {"id": 2, "category": "B", "observation": "b", "recommendation": "", "priority": "high"},
+            {"id": 3, "category": "C", "observation": "c", "recommendation": "", "priority": "medium"},
+        ]}
+        kept, discarded = coerce_writing_suggestions(parsed)
+>       assert [s["id"] for s in kept] == [2, 3, 1]
+E       assert [1, 2, 3] == [2, 3, 1]
+E         
+E         At index 0 diff: 1 != 2
+E         Use -v to get more diff
+
+tests/test_suggestions_priority.py:51: AssertionError
+======================================================================================================================= short test summary info =======================================================================================================================
+FAILED tests/test_suggestions_priority.py::test_suggestions_sorted_high_before_medium_before_low - assert [1, 2, 3] == [2, 3, 1]
+1 failed, 10 passed in 5.21s
+/workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/backend/database.py:38: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+  Base = declarative_base()
+/usr/local/lib/python3.11/dist-packages/pytest_asyncio/plugin.py:208: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))

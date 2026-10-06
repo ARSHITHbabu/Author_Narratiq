@@ -127,3 +127,54 @@ async def test_locked_sentences_stay_byte_identical_through_the_repair(monkeypat
     light_second = "Nobody had listened, and the snow came early that grim year."
     result, calls = await _run(monkeypatch, [wrap(heavy_second), wrap(light_second)], locked_ranges=locked)
     assert result["transformed"].startswith(ORIGINAL[:first_sentence_end])
+
+
+# ── OD-13 (2026-10-06): per-transform boundary derived from the HR-07 labels ─────
+# A rewrite that swaps several phrases (new-word share 0.286): too heavy for a
+# Light TONE or STYLE edit (boundary 0.24), still within the age-adaptation
+# boundary (0.45), where simplifying legitimately adds new words.
+MID = ("The old guide had cautioned them about the pass, the storms, and the wolves, in that exact sequence, "
+       "as if the sequence held meaning. Nobody had heeded him, and the snow arrived early that year.")
+
+
+async def _run_as(monkeypatch, transform_type, builder_kwargs, outputs):
+    calls = []
+
+    async def fake_complete(system, user, temperature=0.0, max_tokens=512, response_format=None,
+                            task=None, datamark=False):
+        calls.append(system)
+        return outputs[min(len(calls) - 1, len(outputs) - 1)]
+
+    async def always_needs_change(*_a, **_k):
+        return True, ""
+
+    monkeypatch.setattr(ai_service, "_complete", fake_complete)
+    monkeypatch.setattr(ai_service, "_assess_change_needed", always_needs_change)
+    result = await ai_service._run_constrained_transform_once(
+        transform_type=transform_type, text=ORIGINAL, temperature=0.3, max_tokens=400,
+        builder_kwargs=builder_kwargs, strength="light", locked_ranges=None)
+    return result, calls
+
+
+def test_the_derived_boundaries_are_configured():
+    assert settings.light_new_share_max_tone_style == 0.24
+    assert light_edit_too_heavy(ORIGINAL, MID, None, 0.24)[0] is True
+    assert light_edit_too_heavy(ORIGINAL, MID, None, 0.45)[0] is False
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("transform_type, kwargs", [
+    ("tone", {"tone": "suspenseful", "genre_context": ""}),
+    ("style", {"style": "cinematic", "genre_context": ""}),
+])
+async def test_a_mid_band_light_rewrite_is_repaired_for_tone_and_style(monkeypatch, transform_type, kwargs):
+    monkeypatch.setattr(settings, "light_new_share_max_tone_style", 0.24)
+    result, calls = await _run_as(monkeypatch, transform_type, kwargs, [MID, LIGHT_OK])
+    assert len(calls) == 2 and result["transformed"] == LIGHT_OK and result["strength_violation"] is False
+
+
+@pytest.mark.asyncio
+async def test_a_mid_band_light_rewrite_is_left_alone_for_age_adaptation(monkeypatch):
+    monkeypatch.setattr(settings, "light_new_share_max_tone_style", 0.24)
+    result, calls = await _run_as(monkeypatch, "age_adapt", {"target_age": "children", "genre_context": ""}, [MID])
+    assert len(calls) == 1 and result["transformed"] == MID

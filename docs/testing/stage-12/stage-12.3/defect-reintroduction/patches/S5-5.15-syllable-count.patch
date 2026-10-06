@@ -1,0 +1,13 @@
+diff --git a/backend/services/analytics_service.py b/backend/services/analytics_service.py
+index cf6ac1b..3e297d6 100644
+--- a/backend/services/analytics_service.py
++++ b/backend/services/analytics_service.py
+@@ -58,7 +58,7 @@ def _count_syllables(word: str) -> int:
+     """Vowel-GROUP count (consecutive vowels = one syllable), not vowel-
+     LETTER count. Still a heuristic, not a dictionary lookup — but "queue"
+     now correctly scores 1 group instead of 4 letters."""
+-    groups = _VOWEL_GROUP_RE.findall(word)
++    groups = re.findall(r"[aeiouy]", word.lower())  # REINTRODUCED 5.15: vowel letters
+     n = len(groups)
+     # Silent trailing 'e' doesn't add a syllable of its own in most English
+     # words (e.g. "concise") — cheap, standard adjustment.

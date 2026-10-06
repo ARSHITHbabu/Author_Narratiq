@@ -1,0 +1,11 @@
+diff --git a/frontend/components/ocr/OCRPanel.tsx b/frontend/components/ocr/OCRPanel.tsx
+--- a/frontend/components/ocr/OCRPanel.tsx
++++ b/frontend/components/ocr/OCRPanel.tsx
+@@ -147,6 +147,7 @@
+   }
+ 
+   const extractionFailed = result !== null && !result.raw_text && !result.cleaned_text
++  if (!chapterId) return null  // REINTRODUCED P2-6: OCR withheld when there is no chapter
+ 
+   return (
+     <div className="flex flex-col h-full">

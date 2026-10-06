@@ -1,0 +1,13 @@
+diff --git a/backend/services/transform_preservation.py b/backend/services/transform_preservation.py
+index 2ecdb31..84f6129 100644
+--- a/backend/services/transform_preservation.py
++++ b/backend/services/transform_preservation.py
+@@ -223,7 +223,7 @@ def check_translation_name_consistency(original: str, transformed: str, glossary
+     for source_name, translated_name in glossary.items():
+         if source_name not in original:
+             continue
+-        if translated_name in transformed or source_name in transformed:
++        if source_name in transformed:  # REINTRODUCED 5.11: glossary form not accepted
+             continue
+         missing.append(source_name)
+     return {"missing": missing}

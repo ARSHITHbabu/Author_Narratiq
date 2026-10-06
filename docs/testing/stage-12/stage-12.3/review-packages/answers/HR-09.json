@@ -1,0 +1,179 @@
+{
+ "hr": "HR-09",
+ "reviewer": "AI Agent — Owner-authorised independent review",
+ "label": "AGENT REVIEW — AUTHORISED BY OWNER",
+ "method": "Part A: reading of the saved MV-5.14 runs and screenshots. Part B: live on the synthetic 40-chapter story (isolated test stack, narratiq_test): Narrative Threads scan, Continuity, Manuscript Report",
+ "date": "2026-10-06",
+ "status": "FAIL",
+ "answers": {
+  "HR-09.A.Q1": {
+   "value": "YES",
+   "note": "3 of 3 runs report the Ch2 (May 9) / Ch3 (April 20) reversal."
+  },
+  "HR-09.A.Q2": {
+   "value": "Partly",
+   "note": "'Adjust Chapter 3 to May 9' is mechanical; it never offers 'mark it as a flashback'."
+  },
+  "HR-09.A.Q3": {
+   "value": "YES",
+   "note": "0 of 3 runs report the marked flashback."
+  },
+  "HR-09.A.Q4": {
+   "value": "Major",
+   "note": "2 of 3 runs on story (b) add 4 false alarms, e.g. Felix burning bread 'contradicts his promise to help'."
+  },
+  "HR-09.A.Q5": {
+   "value": "Yes",
+   "note": "The vanished character (Tobias Wren) and real unresolved set-ups are listed; one thread is duplicated ('Missing page' ch3 / 'The torn page mystery' ch4)."
+  },
+  "HR-09.A.Q6": {
+   "value": "NO",
+   "note": "Clearly displayed (names, chapter, no codes), but 'Devika's trust in Mara is tested' is not supported by the fixture (Mara is a strong ally who raises the second contract)."
+  },
+  "HR-09.A.Q7": {
+   "value": "Partly",
+   "note": "Critical 4 timeline: supported (3/3; flashback excluded 3/3). Critical 5 narrative: supported on MV-B. Medium 11 relationship arcs: one-pair fixture and a questionable statement."
+  },
+  "HR-09.B.Q1": {
+   "value": "0 of 17 (all 17 continuity findings checked against the manuscript; none is a real problem)"
+  },
+  "HR-09.B.Q2": {
+   "value": 4
+  },
+  "HR-09.B.Q3": {
+   "value": 0
+  },
+  "HR-09.B.Q4": {
+   "value": "2 A little",
+   "note": "13 of 17 are templated 'introduced in chapter N … no resolution' items typed as 'motivation'; the 4 character/relationship findings treat normal arcs (Ada's falling-out and reconciliation, ch23→26) as contradictions."
+  },
+  "HR-09.B.Q5": {
+   "value": "2 A little",
+   "note": "Only one character arc (Wren) of eight characters, and it is generic; Ada, Liesel, Tobin and Ferris have none."
+  },
+  "HR-09.B.Q6": {
+   "value": "No",
+   "note": "Lists resolved threads as open: Wren's father (revealed ch38), the rope-works fire (ch39), the Marisol mystery (ch22/39); trivial items ('Cleaning and preparation of the chandlery')."
+  },
+  "HR-09.B.Q7": {
+   "value": "3 Partly",
+   "note": "The stakes summary is generic but correct in direction; escalation at ch17/31/39 is plausible."
+  },
+  "HR-09.B.Q8": {
+   "value": "2 A little",
+   "note": "First run: every chapter scored 0 (defect, fixed — see the technical section). After the fix it ranks ch13, 17, 33 highest by event density; the planted revelations are in ch22, 31, 34, 38, 39."
+  },
+  "HR-09.B.Q9": {
+   "value": "2 A little",
+   "note": "Little actionable help; Finding 17 even advises having Wren support Liesel (the villain) when she is accused."
+  },
+  "HR-09.C.Q1": {
+   "value": "Major",
+   "note": "4 false character/relationship inconsistencies in the live run, one with harmful advice."
+  },
+  "HR-09.C.Q2": {
+   "value": "Minor",
+   "note": "No live flashback/time-skip false break; MV-B flagged Tobias's absence as a 'timeline' contradiction (one case)."
+  },
+  "HR-09.C.Q3": {
+   "value": "Major",
+   "note": "Findings are templated/surface-level (13 of 17)."
+  },
+  "HR-09.C.Q4": {
+   "value": "Minor",
+   "note": "MV-5.14-A correct 3/3 with flashback excluded 3/3; the suggested fix is mechanical."
+  },
+  "HR-09.C.Q5": {
+   "value": "Major",
+   "note": "The report misses most revelations; open/resolved threads are wrong."
+  },
+  "HR-09.C.Q6": {
+   "value": "Major",
+   "note": "17 of 17 live continuity findings were false alarms."
+  },
+  "HR-09.C.Q7": {
+   "value": "Major",
+   "note": "One generic arc for an eight-character cast."
+  },
+  "HR-09.C.Q8": {
+   "value": "Major",
+   "note": "Resolved threads reported as open; the open-thread list includes trivia."
+  },
+  "HR-09.C.Q9": {
+   "value": "Minor",
+   "note": "Generic but correct."
+  },
+  "HR-09.C.Q10": {
+   "value": "Major",
+   "note": "After the display fix the ranking exists but does not identify the key chapters."
+  }
+ },
+ "result_reasoning": "Story Audit on a realistic manuscript is not reliable: 17/17 continuity findings false (4 about characters, one advising support for the villain), report arcs/threads wrong. Timeline reasoning and stakes are acceptable. Under OD-15: AUDIT-C2, C4, H9 close (Minor); C1, C3, C5, H6, H7, H8, H10 stay open (Major). Two technical defects found during Part B and fixed (report 400 on a 40-chapter book; plot-importance display all 0).",
+ "per_issue": {
+  "AUDIT-C1": {
+   "verdict": "open",
+   "reason": "Major (OD-15)"
+  },
+  "AUDIT-C2": {
+   "verdict": "close",
+   "reason": "Minor — one MV-B case; observation recorded (OD-15)"
+  },
+  "AUDIT-C3": {
+   "verdict": "open",
+   "reason": "Major"
+  },
+  "AUDIT-C4": {
+   "verdict": "close",
+   "reason": "Minor — MV-5.14-A 3/3, flashback excluded 3/3; fix suggestion mechanical (OD-15; MV-5.14 partial item accepted with follow-up, OD-01)"
+  },
+  "AUDIT-C5": {
+   "verdict": "open",
+   "reason": "Major"
+  },
+  "AUDIT-H6": {
+   "verdict": "open",
+   "reason": "Major — 17/17 false alarms"
+  },
+  "AUDIT-H7": {
+   "verdict": "open",
+   "reason": "Major"
+  },
+  "AUDIT-H8": {
+   "verdict": "open",
+   "reason": "Major"
+  },
+  "AUDIT-H9": {
+   "verdict": "close",
+   "reason": "Minor — generic but correct stakes (OD-15)"
+  },
+  "AUDIT-H10": {
+   "verdict": "open",
+   "reason": "Major (display defect fixed; ranking still weak)"
+  }
+ },
+ "failures": [
+  {
+   "item": "Continuity (live)",
+   "problem": "17 of 17 findings are false alarms; harmful advice in one",
+   "severity": "Major"
+  },
+  {
+   "item": "Manuscript Report (live, first run)",
+   "problem": "HTTP 400 / 'AI unavailable' on a 40-chapter book (prompt over the 8,192 window) — FIXED",
+   "severity": "High (fixed)"
+  },
+  {
+   "item": "Where the plot moves most",
+   "problem": "Every chapter 0 (capped boost reused for display) — FIXED; ranking still weak",
+   "severity": "Major"
+  }
+ ],
+ "evidence": [
+  "docs/testing/stage-12/stage-12.3/agent-review/live-continuity.json",
+  "docs/testing/stage-12/stage-12.3/agent-review/live-narrative-threads.json",
+  "docs/testing/stage-12/stage-12.3/agent-review/live-manuscript-report-first-run-error.json (first run: 503 / vLLM 400)",
+  "docs/testing/stage-12/stage-12.3/agent-review/live-manuscript-report.json (after the length fix, before the plot-importance fix)",
+  "docs/testing/stage-12/stage-12.3/agent-review/live-manuscript-report-after-fixes.json",
+  "docs/testing/stage-12/tranche3/mv-5.14-a.json, mv-5.14-b.json, mv-5.14-c.json"
+ ]
+}

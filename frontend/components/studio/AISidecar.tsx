@@ -26,10 +26,14 @@ export default function AISidecar({ selection = null }: { selection?: OwnedSelec
   // Focus management (8.9): a keyboard or screen-reader user who opens the panel
   // lands on its heading; closing it returns focus to where they were. Moving
   // focus does not touch the selection this panel owns (it is React state).
+  // When the saved layout restores the panel at page load nothing is focused yet;
+  // taking focus then sent the first Tab past "Skip to content" into the panel
+  // (Stage 12.3 agent review, HR-16). Focus moves only when someone opened it.
   useEffect(() => {
     const from = document.activeElement as HTMLElement | null
+    if (!from || from === document.body) return
     document.getElementById('ai-sidecar-title')?.focus({ preventScroll: true })
-    return () => { if (from && document.contains(from)) from.focus({ preventScroll: true }) }
+    return () => { if (document.contains(from)) from.focus({ preventScroll: true }) }
   }, [])
 
   return (

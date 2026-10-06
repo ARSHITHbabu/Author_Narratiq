@@ -1,0 +1,86 @@
+{
+ "5": {
+  "A": "off",
+  "B": "strong",
+  "raw": {
+   "strong": {
+    "http": 200,
+    "text": "Crane snatched the ledger from her hands, flipping through the pages with a critical eye. \"Let me see this,\" he muttered, his brow furrowing. He paused at a particular entry, his finger tracing the ink. \"This one, for instance. It looks like there was a discrepancy in the tax assessment.\"",
+    "context_used": {
+     "voice": {
+      "level": "strong",
+      "surrounding_text": true
+     },
+     "tokens_estimate": 382
+    },
+    "warnings": [
+     "voice_fingerprint_unavailable"
+    ]
+   },
+   "off": {
+    "http": 200,
+    "text": "Crane snatched the ledger from her hands, flipping through the pages with a critical eye. \"Let me see this,\" he muttered, his brow furrowing. He paused at a particular entry, his finger tracing the ink. \"This one, for instance. It looks like there was a discrepancy in the tax assessment.\"",
+    "context_used": {
+     "tokens_estimate": 0
+    },
+    "warnings": []
+   }
+  }
+ },
+ "20": {
+  "B": "off",
+  "A": "strong",
+  "raw": {
+   "strong": {
+    "http": 200,
+    "text": "“Indeed, they did. It was a tale of betrayal and revenge. One night, during a particularly fierce storm, Maris set a trap for Elara. She lured her into a part of the marsh where the waters were deep and dangerous. Elara never returned from that night, and many believed she had drowned. But some whispered that she had survived, that she had taken the goods and disappeared into the very heart of the marsh, never to be seen again.”",
+    "context_used": {
+     "voice": {
+      "level": "strong",
+      "surrounding_text": true
+     },
+     "tokens_estimate": 373
+    },
+    "warnings": [
+     "voice_fingerprint_unavailable"
+    ]
+   },
+   "off": {
+    "http": 200,
+    "text": "“Indeed, they did. It was a tale of betrayal and revenge. One night, during a particularly fierce storm, Maris set a trap for Elara. She lured her into a part of the marsh where the waters were deep and dangerous. Elara never returned from that night, and many believed she had drowned. But some whispered that she had survived, that she had taken the goods and disappeared into the very heart of the marsh, never to be seen again.”",
+    "context_used": {
+     "tokens_estimate": 0
+    },
+    "warnings": []
+   }
+  }
+ },
+ "35": {
+  "A": "off",
+  "B": "strong",
+  "raw": {
+   "strong": {
+    "http": 200,
+    "text": "The third letter was a plea for help. Eliza had heard rumors of a safe house in Greymouth, a place where Sarah might have gone for refuge. “If you can find it,” Eliza wrote, “please take it upon yourself to see if there is any truth to these stories. I am too weak to travel, but I trust you to finish what we started.” Wren felt a mix of anger and determination wash over her. How could she have ignored her mother’s warnings for so long? She had always believed her mother had simply moved away for a new job or to start a fresh life, but now she realized the truth was far more complex and dangerous.",
+    "context_used": {
+     "voice": {
+      "level": "strong",
+      "surrounding_text": true
+     },
+     "tokens_estimate": 370
+    },
+    "warnings": [
+     "voice_fingerprint_unavailable"
+    ]
+   },
+   "off": {
+    "http": 200,
+    "text": "The third letter was a plea for help. Eliza had heard rumors of a safe house in Greymouth, a place where Sarah might have gone for refuge. “If you can find it,” Eliza wrote, “please take it upon yourself to see if there is any truth to these stories. I am too weak to travel, but I trust you to finish what we started.” Wren felt a mix of anger and determination wash over her. How could she have ignored her mother’s warnings for so long? She had always believed her mother had simply moved away for a new job or to start a fresh life, but now she realized the truth was far more complex and dangerous.",
+    "context_used": {
+     "tokens_estimate": 0
+    },
+    "warnings": []
+   }
+  }
+ }
+}

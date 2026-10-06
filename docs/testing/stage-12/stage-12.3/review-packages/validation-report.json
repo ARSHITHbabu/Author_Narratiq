@@ -1,0 +1,617 @@
+{
+  "docx": "docs/testing/stage-12/stage-12.3/review-packages/NarratIQ_Human_Review_Package.docx",
+  "boxes": [
+    {
+      "line_now": 1937,
+      "line_at_HEAD_2b63b51": 1928,
+      "text": "Author identity preserved under blind review",
+      "kind": "item",
+      "reviews": [
+        "HR-19"
+      ]
+    },
+    {
+      "line_now": 2003,
+      "line_at_HEAD_2b63b51": 1994,
+      "text": "Author review confirms suggestions identify real weaknesses",
+      "kind": "item",
+      "reviews": [
+        "HR-11"
+      ]
+    },
+    {
+      "line_now": 2051,
+      "line_at_HEAD_2b63b51": 2042,
+      "text": "Author review confirms the numbers are interpretable",
+      "kind": "item",
+      "reviews": [
+        "HR-17"
+      ]
+    },
+    {
+      "line_now": 2084,
+      "line_at_HEAD_2b63b51": 2075,
+      "text": "Gate 3b — AI quality acceptable passed",
+      "kind": "rollup",
+      "reviews": [
+        "HR-22"
+      ]
+    },
+    {
+      "line_now": 2524,
+      "line_at_HEAD_2b63b51": 2515,
+      "text": "7.12 — P3-10 Author writing-style preservation",
+      "kind": "parent",
+      "reviews": [
+        "HR-18"
+      ]
+    },
+    {
+      "line_now": 2540,
+      "line_at_HEAD_2b63b51": 2531,
+      "text": "Golden-set author review confirms style match",
+      "kind": "item",
+      "reviews": [
+        "HR-18"
+      ]
+    },
+    {
+      "line_now": 2578,
+      "line_at_HEAD_2b63b51": 2569,
+      "text": "7.15 — Phase 3 definition of done (§46, §47)",
+      "kind": "rollup",
+      "reviews": [
+        "HR-26"
+      ]
+    },
+    {
+      "line_now": 2586,
+      "line_at_HEAD_2b63b51": 2577,
+      "text": "All eleven capabilities meet their §40 acceptance criteria",
+      "kind": "rollup",
+      "reviews": [
+        "HR-26",
+        "HR-18"
+      ]
+    },
+    {
+      "line_now": 2662,
+      "line_at_HEAD_2b63b51": 2653,
+      "text": "8.3 — Writing-first visual hierarchy",
+      "kind": "parent",
+      "reviews": [
+        "HR-13"
+      ]
+    },
+    {
+      "line_now": 2675,
+      "line_at_HEAD_2b63b51": 2666,
+      "text": "Author review confirms the manuscript is the focal point",
+      "kind": "item",
+      "reviews": [
+        "HR-13"
+      ]
+    },
+    {
+      "line_now": 2678,
+      "line_at_HEAD_2b63b51": 2669,
+      "text": "8.4 — Progressive disclosure",
+      "kind": "parent",
+      "reviews": [
+        "HR-14"
+      ]
+    },
+    {
+      "line_now": 2692,
+      "line_at_HEAD_2b63b51": 2683,
+      "text": "Author review confirms features remain discoverable",
+      "kind": "item",
+      "reviews": [
+        "HR-14"
+      ]
+    },
+    {
+      "line_now": 2695,
+      "line_at_HEAD_2b63b51": 2686,
+      "text": "8.5 — Drafting and editing mode separation",
+      "kind": "parent",
+      "reviews": [
+        "HR-15"
+      ]
+    },
+    {
+      "line_now": 2707,
+      "line_at_HEAD_2b63b51": 2698,
+      "text": "Author review across a full drafting session and a full editing session",
+      "kind": "item",
+      "reviews": [
+        "HR-15"
+      ]
+    },
+    {
+      "line_now": 2757,
+      "line_at_HEAD_2b63b51": 2748,
+      "text": "8.9 — Accessibility baseline",
+      "kind": "rollup",
+      "reviews": [
+        "HR-25",
+        "HR-16"
+      ]
+    },
+    {
+      "line_now": 2767,
+      "line_at_HEAD_2b63b51": 2758,
+      "text": "Audit screen-reader labelling on all panels",
+      "kind": "item",
+      "reviews": [
+        "HR-16"
+      ]
+    },
+    {
+      "line_now": 2811,
+      "line_at_HEAD_2b63b51": 2802,
+      "text": "All 18 Editor UI issues closed or accepted",
+      "kind": "rollup",
+      "reviews": [
+        "HR-25"
+      ]
+    },
+    {
+      "line_now": 2815,
+      "line_at_HEAD_2b63b51": 2806,
+      "text": "Accessibility baseline met",
+      "kind": "rollup",
+      "reviews": [
+        "HR-25",
+        "HR-16"
+      ]
+    },
+    {
+      "line_now": 2860,
+      "line_at_HEAD_2b63b51": 2851,
+      "text": "Every release-blocking issue passes",
+      "kind": "rollup",
+      "reviews": [
+        "HR-23"
+      ]
+    },
+    {
+      "line_now": 2960,
+      "line_at_HEAD_2b63b51": 2951,
+      "text": "Zero open Critical issues",
+      "kind": "rollup",
+      "reviews": [
+        "HR-23"
+      ]
+    },
+    {
+      "line_now": 2961,
+      "line_at_HEAD_2b63b51": 2952,
+      "text": "All High issues fixed or explicitly accepted per D-6",
+      "kind": "rollup",
+      "reviews": [
+        "HR-23"
+      ]
+    },
+    {
+      "line_now": 2966,
+      "line_at_HEAD_2b63b51": 2957,
+      "text": "Gate 4 — No critical defects passed",
+      "kind": "rollup",
+      "reviews": [
+        "HR-23"
+      ]
+    },
+    {
+      "line_now": 3140,
+      "line_at_HEAD_2b63b51": 3131,
+      "text": "10.9 — Incident response process",
+      "kind": "parent",
+      "reviews": [
+        "HR-21"
+      ]
+    },
+    {
+      "line_now": 3155,
+      "line_at_HEAD_2b63b51": 3146,
+      "text": "A tabletop exercise runs cleanly through the process",
+      "kind": "item",
+      "reviews": [
+        "HR-21"
+      ]
+    },
+    {
+      "line_now": 3300,
+      "line_at_HEAD_2b63b51": 3291,
+      "text": "No adversarial prompt elicits in-copyright author imitation",
+      "kind": "item",
+      "reviews": [
+        "HR-20"
+      ]
+    },
+    {
+      "line_now": 3369,
+      "line_at_HEAD_2b63b51": 3360,
+      "text": "Gate 3b — AI quality acceptable",
+      "kind": "rollup",
+      "reviews": [
+        "HR-22"
+      ]
+    },
+    {
+      "line_now": 3370,
+      "line_at_HEAD_2b63b51": 3361,
+      "text": "Gate 4 — No critical defects",
+      "kind": "rollup",
+      "reviews": [
+        "HR-23"
+      ]
+    },
+    {
+      "line_now": 3406,
+      "line_at_HEAD_2b63b51": 3397,
+      "text": "Confirm the D-6 release-blocking scope is satisfied",
+      "kind": "rollup",
+      "reviews": [
+        "HR-23"
+      ]
+    },
+    {
+      "line_now": 3455,
+      "line_at_HEAD_2b63b51": 3446,
+      "text": "Human — A15 Light thresholds",
+      "kind": "item",
+      "reviews": [
+        "HR-07",
+        "HR-06"
+      ]
+    },
+    {
+      "line_now": 3456,
+      "line_at_HEAD_2b63b51": 3447,
+      "text": "Human — children's rewrite meaning review",
+      "kind": "item",
+      "reviews": [
+        "HR-08"
+      ]
+    },
+    {
+      "line_now": 3544,
+      "line_at_HEAD_2b63b51": 3532,
+      "text": "Human re-validation of Light strength after the fix",
+      "kind": "item",
+      "reviews": [
+        "HR-06"
+      ]
+    },
+    {
+      "line_now": 3585,
+      "line_at_HEAD_2b63b51": 3551,
+      "text": "All 168 open issues closed, deferred with a recorded decision, or accepted per D-6",
+      "kind": "rollup",
+      "reviews": [
+        "HR-24"
+      ]
+    }
+  ],
+  "boxes_mapped": "32/32",
+  "boxes_shifted": [
+    1928,
+    1994,
+    2042,
+    2075,
+    2515,
+    2531,
+    2569,
+    2577,
+    2653,
+    2666,
+    2669,
+    2683,
+    2686,
+    2698,
+    2748,
+    2758,
+    2802,
+    2806,
+    2851,
+    2951,
+    2952,
+    2957,
+    3131,
+    3146,
+    3291,
+    3360,
+    3361,
+    3397,
+    3446,
+    3447,
+    3532,
+    3551
+  ],
+  "reviews": [
+    {
+      "id": "HR-01",
+      "title": "Tone rewrites — absolute quality",
+      "questions": 26,
+      "d6": [
+        "AWT-A",
+        "AWT-B",
+        "AWT-E",
+        "AWT-F",
+        "AWT-H",
+        "AWT-J",
+        "AWT-1.1",
+        "AWT-1.3",
+        "AWT-1.4",
+        "AWT-1.5"
+      ]
+    },
+    {
+      "id": "HR-02",
+      "title": "Emotion rewrites — absolute quality",
+      "questions": 34,
+      "d6": [
+        "AWT-A",
+        "AWT-B",
+        "AWT-E",
+        "AWT-F",
+        "AWT-H",
+        "AWT-J",
+        "AWT-2.1",
+        "AWT-2.2",
+        "AWT-2.3",
+        "AWT-2.6",
+        "AWT-2.7"
+      ]
+    },
+    {
+      "id": "HR-03",
+      "title": "Audience (age adaptation) rewrites — absolute quality",
+      "questions": 38,
+      "d6": [
+        "AWT-A",
+        "AWT-B",
+        "AWT-E",
+        "AWT-F",
+        "AWT-H",
+        "AWT-J",
+        "AWT-3.1",
+        "AWT-3.2",
+        "AWT-3.3",
+        "AWT-3.5"
+      ]
+    },
+    {
+      "id": "HR-04",
+      "title": "Style rewrites — absolute quality",
+      "questions": 44,
+      "d6": [
+        "AWT-A",
+        "AWT-B",
+        "AWT-E",
+        "AWT-F",
+        "AWT-H",
+        "AWT-J",
+        "AWT-4.1",
+        "AWT-4.2",
+        "AWT-4.4",
+        "AWT-4.5",
+        "AWT-4.6",
+        "AWT-4.7",
+        "AWT-4.8",
+        "AWT-4.9",
+        "AWT-4.10"
+      ]
+    },
+    {
+      "id": "HR-05",
+      "title": "G3 verdict per Critical issue (cross-module)",
+      "questions": 6,
+      "d6": [
+        "AWT-A",
+        "AWT-B",
+        "AWT-E",
+        "AWT-F",
+        "AWT-H",
+        "AWT-J"
+      ]
+    },
+    {
+      "id": "HR-06",
+      "title": "Light vs Strong after the fix — A2 repeated on post-fix outputs",
+      "questions": 34,
+      "d6": [
+        "AWT-D",
+        "AWT-I",
+        "AWT-1.2",
+        "AWT-1.6",
+        "AWT-3.7"
+      ]
+    },
+    {
+      "id": "HR-07",
+      "title": "Label Light outputs (A15 thresholds)",
+      "questions": 60,
+      "d6": [
+        "AWT-D",
+        "AWT-I",
+        "AWT-1.2",
+        "AWT-1.6",
+        "AWT-3.7"
+      ]
+    },
+    {
+      "id": "HR-08",
+      "title": "Children's rewrite meaning review (grief and euphemism)",
+      "questions": 32,
+      "d6": [
+        "AWT-3.1",
+        "AWT-3.2",
+        "AWT-3.3",
+        "AWT-3.5"
+      ]
+    },
+    {
+      "id": "HR-09",
+      "title": "Story Audit reading — continuity, narrative signals, report sections",
+      "questions": 26,
+      "d6": [
+        "AUDIT-C1",
+        "AUDIT-C2",
+        "AUDIT-C3",
+        "AUDIT-C4",
+        "AUDIT-C5",
+        "AUDIT-H6",
+        "AUDIT-H7",
+        "AUDIT-H8",
+        "AUDIT-H9",
+        "AUDIT-H10"
+      ]
+    },
+    {
+      "id": "HR-10",
+      "title": "Story Bible semantic reading — “never asserts unsupported facts”",
+      "questions": 17,
+      "d6": []
+    },
+    {
+      "id": "HR-11",
+      "title": "Writing suggestions read like a developmental editor's notes",
+      "questions": 38,
+      "d6": [
+        "SUG-C1",
+        "SUG-C2",
+        "SUG-H3",
+        "SUG-H4",
+        "SUG-H5",
+        "SUG-H6",
+        "SUG-H7",
+        "SUG-H8",
+        "SUG-H10",
+        "SUG-H11"
+      ]
+    },
+    {
+      "id": "HR-12",
+      "title": "Plot Assistant knows the whole story",
+      "questions": 13,
+      "d6": [
+        "PA-C1",
+        "PA-C9",
+        "PA-H10",
+        "PA-H11",
+        "PA-H13"
+      ]
+    },
+    {
+      "id": "HR-13",
+      "title": "Writing-first visual hierarchy (8.3) — is the manuscript the focal point?",
+      "questions": 7,
+      "d6": [
+        "UI-C1",
+        "UI-C2",
+        "UI-H9",
+        "UI-H14"
+      ]
+    },
+    {
+      "id": "HR-14",
+      "title": "Progressive disclosure (8.4) — can features still be found?",
+      "questions": 12,
+      "d6": [
+        "UI-C1",
+        "UI-C6",
+        "UI-H10",
+        "UI-H13"
+      ]
+    },
+    {
+      "id": "HR-15",
+      "title": "Drafting and editing modes (8.5) — a full session of each",
+      "questions": 6,
+      "d6": [
+        "UI-C1",
+        "UI-H11"
+      ]
+    },
+    {
+      "id": "HR-16",
+      "title": "Real screen-reader pass of all panels (MV-8.4)",
+      "questions": 9,
+      "d6": []
+    },
+    {
+      "id": "HR-17",
+      "title": "Analytics numbers are interpretable",
+      "questions": 9,
+      "d6": []
+    },
+    {
+      "id": "HR-18",
+      "title": "Generated text sounds like the author — style match (P3-10)",
+      "questions": 11,
+      "d6": [
+        "AWT-B",
+        "AWT-4.10"
+      ]
+    },
+    {
+      "id": "HR-19",
+      "title": "Author identity preserved under blind review (style transform)",
+      "questions": 7,
+      "d6": [
+        "AWT-4.10",
+        "AWT-B"
+      ]
+    },
+    {
+      "id": "HR-20",
+      "title": "Saved author-style outputs — no in-copyright author imitation",
+      "questions": 16,
+      "d6": []
+    },
+    {
+      "id": "HR-21",
+      "title": "Tabletop exercise — walk an incident through the documented process (MV-10.9)",
+      "questions": 13,
+      "d6": []
+    },
+    {
+      "id": "HR-22",
+      "title": "Gate 3b — AI quality acceptable",
+      "questions": 2,
+      "d6": []
+    },
+    {
+      "id": "HR-23",
+      "title": "Gate 4 / D-6 — no open Critical, every High fixed or accepted",
+      "questions": 2,
+      "d6": []
+    },
+    {
+      "id": "HR-24",
+      "title": "Final — all 168 open issues closed, deferred with a recorded decision, or accepted per D-6",
+      "questions": 2,
+      "d6": []
+    },
+    {
+      "id": "HR-25",
+      "title": "Stage 8 gate — all 18 Editor UI issues; accessibility baseline (8.9)",
+      "questions": 2,
+      "d6": []
+    },
+    {
+      "id": "HR-26",
+      "title": "7.15 — Phase 3 definition of done; “All eleven capabilities meet their §40 acceptance criteria”",
+      "questions": 2,
+      "d6": []
+    }
+  ],
+  "total_questions": 468,
+  "d6_critical_covered": 20,
+  "d6_high_covered": 46,
+  "prefilled_answers_found": 0,
+  "errors": [],
+  "result": "PASS"
+}

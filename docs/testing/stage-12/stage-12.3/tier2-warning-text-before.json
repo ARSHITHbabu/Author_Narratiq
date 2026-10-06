@@ -1,0 +1,400 @@
+{
+  "meta": {
+    "date": "2026-10-06T08:12:00+00:00",
+    "runs": 5,
+    "model": "Qwen/Qwen2.5-7B-Instruct",
+    "prompt_version": "v4"
+  },
+  "summary": {
+    "mode": "legacy (pre-7.10)",
+    "calls": 20,
+    "strict_ran": 20,
+    "calls_with_a_warning": 20,
+    "warnings": 20,
+    "describing": 8,
+    "restating": 12,
+    "with_verified_evidence": 0
+  },
+  "rows": [
+    {
+      "scenario": "harbour-lamps",
+      "run": 0,
+      "status": 200,
+      "strict_ran": true,
+      "output": "Kira stood by the window. The harbour lights flickered and died one by one, and she remained unmoving. Elara took it upon herself to light the harbour lamps.",
+      "warnings": [
+        {
+          "kind": "consistency",
+          "severity": "soft",
+          "message": "The harbour lamps are lit only by the keeper.",
+          "entity": {
+            "type": "world_rule"
+          },
+          "autofix": null,
+          "class": "restating"
+        }
+      ]
+    },
+    {
+      "scenario": "harbour-lamps",
+      "run": 1,
+      "status": 200,
+      "strict_ran": true,
+      "output": "Kira stood by the window, unmoving, as the harbour lights flickered out one by one. Elara took it upon herself to light the harbour lamps.",
+      "warnings": [
+        {
+          "kind": "consistency",
+          "severity": "soft",
+          "message": "The harbour lamps are lit only by the keeper.",
+          "entity": {
+            "type": "world_rule"
+          },
+          "autofix": null,
+          "class": "restating"
+        }
+      ]
+    },
+    {
+      "scenario": "harbour-lamps",
+      "run": 2,
+      "status": 200,
+      "strict_ran": true,
+      "output": "Kira stood by the window, unmoving as the harbour lights flickered out one by one. Elara took it upon herself to light the harbour lamps.",
+      "warnings": [
+        {
+          "kind": "consistency",
+          "severity": "soft",
+          "message": "The harbour lamps are lit only by the keeper.",
+          "entity": {
+            "type": "world_rule"
+          },
+          "autofix": null,
+          "class": "restating"
+        }
+      ]
+    },
+    {
+      "scenario": "harbour-lamps",
+      "run": 3,
+      "status": 200,
+      "strict_ran": true,
+      "output": "Kira stood by the window, unmoving, as the harbour lights flickered out one by one. Elara took it upon herself to light the harbour lamps.",
+      "warnings": [
+        {
+          "kind": "consistency",
+          "severity": "soft",
+          "message": "The harbour lamps are lit only by the keeper.",
+          "entity": {
+            "type": "world_rule"
+          },
+          "autofix": null,
+          "class": "restating"
+        }
+      ]
+    },
+    {
+      "scenario": "harbour-lamps",
+      "run": 4,
+      "status": 200,
+      "strict_ran": true,
+      "output": "Kira stood by the window. The harbour lights flickered and died one by one, and she remained motionless. Elara took it upon herself to light the harbour lamps.",
+      "warnings": [
+        {
+          "kind": "consistency",
+          "severity": "soft",
+          "message": "The harbour lamps are lit only by the keeper.",
+          "entity": {
+            "type": "world_rule"
+          },
+          "autofix": null,
+          "class": "restating"
+        }
+      ]
+    },
+    {
+      "scenario": "curfew",
+      "run": 0,
+      "status": 200,
+      "strict_ran": true,
+      "output": "The curfew bell tolled twice over Greyharn. Elara lingered until the watch had passed, then moved through the north gate and ventured out onto the desolate dunes beyond the city walls.",
+      "warnings": [
+        {
+          "kind": "consistency",
+          "severity": "soft",
+          "message": "No one may leave the city walls after the curfew bell.",
+          "entity": {
+            "type": "world_rule"
+          },
+          "autofix": null,
+          "class": "restating"
+        }
+      ]
+    },
+    {
+      "scenario": "curfew",
+      "run": 1,
+      "status": 200,
+      "strict_ran": true,
+      "output": "The curfew bell tolled twice over Greyharn. Elara lingered until the watch was spent, then moved through the north gate and ventured onto the desolate dunes beyond the city walls.",
+      "warnings": [
+        {
+          "kind": "consistency",
+          "severity": "soft",
+          "message": "No one may leave the city walls after the curfew bell.",
+          "entity": {
+            "type": "world_rule"
+          },
+          "autofix": null,
+          "class": "restating"
+        }
+      ]
+    },
+    {
+      "scenario": "curfew",
+      "run": 2,
+      "status": 200,
+      "strict_ran": true,
+      "output": "The curfew bell tolled twice over Greyharn. Elara lingered until the watch had passed, then moved through the north gate and ventured onto the desolate dunes beyond the walls.",
+      "warnings": [
+        {
+          "kind": "consistency",
+          "severity": "soft",
+          "message": "No one may leave the city walls after the curfew bell.",
+          "entity": {
+            "type": "world_rule"
+          },
+          "autofix": null,
+          "class": "restating"
+        }
+      ]
+    },
+    {
+      "scenario": "curfew",
+      "run": 3,
+      "status": 200,
+      "strict_ran": true,
+      "output": "The curfew bell tolled twice over Greyharn. Elara lingered until the watch had passed, then moved through the north gate and ventured out onto the desolate dunes beyond the city walls.",
+      "warnings": [
+        {
+          "kind": "consistency",
+          "severity": "soft",
+          "message": "No one may leave the city walls after the curfew bell.",
+          "entity": {
+            "type": "world_rule"
+          },
+          "autofix": null,
+          "class": "restating"
+        }
+      ]
+    },
+    {
+      "scenario": "curfew",
+      "run": 4,
+      "status": 200,
+      "strict_ran": true,
+      "output": "The curfew bell tolled twice over Greyharn. Elara waited until the watch had passed, then moved through the north gate and ventured out onto the dunes beyond the walls.",
+      "warnings": [
+        {
+          "kind": "consistency",
+          "severity": "soft",
+          "message": "No one may leave the city walls after the curfew bell.",
+          "entity": {
+            "type": "world_rule"
+          },
+          "autofix": null,
+          "class": "restating"
+        }
+      ]
+    },
+    {
+      "scenario": "no-magic",
+      "run": 0,
+      "status": 200,
+      "strict_ran": true,
+      "output": "The storm battered the tower. Kira raised her hand, muttered a word, and the rain ceased in mid-air above the courtyard.",
+      "warnings": [
+        {
+          "kind": "consistency",
+          "severity": "soft",
+          "message": "There is no magic in this world; nothing happens that the laws of nature forbid.",
+          "entity": {
+            "type": "world_rule"
+          },
+          "autofix": null,
+          "class": "restating"
+        }
+      ]
+    },
+    {
+      "scenario": "no-magic",
+      "run": 1,
+      "status": 200,
+      "strict_ran": true,
+      "output": "The storm battered the tower. Kira raised her hand, murmured a word, and the rain halted in mid-air above the courtyard.",
+      "warnings": [
+        {
+          "kind": "consistency",
+          "severity": "soft",
+          "message": "Kira used magic, which contradicts the established world rule.",
+          "entity": {
+            "type": "trait"
+          },
+          "autofix": null,
+          "class": "describing"
+        }
+      ]
+    },
+    {
+      "scenario": "no-magic",
+      "run": 2,
+      "status": 200,
+      "strict_ran": true,
+      "output": "The storm pressed against the tower. Kira raised her hand, whispered a word, and the rain ceased its descent in mid-air above the courtyard.",
+      "warnings": [
+        {
+          "kind": "consistency",
+          "severity": "soft",
+          "message": "Kira used magic to make the rain cease.",
+          "entity": {
+            "type": "world_rule"
+          },
+          "autofix": null,
+          "class": "describing"
+        }
+      ]
+    },
+    {
+      "scenario": "no-magic",
+      "run": 3,
+      "status": 200,
+      "strict_ran": true,
+      "output": "The storm battered the tower. Kira raised her hand, muttered a word, and the rain ceased its descent in mid-air above the courtyard.",
+      "warnings": [
+        {
+          "kind": "consistency",
+          "severity": "soft",
+          "message": "Kira used magic to stop the rain, which contradicts the established world rule that there is no magic in this world.",
+          "entity": {
+            "type": "trait"
+          },
+          "autofix": null,
+          "class": "describing"
+        }
+      ]
+    },
+    {
+      "scenario": "no-magic",
+      "run": 4,
+      "status": 200,
+      "strict_ran": true,
+      "output": "The storm pressed against the tower. Kira raised her hand, murmured a word, and the rain halted in mid-air above the courtyard.",
+      "warnings": [
+        {
+          "kind": "consistency",
+          "severity": "soft",
+          "message": "There is no magic in this world; nothing happens that the laws of nature forbid.",
+          "entity": {
+            "type": "world_rule"
+          },
+          "autofix": null,
+          "class": "restating"
+        }
+      ]
+    },
+    {
+      "scenario": "silent-order",
+      "run": 0,
+      "status": 200,
+      "strict_ran": true,
+      "output": "Brother Anselm of the Silent Order met them at the gate. \"You are late,\" he shouted, \"and the abbot will not wait.\"",
+      "warnings": [
+        {
+          "kind": "consistency",
+          "severity": "soft",
+          "message": "Brother Anselm shouted, contradicting the established rule that members of the Silent Order never speak aloud.",
+          "entity": {
+            "type": "trait"
+          },
+          "autofix": null,
+          "class": "describing"
+        }
+      ]
+    },
+    {
+      "scenario": "silent-order",
+      "run": 1,
+      "status": 200,
+      "strict_ran": true,
+      "output": "Brother Anselm of the Silent Order met them at the gate. He spoke loudly, \"You are late,\" and added, \"the abbot will not wait.\"",
+      "warnings": [
+        {
+          "kind": "consistency",
+          "severity": "soft",
+          "message": "Brother Anselm spoke loudly",
+          "entity": {
+            "type": "trait"
+          },
+          "autofix": null,
+          "class": "describing"
+        }
+      ]
+    },
+    {
+      "scenario": "silent-order",
+      "run": 2,
+      "status": 200,
+      "strict_ran": true,
+      "output": "Brother Anselm of the Silent Order met them at the gate. He spoke loudly, \"You are late,\" and continued, \"and the abbot will not wait.\"",
+      "warnings": [
+        {
+          "kind": "consistency",
+          "severity": "soft",
+          "message": "Brother Anselm of the Silent Order spoke loudly",
+          "entity": {
+            "type": "trait"
+          },
+          "autofix": null,
+          "class": "describing"
+        }
+      ]
+    },
+    {
+      "scenario": "silent-order",
+      "run": 3,
+      "status": 200,
+      "strict_ran": true,
+      "output": "Brother Anselm of the Silent Order met them at the gate. He spoke in a harsh, barely audible whisper, \"You are late,\" and his eyes glinted with displeasure. \"The abbot will not wait.\"",
+      "warnings": [
+        {
+          "kind": "consistency",
+          "severity": "soft",
+          "message": "Brother Anselm spoke in a harsh, barely audible whisper",
+          "entity": {
+            "type": "trait"
+          },
+          "autofix": null,
+          "class": "describing"
+        }
+      ]
+    },
+    {
+      "scenario": "silent-order",
+      "run": 4,
+      "status": 200,
+      "strict_ran": true,
+      "output": "Brother Anselm of the Silent Order met them at the gate. \"You are late,\" he intoned harshly, \"and the abbot will not wait.\"",
+      "warnings": [
+        {
+          "kind": "consistency",
+          "severity": "soft",
+          "message": "Brother Anselm spoke aloud.",
+          "entity": {
+            "type": "trait"
+          },
+          "autofix": null,
+          "class": "describing"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+diff --git a/backend/services/ai_service.py b/backend/services/ai_service.py
+index 47ca004..9d2063c 100644
+--- a/backend/services/ai_service.py
++++ b/backend/services/ai_service.py
+@@ -5825,12 +5825,7 @@ async def check_continuity(
+         # model's output could not be read. That false all-clear is the defect
+         # (Phase 2 Issue 14); an empty result now means nothing was found, and
+         # a failure says so.
+-        return [], DegradedMeta(
+-            True,
+-            "Some of this manuscript could not be checked — the AI response could "
+-            "not be read. Please run the check again.",
+-            meta.attempts, 0,
+-        )
++        return [], DegradedMeta(False, None, meta.attempts, 0)  # REINTRODUCED P2-14 probe
+     # NOTE: validate_continuity_citations is deliberately NOT called here.
+     # The caller (routers/analysis.py) chunks large manuscripts across
+     # multiple check_continuity calls, each seeing only its own chunk's

@@ -1,0 +1,13 @@
+diff --git a/backend/services/prompt_registry.py b/backend/services/prompt_registry.py
+index 827c03e..4c472e7 100644
+--- a/backend/services/prompt_registry.py
++++ b/backend/services/prompt_registry.py
+@@ -493,7 +493,7 @@ def resolve_prompt_version(transform_type: str, version: str, fallback: str) ->
+     transform_type, that is a genuine configuration bug and raises, rather
+     than silently degrading further.
+     """
+-    entry = PROMPT_REGISTRY.get(version)
++    entry = PROMPT_REGISTRY.get(fallback)  # REINTRODUCED 5.1: label-only versioning
+     if entry is not None and transform_type in entry:
+         return entry[transform_type], version
+ 

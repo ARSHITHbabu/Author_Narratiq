@@ -1,0 +1,829 @@
+{
+ "story_id": "1713da59-e625-4eb6-8835-991f39d9f182",
+ "chapters_analyzed": 40,
+ "word_count_total": 31544,
+ "character_arcs": [
+  {
+   "name": "Wren Halloway",
+   "appears_in": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40
+   ],
+   "arc_summary": "Wren Halloway starts as a determined but somewhat naive young woman seeking to uncover her aunt's legacy. By the end, she has become a seasoned investigator, facing danger and making difficult decisions.",
+   "completeness": "complete"
+  }
+ ],
+ "pacing": {
+  "slow_chapters": [
+   1,
+   4,
+   15,
+   20,
+   23,
+   30,
+   36
+  ],
+  "intense_chapters": [
+   3,
+   7,
+   13,
+   14,
+   17,
+   22,
+   28,
+   31,
+   37,
+   38,
+   39
+  ],
+  "assessment": "The pacing varies significantly, with some chapters feeling slow and others intense."
+ },
+ "unresolved_threads": [
+  {
+   "description": "The mystery of the Marisol shipwreck and the disappearances in Greymouth",
+   "introduced_in": 12,
+   "chapters": [
+    12,
+    14,
+    17,
+    22,
+    28,
+    31,
+    37,
+    39
+   ]
+  }
+ ],
+ "strengths": [
+  {
+   "text": "Strong character development and emotional depth, particularly in Wren's journey.",
+   "chapters": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40
+   ]
+  },
+  {
+   "text": "Richly detailed settings and historical context, especially in the descriptions of Greymouth and its maritime culture.",
+   "chapters": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40
+   ]
+  }
+ ],
+ "improvements": [
+  {
+   "text": "Clarify the relationships and motivations of secondary characters, such as Tobin Gale and Silas Crane, to enhance the narrative coherence.",
+   "chapters": [
+    22,
+    25,
+    26,
+    27,
+    37,
+    38
+   ]
+  },
+  {
+   "text": "Increase the frequency of intense scenes to maintain reader engagement, particularly in the middle sections of the manuscript.",
+   "chapters": [
+    3,
+    7,
+    13,
+    14,
+    17,
+    22,
+    28,
+    31,
+    37,
+    39
+   ]
+  }
+ ],
+ "analysis_note": "Structured analysis (40 chapters — raw summaries excluded to fit context window). Chapter details were shortened to fit the model's context window; every chapter is still included.",
+ "stakes": {
+  "summary": "Wren Halloway stands to uncover the truth about her aunt's legacy and the mysterious disappearances in Greymouth, risking her safety and the trust of those around her.",
+  "escalation": [
+   {
+    "chapter": 12,
+    "note": "Introduction of the Marisol shipwreck mystery."
+   },
+   {
+    "chapter": 17,
+    "note": "Wren and Mr. Aldridge plan to uncover the mystery behind the disappearances."
+   },
+   {
+    "chapter": 31,
+    "note": "Wren faces the emotional weight of Edric Thorne's death and continues his work."
+   },
+   {
+    "chapter": 39,
+    "note": "Revealing the true culprit and bringing him to justice."
+   }
+  ]
+ },
+ "themes": [
+  {
+   "theme": "Mystery and Investigation",
+   "chapters": [
+    3,
+    7,
+    12,
+    14,
+    17,
+    22,
+    28,
+    31,
+    37,
+    38,
+    39
+   ]
+  },
+  {
+   "theme": "Community and Support",
+   "chapters": [
+    2,
+    4,
+    5,
+    8,
+    9,
+    10,
+    13,
+    15,
+    16,
+    18,
+    26,
+    29,
+    30,
+    36
+   ]
+  },
+  {
+   "theme": "Legacy and Family Secrets",
+   "chapters": [
+    1,
+    5,
+    16,
+    24,
+    35
+   ]
+  }
+ ],
+ "chapter_plot_importance": {
+  "1": 23.5,
+  "2": 82.4,
+  "5": 47.1,
+  "6": 58.8,
+  "10": 82.4,
+  "3": 64.7,
+  "4": 82.4,
+  "7": 47.1,
+  "8": 58.8,
+  "9": 82.4,
+  "11": 82.4,
+  "12": 58.8,
+  "13": 100.0,
+  "14": 82.4,
+  "15": 41.2,
+  "16": 47.1,
+  "18": 0.0,
+  "19": 82.4,
+  "24": 47.1,
+  "27": 82.4,
+  "17": 100.0,
+  "20": 58.8,
+  "21": 82.4,
+  "22": 82.4,
+  "35": 41.2,
+  "23": 82.4,
+  "25": 23.5,
+  "26": 82.4,
+  "29": 64.7,
+  "34": 82.4,
+  "28": 82.4,
+  "30": 82.4,
+  "31": 41.2,
+  "32": 23.5,
+  "33": 100.0,
+  "36": 82.4,
+  "37": 82.4,
+  "38": 64.7,
+  "39": 29.4,
+  "40": 58.8
+ },
+ "deterministic_open_threads": [
+  "Wren's investigation into her father",
+  "Uncovering the truth about the rope-works fire",
+  "Investigation into salt trade irregularities",
+  "Mysterious man pursuing Wren's mother",
+  "Safe house in Greymouth",
+  "Thorne's funeral",
+  "Investigation into the Devil's Cleft",
+  "Wren's decision to reopen the chandlery",
+  "Cleaning and preparation of the chandlery"
+ ],
+ "citations_suppressed": 0,
+ "relationship_arcs": [
+  {
+   "characters": [
+    "Ada",
+    "Wren Halloway"
+   ],
+   "changes": [
+    {
+     "chapter": 4,
+     "change": "Wren feels a sense of camaraderie and support from Ada."
+    },
+    {
+     "chapter": 23,
+     "change": "Ada's trust in Wren wavers due to her insistence on continuing the risky work."
+    },
+    {
+     "chapter": 26,
+     "change": "Ada's trust in Wren is reaffirmed, and they both agree to work together"
+    },
+    {
+     "chapter": 27,
+     "change": "Both are working together to solve the mystery, showing a strong partnership"
+    }
+   ],
+   "first_chapter": 4,
+   "last_chapter": 27,
+   "chapter_count": 4
+  },
+  {
+   "characters": [
+    "Tobin Gale",
+    "Wren Halloway"
+   ],
+   "changes": [
+    {
+     "chapter": 11,
+     "change": "Wren offers support to Tobin, indicating a strengthening of their relationship"
+    },
+    {
+     "chapter": 22,
+     "change": "Wren begins to trust Tobin, despite his initial reluctance to share information."
+    },
+    {
+     "chapter": 28,
+     "change": "Wren's initial suspicion and tension towards Tobin shift to a mix of compassion and determination to help him."
+    }
+   ],
+   "first_chapter": 11,
+   "last_chapter": 28,
+   "chapter_count": 3
+  },
+  {
+   "characters": [
+    "Liesel Marr",
+    "Wren Halloway"
+   ],
+   "changes": [
+    {
+     "chapter": 10,
+     "change": "Wren and Liesel Marr engage in a friendly negotiation, with Wren using humor to ease Liesel's suspicions."
+    },
+    {
+     "chapter": 33,
+     "change": "Liesel's concern and support for Wren deepen, while Wren appreciates Liesel's care but remains focused on rebuilding."
+    }
+   ],
+   "first_chapter": 10,
+   "last_chapter": 33,
+   "chapter_count": 2
+  },
+  {
+   "characters": [
+    "Ada",
+    "Wren"
+   ],
+   "changes": [
+    {
+     "chapter": 14,
+     "change": "Ada expresses doubt, which Wren acknowledges but remains determined"
+    },
+    {
+     "chapter": 37,
+     "change": "Ada makes a deal with Marcus to help Wren find the money"
+    }
+   ],
+   "first_chapter": 14,
+   "last_chapter": 37,
+   "chapter_count": 2
+  },
+  {
+   "characters": [
+    "Ada Pell",
+    "Wren Halloway"
+   ],
+   "changes": [
+    {
+     "chapter": 2,
+     "change": "Ada offers support and guidance to Wren, establishing a mentor-like relationship."
+    }
+   ],
+   "first_chapter": 2,
+   "last_chapter": 2,
+   "chapter_count": 1
+  },
+  {
+   "characters": [
+    "Edric Thorne",
+    "Wren Halloway"
+   ],
+   "changes": [
+    {
+     "chapter": 3,
+     "change": "Wren and Edric Thorne's relationship becomes more serious and professional as they discuss the discrepancies in the ledger."
+    }
+   ],
+   "first_chapter": 3,
+   "last_chapter": 3,
+   "chapter_count": 1
+  },
+  {
+   "characters": [
+    "Officer Crane",
+    "Wren Halloway"
+   ],
+   "changes": [
+    {
+     "chapter": 5,
+     "change": "Wren gains a sense of relief and gratitude towards Officer Crane for resolving the issue, while Crane seems to have a faint curiosity about the ledger."
+    }
+   ],
+   "first_chapter": 5,
+   "last_chapter": 5,
+   "chapter_count": 1
+  },
+  {
+   "characters": [
+    "Nathaniel Halloway",
+    "Wren Halloway"
+   ],
+   "changes": [
+    {
+     "chapter": 7,
+     "change": "Nathaniel becomes more involved and protective, showing a deeper concern for Wren's safety"
+    }
+   ],
+   "first_chapter": 7,
+   "last_chapter": 7,
+   "chapter_count": 1
+  },
+  {
+   "characters": [
+    "Mother Agathe",
+    "Wren Halloway"
+   ],
+   "changes": [
+    {
+     "chapter": 9,
+     "change": "Wren and Mother Agathe form a stronger bond as they discuss the chapel's importance and plan for restoration"
+    }
+   ],
+   "first_chapter": 9,
+   "last_chapter": 9,
+   "chapter_count": 1
+  },
+  {
+   "characters": [
+    "Jack",
+    "Wren Halloway"
+   ],
+   "changes": [
+    {
+     "chapter": 10,
+     "change": "Wren builds a rapport with Jack, who seems to trust her judgment."
+    }
+   ],
+   "first_chapter": 10,
+   "last_chapter": 10,
+   "chapter_count": 1
+  },
+  {
+   "characters": [
+    "Ada",
+    "Thorne"
+   ],
+   "changes": [
+    {
+     "chapter": 13,
+     "change": "Ada's relief is evident as Thorne improves, showing her care and dedication to his recovery."
+    }
+   ],
+   "first_chapter": 13,
+   "last_chapter": 13,
+   "chapter_count": 1
+  },
+  {
+   "characters": [
+    "Silas Crane",
+    "Wren Halloway"
+   ],
+   "changes": [
+    {
+     "chapter": 16,
+     "change": "Wren gains a deeper understanding of Silas' concerns for her safety, while Silas becomes more protective of Wren"
+    }
+   ],
+   "first_chapter": 16,
+   "last_chapter": 16,
+   "chapter_count": 1
+  },
+  {
+   "characters": [
+    "Mr. Aldridge",
+    "Wren Halloway"
+   ],
+   "changes": [
+    {
+     "chapter": 17,
+     "change": "Wren and Mr. Aldridge plan their next steps, showing collaboration and mutual respect."
+    }
+   ],
+   "first_chapter": 17,
+   "last_chapter": 17,
+   "chapter_count": 1
+  },
+  {
+   "characters": [
+    "Mr. Thorne",
+    "Wren Halloway"
+   ],
+   "changes": [
+    {
+     "chapter": 17,
+     "change": "Mr. Thorne warns Wren about the man who left the records, indicating a level of trust and concern."
+    }
+   ],
+   "first_chapter": 17,
+   "last_chapter": 17,
+   "chapter_count": 1
+  },
+  {
+   "characters": [
+    "Ada Grey",
+    "Wren Halloway"
+   ],
+   "changes": [
+    {
+     "chapter": 19,
+     "change": "Both become more cautious and aware of the potential danger"
+    }
+   ],
+   "first_chapter": 19,
+   "last_chapter": 19,
+   "chapter_count": 1
+  },
+  {
+   "characters": [
+    "Mrs. Eliza Blackwood",
+    "Wren Halloway"
+   ],
+   "changes": [
+    {
+     "chapter": 21,
+     "change": "Wren seeks information from Mrs. Blackwood, showing a willingness to collaborate."
+    }
+   ],
+   "first_chapter": 21,
+   "last_chapter": 21,
+   "chapter_count": 1
+  },
+  {
+   "characters": [
+    "Reverend Thomas",
+    "Wren"
+   ],
+   "changes": [
+    {
+     "chapter": 24,
+     "change": "Wren feels a sense of relief and understanding towards her aunt after meeting Reverend Thomas."
+    }
+   ],
+   "first_chapter": 24,
+   "last_chapter": 24,
+   "chapter_count": 1
+  },
+  {
+   "characters": [
+    "Thomas",
+    "Wren Halloway"
+   ],
+   "changes": [
+    {
+     "chapter": 29,
+     "change": "Wren gains new insights from Thomas about the rope-works fire."
+    }
+   ],
+   "first_chapter": 29,
+   "last_chapter": 29,
+   "chapter_count": 1
+  },
+  {
+   "characters": [
+    "Thorne",
+    "Wren Halloway"
+   ],
+   "changes": [
+    {
+     "chapter": 30,
+     "change": "Thorne agrees to help Wren investigate the case, strengthening their partnership"
+    }
+   ],
+   "first_chapter": 30,
+   "last_chapter": 30,
+   "chapter_count": 1
+  },
+  {
+   "characters": [
+    "Crane",
+    "Wren Halloway"
+   ],
+   "changes": [
+    {
+     "chapter": 34,
+     "change": "Wren is initially wary of Crane but agrees to help with the investigation."
+    }
+   ],
+   "first_chapter": 34,
+   "last_chapter": 34,
+   "chapter_count": 1
+  },
+  {
+   "characters": [
+    "Wren Halloway",
+    "Wren's mother"
+   ],
+   "changes": [
+    {
+     "chapter": 36,
+     "change": "Wren finds renewed purpose in continuing Thorne's work with her mother's support"
+    }
+   ],
+   "first_chapter": 36,
+   "last_chapter": 36,
+   "chapter_count": 1
+  },
+  {
+   "characters": [
+    "Captain Abel Ferris",
+    "Wren Halloway"
+   ],
+   "changes": [
+    {
+     "chapter": 38,
+     "change": "Wren learns the truth about her parentage, which could potentially alter their relationship."
+    }
+   ],
+   "first_chapter": 38,
+   "last_chapter": 38,
+   "chapter_count": 1
+  },
+  {
+   "characters": [
+    "Tom Marston",
+    "Wren Halloway"
+   ],
+   "changes": [
+    {
+     "chapter": 39,
+     "change": "Tom acknowledges Wren's contribution to the investigation and thanks her for her diligence."
+    }
+   ],
+   "first_chapter": 39,
+   "last_chapter": 39,
+   "chapter_count": 1
+  }
+ ],
+ "narrative_signals": [
+  {
+   "kind": "setup_without_payoff",
+   "subject": "Wren's return and adjustment",
+   "chapters": [
+    1,
+    3
+   ],
+   "detail": "Introduced in chapter 1 and last seen in chapter 3, with no resolution after that.",
+   "source": "narrative_threads"
+  },
+  {
+   "kind": "setup_without_payoff",
+   "subject": "Duty and accountability",
+   "chapters": [
+    5
+   ],
+   "detail": "Introduced in chapter 5 and last seen in chapter 5, with no resolution after that.",
+   "source": "narrative_threads"
+  },
+  {
+   "kind": "setup_without_payoff",
+   "subject": "Mysteries of coastal wrecks",
+   "chapters": [
+    6
+   ],
+   "detail": "Introduced in chapter 6 and last seen in chapter 6, with no resolution after that.",
+   "source": "narrative_threads"
+  },
+  {
+   "kind": "setup_without_payoff",
+   "subject": "The missing ledger and journals",
+   "chapters": [
+    7,
+    9
+   ],
+   "detail": "Introduced in chapter 7 and last seen in chapter 9, with no resolution after that.",
+   "source": "narrative_threads"
+  },
+  {
+   "kind": "setup_without_payoff",
+   "subject": "Wren's market activities",
+   "chapters": [
+    10,
+    11
+   ],
+   "detail": "Introduced in chapter 10 and last seen in chapter 11, with no resolution after that.",
+   "source": "narrative_threads"
+  },
+  {
+   "kind": "setup_without_payoff",
+   "subject": "The Marisol mystery",
+   "chapters": [
+    12
+   ],
+   "detail": "Introduced in chapter 12 and last seen in chapter 12, with no resolution after that.",
+   "source": "narrative_threads"
+  },
+  {
+   "kind": "setup_without_payoff",
+   "subject": "Search for the Marisol",
+   "chapters": [
+    14
+   ],
+   "detail": "Introduced in chapter 14 and last seen in chapter 14, with no resolution after that.",
+   "source": "narrative_threads"
+  },
+  {
+   "kind": "setup_without_payoff",
+   "subject": "Festival preparations",
+   "chapters": [
+    15
+   ],
+   "detail": "Introduced in chapter 15 and last seen in chapter 15, with no resolution after that.",
+   "source": "narrative_threads"
+  },
+  {
+   "kind": "setup_without_payoff",
+   "subject": "Wren's investigation into the chandlery",
+   "chapters": [
+    17
+   ],
+   "detail": "Introduced in chapter 17 and last seen in chapter 17, with no resolution after that.",
+   "source": "narrative_threads"
+  },
+  {
+   "kind": "setup_without_payoff",
+   "subject": "Wren's investigation into the Herring Festival",
+   "chapters": [
+    18
+   ],
+   "detail": "Introduced in chapter 18 and last seen in chapter 18, with no resolution after that.",
+   "source": "narrative_threads"
+  },
+  {
+   "kind": "setup_without_payoff",
+   "subject": "Smuggling mystery",
+   "chapters": [
+    19
+   ],
+   "detail": "Introduced in chapter 19 and last seen in chapter 19, with no resolution after that.",
+   "source": "narrative_threads"
+  },
+  {
+   "kind": "setup_without_payoff",
+   "subject": "Smuggling history",
+   "chapters": [
+    20
+   ],
+   "detail": "Introduced in chapter 20 and last seen in chapter 20, with no resolution after that.",
+   "source": "narrative_threads"
+  }
+ ],
+ "generated_at": "2026-10-06T11:44:12.125522",
+ "is_stale": false,
+ "degraded": false
+}

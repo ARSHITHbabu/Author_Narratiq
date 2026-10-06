@@ -1,21 +1,18 @@
 """
 Central configuration — all values overridable via environment variables or .env file.
 
-GPU auto-detection (handled by start.sh before FastAPI boots):
-  start.sh detects GPU count, selects the correct TENSOR_PARALLEL_SIZE,
-  scales MAX_MODEL_LEN to available VRAM, then exports these as env vars
-  so FastAPI picks them up here automatically.
+vLLM sizing (chosen by start-narratiq.sh, STEP 3, from the GPU count; the
+backend does not receive these values — see "GPU / Hardware Notes" in CLAUDE.md):
 
-  1× RTX 4090 (24 GB)  → TP=1, GPU_UTIL=0.88, MAX_CTX=8192
-  2× RTX 4090 (48 GB)  → TP=2, GPU_UTIL=0.90, MAX_CTX=16384
-  3× RTX 4090 (72 GB)  → TP=2, GPU_UTIL=0.90, MAX_CTX=16384
-                          (TP=3 invalid for Qwen2.5-7B's 4 KV heads)
-  4× RTX 4090 (96 GB)  → TP=4, GPU_UTIL=0.90, MAX_CTX=32768
+  1 GPU    → --tensor-parallel-size 1, --max-model-len 8192,  --gpu-memory-utilization 0.88
+  2–3 GPUs → --tensor-parallel-size 2, --max-model-len 16384, --gpu-memory-utilization 0.90
+             (TP=3 is invalid for Qwen2.5-7B's 4 KV heads)
+  4+ GPUs  → --tensor-parallel-size 4, --max-model-len 32768, --gpu-memory-utilization 0.90
 
-Manual override — set env vars before start.sh:
-  TENSOR_PARALLEL_SIZE=2
-  GPU_MEMORY_UTILIZATION=0.90
-  MAX_MODEL_LEN=32768
+Verified production hardware: 1× NVIDIA A40 (46 GB) → the 1-GPU row. The
+backend's own context budgets use `max_model_len` below (default 8192, the
+1-GPU window); a larger vLLM window only adds headroom. The legacy `start.sh`
+that once read these settings was deleted (decision D-2, 2026-09-21).
 
 Local Windows dev:
   vLLM is Linux/CUDA only. Run the backend pointing at a remote vLLM instance,
@@ -61,7 +58,8 @@ class Settings(BaseSettings):
     # Must match exactly what the OpenAI client sends as `model=`.
     vllm_model_name: str = "Qwen/Qwen2.5-7B-Instruct"
 
-    # ── GPU / vLLM launch config (read by start.sh) ──────────────────────────
+    # ── GPU / vLLM sizing as seen by the backend (start-narratiq.sh sizes vLLM itself;
+    #    reported by /api/ops/status; max_model_len drives the context budgets) ──
     gpu_memory_utilization: float = 0.88
     tensor_parallel_size: int = 1
     max_model_len: int = 8192
@@ -163,6 +161,12 @@ class Settings(BaseSettings):
     # flagged strength_violation. "false" restores the previous behaviour.
     light_strength_repair: bool = True
     light_new_share_max: float = 0.45
+    # Stage 12.3 (OD-13, 2026-10-06): the boundary derived from the 60 HR-07 labels
+    # (Youden's J) for tone and style: new_share > 0.24 flags 25/28 outputs labelled
+    # "Too much" and 1/12 labelled "Acceptable"; 0.45 caught only 8/28. Age adaptation
+    # keeps light_new_share_max (simplification adds new words legitimately; no
+    # boundary was supportable from the labels).
+    light_new_share_max_tone_style: float = 0.24
     # Stage 12 remediation A3: the /api/ai/<tool>/stream routes return raw model
     # tokens and skip sentence locks, strength limits, the no-change check, the
     # preservation checks and the prompt-injection output check. No frontend

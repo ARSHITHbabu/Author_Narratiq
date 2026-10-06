@@ -1,0 +1,232 @@
+{
+ "hr": "HR-04",
+ "reviewer": "AI Agent — Owner-authorised independent review",
+ "label": "AGENT REVIEW — AUTHORISED BY OWNER",
+ "method": "Reading of the printed post-fix outputs",
+ "date": "2026-10-06",
+ "status": "FAIL",
+ "answers": {
+  "HR-04.P1.Q1": {
+   "value": "4 Mostly",
+   "note": "Two phrases changed; structure kept."
+  },
+  "HR-04.P1.Q2": {
+   "value": "3 Partly",
+   "note": ""
+  },
+  "HR-04.P1.Q3": {
+   "value": "Minor",
+   "note": "'the weight of silence'."
+  },
+  "HR-04.P1.Q4": {
+   "value": "Major",
+   "note": "'had said everything and nothing' becomes 'bore all the weight of silence', and 'undo the reading' becomes 'unravel the words' — both change meaning (regret at having read it is lost)."
+  },
+  "HR-04.P1.Q5": {
+   "value": "Major",
+   "note": "The passage's two strongest phrases were replaced, adding nothing cinematic."
+  },
+  "HR-04.P1.Q6": {
+   "value": "None",
+   "note": ""
+  },
+  "HR-04.P1.Q7": {
+   "value": "Minor",
+   "note": ""
+  },
+  "HR-04.P1.Q8": {
+   "value": "NO",
+   "note": "No dialogue."
+  },
+  "HR-04.P1.Q9": {
+   "value": "Major",
+   "note": ""
+  },
+  "HR-04.P1.Q10": {
+   "value": "Reject",
+   "note": ""
+  },
+  "HR-04.P2.Q1": {
+   "value": "3 Partly",
+   "note": "Both sentences reworded (strength_violation flagged by the app)."
+  },
+  "HR-04.P2.Q2": {
+   "value": "2 A little",
+   "note": "The wry understatement is gone."
+  },
+  "HR-04.P2.Q3": {
+   "value": "Minor",
+   "note": "'grim detail', and 'crossing' becomes 'voyage' (implies a sea journey — a new fact)."
+  },
+  "HR-04.P2.Q4": {
+   "value": "Major",
+   "note": "The understatement ('left out the part where nobody survived') is spelled out as 'the grim detail of everyone perishing'."
+  },
+  "HR-04.P2.Q5": {
+   "value": "Major",
+   "note": "Near word-for-word synonym substitution."
+  },
+  "HR-04.P2.Q6": {
+   "value": "None",
+   "note": ""
+  },
+  "HR-04.P2.Q7": {
+   "value": "Minor",
+   "note": ""
+  },
+  "HR-04.P2.Q8": {
+   "value": "NO",
+   "note": "No dialogue."
+  },
+  "HR-04.P2.Q9": {
+   "value": "Major",
+   "note": ""
+  },
+  "HR-04.P2.Q10": {
+   "value": "Reject",
+   "note": ""
+  },
+  "HR-04.P3.Q1": {
+   "value": "4 Mostly",
+   "note": ""
+  },
+  "HR-04.P3.Q2": {
+   "value": "3 Partly",
+   "note": ""
+  },
+  "HR-04.P3.Q3": {
+   "value": "None",
+   "note": ""
+  },
+  "HR-04.P3.Q4": {
+   "value": "Minor",
+   "note": "'relative to the established cycle' and 'flagged' lose precision."
+  },
+  "HR-04.P3.Q5": {
+   "value": "Major",
+   "note": "Synonym swaps ('logged'→'recorded', 'did not change'→'remained unchanged') with no cinematic effect."
+  },
+  "HR-04.P3.Q6": {
+   "value": "None",
+   "note": ""
+  },
+  "HR-04.P3.Q7": {
+   "value": "None",
+   "note": ""
+  },
+  "HR-04.P3.Q8": {
+   "value": "NO",
+   "note": "No dialogue."
+  },
+  "HR-04.P3.Q9": {
+   "value": "Minor",
+   "note": ""
+  },
+  "HR-04.P3.Q10": {
+   "value": "Reject",
+   "note": "No style gain; loses precision."
+  },
+  "HR-04.P4.Q1": {
+   "value": "2 A little",
+   "note": "Strong strength; one sentence inflated into a new one."
+  },
+  "HR-04.P4.Q2": {
+   "value": "1 Not at all",
+   "note": "A plain register turned into ornate prose."
+  },
+  "HR-04.P4.Q3": {
+   "value": "Major",
+   "note": "'tapestry … woven into its fabric' metaphor."
+  },
+  "HR-04.P4.Q4": {
+   "value": "Major",
+   "note": "'technically accurate and none of it honest' becomes 'not a shred of truth' — contradicts the original."
+  },
+  "HR-04.P4.Q5": {
+   "value": "Major",
+   "note": ""
+  },
+  "HR-04.P4.Q6": {
+   "value": "Minor",
+   "note": ""
+  },
+  "HR-04.P4.Q7": {
+   "value": "Major",
+   "note": "Treats 'cinematic' as ornate language rather than visual staging."
+  },
+  "HR-04.P4.Q8": {
+   "value": "NO",
+   "note": "No dialogue."
+  },
+  "HR-04.P4.Q9": {
+   "value": "Major",
+   "note": ""
+  },
+  "HR-04.P4.Q10": {
+   "value": "Reject",
+   "note": ""
+  },
+  "HR-04.N1.Q1": {
+   "value": "YES",
+   "note": "Already terse and visual; leaving it with a reason is defensible."
+  },
+  "HR-04.N2.Q1": {
+   "value": "YES",
+   "note": "Light strength on a concise line; no change is acceptable."
+  },
+  "HR-04.SUM.Q1": {
+   "value": "Reject",
+   "note": "0 of 4 style rewrites accepted; the no-change decisions (2 of 2) were right."
+  },
+  "HR-04.SUM.Q2": {
+   "value": "'Cinematic' is rendered as synonym substitution or ornate prose, replacing the author's best phrases and sometimes changing their meaning."
+  }
+ },
+ "result_reasoning": "0 of 4 style rewrites accepted (meaning changes, unnecessary replacement, ornate 'cinematic' stereotype); the 2 no-change decisions were correct. No Blocking answer. Style summary Reject → the style High issues stay open (OD-11).",
+ "per_issue": {
+  "AWT-4.1": {
+   "verdict": "open",
+   "reason": "OD-11: style summary is Reject"
+  },
+  "AWT-4.2": {
+   "verdict": "open",
+   "reason": "OD-11: style summary is Reject"
+  },
+  "AWT-4.4": {
+   "verdict": "open",
+   "reason": "OD-11: style summary is Reject"
+  },
+  "AWT-4.5": {
+   "verdict": "open",
+   "reason": "OD-11: style summary is Reject"
+  },
+  "AWT-4.6": {
+   "verdict": "open",
+   "reason": "OD-11: style summary is Reject"
+  },
+  "AWT-4.7": {
+   "verdict": "open",
+   "reason": "OD-11: style summary is Reject"
+  },
+  "AWT-4.8": {
+   "verdict": "open",
+   "reason": "OD-11: style summary is Reject (the two no-change items themselves were judged correct)"
+  },
+  "AWT-4.9": {
+   "verdict": "open",
+   "reason": "OD-11: style summary is Reject"
+  },
+  "AWT-4.10": {
+   "verdict": "open",
+   "reason": "OD-11: style summary is Reject"
+  }
+ },
+ "failures": [
+  {
+   "item": "P1–P4",
+   "problem": "Unnecessary replacement of the author's phrases, meaning changes, ornate stereotype of 'cinematic'",
+   "severity": "Major"
+  }
+ ],
+ "evidence": []
+}

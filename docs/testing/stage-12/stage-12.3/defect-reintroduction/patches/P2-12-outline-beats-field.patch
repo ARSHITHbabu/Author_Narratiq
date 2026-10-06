@@ -1,0 +1,13 @@
+diff --git a/frontend/components/ai-tools/AIToolsSidebar.tsx b/frontend/components/ai-tools/AIToolsSidebar.tsx
+index fbfb028..dba8396 100644
+--- a/frontend/components/ai-tools/AIToolsSidebar.tsx
++++ b/frontend/components/ai-tools/AIToolsSidebar.tsx
+@@ -260,7 +260,7 @@ export default function AIToolsSidebar({ storyId, chapterId, getSelectedText, ge
+     try {
+       const res = await outlineApi.generate(storyId, chapterId, chapterGoal, sceneCount)
+       // Backend field is `outline` (schemas.py OutlineResponse), not `beats`.
+-      setBeats(res.data.outline ?? [])
++      setBeats(res.data.beats ?? [])  // REINTRODUCED P2-12
+     } catch (e: any) {
+       toast.error(e?.response?.data?.detail ?? 'Failed to generate outline')
+     } finally {

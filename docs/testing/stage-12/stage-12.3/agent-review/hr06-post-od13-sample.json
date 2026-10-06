@@ -1,0 +1,105 @@
+{
+ "seed": "20261006-a2-od13",
+ "source": "tests/fixtures/strength_t2b_after_v4_light_repair_od13.json",
+ "pairs": [
+  {
+   "transform": "tone",
+   "passage": "tech-3",
+   "run": 0,
+   "original": "The report was three pages, all of it technically accurate and none of it honest about what the numbers actually implied.",
+   "light": "The report spanned three pages, each filled with figures that were technically accurate yet utterly devoid of truth regarding what those numbers truly signified.",
+   "strong": "The report, a chilling three pages long, meticulously presented facts that were as cold and precise as a surgeon's scalpel—each word a lie wrapped in truth, each number a whisper of deception.",
+   "light_violation": true,
+   "light_new_share": 0.625,
+   "id": "N1"
+  },
+  {
+   "transform": "tone",
+   "passage": "gothic-4",
+   "run": 1,
+   "original": "He kept the key on a chain he never removed, not because he expected to need it again, but because a man who has once locked a door does not easily trust himself to leave it unlocked.",
+   "light": "He kept the key on a chain he never took off, not because he anticipated needing it again, but because a man who had once locked a door did not quickly trust himself to leave it unlocked.",
+   "strong": "He kept the key on a chain he wore without fail, not because he anticipated needing it again, but because a man who had once locked a door could never fully trust himself to leave it unlocked.",
+   "light_violation": false,
+   "light_new_share": 0.189,
+   "id": "N2"
+  },
+  {
+   "transform": "tone",
+   "passage": "gothic-2",
+   "run": 4,
+   "original": "She had learned, over the years, to say nothing when she was most afraid. The habit had outlived its reason. Even now, alone in the hall, she found herself arranging her face into something calm.",
+   "light": "She had learned, over the years, to say nothing when she was most afraid. The habit lingered, even when it no longer served its purpose. Even now, alone in the hall, she forced her expression into something composed.",
+   "strong": "She had learned, over the years, to say nothing when she was most afraid. The habit lingered, a shadow from a past that refused to fade. Even now, alone in the dimly lit hall, she forced her features into an unyielding mask of tranquility.",
+   "light_violation": true,
+   "light_new_share": 0.289,
+   "id": "N3"
+  },
+  {
+   "transform": "tone",
+   "passage": "tech-4",
+   "run": 2,
+   "original": "By morning the anomaly had a name, a case number, and a team of four people who had not been told what they were actually looking for.",
+   "light": "By morning, the anomaly had a name, a case number, and a team of four who knew nothing of what they were truly seeking.",
+   "strong": "By dawn, the anomaly was christened with a name and a case number, and a quartet of investigators had been assembled, none of whom knew the true nature of their quest.",
+   "light_violation": false,
+   "light_new_share": 0.208,
+   "id": "N4"
+  },
+  {
+   "transform": "tone",
+   "passage": "adventure-3",
+   "run": 3,
+   "original": "The children's version of the story left out the part where nobody survived the first crossing. This was, Mira thought, probably for the best.",
+   "light": "The children's version of the story omitted the chilling detail of no survivors from the first crossing. Mira supposed this was for the better.",
+   "strong": "The children's version of the tale conveniently omitted the harrowing detail where not a single soul emerged unscathed from the initial voyage. Mira pondered this, deciding it was likely for the best.",
+   "light_violation": true,
+   "light_new_share": 0.375,
+   "id": "N5"
+  },
+  {
+   "transform": "tone",
+   "passage": "gothic-1",
+   "run": 2,
+   "original": "The house had not been opened in eleven years, and the air inside kept the shape of that absence — still, cold, faintly sweet with dust. Mira did not call out. There was no one left to answer.",
+   "light": "The house, untouched for eleven years, held the silence of that long absence—still, cold, faintly sweet with dust. Mira moved quietly, not calling out. There was no one left to respond.",
+   "strong": "The house, untouched for eleven long years, exhaled the silence of abandonment—a stillness, a chill, a faint sweetness of dust lingering in the air. Mira moved quietly, her breath a ghost in the echoing halls. There was no one left to hear her call.",
+   "light_violation": true,
+   "light_new_share": 0.281,
+   "id": "N6"
+  },
+  {
+   "transform": "style",
+   "passage": "tech-2",
+   "run": 0,
+   "original": "Access to the lab required two separate badge scans and a supervisor override after 22:00. Priya had never used the override before tonight.",
+   "light": "Access to the lab demanded two badge scans and a supervisor override past 10 pm. Priya had never initiated the override before tonight.",
+   "strong": "The lab demanded two badge scans and a supervisor's override past 10:00 PM. Tonight, Priya had never employed the override until now.",
+   "light_violation": false,
+   "light_new_share": 0.217,
+   "id": "N7"
+  },
+  {
+   "transform": "style",
+   "passage": "gothic-2",
+   "run": 2,
+   "original": "She had learned, over the years, to say nothing when she was most afraid. The habit had outlived its reason. Even now, alone in the hall, she found herself arranging her face into something calm.",
+   "light": "She had learned, over the years, to say nothing when she was most afraid. The habit lingered despite its usefulness. Even now, alone in the hall, she managed to settle her expression into something composed.",
+   "strong": "She had learned, over the years, to maintain silence when fear gripped her most tightly. The habit lingered, detached from its original purpose. Even now, standing alone in the dimly lit hall, she practiced smoothing her expression into an appearance of tranquility.",
+   "light_violation": false,
+   "light_new_share": 0.229,
+   "id": "N8"
+  },
+  {
+   "transform": "style",
+   "passage": "gothic-3",
+   "run": 1,
+   "original": "The letter had said everything and nothing. Devika read it twice, then folded it back along its old creases, as if that alone could undo the reading.",
+   "light": "The letter held all and no answers. Devika read it twice, then folded it back along its familiar creases, as if that act alone could erase the truths it bore.",
+   "strong": "The letter bore the weight of all and none of its words. Devika paused, her fingers tracing the familiar creases as she read it once more, then again, as if the act of folding it back along those very lines might somehow reverse the truths it contained.",
+   "light_violation": true,
+   "light_new_share": 0.333,
+   "id": "N9"
+  }
+ ]
+}

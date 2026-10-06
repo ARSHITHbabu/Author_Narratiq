@@ -1,0 +1,84 @@
+{
+  "meta": {
+    "date": "2026-10-06T08:27:08+00:00",
+    "git_head": "2b63b51",
+    "tree_dirty": true,
+    "trials": 20,
+    "injected_regression": null,
+    "prompt_version": "v4",
+    "model": "Qwen/Qwen2.5-7B-Instruct",
+    "seconds": 515
+  },
+  "invariants": {
+    "locked_segment:adventure-2": {
+      "passes": 20,
+      "trials": 20,
+      "sequence": "PPPPPPPPPPPPPPPPPPPP",
+      "fail_notes": []
+    },
+    "locked_segment:gothic-3": {
+      "passes": 20,
+      "trials": 20,
+      "sequence": "PPPPPPPPPPPPPPPPPPPP",
+      "fail_notes": []
+    },
+    "locked_segment:tech-2": {
+      "passes": 20,
+      "trials": 20,
+      "sequence": "PPPPPPPPPPPPPPPPPPPP",
+      "fail_notes": []
+    },
+    "no_change:adventure-3": {
+      "passes": 17,
+      "trials": 20,
+      "sequence": "PPfPPPPPPfPfPPPPPPPP",
+      "fail_notes": [
+        "None",
+        "None",
+        "None"
+      ]
+    },
+    "no_change:gothic-2": {
+      "passes": 20,
+      "trials": 20,
+      "sequence": "PPPPPPPPPPPPPPPPPPPP",
+      "fail_notes": []
+    },
+    "no_change:gothic-4": {
+      "passes": 20,
+      "trials": 20,
+      "sequence": "PPPPPPPPPPPPPPPPPPPP",
+      "fail_notes": []
+    },
+    "no_change:tech-3": {
+      "passes": 20,
+      "trials": 20,
+      "sequence": "PPPPPPPPPPPPPPPPPPPP",
+      "fail_notes": []
+    },
+    "names_preserved:gothic-1": {
+      "passes": 20,
+      "trials": 20,
+      "sequence": "PPPPPPPPPPPPPPPPPPPP",
+      "fail_notes": []
+    },
+    "names_preserved:gothic-3": {
+      "passes": 20,
+      "trials": 20,
+      "sequence": "PPPPPPPPPPPPPPPPPPPP",
+      "fail_notes": []
+    },
+    "light_not_flagged:tech-1": {
+      "passes": 20,
+      "trials": 20,
+      "sequence": "PPPPPPPPPPPPPPPPPPPP",
+      "fail_notes": []
+    },
+    "suggestions_valid:adventure-1": {
+      "passes": 20,
+      "trials": 20,
+      "sequence": "PPPPPPPPPPPPPPPPPPPP",
+      "fail_notes": []
+    }
+  }
+}

@@ -10,6 +10,9 @@ Policy (grandfather–father–son, on-pod):
   * never delete: a set with a `<stem>.keep` marker file, or the newest set
     that passed automated restore verification (LAST-VERIFY.json);
   * never delete anything that is not a recognised backup artefact.
+  * a `<stem>.disposable` marker (OD-05; backup_evidence.py mark-disposable)
+    does NOT keep a set: a marked set is rotated like any other and its marker
+    is deleted with it (decided 2026-10-06; backup-and-restore.md §2).
 
 This bounds the "deleted data persists in backups" window stated in the data
 policy (docs/policies/data-retention-and-deletion.md): at most KEEP_DAILY_DAYS
@@ -43,7 +46,10 @@ def _stamp_time(stamp: str) -> datetime:
 def set_files(backup_dir: Path, stamp: str) -> list[Path]:
     names = [f"narratiq-{stamp}.dump", f"narratiq-{stamp}.dump.sha256", f"narratiq-{stamp}.manifest.json",
              f"narratiq-{stamp}.SHA256SUMS", f"narratiq-globals-{stamp}.sql",
-             f"narratiq-globals-{stamp}.sql.sha256", f"narratiq-uploads-{stamp}.tar.gz"]
+             f"narratiq-globals-{stamp}.sql.sha256", f"narratiq-uploads-{stamp}.tar.gz",
+             # An operator .disposable marker (OD-05) belongs to its set: it does not keep
+             # the set, and it goes when the set goes (it could never match another set).
+             f"narratiq-{stamp}.disposable"]
     return [backup_dir / n for n in names if (backup_dir / n).exists()]
 
 

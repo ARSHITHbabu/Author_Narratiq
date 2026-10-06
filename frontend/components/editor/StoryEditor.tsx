@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useCallback, useRef, useState } from 'react'
-import { useEditor, EditorContent } from '@tiptap/react'
+import { useEditor, EditorContent, type Editor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import CharacterCount from '@tiptap/extension-character-count'
@@ -65,6 +65,18 @@ const ToolbarBtn = ({ onClick, active, title, children }: any) => (
 // buttons (Stage 8.4 progressive disclosure). Nothing is removed.
 const moreItemCls = 'w-full text-left px-3 py-1.5 text-xs text-[#cdd2f0] hover:bg-[#1f2440] focus:bg-[#1f2440] outline-none cursor-pointer flex items-center gap-2 data-[state=checked]:text-amber-400'
 
+// Replace the document with a chapter's saved text WITHOUT recording an undo step.
+// Stage 12.3 agent review (HR-15/HR-17): the load was undoable, so pressing Ctrl+Z a
+// few times after opening a chapter rolled the document back past its own text —
+// to empty, or to the chapter open before it — and autosave then saved that over
+// the chapter. Live, chapter 40 of the review story was emptied this way.
+export function loadIntoEditor(editor: Editor, html: string) {
+  editor.chain()
+    .command(({ tr }) => { tr.setMeta('addToHistory', false); return true })
+    .setContent(html, false)
+    .run()
+}
+
 export default function StoryEditor({ storyId, chapter, onWordCountChange, onEditorReady, onContentLoaded, reloadTrigger, readOnly = false }: Props) {
   const [saving, setSaving] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
@@ -102,7 +114,12 @@ export default function StoryEditor({ storyId, chapter, onWordCountChange, onEdi
     content: chapter.content || '',
     editable: !readOnly,
     editorProps: {
-      attributes: { class: 'min-h-[calc(100vh-260px)] focus:outline-none' },
+      // Stage 12.3 agent review (HR-16): the editable area had no role or name, so
+      // assistive technology announced an unnamed region rather than the manuscript.
+      attributes: {
+        class: 'min-h-[calc(100vh-260px)] focus:outline-none',
+        role: 'textbox', 'aria-multiline': 'true', 'aria-label': 'Chapter text',
+      },
     },
     onCreate({ editor }) {
       const searchFns: EditorSearchFunctions = {
@@ -160,12 +177,12 @@ export default function StoryEditor({ storyId, chapter, onWordCountChange, onEdi
       )
       try {
         const res = await chaptersApi.get(storyId, chapter.chapter_id)
-        editor.commands.setContent(res.data.content || '', false)
+        loadIntoEditor(editor, res.data.content || '')
         const text = (res.data.content || '').replace(/<[^>]+>/g, ' ')
         const wc = text.trim() ? text.trim().split(/\s+/).length : 0
         onWordCountChange(wc)
       } catch {
-        editor.commands.setContent(chapter.content || '', false)
+        loadIntoEditor(editor, chapter.content || '')
       }
       setLoadedChapterId(chapter.chapter_id)
       onContentLoaded?.()

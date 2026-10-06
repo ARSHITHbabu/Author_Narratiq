@@ -33,6 +33,8 @@ import asyncio
 import sys
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from services.ai_service import extract_cast  # noqa: E402
@@ -100,28 +102,49 @@ def test_extract_cast_does_not_over_promote_minor_unnamed_mentions():
 
 
 def test_extract_cast_names_exactly_four_characters_no_hallucination():
-    """This fixture has exactly 4 named, significant characters who appear on
-    the page. More than that means something was hallucinated or a walk-on was
-    over-promoted; fewer means a real character was missed.
+    """HARD identity requirement. This fixture has exactly 4 named, significant
+    characters. Each must come back exactly once — none lost, none merged into
+    another, none duplicated — and nothing may be invented. Only the
+    Cartographer (dead before the story begins, only remembered; Stage 12 A10)
+    may appear as an extra, and only labelled historical or referenced. No
+    off-page entry may be the protagonist.
 
-    Stage 12 A10: the Cartographer — dead before the story begins and only
-    remembered — may now be listed, but only labelled as historical or
-    referenced (never as an on-page character, never as the protagonist)."""
+    Stage 12.3 (owner-approved treatment, 2026-10-06): this test used to count
+    characters by their presence LABEL (`len(on_page) == 4`). That conflated
+    identity with CAST-H10 — the model occasionally labels the living antagonist
+    `historical` (owner-accepted variability, 21/25 correct in
+    docs/testing/stage-12/tranche3/cast-variability-probe.json) — and it never
+    checked names, so a run that lost Vell and invented someone would have
+    passed. Identity is now checked by name and stays hard; the presence label
+    is measured by the non-blocking test below."""
+    from tests._cast_identity import identity_problems
+
+    async def run():
+        texts = [_html_to_plain(c["content"]) for c in CHAPTERS]
+        return await extract_cast(texts)
+
+    result = asyncio.run(run())
+    print(f"\n[4.9] extracted {len(result)} character(s): "
+          f"{[(c['name'], c.get('presence')) for c in result]}")
+    problems = identity_problems(result)
+    assert not problems, f"character identity broken: {problems}"
+
+
+@pytest.mark.xfail(strict=False, reason=(
+    "CAST-H10: the model occasionally labels the living antagonist `historical` — "
+    "owner-accepted live-model variability (2026-10-03), measured 21/25 correct "
+    "(docs/testing/stage-12/tranche3/cast-variability-probe.json). Non-blocking by "
+    "owner decision (2026-10-06); identity is enforced by the hard test above and the "
+    "failure shape is replayed deterministically in test_cast_t2a.py. Every W-1 "
+    "record lists this test's XPASS/XFAIL outcome."))
+def test_extract_cast_living_characters_labelled_on_page():
+    """Presence LABEL quality (non-blocking, measured): all 4 living, on-page
+    characters labelled `on_page`."""
     async def run():
         texts = [_html_to_plain(c["content"]) for c in CHAPTERS]
         return await extract_cast(texts)
 
     result = asyncio.run(run())
     on_page = [c for c in result if c.get("presence", "on_page") == "on_page"]
-    print(f"\n[4.9] extracted {len(result)} character(s): "
-          f"{[(c['name'], c.get('presence')) for c in result]}")
+    print(f"\n[CAST-H10] presence labels: {[(c['name'], c.get('presence')) for c in result]}")
     assert len(on_page) == 4, f"expected exactly 4 on-page characters, got {[c['name'] for c in on_page]}"
-    for c in result:
-        if c not in on_page:
-            assert c.get("presence") in ("historical", "referenced"), c
-            assert c.get("role") != "protagonist", c
-
-
-if __name__ == "__main__":
-    import pytest
-    raise SystemExit(pytest.main([__file__, "-v", "-s"]))

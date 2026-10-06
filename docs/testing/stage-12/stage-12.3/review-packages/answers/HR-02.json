@@ -1,0 +1,181 @@
+{
+ "hr": "HR-02",
+ "reviewer": "AI Agent — Owner-authorised independent review",
+ "label": "AGENT REVIEW — AUTHORISED BY OWNER",
+ "method": "Reading of the printed outputs (2 post-fix strong-dread samples; 2 Stage 9 intensity-measurement samples, as sampled by the package)",
+ "date": "2026-10-06",
+ "status": "FAIL",
+ "answers": {
+  "HR-02.P1.Q1": {
+   "value": "1 Not at all",
+   "note": "One sentence became a five-sentence new passage."
+  },
+  "HR-02.P1.Q2": {
+   "value": "2 A little",
+   "note": "The terse, rhythmic original is lost."
+  },
+  "HR-02.P1.Q3": {
+   "value": "Major",
+   "note": "Invented trembling fingers, heartbeat, 'cool metal of the bow' (implausible detail), thickening air."
+  },
+  "HR-02.P1.Q4": {
+   "value": "Major",
+   "note": "The understated 'and she knew it' becomes an explained feeling."
+  },
+  "HR-02.P1.Q5": {
+   "value": "Major",
+   "note": "'the realization gnawed at her, sharp and cold'; 'oppressive weight'."
+  },
+  "HR-02.P1.Q6": {
+   "value": "Major",
+   "note": "What was implied is now spelled out."
+  },
+  "HR-02.P1.Q7": {
+   "value": "Major",
+   "note": "Stock dread template (heartbeat, thick air, gnawing realization)."
+  },
+  "HR-02.P1.Q8": {
+   "value": "Reject",
+   "note": "Not an edit of the author's sentence."
+  },
+  "HR-02.P2.Q1": {
+   "value": "2 A little",
+   "note": "An edit, but the requested dread is not added at all."
+  },
+  "HR-02.P2.Q2": {
+   "value": "4 Mostly",
+   "note": "Close paraphrase."
+  },
+  "HR-02.P2.Q3": {
+   "value": "None",
+   "note": ""
+  },
+  "HR-02.P2.Q4": {
+   "value": "Minor",
+   "note": "'before tonight' (the hook) becomes 'until now'."
+  },
+  "HR-02.P2.Q5": {
+   "value": "None",
+   "note": ""
+  },
+  "HR-02.P2.Q6": {
+   "value": "None",
+   "note": ""
+  },
+  "HR-02.P2.Q7": {
+   "value": "None",
+   "note": ""
+  },
+  "HR-02.P2.Q8": {
+   "value": "Reject",
+   "note": "Does not do what was asked (no dread) and weakens the hook."
+  },
+  "HR-02.P3.Q1": {
+   "value": "3 Partly",
+   "note": "Skeleton kept; middle and ending rewritten."
+  },
+  "HR-02.P3.Q2": {
+   "value": "2 A little",
+   "note": "Restraint replaced by purple prose ('each molecule of air')."
+  },
+  "HR-02.P3.Q3": {
+   "value": "Major",
+   "note": "New imagery: exhaling house, footsteps, rooms whispering secrets."
+  },
+  "HR-02.P3.Q4": {
+   "value": "Major",
+   "note": "The quiet 'Mira did not call out' is lost."
+  },
+  "HR-02.P3.Q5": {
+   "value": "Major",
+   "note": "'the hollow ache of empty rooms'."
+  },
+  "HR-02.P3.Q6": {
+   "value": "Major",
+   "note": "The unsaid grief is narrated outright."
+  },
+  "HR-02.P3.Q7": {
+   "value": "Major",
+   "note": "Cliché ('whispering their secrets to the empty walls'), with a repeated 'empty'."
+  },
+  "HR-02.P3.Q8": {
+   "value": "Reject",
+   "note": "Overwritten; loses the original's power."
+  },
+  "HR-02.P4.Q1": {
+   "value": "2 A little",
+   "note": "Each sentence rebuilt."
+  },
+  "HR-02.P4.Q2": {
+   "value": "2 A little",
+   "note": "The distinctive simile ('a held breath finally let go') is flattened."
+  },
+  "HR-02.P4.Q3": {
+   "value": "Major",
+   "note": "Invented wind chill and darkness."
+  },
+  "HR-02.P4.Q4": {
+   "value": "Major",
+   "note": "'nothing behind them worth the half-second it would cost' (cold calculation) becomes 'nothing to see in the darkness … the thought lingered' — changed meaning."
+  },
+  "HR-02.P4.Q5": {
+   "value": "Minor",
+   "note": "'a faint echo in his mind'."
+  },
+  "HR-02.P4.Q6": {
+   "value": "Major",
+   "note": "Kael's implied ruthlessness is replaced by an explained, lingering unease."
+  },
+  "HR-02.P4.Q7": {
+   "value": "Minor",
+   "note": ""
+  },
+  "HR-02.P4.Q8": {
+   "value": "Reject",
+   "note": "Changes character and meaning at low intensity."
+  },
+  "HR-02.SUM.Q1": {
+   "value": "Reject",
+   "note": "0 of 4 emotion samples accepted."
+  },
+  "HR-02.SUM.Q2": {
+   "value": "Emotion is added by inventing physical sensations and spelling the feeling out, destroying the original's subtext (or, in one case, not added at all)."
+  }
+ },
+ "result_reasoning": "0 of 4 emotion rewrites accepted: invented sensations, over-explanation and loss of subtext; one sample added no emotion at all. No Blocking answer; the emotion summary is Reject, so the emotion High issues stay open (OD-11).",
+ "per_issue": {
+  "AWT-2.1": {
+   "verdict": "open",
+   "reason": "OD-11: emotion summary is Reject"
+  },
+  "AWT-2.2": {
+   "verdict": "open",
+   "reason": "OD-11: emotion summary is Reject"
+  },
+  "AWT-2.3": {
+   "verdict": "open",
+   "reason": "OD-11: emotion summary is Reject"
+  },
+  "AWT-2.6": {
+   "verdict": "open",
+   "reason": "OD-11: emotion summary is Reject"
+  },
+  "AWT-2.7": {
+   "verdict": "open",
+   "reason": "OD-11: emotion summary is Reject"
+  }
+ },
+ "failures": [
+  {
+   "item": "P1, P3, P4",
+   "problem": "Invented physical sensations/imagery; emotion spelled out; subtext removed",
+   "severity": "Major"
+  },
+  {
+   "item": "P2",
+   "problem": "Requested emotion not applied",
+   "severity": "Minor"
+  }
+ ],
+ "evidence": []
+}

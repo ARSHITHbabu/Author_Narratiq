@@ -1,0 +1,25 @@
+diff --git a/frontend/app/(dashboard)/projects/[id]/plan/page.tsx b/frontend/app/(dashboard)/projects/[id]/plan/page.tsx
+index 2d3dacd..76f0119 100644
+--- a/frontend/app/(dashboard)/projects/[id]/plan/page.tsx
++++ b/frontend/app/(dashboard)/projects/[id]/plan/page.tsx
+@@ -13,10 +13,12 @@ import { workspacePathWith } from '@/lib/registries/workspaces'
+ 
+ const PlotAssistantPanel = dynamic(() => import('@/components/plot-assistant/PlotAssistantPanel'), { ssr: false })
+ const PacingGoalPanel = dynamic(() => import('@/components/pacing/PacingGoalPanel'), { ssr: false })
++const NotesPanel = dynamic(() => import('@/components/notes/NotesPanel'), { ssr: false })  // REINTRODUCED P2-10
+ 
+ const SECTIONS = [
+   { id: 'plot', label: 'Plot Assistant', icon: MessageSquare },
+   { id: 'pacing', label: 'Pacing', icon: Target },
++  { id: 'notes', label: 'Notes', icon: Target },
+ ] as const
+ 
+ export default function PlanWorkspace() {
+@@ -37,6 +39,7 @@ export default function PlanWorkspace() {
+           <PlotAssistantPanel storyId={storyId} getEditorText={() => editor?.getFullText() || ''} chapterNumber={activeChapter?.chapter_number} />
+         )}
+         {section === 'pacing' && <PacingGoalPanel storyId={storyId} />}
++        {section === 'notes' && <NotesPanel storyId={storyId} />}
+       </SectionPanel>
+     </div>
+   )

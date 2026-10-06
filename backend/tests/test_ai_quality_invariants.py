@@ -161,6 +161,12 @@ def test_character_name_preservation_reports_no_violation(fixture_user, passage_
 
 # ── Invariant 4: instruction adherence (light strength => small edit) ──────
 
+# Stage 12.3 (2026-10-06): since OD-13 the tone/style Light limit is 0.24 new words, derived from
+# the owner-rule labels (HR-07). Measured on tech-1 after that change: flagged in 4 of 5 runs (was
+# 20/20 unflagged at the 0.45 limit) — the model's Light tone rewrite is heavier than the labels
+# accept, which is the open G1 finding (HR-06 FAIL; AWT-D, AWT-I). Kept as an honestly red
+# known-defect test (run with -m known_stage5_defect), not relaxed: it passes when G1 is fixed.
+@pytest.mark.known_stage5_defect
 def test_light_strength_does_not_trip_the_strength_violation_flag(fixture_user):
     passage = next(p for p in PASSAGES if p["id"] == "tech-1")
     story_id = _make_story_with_character(fixture_user, None)

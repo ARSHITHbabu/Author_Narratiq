@@ -1,0 +1,42 @@
+$ (cwd /workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/backend) python3 -m pytest tests/test_voice_execution.py -q -p no:cacheprovider -rfE --no-header -W ignore
+
+[conftest] DB safety guard: running against allow-listed test database 'narratiq_ci_verify'
+.........................................F...                                                                                                                                                                                                                   [100%]
+============================================================================================================================== FAILURES ===============================================================================================================================
+__________________________________________________________________________________________________ test_unreadable_classification_fails_honestly_instead_of_guessing __________________________________________________________________________________________________
+
+    def test_unreadable_classification_fails_honestly_instead_of_guessing():
+        """It used to become {} → a guess at confidence 0.4 → below the 0.55
+        threshold → a clarification prompt. The author saw "I didn't understand",
+        which is indistinguishable from the agent mishearing them."""
+        from services.voice import intent
+        assert intent.coerce_intent(None)[0] is None
+        assert intent.coerce_intent({})[0] is None
+        assert intent.coerce_intent({"capability": ""})[0] is None
+        assert intent.coerce_intent({"capability": "chapter_mgmt"})[0] is not None
+    
+        src = inspect.getsource(intent.classify)
+        assert "complete_structured" in src, "intent must use the structured contract"
+>       assert "fallback={}" not in src, "the silent-fallback is the defect"
+E       AssertionError: the silent-fallback is the defect
+E       assert 'fallback={}' not in 'async def c...reasoning)\n'
+E         
+E         'fallback={}' is contained here:
+E           json(raw, fallback={})
+E           
+E               cap = (data.get("capability") or "").strip()
+E               action = (data.get("action") or "").strip()
+E               conf = float(data.get("confidence") or 0.0)...
+E         
+E         ...Full output truncated (28 lines hidden), use '-vv' to show
+
+tests/test_voice_execution.py:420: AssertionError
+======================================================================================================================= short test summary info =======================================================================================================================
+FAILED tests/test_voice_execution.py::test_unreadable_classification_fails_honestly_instead_of_guessing - AssertionError: the silent-fallback is the defect
+1 failed, 44 passed in 0.79s
+/workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/backend/database.py:38: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+  Base = declarative_base()
+/usr/local/lib/python3.11/dist-packages/pytest_asyncio/plugin.py:208: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))

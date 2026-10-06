@@ -1,0 +1,17 @@
+diff --git a/backend/services/transform_preservation.py b/backend/services/transform_preservation.py
+index 2ecdb31..953ebd9 100644
+--- a/backend/services/transform_preservation.py
++++ b/backend/services/transform_preservation.py
+@@ -461,10 +461,11 @@ def reconstruct_with_locks(model_output: str, segments: list[dict]) -> tuple[str
+         return None, False
+ 
+     rewrite_iter = iter(model_rewrites)
++    keep_iter = iter(_re.findall(r"\[KEEP\](.*?)\[/KEEP\]", model_output, _re.DOTALL))
+     out_parts = []
+     for s in segments:
+         if s["locked"]:
+-            out_parts.append(s["text"])  # original bytes, never the model's echo
++            out_parts.append(next(keep_iter, s["text"]))  # REINTRODUCED 5.4: trusts model echo
+         else:
+             out_parts.append(next(rewrite_iter))
+     return "".join(out_parts), True

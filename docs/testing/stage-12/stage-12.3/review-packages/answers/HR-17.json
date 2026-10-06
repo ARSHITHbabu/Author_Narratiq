@@ -1,0 +1,67 @@
+{
+ "hr": "HR-17",
+ "reviewer": "AI Agent — Owner-authorised independent review",
+ "label": "AGENT REVIEW — AUTHORISED BY OWNER",
+ "method": "Live: Analyze → Writing Metrics on the synthetic 40-chapter story (isolated test stack :3200/:8100), read as an author would; page text and screenshots saved",
+ "date": "2026-10-06",
+ "status": "FAIL",
+ "answers": {
+  "HR-17.Q1": {
+   "value": "Yes",
+   "note": "'Total word count across all chapters' — clear."
+  },
+  "HR-17.Q2": {
+   "value": "Yes",
+   "note": "Clear."
+  },
+  "HR-17.Q3": {
+   "value": "Yes",
+   "note": "'Total words divided by chapter count' — clear; 806 per chapter."
+  },
+  "HR-17.Q4": {
+   "value": "Partly",
+   "note": "72.1/100 'Easy to read (7th–8th grade)' explains the meaning, but not whether that suits a historical mystery or what to change; the card's explanation is cut off with an ellipsis at 1366×768."
+  },
+  "HR-17.Q5": {
+   "value": "Yes",
+   "note": "24.2% with 'within the typical 15–35% range for this genre' — meaning and verdict both given."
+  },
+  "HR-17.Q6": {
+   "value": "Partly",
+   "note": "12.7 words is defined but has no reference range or advice."
+  },
+  "HR-17.Q7": {
+   "value": "Partly",
+   "note": "'40.3% of 80,000 words' never says where 80,000 comes from (a typical manuscript for the genre); the per-chapter bars have no legend."
+  },
+  "HR-17.Q8": {
+   "value": "No",
+   "note": "The story-intelligence block is not shown (it needs the Story Intelligence job). In its place a 'Phase 2 Analytics (Coming Soon)' panel lists Emotion Flow Graph, Pacing Analysis and Plot Hole Detection — tools that already ship elsewhere (Analyze, Plan → Pacing, Continuity). An author cannot tell what exists."
+  },
+  "HR-17.Q9": {
+   "value": "YES",
+   "note": "The six headline numbers are each defined on the card; the readability, sentence-length and progress numbers lack 'what to do'."
+  }
+ },
+ "result_reasoning": "FAIL under OD-19.1: Q9 = YES but one item is 'No' (Q8: a stale 'Coming Soon' panel advertises shipped tools as missing). The three 'Partly' answers are explained. Follow-ups (not Critical/High; not fixed here): replace the 'Coming Soon' panel with links to the shipped tools; state the source of the 80,000-word target; give a reference range for sentence length; keep the readability explanation readable at 1366×768. During this review the chapter-40 data loss (HR-15) first showed here as 'Ch 40 — 0 words'; recaptured after the fix and restore.",
+ "per_issue": {},
+ "failures": [
+  {
+   "item": "'Phase 2 Analytics (Coming Soon)' panel",
+   "problem": "Lists three tools that already ship as 'coming soon'",
+   "severity": "Medium"
+  },
+  {
+   "item": "Chapter 40 = 0 words (first capture)",
+   "problem": "Symptom of the undo data-loss defect — see HR-15 (fixed, restored)",
+   "severity": "Critical (fixed)"
+  }
+ ],
+ "evidence": [
+  "docs/testing/stage-12/stage-12.3/agent-review/hr17-analytics-text-with-ch40-emptied.txt",
+  "docs/testing/stage-12/stage-12.3/agent-review/hr17-analytics-text.txt",
+  "docs/testing/stage-12/stage-12.3/agent-review/ui/17-analytics-top.png",
+  "docs/testing/stage-12/stage-12.3/agent-review/ui/17-analytics-middle.png",
+  "docs/testing/stage-12/stage-12.3/agent-review/ui/17-analytics-bottom.png"
+ ]
+}

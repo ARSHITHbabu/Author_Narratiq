@@ -14,6 +14,14 @@ An **active author** is one using AI tools continuously: one AI action every ~30
 
 **Tier-2 in one sentence (2026-10-03):** with half of active authors on strict consistency, the pod serves up to about **15** active authors with acceptable rewrite and Q&A latency, but semantic search's p95 exceeds its 1 s target (median under 0.2 s). With 10 % on Tier-2, the free-plan figure of **60** holds. **The onboarding limit stays a product-owner decision (MV-10.8); these numbers do not set it.**
 
+**Supported operating envelope — ACCEPTED by the product owner (2026-10-06, OD-03 and OD-04):** about **60
+active authors per pod**, about **150–200 registered**, with **less than 10 % simultaneously using Tier-2 strict
+consistency**. This is the initial supported envelope, **not** an unlimited scalability claim: growing beyond it needs
+added capacity and a new measurement. The latency targets are accepted as **met within this envelope** (OD-03). The
+**Tier-2 search tail at 50 % Tier-2 use is an accepted known limitation** (table above: search p95 1.2–3.6 s at
+10–15 authors, far over target at 20+); it exists and is not claimed otherwise. The proposal below is kept as the
+record it was accepted from.
+
 **Onboarding limit (proposed, product owner to accept — MV-10.8):** at most **60 authors simultaneously active**, i.e. with typical use (well under a third of signed-in authors active at the same moment) about **150–200 registered authors per pod**, while fewer than 10 % of them are on pro/studio with strict consistency on. Re-measure before exceeding either figure.
 
 ## 2. Measurements (1 × A40, vLLM 0.9.2, TP=1, BGE-M3 on CPU, one uvicorn worker)

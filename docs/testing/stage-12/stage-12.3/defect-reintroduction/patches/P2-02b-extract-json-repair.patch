@@ -1,0 +1,15 @@
+diff --git a/backend/services/ai_service.py b/backend/services/ai_service.py
+index 47ca004..a73911e 100644
+--- a/backend/services/ai_service.py
++++ b/backend/services/ai_service.py
+@@ -586,9 +586,7 @@ def _extract_json(text: str, fallback):
+     candidates.append(stripped)
+     # Try every balanced span (over stripped text, then raw) so a stray
+     # {placeholder} in prose doesn't block the real JSON object/array.
+-    for span in _balanced_json_spans(stripped) + _balanced_json_spans(text):
+-        if span not in candidates:
+-            candidates.append(span)
++    pass  # REINTRODUCED P2-2 probe: no balanced-span repair
+ 
+     for cand in candidates:
+         try:

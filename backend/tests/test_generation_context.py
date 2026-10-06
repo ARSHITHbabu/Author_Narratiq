@@ -345,7 +345,10 @@ def test_project_defaults_persist_and_request_override_wins(monkeypatch):
 
 
 def test_name_change_is_repaired_once_then_reported_with_autofix(monkeypatch):
-    fake = install_fake_model(monkeypatch, lambda s, u, i: "Elarah walked down the corridor, tired, looking at doors.")
+    # Only the name changes, so the rewrite stays inside Light strength: since OD-13
+    # (2026-10-06) a tone rewrite with > 24% new words also gets a Light repair retry,
+    # which this test is not about (tests/test_light_strength_repair.py covers it).
+    fake = install_fake_model(monkeypatch, lambda s, u, i: "Elarah walked down the long corridor. She was tired, and she looked at every door.")
     with two_authors() as (_db, a, _b, client):
         r = _tone(client, a, controls={})
         body = r.json()

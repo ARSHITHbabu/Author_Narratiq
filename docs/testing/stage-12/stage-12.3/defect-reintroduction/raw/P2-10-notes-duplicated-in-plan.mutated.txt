@@ -1,0 +1,107 @@
+$ (cwd /workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/frontend) npx playwright test --project=unit --output=/tmp/claude-0/-workspace/45a7b97a-8dc8-4ac2-84e3-53bd8b62825e/scratchpad/pw-out tests/tool-homes.spec.ts
+
+
+Running 8 tests using 8 workers
+
+  ✘  1 [unit] › tests/tool-homes.spec.ts:22:5 › Notes and Narrative Threads are no longer duplicated (Phase 2 Issue 10) (15ms)
+  ✓  2 [unit] › tests/tool-homes.spec.ts:34:5 › every Analyze panel in the registry has a Tool Homes row in Analyze (23ms)
+  ✓  3 [unit] › tests/tool-homes.spec.ts:12:5 › tool ids are unique — one row, one home (12ms)
+  ✘  4 [unit] › tests/tool-homes.spec.ts:17:5 › Plan and World pages offer exactly the registered sections (22ms)
+  ✓  5 [unit] › tests/tool-homes.spec.ts:59:5 › P3-off build drops Phase 3 homes cleanly (rollback, review L5) (16ms)
+  ✓  6 [unit] › tests/tool-homes.spec.ts:54:5 › Search & replace has a home and is mounted there (it was unreachable before Stage 8) (19ms)
+  ✓  7 [unit] › tests/tool-homes.spec.ts:43:5 › sections named in Tool Homes exist in their workspace (19ms)
+  ✓  8 [unit] › tests/tool-homes.spec.ts:50:5 › contextual second views carry a documented reason (16ms)
+
+
+  1) [unit] › tests/tool-homes.spec.ts:17:5 › Plan and World pages offer exactly the registered sections 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoEqual[2m([22m[32mexpected[39m[2m) // deep equality[22m
+
+    [32m- Expected  - 0[39m
+    [31m+ Received  + 1[39m
+
+    [2m  Array [[22m
+    [2m    "plot",[22m
+    [2m    "pacing",[22m
+    [31m+   "notes",[39m
+    [2m  ][22m
+
+      16 |
+      17 | test('Plan and World pages offer exactly the registered sections', () => {
+    > 18 |   expect(sectionIds('app/(dashboard)/projects/[id]/plan/page.tsx')).toEqual(WORKSPACE_SECTIONS.plan!.map((s) => s.id))
+         |                                                                     ^
+      19 |   expect(sectionIds('app/(dashboard)/projects/[id]/world/page.tsx')).toEqual(WORKSPACE_SECTIONS.world!.map((s) => s.id))
+      20 | })
+      21 |
+        at /workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/frontend/tests/tool-homes.spec.ts:18:69
+
+    Error Context: ../../../../../../tmp/claude-0/-workspace/45a7b97a-8dc8-4ac2-84e3-53bd8b62825e/scratchpad/pw-out/tool-homes-Plan-and-World--8008d-tly-the-registered-sections-unit/error-context.md
+
+  2) [unit] › tests/tool-homes.spec.ts:22:5 › Notes and Narrative Threads are no longer duplicated (Phase 2 Issue 10) 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mnot[2m.[22mtoMatch[2m([22m[32mexpected[39m[2m)[22m
+
+    Expected pattern: not [32m/NotesPanel|NarrativeThreadsPanel/[39m
+    Received string:      [31m"'use client'[39m
+    [31m[39m
+    [31m// Plan Workspace — structuring & ideation: Plot Assistant and Pacing.[39m
+    [31m// Notes / Idea Shelf live in World and Narrative Threads in Analyze (Stage 8.8 —[39m
+    [31m// one home per tool, Phase 2 Issue 10); a plain link points authors there.[39m
+    [31m[39m
+    [31mimport dynamic from 'next/dynamic'[39m
+    [31mimport Link from 'next/link'[39m
+    [31mimport { MessageSquare, Target } from 'lucide-react'[39m
+    [31mimport { useStoryContext } from '@/components/studio/StoryContextEngine'[39m
+    [31mimport { SectionTabs, SectionPanel, useWorkspaceSection } from '@/components/studio/SectionTabs'[39m
+    [31mimport { workspacePathWith } from '@/lib/registries/workspaces'[39m
+    [31m[39m
+    [31mconst PlotAssistantPanel = dynamic(() => import('@/components/plot-assistant/PlotAssistantPanel'), { ssr: false })[39m
+    [31mconst PacingGoalPanel = dynamic(() => import('@/components/pacing/PacingGoalPanel'), { ssr: false })[39m
+    [31mconst [7mNotesPanel[27m = dynamic(() => import('@/components/notes/NotesPanel'), { ssr: false })  // REINTRODUCED P2-10[39m
+    [31m[39m
+    [31mconst SECTIONS = [[39m
+    [31m  { id: 'plot', label: 'Plot Assistant', icon: MessageSquare },[39m
+    [31m  { id: 'pacing', label: 'Pacing', icon: Target },[39m
+    [31m  { id: 'notes', label: 'Notes', icon: Target },[39m
+    [31m] as const[39m
+    [31m[39m
+    [31mexport default function PlanWorkspace() {[39m
+    [31m  const { storyId, activeChapter, editor } = useStoryContext()[39m
+    [31m  const [section, setSection] = useWorkspaceSection(storyId, 'plan', SECTIONS)[39m
+    [31m[39m
+    [31m  return ([39m
+    [31m    <div className=\"h-full flex flex-col bg-[#0d0f1a]\">[39m
+    [31m      <SectionTabs label=\"Plan sections\" sections={SECTIONS} current={section} onSelect={setSection}[39m
+    [31m        trailing={[39m
+    [31m          <Link href={workspacePathWith(storyId, 'world', { section: 'notes' })}[39m
+    [31m            className=\"text-[11px] text-[#aeb3d6] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/70 rounded px-1\">[39m
+    [31m            Notes and ideas live in World →[39m
+    [31m          </Link>[39m
+    [31m        } />[39m
+    [31m      <SectionPanel id={section}>[39m
+    [31m        {section === 'plot' && ([39m
+    [31m          <PlotAssistantPanel storyId={storyId} getEditorText={() => editor?.getFullText() || ''} chapterNumber={activeChapter?.chapter_number} />[39m
+    [31m        )}[39m
+    [31m        {section === 'pacing' && <PacingGoalPanel storyId={storyId} />}[39m
+    [31m        {section === 'notes' && <NotesPanel storyId={storyId} />}[39m
+    [31m      </SectionPanel>[39m
+    [31m    </div>[39m
+    [31m  )[39m
+    [31m}[39m
+    [31m"[39m
+
+      22 | test('Notes and Narrative Threads are no longer duplicated (Phase 2 Issue 10)', () => {
+      23 |   const plan = src('app/(dashboard)/projects/[id]/plan/page.tsx')
+    > 24 |   expect(plan).not.toMatch(/NotesPanel|NarrativeThreadsPanel/)
+         |                    ^
+      25 |   expect(src('app/(dashboard)/projects/[id]/world/page.tsx')).toMatch(/NotesPanel/)
+      26 |   expect(src('lib/registries/panels.tsx')).toMatch(/id: 'narrative_threads'/)
+      27 |   // Only one page-level mount of each panel across all workspaces.
+        at /workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/frontend/tests/tool-homes.spec.ts:24:20
+
+    Error Context: ../../../../../../tmp/claude-0/-workspace/45a7b97a-8dc8-4ac2-84e3-53bd8b62825e/scratchpad/pw-out/tool-homes-Notes-and-Narra-855cc-uplicated-Phase-2-Issue-10--unit/error-context.md
+
+  2 failed
+    [unit] › tests/tool-homes.spec.ts:17:5 › Plan and World pages offer exactly the registered sections 
+    [unit] › tests/tool-homes.spec.ts:22:5 › Notes and Narrative Threads are no longer duplicated (Phase 2 Issue 10) 
+  6 passed (2.3s)

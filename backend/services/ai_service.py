@@ -5,8 +5,9 @@ Text generation  →  vLLM serving Qwen2.5-7B-Instruct (OpenAI-compatible API)
 Embeddings       →  BGE-M3 via sentence-transformers (in-process, CUDA or CPU)
 OCR              →  see ocr_service.py
 
-vLLM is a separate process started by start.sh before FastAPI boots.
-The OpenAI async client connects to it at localhost:8080/v1.
+vLLM is a separate process started by start-narratiq.sh before FastAPI boots.
+The OpenAI async client connects to it at settings.vllm_base_url
+(default http://127.0.0.1:9001/v1, loopback only).
 Models stay permanently loaded in GPU VRAM — no cold starts after warmup.
 """
 
@@ -1048,6 +1049,36 @@ def _children_override(transform_type: str, builder_kwargs: dict, text: str) -> 
     return bool(terms)
 
 
+_BEFORE_AFTER_RE = re.compile(r"^\s*\**Before:\**\s*(.*?)\n\s*\**After:\**\s*(.+?)\s*$", re.S | re.I)
+_LABEL_LINE_RE = re.compile(r"^\s*\**(Before|After):", re.M | re.I)
+_QUOTE_PAIRS = (('"', '"'), ("“", "”"), ("'", "'"))
+
+
+def _unwrap_before_after(out: str, source: str) -> str:
+    """A rewrite returned as 'Before: "<original>"  After: "<rewrite>"'.
+
+    Stage 12.3 agent review (HR-18): with "Match my voice closely" the prompt shows the
+    surrounding text as 'Before: "…" / After: "…"', and the model sometimes answered in
+    the same shape — the original paragraph, then the rewrite. Applied, that would paste
+    both and two labels into the chapter. Keep only the After part. Text whose source
+    already has such label lines is left alone (the author may write them).
+    """
+    if not out or _LABEL_LINE_RE.search(source or ""):
+        return out
+    m = _BEFORE_AFTER_RE.match(out)
+    if not m:
+        return out
+    after = m.group(2).strip()
+    src = (source or "").lstrip()
+    for a, b in _QUOTE_PAIRS:
+        # Strip a wrapping quote pair the model added — never one the passage itself
+        # opens with (a paragraph of dialogue starts with its own quote mark).
+        if len(after) > 1 and after.startswith(a) and after.endswith(b) and not src.startswith(a):
+            after = after[len(a):-len(b)].strip()
+            break
+    return after or out
+
+
 async def _run_constrained_transform_once(
     *, transform_type: str, text: str, temperature: float, max_tokens: int,
     builder_kwargs: dict, story_id: Optional[str] = None, db=None,
@@ -1116,9 +1147,10 @@ async def _run_constrained_transform_once(
 
     async def _attempt(extra: str = "", temp: Optional[float] = None) -> str:
         sys_prompt = f"{system} {extra}".strip()
-        return await _complete(sys_prompt, user_message,
-                               temperature=temperature if temp is None else temp, max_tokens=max_tokens,
-                               task=REWRITE_TASK)
+        out = await _complete(sys_prompt, user_message,
+                              temperature=temperature if temp is None else temp, max_tokens=max_tokens,
+                              task=REWRITE_TASK)
+        return _unwrap_before_after(out, text)
 
     def _rebuild(raw_out: str) -> tuple[Optional[str], bool]:
         if locked_ranges:
@@ -1129,6 +1161,10 @@ async def _run_constrained_transform_once(
     # "take a different direction") legitimately changes many words, so the
     # Light new-word limit does not apply — the same reasoning that skips the
     # "already suitable" check above.
+    # OD-13 (2026-10-06): tone and style use the boundary derived from the HR-07 labels;
+    # age adaptation keeps the original 0.45 (see config.light_new_share_max_tone_style).
+    _light_max = (settings.light_new_share_max_tone_style if transform_type in ("tone", "style")
+                  else settings.light_new_share_max)
     _light_limit_applies = (
         strength == "light" and settings.light_strength_repair
         and not (p3 is not None and (p3.derivation or p3.context_pin_ids or p3.avoid_texts)))
@@ -1140,7 +1176,7 @@ async def _run_constrained_transform_once(
         by _rebuild. Never retried twice."""
         if not _light_limit_applies:
             return current
-        heavy, share = light_edit_too_heavy(text, current, locked_ranges, settings.light_new_share_max)
+        heavy, share = light_edit_too_heavy(text, current, locked_ranges, _light_max)
         if not heavy:
             return current
         raw_l = await _attempt(LIGHT_REPAIR_INSTRUCTION.format(pct=round(share * 100)),
@@ -1148,7 +1184,7 @@ async def _run_constrained_transform_once(
         rebuilt, ok = _rebuild(raw_l)
         if not ok or not rebuilt:
             return current
-        _heavy2, share2 = light_edit_too_heavy(text, rebuilt, locked_ranges, settings.light_new_share_max)
+        _heavy2, share2 = light_edit_too_heavy(text, rebuilt, locked_ranges, _light_max)
         names_now = len(check_character_name_preservation(text, current, story_id, db, rules=rules))
         names_new = len(check_character_name_preservation(text, rebuilt, story_id, db, rules=rules))
         if share2 is not None and share2 < share and names_new <= names_now:
@@ -1160,7 +1196,7 @@ async def _run_constrained_transform_once(
     def _strength_flag(final: str) -> bool:
         flag = check_strength_violation(text, final, strength)
         if _light_limit_applies:
-            flag = flag or light_edit_too_heavy(text, final, locked_ranges, settings.light_new_share_max)[0]
+            flag = flag or light_edit_too_heavy(text, final, locked_ranges, _light_max)[0]
         return flag
 
     raw = await _attempt()
@@ -2106,7 +2142,7 @@ async def generate_suggestions(text: str, story_context: str = "", genre: str = 
     if _SHARPEN_SUGGESTIONS:
         result = await _adversarial_sharpen_suggestions(result)
     # Stage 12 A17 — drop items with nothing to act on and in-response duplicates.
-    from services.suggestion_hygiene import clean_suggestions
+    from services.suggestion_hygiene import clean_suggestions, false_repetition_claim
     from services.prompt_safety import INSTRUCTION_LIKE_SUGGESTIONS, material_text, output_obeyed_material
     material = material_text(text, story_context)
     obeyed = 0
@@ -2119,6 +2155,11 @@ async def generate_suggestions(text: str, story_context: str = "", genre: str = 
                         ", ".join(d["why"] for d in dropped))
         # Stage 12 A18: only the RECOMMENDATION is checked — observations quote
         # the excerpt by design.
+        unrepeated = [s for s in kept if false_repetition_claim(s, text)]
+        if unrepeated:
+            logger.info("[suggestions] dropped %d item(s) claiming a repetition the excerpt does not have",
+                        len(unrepeated))
+            kept = [s for s in kept if s not in unrepeated]
         safe = [s for s in kept if not output_obeyed_material(material, s.get("recommendation", ""))]
         if len(safe) < len(kept):
             obeyed += len(kept) - len(safe)
@@ -3357,6 +3398,56 @@ _MANUSCRIPT_MAX_CHAPTERS = 60    # summary_pass per-call limit
 _MANUSCRIPT_RICH_CUTOFF  = 20    # chapters ≤ this get raw_summary for deeper arc analysis
 
 
+# Stage 12.3 (agent review HR-09, 2026-10-06): the report prompt had no token
+# budget — a 40-chapter, 32k-word manuscript sent 6,820 prompt tokens + 1,800 for
+# the answer into the 8,192 window and vLLM refused it (400), shown to the author
+# as "AI unavailable". The chapter data is now fitted to the window, shortening
+# each chapter's detail before anything else and never dropping a chapter.
+_MANUSCRIPT_REPORT_MAX_TOKENS = 1800
+_MANUSCRIPT_REPORT_MARGIN_TOKENS = 300   # chat template, the "Manuscript chapters:" label, tokenizer drift
+_MANUSCRIPT_EVENT_CHARS = (200, 120, 70, 40)
+
+
+def _manuscript_line(c: dict, rich: bool, max_events: int | None, event_chars: int | None) -> str:
+    evs = list(c.get("events", []) or [])
+    if max_events is not None:
+        evs = evs[:max_events]
+    if event_chars is not None:
+        evs = [e if len(e) <= event_chars else e[:event_chars].rsplit(" ", 1)[0] + "…" for e in evs]
+    events = "; ".join(evs) or "—"
+    chars = ", ".join(c.get("characters", []) or []) or "—"
+    line = (f"Ch{c['chapter']} (WC:{c.get('word_count', 0) or 0}) | Events: {events} | "
+            f"Characters: {chars} | Tone: {c.get('tone', '') or '—'} | Purpose: {c.get('purpose', '') or '—'}")
+    if rich and c.get("raw_summary"):
+        line += f"\nSummary: {c['raw_summary']}"
+    return line
+
+
+def _fit_manuscript_lines(capped: list[dict], rich: bool, system: str) -> tuple[list[str], bool]:
+    """The chapter lines for the report prompt, shortened only as far as needed to
+    fit next to the system prompt and the answer. Order of shortening: drop the
+    raw summaries, then fewer events per chapter, then shorter event text. Every
+    chapter keeps its line (number, word count, characters). Returns (lines, shortened)."""
+    budget = (getattr(settings, "max_model_len", 8192) - count_tokens(system)
+              - _MANUSCRIPT_REPORT_MAX_TOKENS - _MANUSCRIPT_REPORT_MARGIN_TOKENS)
+
+    def build(rich_, max_ev, chars_):
+        return [_manuscript_line(c, rich_, max_ev, chars_) for c in capped]
+
+    def fits(lines_):
+        return count_tokens("Manuscript chapters:\n\n" + "\n".join(lines_)) <= budget
+
+    lines = build(rich, None, None)
+    if fits(lines):
+        return lines, False
+    for max_ev in (None, 4, 3, 2, 1):
+        for chars_ in (None,) + _MANUSCRIPT_EVENT_CHARS:
+            lines = build(False, max_ev, chars_)
+            if fits(lines):
+                return lines, True
+    return build(False, 1, _MANUSCRIPT_EVENT_CHARS[-1]), True   # smallest form; the 60-chapter cap keeps it bounded
+
+
 async def _strategy_manuscript_summary_pass(chapters: list[dict]) -> dict:
     """
     Adaptive Qwen call for full manuscript editorial analysis.
@@ -3429,27 +3520,17 @@ async def _strategy_manuscript_summary_pass(chapters: list[dict]) -> dict:
         '"note": "one-sentence summary"}'
     )
 
-    lines = []
-    for c in capped:
-        events  = "; ".join(c.get("events",     []) or []) or "—"
-        chars   = ", ".join(c.get("characters", []) or []) or "—"
-        tone    = c.get("tone",    "") or "—"
-        purpose = c.get("purpose", "") or "—"
-        wc      = c.get("word_count", 0) or 0
-        line    = (
-            f"Ch{c['chapter']} (WC:{wc}) | Events: {events} | "
-            f"Characters: {chars} | Tone: {tone} | Purpose: {purpose}"
-        )
-        if rich and c.get("raw_summary"):
-            line += f"\nSummary: {c['raw_summary']}"
-        lines.append(line)
+    lines, shortened = _fit_manuscript_lines(capped, rich, system)
+    if shortened:
+        mode_note += (" Chapter details were shortened to fit the model's context window; every chapter "
+                      "is still included.")
 
-    separator = "\n\n" if rich else "\n"
+    separator = "\n\n" if (rich and not shortened) else "\n"
     result, parse_meta = await complete_structured(
         system,
         "Manuscript chapters:\n\n" + separator.join(lines),
         coerce=coerce_manuscript_report,
-        temperature=0.1, max_tokens=1800, label="manuscript_report",
+        temperature=0.1, max_tokens=_MANUSCRIPT_REPORT_MAX_TOKENS, label="manuscript_report",
     )
     if result is None:
         raise ValueError(
@@ -3528,8 +3609,10 @@ async def analyze_manuscript(
     result["deterministic_open_threads"] = []
     if db is not None:
         try:
-            raw_boosts = _plot_importance_by_chapter(story_id, chapter_numbers, db)
-            if raw_boosts:
+            raw_boosts = _plot_importance_by_chapter(story_id, chapter_numbers, db, cap=False)
+            if raw_boosts and max(raw_boosts.values()) > min(raw_boosts.values()):
+                # No variation means no ranking: omit (the panel hides the
+                # section) rather than show every chapter as 0.
                 lo, hi = min(raw_boosts.values()), max(raw_boosts.values())
                 span = (hi - lo) or 1.0
                 # Relative 0-100 scale for display — the raw boost values are a
@@ -5138,7 +5221,7 @@ _PLOT_IMPORTANCE_CAP = 0.08   # bounded so importance can only break near-ties,
                               # never override a genuinely more relevant chunk
 
 
-def _plot_importance_by_chapter(story_id: str, chapter_numbers: set[int], db) -> dict[int, float]:
+def _plot_importance_by_chapter(story_id: str, chapter_numbers: set[int], db, cap: bool = True) -> dict[int, float]:
     """
     Bounded, per-chapter re-ranking boost (task 4.3) built entirely from
     signal that already exists on ChapterSummary (key_events count, and —
@@ -5150,6 +5233,12 @@ def _plot_importance_by_chapter(story_id: str, chapter_numbers: set[int], db) ->
     Deliberately NOT based on mention frequency (that already drives cosine
     similarity and the name-mention boost elsewhere) — this is an
     independent signal, as task 4.3 asks for.
+
+    ``cap=False`` returns the uncapped score for DISPLAY (Manuscript Report,
+    "Where the plot moves most"). The cap bounds the retrieval boost, but almost
+    every real-length chapter reaches it (6+ events), so a capped score cannot
+    rank chapters — found in the Stage 12.3 agent review (HR-09): all 40 chapters
+    of the synthetic story showed 0.
     """
     if not chapter_numbers:
         return {}
@@ -5175,7 +5264,7 @@ def _plot_importance_by_chapter(story_id: str, chapter_numbers: set[int], db) ->
         has_arc = bool(arc_notes)          # dict — {} is falsy, matches coercer default
         has_rel = bool(rel_changes)        # list — [] is falsy, matches coercer default
         raw = 0.015 * n_events + (0.02 if has_arc else 0.0) + (0.02 if has_rel else 0.0)
-        boosts[chapter_number] = min(raw, _PLOT_IMPORTANCE_CAP)
+        boosts[chapter_number] = min(raw, _PLOT_IMPORTANCE_CAP) if cap else raw
     return boosts
 
 
@@ -5850,6 +5939,12 @@ async def check_continuity(
 # than assumed.
 BIBLE_NOT_ESTABLISHED = "Not established in the manuscript"
 
+# Stage 12.3 (agent review HR-10, 2026-10-06): with no limit the model wrote a full
+# card for every named townsperson — 14-18 cards on a 40-chapter manuscript — and
+# ran out of its 1,900-token answer in 6 of 8 live samples ("truncated"). Minor
+# characters are listed on one tagged line instead, so none is dropped.
+BIBLE_MAX_CHARACTER_CARDS = 10
+
 # Provenance tags the context uses: [Ch 7], [Ch 7-9], [Character: Devika Rao],
 # [Note: …], [Card: …].
 _PROVENANCE_RE = re.compile(r"\[(?:Ch\s*\d+[\d\s,\-–]*|Character:|Note:|Card:)[^\]]*\]", re.I)
@@ -5994,6 +6089,12 @@ async def generate_story_bible_section(
             "Write a CHARACTER BIBLE section. For each character, create a compact "
             "reference card: Name, Role, Physical description, Personality, Goals, "
             "Backstory summary, and Arc status. Use '---' between characters.\n"
+            f"Write full cards for at most {BIBLE_MAX_CHARACTER_CARDS} characters — the ones "
+            "who matter most to the story. If more named characters appear, end with "
+            "ONE final line that starts '**Also appears:**' and gives each remaining "
+            "name once, each followed by its own source tag, separated by semicolons. "
+            "Never write a card "
+            "or a name the context does not establish.\n"
             "EVERY line MUST end with the source tag it comes from — for instance, "
             "a line's shape is '  - **Role:** <their role, as established> [Ch N]'. "
             "The angle-bracket text above is a FORMAT PLACEHOLDER, not a character — "
@@ -6048,7 +6149,9 @@ async def generate_story_bible_section(
         ),
         "timeline": (
             "Write a TIMELINE section: a chronological sequence of key events. "
-            "Use bullet points. Every event MUST end with the chapter tag it "
+            "Use bullet points, one short line per event (at most about 20 words), and "
+            "only the events that move the story — not every scene. "
+            "Every event MUST end with the chapter tag it "
             "happens in, in this shape (a placeholder, not content to copy): "
             "\"- <an event from the story> [Ch N]\". Do not include an "
             "event you cannot attribute to a chapter shown in the context."
@@ -6092,8 +6195,21 @@ async def generate_story_bible_section(
     # the longest section and was already close to the old 1500-token ceiling, so
     # requiring tags without more room would simply trade uncited entries for
     # truncated ones (SB-F13). Sections that cite per line get the larger budget.
-    max_tokens = 1900 if section in ("characters", "locations") else 1500
+    # Stage 12.3 (agent review HR-10, 2026-10-06): the timeline also cites per
+    # line and was cut off ("truncated") on a 40-chapter manuscript at 1500.
+    max_tokens = 1900 if section in ("characters", "locations", "timeline") else 1500
     text, finish_reason = await _complete_ex(system, user, temperature=0.2, max_tokens=max_tokens)
+    if finish_reason == "length":
+        # Stage 12.3 (HR-10): even with the card cap the model sometimes runs on
+        # (2 of 8 samples). One fresh sample usually finishes; if it does not, the
+        # section is still reported as truncated — never passed off as complete.
+        logger.info("[story_bible] section=%s hit max_tokens=%d; retrying once", section, max_tokens)
+        text, finish_reason = await _complete_ex(system, user, temperature=0.2, max_tokens=max_tokens)
+    if finish_reason == "length" and section == "characters" and text:
+        salvaged = _close_runaway_also_appears(text)
+        if salvaged is not None:
+            logger.info("[story_bible] section=characters: cards complete, 'Also appears' list ran on — closed it")
+            text, finish_reason = salvaged, "stop"
     if section == "characters" and text:
         text = _sanitize_character_physical_descriptions(text)
     if text:
@@ -6102,6 +6218,43 @@ async def generate_story_bible_section(
             # Counts only — never the text.
             logger.warning("[story_bible] section=%s: removed %d prompt-example line(s) or placeholder tag(s)", section, dropped)
     return text, finish_reason
+
+
+_ALSO_APPEARS_RE = re.compile(r"\*\*Also appears:\*\*", re.I)
+_ALSO_ITEM_RE = re.compile(r"^\s*(?:[-*•]\s*)?(.+?\S)\s*(\[Ch [^\]\n]+\])\s*$")
+
+
+def _close_runaway_also_appears(text: str) -> Optional[str]:
+    """A characters section cut off INSIDE its final "Also appears" list.
+
+    Stage 12.3 (HR-10): with every card already complete, the model sometimes
+    loops the minor-character list ("Tom [Ch 6]; Martha [Ch 6]; Tom [Ch 6] …")
+    until max_tokens. The cards are whole; only the list ran on. Keep the cards
+    and rebuild the list from its complete, tagged items, each name once. Returns
+    None when the cut is anywhere else (a card itself was cut off), so that case
+    is still reported as truncated.
+    """
+    m = None
+    for m in _ALSO_APPEARS_RE.finditer(text):
+        pass
+    if m is None:
+        return None
+    head, tail = text[:m.start()].rstrip(), text[m.end():]
+    if "**name:**" in tail.lower():
+        return None                       # a card follows the list: not the run-on case
+    items, seen = [], set()
+    for raw in re.split(r"[;\n]", tail):
+        im = _ALSO_ITEM_RE.match(raw)
+        if not im:
+            continue                      # blank, or the item cut off mid-way
+        name = im.group(1).strip().rstrip(",")
+        key = name.lower()
+        if key not in seen:
+            seen.add(key)
+            items.append(f"{name} {im.group(2)}")
+    if not items:
+        return None
+    return f"{head}\n\n**Also appears:** " + "; ".join(items)
 
 
 # ── P2-07: Dead-End Narrative Thread Tracker ──────────────────────────────────

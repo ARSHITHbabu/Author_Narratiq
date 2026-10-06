@@ -1,0 +1,13 @@
+diff --git a/backend/routers/writing_tools.py b/backend/routers/writing_tools.py
+index 476cfe0..05b2e7d 100644
+--- a/backend/routers/writing_tools.py
++++ b/backend/routers/writing_tools.py
+@@ -94,7 +94,7 @@ async def generate_chapter_continuation(
+     # despite the name) and returns dicts keyed chapter / raw_summary / score.
+     # Results arrive ordered by ascending cosine distance — most relevant first.
+     story_summaries = await retrieve_relevant_chunks(
+-        question=tail_trimmed,
++        query=tail_trimmed,  # REINTRODUCED PRE-1
+         story_id=story_id,
+         db=db,
+         max_chapter_number=chapter.chapter_number,

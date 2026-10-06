@@ -1,0 +1,210 @@
+{
+ "hr": "HR-11",
+ "reviewer": "AI Agent — Owner-authorised independent review",
+ "label": "AGENT REVIEW — AUTHORISED BY OWNER",
+ "method": "Reading of the 8 seeded saved runs (shipped 'hygiene+sharp' variant) + live Studio run on chapter 21 of the synthetic 40-chapter story (isolated test stack :3200/:8100): Write → AI assistant → Generate → Suggestions",
+ "date": "2026-10-06",
+ "status": "FAIL",
+ "answers": {
+  "HR-11.S1.Q1": {
+   "value": "YES",
+   "note": "'Repetitive Actions' names the monotonous She-did-X rhythm."
+  },
+  "HR-11.S1.Q2": {
+   "value": "4 Mostly",
+   "note": "Concrete rewrite given, though it swaps six short sentences for one long list sentence."
+  },
+  "HR-11.S1.Q3": {
+   "value": "NO"
+  },
+  "HR-11.S1.Q4": {
+   "value": "None"
+  },
+  "HR-11.S2.Q1": {
+   "value": "NO",
+   "note": "The weakness is telling emotion; both items ask for MORE telling ('seething fury intertwined with profound sadness'). Showing is never suggested."
+  },
+  "HR-11.S2.Q2": {
+   "value": "3 Partly",
+   "note": "Actionable, but in the wrong direction."
+  },
+  "HR-11.S2.Q3": {
+   "value": "NO"
+  },
+  "HR-11.S2.Q4": {
+   "value": "Minor"
+  },
+  "HR-11.S3.Q1": {
+   "value": "NO",
+   "note": "Flags tag repetition only; the absence of character voice is not named, and the fix turns the dialogue into reported speech."
+  },
+  "HR-11.S3.Q2": {
+   "value": "3 Partly"
+  },
+  "HR-11.S3.Q3": {
+   "value": "NO"
+  },
+  "HR-11.S3.Q4": {
+   "value": "Minor"
+  },
+  "HR-11.S4.Q1": {
+   "value": "YES",
+   "note": "'Exposition' names the info-dump."
+  },
+  "HR-11.S4.Q2": {
+   "value": "3 Partly",
+   "note": "'Turn it into dialogue' is the stock fix and risks as-you-know-Bob dialogue; no guidance on what to cut or defer."
+  },
+  "HR-11.S4.Q3": {
+   "value": "NO"
+  },
+  "HR-11.S4.Q4": {
+   "value": "Minor"
+  },
+  "HR-11.S5.Q1": {
+   "value": "YES",
+   "note": "Item 2: 'nice' overused; specific replacements offered."
+  },
+  "HR-11.S5.Q2": {
+   "value": "4 Mostly"
+  },
+  "HR-11.S5.Q3": {
+   "value": "NO"
+  },
+  "HR-11.S5.Q4": {
+   "value": "Minor",
+   "note": "Item 1 ('lacks stakes, add a creaky door') is generic."
+  },
+  "HR-11.S6.Q1": {
+   "value": "NO",
+   "note": "Calls showing prose 'purely expository' and asks for external action — invented problems on a strong control."
+  },
+  "HR-11.S6.Q2": {
+   "value": "3 Partly"
+  },
+  "HR-11.S6.Q3": {
+   "value": "NO"
+  },
+  "HR-11.S6.Q4": {
+   "value": "Major",
+   "note": "'Add action / show fidgeting' would weaken the passage; could apply to any text."
+  },
+  "HR-11.S7.Q1": {
+   "value": "NO",
+   "note": "'No clear connection to the plot' and 'purely expository' are invented for a one-paragraph excerpt that is doing its job."
+  },
+  "HR-11.S7.Q2": {
+   "value": "2 A little"
+  },
+  "HR-11.S7.Q3": {
+   "value": "NO"
+  },
+  "HR-11.S7.Q4": {
+   "value": "Major"
+  },
+  "HR-11.S8.Q1": {
+   "value": "NO",
+   "note": "Item 2 asks to EXPLAIN the subtext ('the box plays only when they are together') — damaging advice on a strong control."
+  },
+  "HR-11.S8.Q2": {
+   "value": "3 Partly"
+  },
+  "HR-11.S8.Q3": {
+   "value": "NO"
+  },
+  "HR-11.S8.Q4": {
+   "value": "Major"
+  },
+  "HR-11.W.Q1": {
+   "value": "Minor",
+   "note": "'Narrative Risk' and 'Exposition' with 'add action/interaction' recur across S5–S7."
+  },
+  "HR-11.W.Q2": {
+   "value": "3 Partly"
+  },
+  "HR-11.W.Q3": {
+   "value": "Major",
+   "note": "'Narrative Risk | high' and 'Exposition' are applied to passages they do not fit (S5 description, S6/S7 strong prose)."
+  },
+  "HR-11.W.Q4": {
+   "value": "Partly",
+   "note": "Stakes are mentioned (S1 item 2, S5 item 1) but generically; no passage carries a real unpaid promise to test against."
+  },
+  "HR-11.W.Q5": {
+   "value": "2 A little",
+   "note": "Sentence-level fixes; the structural comments are generic."
+  },
+  "HR-11.W.Q6": {
+   "value": "NO",
+   "note": "Real weakness found in 3 of 5 planted passages (S1, S4, S5); missed in S2 and S3; invented problems in 3 of 3 strong controls. Live chapter-21 run (Studio, after the restore): 1 generic item and 1 false 'repeated verbatim' claim (the phrase occurs once — filter added, see failures). After both fixes the live run returns one item: a generic 'Narrative Risk — add a suspicious bystander' (the false repetition item is filtered; log: '[suggestions] dropped 1 item(s) claiming a repetition the excerpt does not have')."
+  }
+ },
+ "result_reasoning": "Box 5.13 FAIL (W.Q6 = NO). The suggestions find obvious surface weaknesses (repetition, overused adjective, info-dump) but miss telling-vs-showing and voice, and invent problems on all three strong-prose controls, sometimes with advice that would damage the prose. Under OD-16: SUG-C1, SUG-H4 (no praise), SUG-H6 (Minor) close; SUG-C2, SUG-H3, SUG-H5, SUG-H7, SUG-H8, SUG-H10, SUG-H11 stay open. Two technical defects found in the live run and fixed (truncated excerpt; false repetition claim).",
+ "per_issue": {
+  "SUG-C1": {
+   "verdict": "close",
+   "reason": "None — no praise-only item in 8 passages + live run (OD-16)"
+  },
+  "SUG-C2": {
+   "verdict": "open",
+   "reason": "Major — advice often actionable but wrong-direction or damaging (S2, S6, S8)"
+  },
+  "SUG-H3": {
+   "verdict": "open",
+   "reason": "Major — real weakness 3/5; invented problems 3/3 controls"
+  },
+  "SUG-H4": {
+   "verdict": "close",
+   "reason": "None — no disguised praise"
+  },
+  "SUG-H5": {
+   "verdict": "open",
+   "reason": "Major — generic in S6–S8"
+  },
+  "SUG-H6": {
+   "verdict": "close",
+   "reason": "Minor — some recurrence across passages (OD-16)"
+  },
+  "SUG-H7": {
+   "verdict": "open",
+   "reason": "Major — 'Partly' varied; same add-action advice recurs"
+  },
+  "SUG-H8": {
+   "verdict": "open",
+   "reason": "Major — forced categories"
+  },
+  "SUG-H10": {
+   "verdict": "open",
+   "reason": "Major — narrative risk named only generically"
+  },
+  "SUG-H11": {
+   "verdict": "open",
+   "reason": "Major — little developmental depth"
+  }
+ },
+ "failures": [
+  {
+   "item": "Live Studio Suggestions, no selection",
+   "problem": "Chapter text sent cut mid-word (first 2,000 chars); model reported 'the excerpt ends mid-sentence with \"preying o\"' — FIXED (whole sentences; unit test tests/suggestion-text.spec.ts; live rerun sends 1,912 chars ending at a full stop)",
+   "severity": "High (fixed)"
+  },
+  {
+   "item": "Live Studio Suggestions",
+   "problem": "'The phrase \"Wren pushed her way through the throng\" is repeated verbatim' — occurs once in chapter 21 — FIXED (repetition claims about a quoted phrase are now checked against the excerpt; backend/tests/test_suggestion_repetition_claims.py)",
+   "severity": "High (fixed)"
+  },
+  {
+   "item": "Strong-prose controls S6–S8",
+   "problem": "Invented problems and damaging advice (explain the subtext; add action)",
+   "severity": "Major (model quality)"
+  }
+ ],
+ "evidence": [
+  "docs/testing/stage-12/stage-12.3/review-packages/review-samples.json (HR-11)",
+  "docs/testing/stage-12/stage-12.3/agent-review/ui/11-suggestions-live-result-before-fix.png",
+  "docs/testing/stage-12/stage-12.3/agent-review/ui/11-suggestions-live-result-after-truncation-fix.png",
+  "docs/testing/stage-12/stage-12.3/agent-review/live-suggestions-after-truncation-fix.json",
+  "docs/testing/stage-12/stage-12.3/agent-review/ui/11-suggestions-live-result-after-fix.png",
+  "docs/testing/stage-12/stage-12.3/agent-review/live-suggestions-after-fix.json (after both fixes)"
+ ]
+}

@@ -1,0 +1,53 @@
+{
+ "hr": "HR-19",
+ "reviewer": "AI Agent — Owner-authorised independent review",
+ "label": "AGENT REVIEW — AUTHORISED BY OWNER",
+ "method": "Blind reading: the 6 seeded style outputs were rated before the key (strength) was read",
+ "date": "2026-10-06",
+ "status": "FAIL",
+ "answers": {
+  "HR-19.I1.Q1": {
+   "value": "3 Partly",
+   "note": "Structure kept; the key phrase rendered awkwardly ('contained all and no answers')."
+  },
+  "HR-19.I2.Q1": {
+   "value": "3 Partly",
+   "note": "The opening sentence is intact; restraint replaced by ornament ('like a shadow long after the light of necessity had faded')."
+  },
+  "HR-19.I3.Q1": {
+   "value": "2 A little",
+   "note": "Ornate and archaic ('perused', 'accustomed lines', 'all the weight of meaning')."
+  },
+  "HR-19.I4.Q1": {
+   "value": "2 A little",
+   "note": "The wry understatement is replaced by 'all souls perished … served a greater good'."
+  },
+  "HR-19.I5.Q1": {
+   "value": "4 Mostly",
+   "note": "The plain technical register is largely kept."
+  },
+  "HR-19.I6.Q1": {
+   "value": "3 Partly",
+   "note": "Mostly intact, but the ungrammatical 'kept the key dangled' and the dropped 'himself'."
+  },
+  "HR-19.SUM.Q1": {
+   "value": "NO",
+   "note": "Ratings 3,3,2,2,4,3 (mean 2.8); two items rated 2 (I3, I4) — identity is not reliably preserved."
+  }
+ },
+ "result_reasoning": "Rated blind (strength key read only afterwards). Ratings 3, 3, 2, 2, 4, 3; the summary (which governs under OD-19.3) is NO. Ratings of 1–2 surfaced: I3 and I4 (both 2). FAIL for 5.10 'Author identity preserved under blind review'.",
+ "per_issue": {},
+ "failures": [
+  {
+   "item": "I3",
+   "problem": "Identity rating 2 — archaic/ornate rewrite",
+   "severity": "rating 2"
+  },
+  {
+   "item": "I4",
+   "problem": "Identity rating 2 — understatement lost",
+   "severity": "rating 2"
+  }
+ ],
+ "evidence": []
+}

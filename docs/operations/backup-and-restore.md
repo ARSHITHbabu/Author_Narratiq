@@ -28,12 +28,14 @@ Each backup is one **set** of files in `/workspace/backups` (the RunPod network 
 |---|---|---|
 | Every start of `start-narratiq.sh` | Pre-migration backup: **required** before any schema change (aborts the start if it cannot be made); otherwise taken only when the newest backup is older than 24 h (`NARRATIQ_BACKUP_MAX_AGE_HOURS`). Also runs the empty-database guard (§4a) | `scripts/startup_backup.sh` |
 | Every hour | Backup set. The loop waits one interval first, so the first hourly set lands about an hour after start | `NARRATIQ_PERIODIC_BACKUP_INTERVAL_HOURS=1` |
-| After every hourly backup | Rotation: keep the newest **24** sets + the newest set of each of the last **7** days; never a set with a `narratiq-<stamp>.keep` marker, never the newest set that passed verification | `scripts/backup_retention.py`, `NARRATIQ_BACKUP_KEEP_RECENT`, `NARRATIQ_BACKUP_KEEP_DAILY_DAYS` |
+| After every hourly backup | Rotation: keep the newest **24** sets + the newest set of each of the last **7** days; never a set with a `narratiq-<stamp>.keep` marker, never the newest set that passed verification (a `.disposable` marker does not keep a set, see below) | `scripts/backup_retention.py`, `NARRATIQ_BACKUP_KEEP_RECENT`, `NARRATIQ_BACKUP_KEEP_DAILY_DAYS` |
 | First cycle, then every 24 h | Restore verification of the newest set (§3) | `NARRATIQ_BACKUP_VERIFY_EVERY_HOURS=24` |
 
 Log: `/workspace/logs/periodic-backup.log` (persistent). Record of startup backups: `/workspace/backups/BACKUP-RECORD.txt`. A failed step is logged and alerted (§5); it never stops the next scheduled backup.
 
 To keep a set forever (e.g. before a risky operation): `touch /workspace/backups/narratiq-<stamp>.keep`.
+
+A `narratiq-<stamp>.disposable` marker (§4a) does **not** keep a set. A set marked disposable is rotated like any other set, and retention deletes its marker together with it. Decided 2026-10-06 with OD-05: the marker only answers "is this set evidence of lost author data?", and holding disposable test data longer would serve no purpose. Use `.keep` as well if a marked set must survive rotation.
 
 ## 3. How integrity is verified
 
@@ -78,7 +80,7 @@ Tests: `scripts/tests/test_backup_pipeline.py` proves a real set verifies PASS a
 > Restoring **replaces** the live database. It is always a deliberate, manual operation — nothing restores automatically. Read every step first.
 
 1. **Stop writes.** `pkill -f 'uvicorn main:app'` (the frontend may keep running; it will show that the service is unavailable). Stop the loop so it does not back up a half-restored database: `kill "$(cat /tmp/narratiq-logs/periodic-backup.pid)"`.
-2. **Choose the set.** `ls -1t /workspace/backups/narratiq-2*.SHA256SUMS | head`. Prefer the newest set; check `LAST-VERIFY.json` — a set that already passed verification is the safest choice.
+2. **Choose the set.** `ls -1t /workspace/backups/narratiq-2*.SHA256SUMS | head`. Prefer the newest set **that holds author data** — when the empty-database guard stopped the start, it is the set it names ("Newest backup holding author data"). A set taken *after* the loss (for example by the hourly loop while the database was already empty) is a snapshot of nothing: its manifest shows no author rows (inspect it as in §4a). Check `LAST-VERIFY.json` — a set that already passed verification is the safest choice. *(Clarified 2026-10-06 after the HR-21 tabletop.)*
 3. **Verify it before trusting it:** `python3 scripts/verify_backup.py --set narratiq-<stamp>` (§3). Do not restore a set that FAILs.
 4. **If the database still holds anything**, keep it first: `bash scripts/backup_database.sh` (a new set — it may be the only copy of the most recent writes), then mark it `touch …/narratiq-<new stamp>.keep`.
    > **Before step 5, clear the connection variables:** `unset PGHOST PGPORT PGUSER PGPASSWORD PGDATABASE`.
@@ -115,16 +117,37 @@ Tests: `scripts/tests/test_backup_pipeline.py` proves a real set verifies PASS a
 
 ### 4a. The empty-database guard (startup refuses to run)
 
-`start-narratiq.sh` stops before any migration, printing **"UNEXPECTED EMPTY DATABASE — STARTUP ABORTED"**, when the live database holds no author rows **and** a valid backup set whose own manifest shows author data exists (`scripts/startup_backup.sh`, `scripts/backup_evidence.py`). The database lives on the container layer (`storage-and-persistence.md` §4.1), so this is what a pod restart that wiped it looks like. Backups of an empty database never trigger it, and an older data backup is never hidden by newer empty ones.
+`start-narratiq.sh` stops before any migration, printing **"UNEXPECTED EMPTY DATABASE — STARTUP ABORTED"**, when the live database holds no author rows **and** a valid backup set whose own manifest shows author data exists (`scripts/startup_backup.sh`, `scripts/backup_evidence.py`). The database lives on the container layer (`storage-and-persistence.md` §4.1), so this is what a pod restart that wiped it looks like. Backups of an empty database never trigger it, and neither does a set an operator deliberately marked disposable (OD-05, below). An older data backup is never hidden by newer empty or marked ones.
 
 * **Data was lost:** do not override. Restore with §4 above (step 9's `start-narratiq.sh` then finds data and continues). The guard's own message prints a checksum check and points here.
-* **Restoring a set that is itself empty, or an intentional fresh start** (the data was deleted on purpose, e.g. a disposable account removed through `DELETE /api/auth/account`): the guard cannot tell deliberate deletion from loss (an open owner decision). Start once with the exact phrase — `1`/`true` are refused:
+* **Disposable test data deleted on purpose** (for example a disposable test author removed through `DELETE /api/auth/account`), with the sets that hold it still on disk: the guard cannot tell this from a loss by itself. Owner decision **OD-05 (2026-10-06, option B)**: the operator marks **each such set** with a `.disposable` marker. Marked sets stop counting as evidence; every other set is still checked. See *Marking a set disposable* below.
+* **Restoring a set that is itself empty, or a one-off intentional fresh start:** start once with the exact phrase — `1`/`true` are refused:
 
   ```bash
   NARRATIQ_ACKNOWLEDGE_EMPTY_RESTART=yes-start-empty-intentionally bash start-narratiq.sh
   ```
-  Set it on the command line only, **never** in `backend/.env` or the RunPod UI, where it would silently disable the guard for every later restart. Every later start blocks again while backup sets holding the old data remain in `/workspace/backups`. Retiring those sets is a deliberate operator decision, never automatic; the open owner decision on telling deletion from loss would remove the need.
+  Set it on the command line only, **never** in `backend/.env` or the RunPod UI, where it would silently disable the guard for every later restart. It overrides the guard for that one start and does not consider the sets: every later start blocks again while unmarked sets holding the old data remain in `/workspace/backups`. Its meaning is unchanged by OD-05.
 * **A brand-new pod with no `/workspace/backups`** passes the guard: there is no evidence of earlier data.
+
+#### Marking a set disposable (OD-05)
+
+**Marking a set that holds real author data is forbidden.** If any author's real work is missing, restore it (§4). Never mark it. The marker is only for data that was disposable test data **and** was deleted on purpose. If you are unsure, do not mark; use the one-time phrase above or restore.
+
+1. Find the sets that block. The guard names the newest one ("Newest backup holding author data: …"). Older sets can hold the same data: after you mark one set, the next start names the next one. Inspect a set's contents without restoring it: `python3 -c "import json,sys; m=json.load(open(sys.argv[1])); print({t:i['rows'] for t,i in m['tables'].items() if i['rows']})" /workspace/backups/narratiq-<stamp>.manifest.json`.
+2. Mark it, naming yourself and the reason (both are required, and the reason needs at least 10 characters):
+
+   ```bash
+   python3 scripts/backup_evidence.py mark-disposable narratiq-<stamp> \
+       --operator "<your name>" --reason "<what the data was and why it was deleted>"
+   ```
+   It prints exactly what it marked (set, dump path, SHA-256, what the manifest showed, operator, reason, time) and writes `/workspace/backups/narratiq-<stamp>.disposable` (mode 600). It refuses, and writes nothing, when the operator or reason is missing; when the dump does not match its recorded `.dump.sha256` or `SHA256SUMS` entry; when a marker already exists (it never overwrites one); or when the set's manifest already proves it empty (no marker needed). `--backup-dir` (or `BACKUP_DIR`) selects another directory.
+3. Repeat for every set holding that data, then `bash start-narratiq.sh`. The guard logs each set it skipped, with who marked it and why ("Ignored N backup set(s) an operator marked DISPOSABLE"). It still blocks on the newest **unmarked** set that holds author data. A newer marked set never hides an older unmarked one.
+
+**What binds a marker to its set.** The marker is a JSON record (`marker_version`, `set`, `dump`, `dump_sha256`, `operator`, `reason`, `marked_at`, `evidence_at_marking`). The guard (`scripts/backup_evidence.py`) honours it only if it names this set and this dump file, has an operator and reason, and its `dump_sha256` equals the set's `.dump.sha256`, the dump's `SHA256SUMS` entry (when listed), and the SHA-256 of the dump on disk at that start. The dump is re-hashed only when a marker exists, so startup costs nothing extra otherwise. A marker that is hand-written (`touch`), copied from another set, edited, or left behind after the dump was replaced is **ignored**: the set still counts as evidence and the guard prints `WARNING: … DISPOSABLE MARKER IGNORED (<why>)`. Investigate that warning. A replaced dump is itself an incident.
+
+**Undo:** `rm /workspace/backups/narratiq-<stamp>.disposable`. The set counts as evidence again from the next start.
+
+**Never automatic.** Only the operator command above creates a marker. The start script, the backup loop, retention and the verifier never do.
 
 ## 5. Monitoring of the backups
 

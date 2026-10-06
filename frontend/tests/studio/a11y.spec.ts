@@ -130,3 +130,40 @@ test('opening an analysis moves focus to its heading, and Back returns to its ca
   await page.getByRole('button', { name: 'Back to all analyses' }).click()
   await expect(page.getByRole('button', { name: /Continuity/ })).toBeFocused()
 })
+
+// Stage 12.3 agent review (HR-16): when the saved layout reopened the AI assistant at
+// page load, the panel took focus on mount, so the first Tab skipped "Skip to content".
+test('a restored AI assistant does not take focus on load; the skip link stays first', async ({ page }) => {
+  await mockApi(page)
+  await page.goto(workspaceUrl('write'))
+  await waitForChapterContent(page)
+  await page.getByRole('button', { name: 'AI assistant', exact: true }).click()
+  await expect(page.locator('#ai-sidecar-title')).toBeFocused()        // opened by the author: focus moves in
+  await page.reload()
+  await waitForChapterContent(page)
+  await expect(page.getByRole('complementary', { name: 'AI Assistant' })).toBeVisible()   // restored open
+  await expect(page.locator('#ai-sidecar-title')).not.toBeFocused()
+  await page.keyboard.press('Tab')
+  await expect(page.getByRole('link', { name: 'Skip to content' })).toBeFocused()
+})
+
+// Stage 12.3 agent review (HR-16): the manuscript editor had no role or name, and the Story
+// Bible's scroll area was not keyboard-reachable (axe 'scrollable-region-focusable' on a
+// 40-chapter bible — the mocked bible here is too short to overflow, so it is asserted directly).
+test('the manuscript is announced as a named multi-line text field', async ({ page }) => {
+  await mockApi(page)
+  await page.goto(workspaceUrl('write'))
+  await waitForChapterContent(page)
+  const editor = page.getByRole('textbox', { name: 'Chapter text' })
+  await expect(editor).toHaveCount(1)
+  await expect(editor).toHaveAttribute('aria-multiline', 'true')
+  await expect(editor).toHaveClass(/ProseMirror/)
+})
+
+test('the Story Bible section content is a focusable, named scroll region', async ({ page }) => {
+  await mockApi(page)
+  await page.goto(workspaceUrl('world'))
+  const region = page.getByRole('region', { name: 'Story Bible section content' })
+  await expect(region).toBeVisible()
+  await expect(region).toHaveAttribute('tabindex', '0')
+})

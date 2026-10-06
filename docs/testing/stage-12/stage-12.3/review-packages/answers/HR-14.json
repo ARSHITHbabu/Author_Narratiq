@@ -1,0 +1,100 @@
+{
+ "hr": "HR-14",
+ "reviewer": "AI Agent — Owner-authorised independent review",
+ "label": "AGENT REVIEW — AUTHORISED BY OWNER",
+ "method": "Live UI walk-through on :3200 (synthetic story), each tool searched from the Write workspace with a 30-second budget, then via Ctrl/⌘K",
+ "date": "2026-10-06",
+ "status": "FAIL",
+ "answers": {
+  "HR-14.Q1": {
+   "value": "Found within 30 s",
+   "note": "World → Story Bible tab."
+  },
+  "HR-14.Q2": {
+   "value": "Found within 30 s",
+   "note": "World → Notes."
+  },
+  "HR-14.Q3": {
+   "value": "Found within 30 s",
+   "note": "World → Notes → Idea Shelf."
+  },
+  "HR-14.Q4": {
+   "value": "Found only with Ctrl/⌘K",
+   "note": "No visible control in the toolbar, its ⋯ menu, the View menu or the status bar; palette and Ctrl/⌘F only."
+  },
+  "HR-14.Q5": {
+   "value": "Found within 30 s",
+   "note": "Plan → Pacing."
+  },
+  "HR-14.Q6": {
+   "value": "Found within 30 s",
+   "note": "Analyze → Continuity card."
+  },
+  "HR-14.Q7": {
+   "value": "Not found",
+   "note": "Versions tab says only 'No pinned versions yet'; the palette returns 'No results' for 'compare'. Compare appears only once two versions are pinned, and nothing says so."
+  },
+  "HR-14.Q8": {
+   "value": "Found within 30 s",
+   "note": "Assistant workspace."
+  },
+  "HR-14.Q9": {
+   "value": "4 Mostly",
+   "note": "Rail → section tabs → tool is consistent; the Rewrite/Generate/Versions grouping is clear."
+  },
+  "HR-14.Q10": {
+   "value": "None",
+   "note": "Seven workspaces plus Library; not dense."
+  },
+  "HR-14.Q11": {
+   "value": "None",
+   "note": "No banners, badges or tours."
+  },
+  "HR-14.Q12": {
+   "value": "NO",
+   "note": "Two of eight tools are not discoverable without prior knowledge: Search & replace (palette only) and Compare versions (not found)."
+  }
+ },
+ "result_reasoning": "Box FAIL (Q12 = NO); 'Not found' recorded for Compare versions (MV-8.5). Per OD-18: UI-H10 closes; UI-C6 and UI-H13 stay open (Q12 = NO); UI-C1 awaits HR-15. Not treated as a technical defect: both tools work; how they are surfaced is a design decision (owner G8) — recommended follow-up: a visible Search control and a 'pin two results to compare' hint plus a palette entry.",
+ "per_issue": {
+  "UI-C6": {
+   "verdict": "open",
+   "reason": "Q9 4 Mostly, but Q12 (also tagged UI-C6) = NO"
+  },
+  "UI-H10": {
+   "verdict": "close",
+   "reason": "Q10 None (OD-18)"
+  },
+  "UI-H13": {
+   "verdict": "open",
+   "reason": "Q11 None (no clutter) but Q12 = NO — Compare not found, Search & replace palette-only"
+  },
+  "UI-C1": {
+   "verdict": "open",
+   "reason": "Q11 None here; awaits HR-15 Q6"
+  }
+ },
+ "failures": [
+  {
+   "item": "Compare versions",
+   "problem": "Not found: no palette entry, no hint in the Versions empty state",
+   "severity": "Major"
+  },
+  {
+   "item": "Search & replace",
+   "problem": "No visible control; Ctrl/⌘K or Ctrl/⌘F only",
+   "severity": "Major"
+  }
+ ],
+ "evidence": [
+  "docs/testing/stage-12/stage-12.3/agent-review/ui/14-palette-compare.png",
+  "docs/testing/stage-12/stage-12.3/agent-review/ui/14-palette-search.png",
+  "docs/testing/stage-12/stage-12.3/agent-review/ui/14-sidecar-versions.png",
+  "docs/testing/stage-12/stage-12.3/agent-review/ui/14-write-more-menu.png",
+  "docs/testing/stage-12/stage-12.3/agent-review/ui/14-world-notes.png",
+  "docs/testing/stage-12/stage-12.3/agent-review/ui/14-ws-analyze.png",
+  "docs/testing/stage-12/stage-12.3/agent-review/ui/14-ws-assistant.png",
+  "docs/testing/stage-12/stage-12.3/agent-review/ui/14-ws-plan.png",
+  "docs/testing/stage-12/stage-12.3/agent-review/ui/14-ws-world.png"
+ ]
+}

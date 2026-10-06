@@ -82,3 +82,34 @@ exercise; W-5; the MV-10.8 onboarding limit.
 - The 4.1 box is ticked.
 - The 3.10 OCR manual journey is ticked on the same standard (live browser spec `ocr-to-editor.spec.ts`, 2/2). **This applies the 4.1 standard by analogy**; the owner may reverse it.
 - Every other pending decision (2A–2D, Story Bible semantic reading, B1–B4, G6–G8, S1–S6, rollback presence loss, UAT, W-1–W-5, deletion vs loss) is **not** applied. See `stage-12.1-final-decision-package.md`.
+
+## 2026-10-06 — owner decisions OD-01 – OD-20 (Owner Decision Package), OD-21 blocked
+
+Given by the product owner in writing (chat, 2026-10-06), transcribed into
+`docs/testing/stage-12/stage-12.3/review-packages/NarratIQ_Owner_Decision_Package.docx`.
+
+| ID | Decision |
+|---|---|
+| OD-01 | **B** — the three partial MV-5.14-D items accepted with follow-up (known limitations). Not unconditional acceptance of every Story Audit defect: the G5 issues are decided issue by issue from HR-09; any Major/Blocking stays open unless separately accepted |
+| OD-02 | **A** — all 30 post-launch issues accepted as deferred post-launch Medium issues; not blocking; preserved as the backlog; never shown as fixed |
+| OD-03 | **A** — latency accepted as meeting the supported production envelope; the ~50 % Tier-2 search tail is an accepted known limitation, recorded, never claimed absent |
+| OD-04 | **A** — envelope ~60 active per pod, ~150–200 registered, < 10 % simultaneous Tier-2; initial envelope, not an unlimited claim; growth needs capacity and revalidation |
+| OD-05 | **B** — operator `.disposable` marker per backup set; implemented as designed; startup data-loss protection not weakened |
+| OD-06 | **B** — the final known-issues list needs the owner's confirmation before its box is ticked; engineering builds the reconciled list from recorded decisions, residual risks, limitations, deferred Mediums and the human review |
+| OD-07 | **A** — the Stage 12.1 decision-package box closes automatically once every constituent item is recorded |
+| OD-08 | **B** — "AI quality improvement demonstrated" closes only after the current human re-validation and Gate 3b evidence support it |
+| OD-09 | **A** — restore Writing Suggestions as an accessible Studio tool; then HR-11 against it |
+| OD-10 | **A** — the 6.5 regression alarm rule approved as implemented and verified (agreed threshold) |
+| OD-11 | **A** — G3 per-issue closure (Critical: HR-05 Accept and no tagged Blocking; High: transform summary Accept and no tagged Blocking) |
+| OD-12 | **A** — HR-06 exactly 6/12 = FAIL |
+| OD-13 | **A** — Light warning/retry threshold derived from the HR-07 labels |
+| OD-14 | **A** — children's meaning strict: every item Kept |
+| OD-15 / OD-16 / OD-18 | **A** — None/Minor close; Major/Blocking stay open (G5, G6 — Suggestions must be reachable — and G8) |
+| OD-17 | **A** — Plot Assistant: Correct passes; Partly correct only if incomplete but accurate; contradiction / Incorrect / Invented fail |
+| OD-19 | **A** ×3 — 5.15 Partly allowed with a note; 7.12 "closely" beats Off in ≥ 2 of 3 chapters; 5.10 summary governs, every 1–2 rating surfaced |
+| OD-20 | **A** — Possible imitation goes to legal counsel (pending, not a pass); Clear imitation fails |
+| OD-21 | **Not approved yet — prerequisites not complete** (explicitly not a rejection). Release sign-off stays blocked; nothing signed |
+
+The owner also authorised the implementation agent to perform the human reviews HR-01 – HR-21 and record the
+answers. Recording agent-produced answers in the Human Review Package was **blocked by the agent environment's
+permission check** on 2026-10-06; no human-review answer has been recorded, and the owner was asked how to proceed.

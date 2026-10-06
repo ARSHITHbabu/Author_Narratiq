@@ -43,20 +43,20 @@ is a reasonable, explicitly-flagged follow-up, not silently dropped.
 
 | ID | Title | Checklist task | Test(s) | Reopen would be caught by |
 |---|---|---|---|---|
-| P2-1 | Selection toolbar doesn't dismiss, blocks controls | 3.8 | `frontend/tests/browser/selection-toolbar.spec.ts` (17 tests) | Toolbar lifecycle assertions failing |
-| P2-2 | Plot hole detection fails on invalid AI output | 3.4 | `test_extract_json_audit.py` (21 tests) | JSON-repair regression |
+| P2-1 | Selection toolbar doesn't dismiss, blocks controls | 3.8 | `frontend/tests/browser/selection-toolbar.spec.ts` (17 tests); `frontend/tests/selection-ownership.spec.ts` (unit, no browser — added 2026-10-06) | Toolbar lifecycle assertions failing |
+| P2-2 | Plot hole detection fails on invalid AI output | 3.4 | `test_extract_json_audit.py` (21 tests); `test_reintroduction_guard_gaps.py` (JSON repair — added 2026-10-06) | JSON-repair regression |
 | P2-3 | Writing analytics page not scrollable | 3.9 | `frontend/tests/browser/analytics-scroll.spec.ts` | Scroll assertion failing |
 | P2-4 | Voice agent doesn't execute recognized actions | 3.6 | `test_voice_execution.py` (45 tests) | Action-execution assertions failing |
 | P2-5 | Voice agent reports success without verifying completion | 3.7 | `test_voice_execution.py`, `test_voice_unit.py` | Completion-verification assertions failing |
 | P2-6 | OCR module shows no upload interface | 3.10 | `frontend/tests/browser/ocr-panel.spec.ts` (5 tests) | Upload-control-visible assertion failing |
 | P2-7 | Notes module loads inconsistently | 3.11 | `frontend/tests/browser/notes-reliability.spec.ts` | Reliability assertions failing |
 | P2-8 | Story Bible hallucinates content outside the manuscript | 3.2, 3.3 | `test_story_bible_outcomes.py` (89 tests), `test_story_bible_quality.py` | Grounding/citation assertions failing |
-| P2-9 | Character recognition not synced with added profiles | 3.12 | `test_character_hint_sync.py`, `test_cast_hint_sync_integration.py` | Sync assertions failing |
+| P2-9 | Character recognition not synced with added profiles | 3.12 | `test_character_hint_sync.py`, `test_cast_hint_sync_integration.py`; `test_reintroduction_guard_gaps.py` (route wiring: create, rename, confirm-cast, promote — added 2026-10-06) | Sync assertions failing |
 | P2-10 | Notes/Threads duplicated across navigation | 8.8 | `frontend/tests/tool-homes.spec.ts` ("Notes and Narrative Threads are no longer duplicated"), `frontend/tests/studio/navigation.spec.ts` — *updated 2026-09-27 (Stage 9 task 9.2); fixed in Stage 8, on `main` since PR #5* | A tool registered in two workspace homes |
-| P2-11 | Floating toolbar appears when AI sidebar is open | 3.8 | `frontend/tests/browser/selection-toolbar.spec.ts` | Same suite as P2-1 |
-| P2-12 | Scene outline generation produces nothing | 3.1 | `test_generation_limits.py` (schema-mismatch regression — the `beats`/`outline` field bug) | Schema-contract assertion failing |
-| P2-13 | Chapter continuation generation fails | 3.1 | `test_generation_limits.py` (token-budget regression) | Token-budget assertion failing |
-| P2-14 | Continuity analysis not functional | 3.4 | `test_extract_json_audit.py`, `test_continuity_citation_validation.py` | JSON-repair + citation assertions failing |
+| P2-11 | Floating toolbar appears when AI sidebar is open | 3.8 | `frontend/tests/browser/selection-toolbar.spec.ts`; `frontend/tests/selection-ownership.spec.ts` (unit — added 2026-10-06) | Same suite as P2-1 |
+| P2-12 | Scene outline generation produces nothing | 3.1 | `test_generation_limits.py` (schema-mismatch regression — the `beats`/`outline` field bug); `test_retrieval_signatures.py`, `test_model_call_contract.py` (the PRE-1 call-signature root cause — added 2026-10-06) | Schema-contract assertion failing |
+| P2-13 | Chapter continuation generation fails | 3.1 | `test_generation_limits.py` (token-budget regression); `test_retrieval_signatures.py`, `test_model_call_contract.py` (PRE-1 root cause — added 2026-10-06) | Token-budget assertion failing |
+| P2-14 | Continuity analysis not functional | 3.4 | `test_extract_json_audit.py`, `test_continuity_citation_validation.py`; `test_reintroduction_guard_gaps.py` (unreadable output → degraded, never a clean result — added 2026-10-06) | JSON-repair + citation assertions failing |
 
 ## Stage 5 — Phase 1 AI Generation Quality (16 tasks, task-level)
 
@@ -75,6 +75,14 @@ is a reasonable, explicitly-flagged follow-up, not silently dropped.
 | 5.14 | Story audit / continuity | `test_continuity_citation_validation.py` (15 tests), `test_manuscript_report_citations.py` (16 tests) |
 | 5.15 | Writing analytics transparency | `test_analytics_service.py` (22 tests) |
 | 5.16 | Re-measurement | `tests/measure_transform_golden_set.py`'s full report |
+
+## Defect reintroduction proof (6.6 verification, 2026-10-06)
+
+`docs/testing/stage-12/stage-12.3/defect-reintroduction/README.md`: every Phase 2 issue with a deterministic guard
+and every Stage 5 task with a suite test was reintroduced one at a time (19 primary mutations + 2 supplementary):
+all turned their mapped tests red and green again on restore. Four probes found guard gaps; three were closed by
+`backend/tests/test_reintroduction_guard_gaps.py` (each proven red against its probe patch) and one was a mapping
+gap (P2-12/13 rows above). The five live-browser items are prepared, not yet run (see that README).
 
 ## How to keep this current
 

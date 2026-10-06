@@ -1,0 +1,332 @@
+====================================================================================================
+P2-02-plot-hole-coercion (P2-2) — backend/services/ai_service.py
+  mutation: coerce_plot_hole_result made all-or-nothing again: one malformed finding (non-object or no description) discards the whole response instead of salvaging the usable findings (pre-3.4 hard-fail on invalid AI output)
+  mapped tests: tests/test_extract_json_audit.py 
+  [baseline] exit=0 (9.1s) :: 21 passed in 7.47s
+  [mutated] exit=1 (8.9s) :: 1 failed, 20 passed in 7.55s
+      FAILED tests/test_extract_json_audit.py::test_parser_metrics_record_each_outcome - IndexError: pop from empty list
+  restored: git checkout -- backend/services/ai_service.py; git diff --quiet -> clean
+  [restored] exit=0 (8.9s) :: 21 passed in 7.41s
+  VERDICT: RED AS EXPECTED
+====================================================================================================
+P2-02b-extract-json-repair (P2-2) — backend/services/ai_service.py
+  mutation: _extract_json JSON-repair step broken: the balanced-brace span extraction (JSON embedded in prose / after a preamble) is removed, so only bare or fenced JSON parses
+  mapped tests: tests/test_extract_json_audit.py 
+  [baseline] exit=0 (9.2s) :: 21 passed in 7.72s
+  [mutated] exit=0 (9.0s) :: 21 passed in 7.57s
+  [mutated-probe0] exit=0 (7.6s) :: 49 passed in 6.08s
+  restored: git checkout -- backend/services/ai_service.py; git diff --quiet -> clean
+  [restored] exit=0 (8.9s) :: 21 passed in 7.41s
+  VERDICT: GUARD GAP (mapped tests stayed green)
+====================================================================================================
+P2-04-voice-intent-silent-guess (P2-4) — backend/services/voice/intent.py
+  mutation: voice intent.classify reverted to the pre-3.6 silent fallback: raw _complete + _extract_json(raw, fallback={}) so an unreadable classification becomes a repaired guess at confidence 0.4 instead of an honest failure
+  mapped tests: tests/test_voice_execution.py 
+  [baseline] exit=0 (1.6s) :: 45 passed in 0.78s
+  [mutated] exit=1 (1.5s) :: 1 failed, 44 passed in 0.79s
+      FAILED tests/test_voice_execution.py::test_unreadable_classification_fails_honestly_instead_of_guessing - AssertionError: the silent-fallback is the defect
+  restored: git checkout -- backend/services/voice/intent.py; git diff --quiet -> clean
+  [restored] exit=0 (1.5s) :: 45 passed in 0.76s
+  VERDICT: RED AS EXPECTED
+====================================================================================================
+P2-05-voice-false-success (P2-5) — backend/services/voice/lifecycle.py
+  mutation: derive_command_status reports a dispatched-but-unexecuted plan (READY/PLANNED nodes) as SUCCEEDED — the original 'success at plan time' defect
+  mapped tests: tests/test_voice_execution.py tests/test_voice_unit.py 
+  [baseline] exit=0 (10.4s) :: 80 passed in 8.51s
+  [mutated] exit=1 (9.9s) :: 1 failed, 79 passed in 8.25s
+      FAILED tests/test_voice_execution.py::test_a_plan_that_has_only_been_dispatched_is_not_success - AssertionError: assert 'succeeded' == 'executing'
+  restored: git checkout -- backend/services/voice/lifecycle.py; git diff --quiet -> clean
+  [restored] exit=0 (10.6s) :: 80 passed in 8.79s
+  VERDICT: RED AS EXPECTED
+====================================================================================================
+P2-08-bible-status-integrity (P2-8) — backend/routers/story_bible.py
+  mutation: derive_status returns STATUS_COMPLETED unconditionally (pre-3.2): a bible whose sections failed/were truncated/empty still reports 'completed'
+  mapped tests: tests/test_story_bible_outcomes.py tests/test_story_bible_quality.py --deselect tests/test_story_bible_quality.py::test_carried_item_never_reported_as_physical_description_end_to_end --deselect tests/test_story_bible_quality.py::test_no_invented_physical_detail_on_manuscript_a --deselect tests/test_story_bible_quality.py::test_no_invented_physical_detail_on_manuscript_b
+  [baseline] exit=1 (14.1s) :: 1 failed, 97 passed, 2 errors in 12.12s
+      FAILED tests/test_story_bible_quality.py::test_carried_item_never_reported_as_physical_description_end_to_end - sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) connection to server at "localhost" (::1), port
+      ERROR tests/test_story_bible_quality.py::test_no_invented_physical_detail_on_manuscript_a - sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) connection to server at "localhost" (::1), port 5432 failed: FATAL:
+      ERROR tests/test_story_bible_quality.py::test_no_invented_physical_detail_on_manuscript_b - sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) connection to server at "localhost" (::1), port 5432 failed: FATAL:
+  [mutated] exit=1 (13.8s) :: 15 failed, 83 passed, 2 errors in 12.11s
+      ERROR    routers.story_bible:story_bible.py:671 [story_bible] section regeneration failed for s1/themes: context assembly failed
+      FAILED tests/test_story_bible_outcomes.py::test_status_is_failed_when_every_section_fails - AssertionError: assert 'completed' == 'failed'
+      FAILED tests/test_story_bible_outcomes.py::test_status_is_partial_when_some_sections_fail - AssertionError: assert 'completed' == 'partial'
+      FAILED tests/test_story_bible_outcomes.py::test_truncated_section_downgrades_status_to_partial - AssertionError: assert 'completed' == 'partial'
+      FAILED tests/test_story_bible_outcomes.py::test_empty_section_downgrades_status_to_partial - AssertionError: assert 'completed' == 'partial'
+      FAILED tests/test_story_bible_outcomes.py::test_every_failure_class_prevents_completed - AssertionError: AIServiceUnavailableError('AI services temporarily unavailable')
+      FAILED tests/test_story_bible_outcomes.py::test_derive_status_treats_no_outcomes_as_failed - AssertionError: assert 'completed' == 'failed'
+      FAILED tests/test_story_bible_outcomes.py::test_failed_sections_lists_all_five_when_everything_fails - AssertionError: assert 'completed' == 'failed'
+      FAILED tests/test_story_bible_outcomes.py::test_successful_regeneration_clears_stale_failures - AssertionError: assert 'completed' == 'partial'
+      FAILED tests/test_story_bible_outcomes.py::test_failed_sections_are_absent_from_content - AssertionError: assert 'completed' == 'partial'
+      FAILED tests/test_story_bible_outcomes.py::test_truncated_section_text_is_dropped - AssertionError: assert 'completed' == 'partial'
+      FAILED tests/test_story_bible_outcomes.py::test_total_failure_stores_no_content_at_all - AssertionError: assert 'completed' == 'failed'
+      FAILED tests/test_story_bible_outcomes.py::test_repairing_one_of_several_leaves_the_bible_partial - AssertionError: assert 'completed' == 'partial'
+      FAILED tests/test_story_bible_outcomes.py::test_failed_repair_keeps_the_entry_and_stores_no_content - AssertionError: assert 'completed' == 'partial'
+      FAILED tests/test_story_bible_outcomes.py::test_failed_section_repair_restores_status_instead_of_failing_the_bible - AssertionError: a failed repair must not fail the whole bible
+      FAILED tests/test_story_bible_quality.py::test_carried_item_never_reported_as_physical_description_end_to_end - sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) connection to server at "localhost" (::1), port
+      ERROR tests/test_story_bible_quality.py::test_no_invented_physical_detail_on_manuscript_a - sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) connection to server at "localhost" (::1), port 5432 failed: FATAL:
+      ERROR tests/test_story_bible_quality.py::test_no_invented_physical_detail_on_manuscript_b - sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) connection to server at "localhost" (::1), port 5432 failed: FATAL:
+  restored: git checkout -- backend/routers/story_bible.py; git diff --quiet -> clean
+  [restored] exit=1 (13.8s) :: 1 failed, 97 passed, 2 errors in 12.04s
+      FAILED tests/test_story_bible_quality.py::test_carried_item_never_reported_as_physical_description_end_to_end - sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) connection to server at "localhost" (::1), port
+      ERROR tests/test_story_bible_quality.py::test_no_invented_physical_detail_on_manuscript_a - sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) connection to server at "localhost" (::1), port 5432 failed: FATAL:
+      ERROR tests/test_story_bible_quality.py::test_no_invented_physical_detail_on_manuscript_b - sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) connection to server at "localhost" (::1), port 5432 failed: FATAL:
+  VERDICT: INCONCLUSIVE
+====================================================================================================
+P2-08b-bible-grounding-rules (P2-8) — backend/services/ai_service.py
+  mutation: generate_story_bible_section grounding rules removed (pre-3.3): no 'cite the source tag' rule, no BIBLE_NOT_ESTABLISHED way to decline, no 'never state anything you cannot attribute' — only the bare 'do not invent' instruction that produced the hallucinated bible
+  mapped tests: tests/test_story_bible_outcomes.py tests/test_story_bible_quality.py --deselect tests/test_story_bible_quality.py::test_carried_item_never_reported_as_physical_description_end_to_end --deselect tests/test_story_bible_quality.py::test_no_invented_physical_detail_on_manuscript_a --deselect tests/test_story_bible_quality.py::test_no_invented_physical_detail_on_manuscript_b
+  [baseline] exit=1 (13.7s) :: 1 failed, 97 passed, 2 errors in 11.92s
+      FAILED tests/test_story_bible_quality.py::test_carried_item_never_reported_as_physical_description_end_to_end - sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) connection to server at "localhost" (::1), port
+      ERROR tests/test_story_bible_quality.py::test_no_invented_physical_detail_on_manuscript_a - sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) connection to server at "localhost" (::1), port 5432 failed: FATAL:
+      ERROR tests/test_story_bible_quality.py::test_no_invented_physical_detail_on_manuscript_b - sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) connection to server at "localhost" (::1), port 5432 failed: FATAL:
+  [mutated] exit=1 (13.2s) :: 2 failed, 96 passed, 2 errors in 11.51s
+      FAILED tests/test_story_bible_outcomes.py::test_prompt_requires_citation_and_offers_a_way_to_decline - assert 'Cite the source tag for every factual statement' in 'async def generate_story_bible_section(\n    section: st
+      FAILED tests/test_story_bible_quality.py::test_carried_item_never_reported_as_physical_description_end_to_end - sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) connection to server at "localhost" (::1), port
+      ERROR tests/test_story_bible_quality.py::test_no_invented_physical_detail_on_manuscript_a - sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) connection to server at "localhost" (::1), port 5432 failed: FATAL:
+      ERROR tests/test_story_bible_quality.py::test_no_invented_physical_detail_on_manuscript_b - sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) connection to server at "localhost" (::1), port 5432 failed: FATAL:
+  restored: git checkout -- backend/services/ai_service.py; git diff --quiet -> clean
+  [restored] exit=1 (14.4s) :: 1 failed, 97 passed, 2 errors in 12.46s
+      FAILED tests/test_story_bible_quality.py::test_carried_item_never_reported_as_physical_description_end_to_end - sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) connection to server at "localhost" (::1), port
+      ERROR tests/test_story_bible_quality.py::test_no_invented_physical_detail_on_manuscript_a - sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) connection to server at "localhost" (::1), port 5432 failed: FATAL:
+      ERROR tests/test_story_bible_quality.py::test_no_invented_physical_detail_on_manuscript_b - sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) connection to server at "localhost" (::1), port 5432 failed: FATAL:
+  VERDICT: INCONCLUSIVE
+====================================================================================================
+P2-09-hint-reconcile-noop (P2-9) — backend/services/character_names.py
+  mutation: resolve_hints_for_names made a no-op: registering/confirming a character never dismisses the matching unrecognised-name hint (the original 'nothing made that decision' defect)
+  mapped tests: tests/test_character_hint_sync.py 
+  [baseline] exit=0 (0.8s) :: 17 passed in 0.15s
+  [mutated] exit=1 (0.8s) :: 7 failed, 10 passed in 0.22s
+      FAILED tests/test_character_hint_sync.py::test_exact_name_match_dismisses_the_hint - assert 0 == 1
+      FAILED tests/test_character_hint_sync.py::test_case_insensitive_match_dismisses_the_hint - assert False is True
+      FAILED tests/test_character_hint_sync.py::test_whitespace_normalised_match_dismisses_the_hint - assert False is True
+      FAILED tests/test_character_hint_sync.py::test_alias_match_dismisses_the_hint - assert False is True
+      FAILED tests/test_character_hint_sync.py::test_every_hint_for_the_same_name_is_resolved_at_once - assert 0 == 2
+      FAILED tests/test_character_hint_sync.py::test_a_batch_of_names_resolves_all_of_them - assert 0 == 2
+      FAILED tests/test_character_hint_sync.py::test_creation_and_reconciliation_share_one_normalisation - assert False is True
+  restored: git checkout -- backend/services/character_names.py; git diff --quiet -> clean
+  [restored] exit=0 (0.8s) :: 17 passed in 0.15s
+  VERDICT: RED AS EXPECTED
+====================================================================================================
+P2-09b-create-character-wiring (P2-9) — backend/routers/characters.py
+  mutation: create_character no longer calls resolve_hints_for_names (router wiring removed; service left intact) — a hand-added character stays in the unrecognised list
+  mapped tests: tests/test_character_hint_sync.py 
+  [baseline] exit=0 (0.8s) :: 17 passed in 0.14s
+  [mutated] exit=0 (0.8s) :: 17 passed in 0.14s
+  restored: git checkout -- backend/routers/characters.py; git diff --quiet -> clean
+  [restored] exit=0 (0.8s) :: 17 passed in 0.14s
+  VERDICT: GUARD GAP (mapped tests stayed green)
+====================================================================================================
+P2-12-outline-beats-field (P2-12) — frontend/components/ai-tools/AIToolsSidebar.tsx
+  mutation: scene-outline UI reads res.data.beats again (backend returns `outline`) — outline renders nothing
+  mapped tests: tests/test_generation_limits.py 
+  [baseline] exit=0 (7.2s) :: 24 passed in 5.67s
+  [mutated] exit=1 (7.3s) :: 1 failed, 23 passed in 5.79s
+      FAILED tests/test_generation_limits.py::test_frontend_reads_outline_not_beats - AssertionError: frontend no longer reads res.data.outline
+  restored: git checkout -- frontend/components/ai-tools/AIToolsSidebar.tsx; git diff --quiet -> clean
+  [restored] exit=0 (7.0s) :: 24 passed in 5.67s
+  VERDICT: RED AS EXPECTED
+====================================================================================================
+P2-12b-retrieval-query-kwarg (P2-12/P2-13) — backend/routers/writing_tools.py
+  mutation: PRE-1 root cause restored: writing_tools calls retrieve_relevant_chunks(query=...) instead of question= (TypeError at runtime -> outline/continuation fail)
+  mapped tests: tests/test_generation_limits.py 
+  [baseline] exit=0 (7.0s) :: 24 passed in 5.48s
+
+### NOTE: first P2-08/P2-08b attempt above used --deselect, which did not deselect the 3 DB-backed tests (no DB on this pod) -> INCONCLUSIVE; re-run below with -k. First P2-12b attempt aborted before applying (anchor not unique); worktree untouched. ###
+====================================================================================================
+P2-08-bible-status-integrity (P2-8) — backend/routers/story_bible.py
+  mutation: derive_status returns STATUS_COMPLETED unconditionally (pre-3.2): a bible whose sections failed/were truncated/empty still reports 'completed'
+  mapped tests: tests/test_story_bible_outcomes.py tests/test_story_bible_quality.py -k not end_to_end and not manuscript_a and not manuscript_b
+  [baseline] exit=0 (11.4s) :: 97 passed, 3 deselected in 9.67s
+  [mutated] exit=1 (11.8s) :: 14 failed, 83 passed, 3 deselected in 10.11s
+      ERROR    routers.story_bible:story_bible.py:671 [story_bible] section regeneration failed for s1/themes: context assembly failed
+      FAILED tests/test_story_bible_outcomes.py::test_status_is_failed_when_every_section_fails - AssertionError: assert 'completed' == 'failed'
+      FAILED tests/test_story_bible_outcomes.py::test_status_is_partial_when_some_sections_fail - AssertionError: assert 'completed' == 'partial'
+      FAILED tests/test_story_bible_outcomes.py::test_truncated_section_downgrades_status_to_partial - AssertionError: assert 'completed' == 'partial'
+      FAILED tests/test_story_bible_outcomes.py::test_empty_section_downgrades_status_to_partial - AssertionError: assert 'completed' == 'partial'
+      FAILED tests/test_story_bible_outcomes.py::test_every_failure_class_prevents_completed - AssertionError: AIServiceUnavailableError('AI services temporarily unavailable')
+      FAILED tests/test_story_bible_outcomes.py::test_derive_status_treats_no_outcomes_as_failed - AssertionError: assert 'completed' == 'failed'
+      FAILED tests/test_story_bible_outcomes.py::test_failed_sections_lists_all_five_when_everything_fails - AssertionError: assert 'completed' == 'failed'
+      FAILED tests/test_story_bible_outcomes.py::test_successful_regeneration_clears_stale_failures - AssertionError: assert 'completed' == 'partial'
+      FAILED tests/test_story_bible_outcomes.py::test_failed_sections_are_absent_from_content - AssertionError: assert 'completed' == 'partial'
+      FAILED tests/test_story_bible_outcomes.py::test_truncated_section_text_is_dropped - AssertionError: assert 'completed' == 'partial'
+      FAILED tests/test_story_bible_outcomes.py::test_total_failure_stores_no_content_at_all - AssertionError: assert 'completed' == 'failed'
+      FAILED tests/test_story_bible_outcomes.py::test_repairing_one_of_several_leaves_the_bible_partial - AssertionError: assert 'completed' == 'partial'
+      FAILED tests/test_story_bible_outcomes.py::test_failed_repair_keeps_the_entry_and_stores_no_content - AssertionError: assert 'completed' == 'partial'
+      FAILED tests/test_story_bible_outcomes.py::test_failed_section_repair_restores_status_instead_of_failing_the_bible - AssertionError: a failed repair must not fail the whole bible
+  restored: git checkout -- backend/routers/story_bible.py; git diff --quiet -> clean
+  [restored] exit=0 (11.8s) :: 97 passed, 3 deselected in 9.93s
+  VERDICT: RED AS EXPECTED
+====================================================================================================
+P2-08b-bible-grounding-rules (P2-8) — backend/services/ai_service.py
+  mutation: generate_story_bible_section grounding rules removed (pre-3.3): no 'cite the source tag' rule, no BIBLE_NOT_ESTABLISHED way to decline, no 'never state anything you cannot attribute' — only the bare 'do not invent' instruction that produced the hallucinated bible
+  mapped tests: tests/test_story_bible_outcomes.py tests/test_story_bible_quality.py -k not end_to_end and not manuscript_a and not manuscript_b
+  [baseline] exit=0 (11.4s) :: 97 passed, 3 deselected in 9.84s
+  [mutated] exit=1 (11.3s) :: 1 failed, 96 passed, 3 deselected in 9.69s
+      FAILED tests/test_story_bible_outcomes.py::test_prompt_requires_citation_and_offers_a_way_to_decline - assert 'Cite the source tag for every factual statement' in 'async def generate_story_bible_section(\n    section: st
+  restored: git checkout -- backend/services/ai_service.py; git diff --quiet -> clean
+  [restored] exit=0 (11.4s) :: 97 passed, 3 deselected in 9.83s
+  VERDICT: RED AS EXPECTED
+====================================================================================================
+P2-12b-retrieval-query-kwarg (P2-12/P2-13) — backend/routers/writing_tools.py
+  mutation: PRE-1 root cause restored: writing_tools calls retrieve_relevant_chunks(query=...) instead of question= (TypeError at runtime -> outline/continuation fail)
+  mapped tests: tests/test_generation_limits.py 
+  [baseline] exit=0 (7.6s) :: 24 passed in 5.88s
+  [mutated] exit=0 (6.8s) :: 24 passed in 5.21s
+  [mutated-probe0] exit=1 (7.8s) :: 1 failed, 17 passed in 5.97s
+      FAILED tests/test_retrieval_signatures.py::test_continuation_passes_question_and_story_id - KeyError: 'question'
+  restored: git checkout -- backend/routers/writing_tools.py; git diff --quiet -> clean
+  [restored] exit=0 (7.0s) :: 24 passed in 5.32s
+  VERDICT: GUARD GAP (mapped tests stayed green)
+====================================================================================================
+P2-13-continuation-token-budget (P2-13) — backend/services/ai_service.py
+  mutation: continuation max_tokens fixed at 1600 regardless of requested length (pre-3.1) — Long truncates
+  mapped tests: tests/test_generation_limits.py 
+  [baseline] exit=0 (7.0s) :: 24 passed in 5.55s
+  [mutated] exit=1 (7.0s) :: 2 failed, 22 passed in 5.62s
+      FAILED tests/test_generation_limits.py::test_max_tokens_scales_with_continuation_length - AssertionError: (1600, 1600, 1600)
+      FAILED tests/test_generation_limits.py::test_long_budget_clears_the_measured_truncation_point - AssertionError: long budget 1600 leaves too little headroom over the measured 1600
+  restored: git checkout -- backend/services/ai_service.py; git diff --quiet -> clean
+  [restored] exit=0 (6.9s) :: 24 passed in 5.54s
+  VERDICT: RED AS EXPECTED
+====================================================================================================
+P2-14-continuity-silent-all-clear (P2-14) — backend/services/ai_service.py
+  mutation: check_continuity reverted to raw _complete + _extract_json(raw, fallback=[]) — unreadable model output becomes an empty list, i.e. a false 'no contradictions found'
+  mapped tests: tests/test_extract_json_audit.py tests/test_continuity_citation_validation.py 
+  [baseline] exit=0 (8.5s) :: 36 passed in 7.01s
+  [mutated] exit=1 (8.4s) :: 1 failed, 35 passed in 6.64s
+      FAILED tests/test_extract_json_audit.py::test_no_new_direct_extract_json_callers - AssertionError: unregistered _extract_json caller(s): ['check_continuity'] — use complete_structured(), or add a justified row to REGISTE
+  restored: git checkout -- backend/services/ai_service.py; git diff --quiet -> clean
+  [restored] exit=0 (9.7s) :: 36 passed in 7.62s
+  VERDICT: RED AS EXPECTED
+====================================================================================================
+P2-14b-continuity-failure-not-flagged (P2-14) — backend/services/ai_service.py
+  mutation: check_continuity keeps the structured contract but reports an unreadable response as a clean, non-degraded empty result (false all-clear via the meta instead of via the parser)
+  mapped tests: tests/test_extract_json_audit.py tests/test_continuity_citation_validation.py 
+  [baseline] exit=0 (10.6s) :: 36 passed in 8.48s
+  [mutated] exit=0 (9.7s) :: 36 passed in 7.93s
+  [mutated-probe0] exit=0 (7.1s) :: 25 passed in 5.72s
+  restored: git checkout -- backend/services/ai_service.py; git diff --quiet -> clean
+  [restored] exit=0 (8.4s) :: 36 passed in 6.81s
+  VERDICT: GUARD GAP (mapped tests stayed green)
+====================================================================================================
+S5-5.1-version-label-only (Stage 5 task 5.1) — backend/services/prompt_registry.py
+  mutation: resolve_prompt_version always runs the fallback's builder but reports the requested version — the version becomes a logged label, not actual prompt content
+  mapped tests: tests/test_prompt_registry.py 
+  [baseline] exit=0 (0.6s) :: 9 passed in 0.04s
+  [mutated] exit=1 (0.7s) :: 2 failed, 7 passed in 0.07s
+      FAILED tests/test_prompt_registry.py::test_selecting_a_version_actually_changes_the_builder_not_just_a_label - AssertionError: assert 'You are a literary writing coach. Rewrite the passage in a dark tone. Keep all events
+      FAILED tests/test_prompt_registry.py::test_unknown_version_fails_safe_to_the_configured_fallback - AssertionError: an unknown version must resolve to the real fallback, not itself
+  restored: git checkout -- backend/services/prompt_registry.py; git diff --quiet -> clean
+  [restored] exit=0 (0.6s) :: 9 passed in 0.05s
+  VERDICT: RED AS EXPECTED
+====================================================================================================
+S5-5.3-name-preservation-check (Stage 5 task 5.3) — backend/services/transform_preservation.py
+  mutation: check_character_name_preservation never reports a dropped character name (the deterministic preservation check is neutralised, so the repair-retry never fires)
+  mapped tests: tests/test_transform_preservation.py 
+  [baseline] exit=0 (6.8s) :: 27 passed in 5.34s
+  [mutated] exit=1 (7.0s) :: 3 failed, 24 passed in 5.58s
+      FAILED tests/test_transform_preservation.py::test_check_character_name_preservation_detects_a_dropped_name - AssertionError: assert [] == ['Devika']
+      FAILED tests/test_transform_preservation.py::test_run_constrained_transform_repairs_a_dropped_name_and_clears_the_violation - AssertionError: must retry exactly once on a detected violation, not zero or more than once
+      FAILED tests/test_transform_preservation.py::test_run_constrained_transform_reports_violation_when_retry_also_fails - AssertionError: retry is bounded to exactly one attempt, never looped further
+  restored: git checkout -- backend/services/transform_preservation.py; git diff --quiet -> clean
+  [restored] exit=0 (6.8s) :: 27 passed in 5.22s
+  VERDICT: RED AS EXPECTED
+====================================================================================================
+S5-5.4-lock-byte-identity (Stage 5 task 5.4) — backend/services/transform_preservation.py
+  mutation: reconstruct_with_locks trusts the model's echo of each [KEEP] segment instead of splicing the original captured bytes — locked sentences can be silently rewritten
+  mapped tests: tests/test_transform_preservation.py 
+  [baseline] exit=0 (7.2s) :: 27 passed in 5.65s
+  [mutated] exit=1 (7.4s) :: 1 failed, 26 passed in 5.50s
+      FAILED tests/test_transform_preservation.py::test_reconstruct_splices_original_bytes_for_locked_segments_never_model_echo - AssertionError: assert 'zzz XXX yyy' == 'zzz BBB yyy'
+  restored: git checkout -- backend/services/transform_preservation.py; git diff --quiet -> clean
+  [restored] exit=0 (7.2s) :: 27 passed in 5.55s
+  VERDICT: RED AS EXPECTED
+====================================================================================================
+S5-5.6-strength-proxy (Stage 5 task 5.6) — backend/services/transform_preservation.py
+  mutation: check_strength_violation never flags a 'light' edit, whatever the sentence-count change (strength control has no deterministic ceiling)
+  mapped tests: tests/test_transform_preservation.py 
+  [baseline] exit=0 (6.4s) :: 27 passed in 4.99s
+  [mutated] exit=1 (6.6s) :: 1 failed, 26 passed in 5.14s
+      FAILED tests/test_transform_preservation.py::test_light_strength_flags_sentence_count_change - AssertionError: assert False is True
+  restored: git checkout -- backend/services/transform_preservation.py; git diff --quiet -> clean
+  [restored] exit=0 (6.6s) :: 27 passed in 5.06s
+  VERDICT: RED AS EXPECTED
+====================================================================================================
+S5-5.11-glossary-consistency (Stage 5 task 5.11) — backend/services/transform_preservation.py
+  mutation: check_translation_name_consistency ignores the glossary: a name correctly transliterated per the approved glossary is flagged missing (byte-identity semantics wrongly applied to translation)
+  mapped tests: tests/test_transform_preservation.py 
+  [baseline] exit=0 (6.5s) :: 27 passed in 5.01s
+  [mutated] exit=1 (6.8s) :: 1 failed, 26 passed in 5.23s
+      FAILED tests/test_transform_preservation.py::test_translation_name_transliterated_per_glossary_is_not_a_violation - AssertionError: assert ['Devika'] == []
+  restored: git checkout -- backend/services/transform_preservation.py; git diff --quiet -> clean
+  [restored] exit=0 (7.4s) :: 27 passed in 5.92s
+  VERDICT: RED AS EXPECTED
+====================================================================================================
+S5-5.13-priority-sort (Stage 5 task 5.13) — backend/services/ai_service.py
+  mutation: coerce_writing_suggestions no longer orders suggestions high > medium > low (model's arbitrary order returned)
+  mapped tests: tests/test_suggestions_priority.py 
+  [baseline] exit=0 (7.3s) :: 11 passed in 5.69s
+  [mutated] exit=1 (6.8s) :: 1 failed, 10 passed in 5.22s
+      FAILED tests/test_suggestions_priority.py::test_suggestions_sorted_high_before_medium_before_low - assert [1, 2, 3] == [2, 3, 1]
+  restored: git checkout -- backend/services/ai_service.py; git diff --quiet -> clean
+  [restored] exit=0 (7.5s) :: 11 passed in 5.92s
+  VERDICT: RED AS EXPECTED
+====================================================================================================
+S5-5.14-continuity-tier1 (Stage 5 task 5.14) — backend/services/ai_service.py
+  mutation: validate_continuity_citations Tier-1 existence check removed: findings citing fabricated / out-of-range chapters are kept
+  mapped tests: tests/test_continuity_citation_validation.py tests/test_manuscript_report_citations.py 
+  [baseline] exit=0 (6.8s) :: 31 passed in 5.41s
+  [mutated] exit=1 (8.0s) :: 2 failed, 29 passed in 6.27s
+      FAILED tests/test_continuity_citation_validation.py::test_fabricated_out_of_range_chapter_is_suppressed - AssertionError: assert [{'chapter_re...es at once.'}] == []
+      FAILED tests/test_continuity_citation_validation.py::test_partially_fabricated_ref_set_is_suppressed - AssertionError: assert [{'chapter_re...iption': 'x'}] == []
+  restored: git checkout -- backend/services/ai_service.py; git diff --quiet -> clean
+  [restored] exit=0 (7.6s) :: 31 passed in 5.88s
+  VERDICT: RED AS EXPECTED
+====================================================================================================
+S5-5.14b-report-citations (Stage 5 task 5.14) — backend/services/ai_service.py
+  mutation: validate_manuscript_report_citations._valid accepts every chapter reference, so fabricated chapters survive in arcs/pacing/threads/strengths/improvements/themes
+  mapped tests: tests/test_continuity_citation_validation.py tests/test_manuscript_report_citations.py 
+  [baseline] exit=0 (7.9s) :: 31 passed in 6.01s
+  [mutated] exit=1 (7.8s) :: 7 failed, 24 passed in 6.19s
+      FAILED tests/test_manuscript_report_citations.py::test_character_arc_with_partially_fabricated_chapters_keeps_only_real_ones - assert [1, 99] == [1]
+      FAILED tests/test_manuscript_report_citations.py::test_character_arc_with_entirely_fabricated_chapters_is_suppressed - assert 0 == 1
+      FAILED tests/test_manuscript_report_citations.py::test_pacing_chapters_are_filtered_to_real_ones - assert [2, 50] == [2]
+      FAILED tests/test_manuscript_report_citations.py::test_thread_entirely_fabricated_is_suppressed - assert 0 == 1
+      FAILED tests/test_manuscript_report_citations.py::test_strength_with_no_valid_chapters_is_suppressed - assert 0 == 1
+      FAILED tests/test_manuscript_report_citations.py::test_theme_with_fabricated_chapters_only_is_suppressed - assert 0 == 1
+      FAILED tests/test_manuscript_report_citations.py::test_mixed_report_false_positive_and_false_negative_count - AssertionError: assert (2 == 1)
+  restored: git checkout -- backend/services/ai_service.py; git diff --quiet -> clean
+  [restored] exit=0 (7.4s) :: 31 passed in 5.76s
+  VERDICT: RED AS EXPECTED
+====================================================================================================
+S5-5.15-syllable-count (Stage 5 task 5.15) — backend/services/analytics_service.py
+  mutation: _count_syllables back to vowel-LETTER counting (old frontend regex): 'queue' scores 4, skewing readability
+  mapped tests: tests/test_analytics_service.py 
+  [baseline] exit=0 (0.6s) :: 22 passed in 0.05s
+  [mutated] exit=1 (0.7s) :: 1 failed, 21 passed in 0.08s
+      FAILED tests/test_analytics_service.py::test_queue_scores_one_syllable_not_four - AssertionError: assert 3 == 1
+  restored: git checkout -- backend/services/analytics_service.py; git diff --quiet -> clean
+  [restored] exit=0 (0.7s) :: 22 passed in 0.06s
+  VERDICT: RED AS EXPECTED
+====================================================================================================
+P2-10-notes-duplicated-in-plan (P2-10) — frontend/app/(dashboard)/projects/[id]/plan/page.tsx
+  mutation: Notes re-mounted as a 'Notes' section of the Plan workspace (it also lives in World) — the pre-8.8 duplicated-across-navigation state
+  mapped tests: tests/tool-homes.spec.ts 
+  [baseline] exit=0 (3.3s) :: 8 passed (2.1s)
+  [mutated] exit=1 (3.4s) :: 2 failed | 6 passed (2.1s)
+      1) [unit] › tests/tool-homes.spec.ts:17:5 › Plan and World pages offer exactly the registered sections
+      2) [unit] › tests/tool-homes.spec.ts:22:5 › Notes and Narrative Threads are no longer duplicated (Phase 2 Issue 10)
+  restored: git checkout -- frontend/app/(dashboard)/projects/[id]/plan/page.tsx; git diff --quiet -> DIRTY
+
+### NOTE: first P2-10 run above went red as expected, but Playwright wrote its tracked frontend/test-results/.last-run.json, so the driver's clean-tree assertion stopped the run (source file had been restored; only the Playwright artefact differed). Artefact reverted; P2-10 re-run below with --output redirected to scratch. ###
+====================================================================================================
+P2-10-notes-duplicated-in-plan (P2-10) — frontend/app/(dashboard)/projects/[id]/plan/page.tsx
+  mutation: Notes re-mounted as a 'Notes' section of the Plan workspace (it also lives in World) — the pre-8.8 duplicated-across-navigation state
+  mapped tests: tests/tool-homes.spec.ts 
+  [baseline] exit=0 (3.6s) :: 8 passed (2.3s)
+  [mutated] exit=1 (3.3s) :: 2 failed | 6 passed (2.1s)
+      1) [unit] › tests/tool-homes.spec.ts:17:5 › Plan and World pages offer exactly the registered sections
+      2) [unit] › tests/tool-homes.spec.ts:22:5 › Notes and Narrative Threads are no longer duplicated (Phase 2 Issue 10)
+  restored: git checkout -- frontend/app/(dashboard)/projects/[id]/plan/page.tsx; git diff --quiet -> clean
+  [restored] exit=0 (3.2s) :: 8 passed (2.0s)
+  VERDICT: RED AS EXPECTED

@@ -1,0 +1,24 @@
+$ (cwd /workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/backend) python3 -m pytest tests/test_analytics_service.py -q -p no:cacheprovider -rfE --no-header -W ignore
+
+[conftest] DB safety guard: running against allow-listed test database 'narratiq_ci_verify'
+F.....................                                                                                                                                                                                                                                          [100%]
+============================================================================================================================== FAILURES ===============================================================================================================================
+_______________________________________________________________________________________________________________ test_queue_scores_one_syllable_not_four _______________________________________________________________________________________________________________
+
+    def test_queue_scores_one_syllable_not_four():
+        # The old frontend regex counted vowel LETTERS: q-u-e-u-e -> 4. A
+        # vowel-GROUP count treats the whole "ueue" run as one group -> 1.
+>       assert _count_syllables("queue") == 1
+E       AssertionError: assert 3 == 1
+E        +  where 3 = _count_syllables('queue')
+
+tests/test_analytics_service.py:32: AssertionError
+======================================================================================================================= short test summary info =======================================================================================================================
+FAILED tests/test_analytics_service.py::test_queue_scores_one_syllable_not_four - AssertionError: assert 3 == 1
+1 failed, 21 passed in 0.07s
+/workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/backend/database.py:38: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+  Base = declarative_base()
+/usr/local/lib/python3.11/dist-packages/pytest_asyncio/plugin.py:208: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))

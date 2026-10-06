@@ -1,0 +1,32 @@
+$ (cwd /workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/backend) python3 -m pytest tests/test_transform_preservation.py -q -p no:cacheprovider -rfE --no-header -W ignore
+
+[conftest] DB safety guard: running against allow-listed test database 'narratiq_ci_verify'
+..F........................                                                                                                                                                                                                                                     [100%]
+============================================================================================================================== FAILURES ===============================================================================================================================
+____________________________________________________________________________________________ test_reconstruct_splices_original_bytes_for_locked_segments_never_model_echo _____________________________________________________________________________________________
+
+    def test_reconstruct_splices_original_bytes_for_locked_segments_never_model_echo():
+        text = "AAA BBB CCC"
+        _, segments = mark_locked_segments(text, [{"start": 4, "end": 7}])
+        # Model's output claims to echo BBB as "XXX" inside [KEEP] — must be ignored;
+        # only the [REWRITE] contents are trusted, locked segments always come from
+        # the ORIGINAL captured text.
+        model_output = "[REWRITE]zzz [/REWRITE][KEEP]XXX[/KEEP][REWRITE] yyy[/REWRITE]"
+        reconstructed, shape_ok = reconstruct_with_locks(model_output, segments)
+        assert shape_ok is True
+>       assert reconstructed == "zzz BBB yyy"
+E       AssertionError: assert 'zzz XXX yyy' == 'zzz BBB yyy'
+E         
+E         - zzz BBB yyy
+E         + zzz XXX yyy
+
+tests/test_transform_preservation.py:100: AssertionError
+======================================================================================================================= short test summary info =======================================================================================================================
+FAILED tests/test_transform_preservation.py::test_reconstruct_splices_original_bytes_for_locked_segments_never_model_echo - AssertionError: assert 'zzz XXX yyy' == 'zzz BBB yyy'
+1 failed, 26 passed in 5.50s
+/workspace/Author_Narratiq/.claude/worktrees/agent-ab67cbede685e063d/backend/database.py:38: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+  Base = declarative_base()
+/usr/local/lib/python3.11/dist-packages/pytest_asyncio/plugin.py:208: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
